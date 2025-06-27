@@ -113,149 +113,140 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-white p-6">
+      <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <Heart className="w-20 h-20 mx-auto mb-4 text-pink-500" />
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Welcome to Mundo Tango! 💃</h1>
-          <p className="text-xl text-gray-600">Let's get you connected with the global tango community</p>
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-semibold text-gray-900 mb-3">Complete Your Profile</h1>
+          <p className="text-lg text-gray-600">Join the global tango community</p>
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
             
             {/* Nickname Section */}
-            <Card className="border-2 border-pink-200 shadow-lg">
-              <CardHeader className="text-center bg-gradient-to-r from-pink-100 to-rose-100">
-                <CardTitle className="flex items-center justify-center gap-3 text-2xl text-gray-800">
-                  <Heart className="w-8 h-8 text-pink-500" />
-                  Your Tango Nickname
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <FormField
-                  control={form.control}
-                  name="nickname"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-lg font-semibold text-gray-700">How should the community know you?</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter your tango nickname..."
-                          {...field}
-                          className="border-2 border-pink-200 focus:border-pink-500 rounded-xl text-lg p-4"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
+                <div className="w-8 h-8 bg-cyan-100 rounded-full flex items-center justify-center">
+                  <Heart className="w-4 h-4 text-cyan-600" />
+                </div>
+                <h2 className="text-xl font-medium text-gray-900">Nickname</h2>
+              </div>
+              <FormField
+                control={form.control}
+                name="nickname"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">How should the community know you?</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter your tango nickname"
+                        {...field}
+                        className="h-12 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 rounded-lg"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Languages Section */}
-            <Card className="border-2 border-cyan-200 shadow-lg">
-              <CardHeader className="text-center bg-gradient-to-r from-cyan-100 to-blue-100">
-                <CardTitle className="flex items-center justify-center gap-3 text-2xl text-gray-800">
-                  <Globe className="w-8 h-8 text-cyan-500" />
-                  What languages do you speak?
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <FormField
-                  control={form.control}
-                  name="languages"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-lg font-semibold text-gray-700">Help us connect you with the right community</FormLabel>
-                      <FormControl>
-                        <MultiSelect
-                          options={languages}
-                          selected={field.value}
-                          onChange={field.onChange}
-                          placeholder="Select languages you speak..."
-                          className="border-2 border-cyan-200 focus:border-cyan-500 rounded-xl"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Globe className="w-4 h-4 text-blue-600" />
+                </div>
+                <h2 className="text-xl font-medium text-gray-900">Languages</h2>
+              </div>
+              <FormField
+                control={form.control}
+                name="languages"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">What languages do you speak?</FormLabel>
+                    <FormControl>
+                      <MultiSelect
+                        options={languages}
+                        selected={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select languages"
+                        className="border-gray-200 focus:border-blue-500 rounded-lg"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Tango Roles Section */}
-            <Card className="border-2 border-teal-200 shadow-lg">
-              <CardHeader className="text-center bg-gradient-to-r from-teal-100 to-emerald-100">
-                <CardTitle className="flex items-center justify-center gap-3 text-2xl text-gray-800">
-                  <Users className="w-8 h-8 text-teal-500" />
-                  Your role in tango 🎭
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <FormField
-                  control={form.control}
-                  name="tangoRoles"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-lg font-semibold text-gray-700">What do you do in tango?</FormLabel>
-                      <FormControl>
-                        <MultiSelect
-                          options={tangoRoles}
-                          selected={field.value}
-                          onChange={field.onChange}
-                          placeholder="Select your tango activities..."
-                          className="border-2 border-teal-200 focus:border-teal-500 rounded-xl"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
+                <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
+                  <Users className="w-4 h-4 text-teal-600" />
+                </div>
+                <h2 className="text-xl font-medium text-gray-900">Tango Activities</h2>
+              </div>
+              <FormField
+                control={form.control}
+                name="tangoRoles"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">What do you do in tango?</FormLabel>
+                    <FormControl>
+                      <MultiSelect
+                        options={tangoRoles}
+                        selected={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select your roles"
+                        className="border-gray-200 focus:border-teal-500 rounded-lg"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Location Section */}
-            <Card className="border-2 border-blue-200 shadow-lg">
-              <CardHeader className="text-center bg-gradient-to-r from-blue-100 to-indigo-100">
-                <CardTitle className="flex items-center justify-center gap-3 text-2xl text-gray-800">
-                  <Sparkles className="w-8 h-8 text-blue-500" />
-                  Where are you dancing? 🌍
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-lg font-semibold text-gray-700">Help local dancers find you</FormLabel>
-                      <FormControl>
-                        <LocationPicker
-                          value={field.value}
-                          onChange={field.onChange}
-                          className="border-2 border-blue-200 focus:border-blue-500 rounded-xl"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
+                <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-indigo-600" />
+                </div>
+                <h2 className="text-xl font-medium text-gray-900">Location</h2>
+              </div>
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">Where are you dancing?</FormLabel>
+                    <FormControl>
+                      <LocationPicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        className="border-gray-200 focus:border-indigo-500 rounded-lg"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Submit Button */}
-            <div className="text-center pt-6">
+            <div className="pt-8">
               <Button
                 type="submit"
                 disabled={onboardingMutation.isPending}
-                className="bg-gradient-to-r from-pink-500 via-cyan-500 to-teal-500 hover:from-pink-600 hover:via-cyan-600 hover:to-teal-600 text-white px-12 py-4 text-xl font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className="w-full h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-200"
               >
                 {onboardingMutation.isPending ? (
-                  "Setting up your profile..."
+                  "Setting up profile..."
                 ) : (
-                  "Join the Tango Community 🎉"
+                  "Complete Profile"
                 )}
               </Button>
             </div>
