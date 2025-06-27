@@ -21,35 +21,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (token) {
       validateToken(token);
     } else {
-      // For demonstration purposes, auto-login with test user
-      autoLoginTestUser();
-    }
-  }, []);
-
-  const autoLoginTestUser = async () => {
-    try {
-      const response = await fetch('/api/user/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          email: 'maria@mundotango.com', 
-          password: 'password' 
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('auth_token', data.data.api_token);
-        setUser(data.data.user);
-      }
-    } catch (error) {
-      console.error('Auto-login failed:', error);
-    } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const validateToken = async (token: string) => {
     try {

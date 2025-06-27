@@ -62,10 +62,10 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-yellow-50 dark:from-red-950 dark:to-yellow-950">
+    <div className="min-h-screen flex items-center justify-center bg-tango-gray">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-red-600 dark:text-red-400">
+          <CardTitle className="text-2xl font-bold text-tango-red">
             Join Mundo Tango
           </CardTitle>
           <CardDescription>
@@ -159,9 +159,9 @@ export default function Register() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-gray-600">
               Already have an account?{" "}
-              <Link href="/login" className="text-red-600 hover:text-red-500 font-medium">
+              <Link href="/login" className="text-tango-red hover:text-tango-red/80 font-medium">
                 Sign in here
               </Link>
             </p>
