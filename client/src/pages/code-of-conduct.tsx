@@ -51,7 +51,8 @@ export default function CodeOfConduct() {
         title: "Welcome to Mundo Tango!",
         description: "You've successfully joined our community. Let's start dancing!",
       });
-      setLocation("/user");
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // Navigation will be handled automatically by App.tsx routing logic
     },
     onError: (error: any) => {
       toast({
