@@ -9,12 +9,13 @@ Mundo Tango is a modern full-stack social media application designed for the glo
 The application follows a clean, modern full-stack architecture:
 
 ### Frontend
-- **Framework**: React 18 with TypeScript
+- **Framework**: Next.js 14 with App Router
+- **Language**: JavaScript with TypeScript support
 - **Styling**: Tailwind CSS with shadcn/ui components
-- **State Management**: React Query (@tanstack/react-query) for server state
-- **Routing**: Wouter for client-side routing
-- **Build Tool**: Vite for fast development and optimized builds
-- **UI Library**: Radix UI primitives with custom styling
+- **State Management**: Redux Toolkit with RTK Query for API state
+- **Routing**: Next.js App Router for file-based routing
+- **Build Tool**: Next.js built-in bundler
+- **UI Library**: React with Tailwind CSS custom components
 
 ### Backend
 - **Runtime**: Node.js with Express.js
@@ -134,6 +135,17 @@ Changelog:
   * Fixed import paths for useAuth hook
   * Created test user with sample content
   * Restored complete social media interface
+- June 27, 2025. Complete Next.js App Router conversion:
+  * Converted from Vite/React to Next.js 14 with App Router
+  * Implemented Redux Toolkit with RTK Query for state management
+  * Created complete JWT authentication system with context providers
+  * Built authentication guards (GuestGuard) and protected routes
+  * Established app/ directory structure with layout and page components
+  * Created login page with form handling and authentication flow
+  * Built user dashboard with timeline functionality
+  * Integrated with existing Express backend API endpoints
+  * Added proper route rewrites in Next.js config for API proxy
+  * Maintained original Mundo Tango styling and component architecture
 ```
 
 ## User Preferences
