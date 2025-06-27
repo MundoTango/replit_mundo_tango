@@ -344,8 +344,8 @@ export default function Onboarding() {
                     <FormControl>
                       <TileSelect
                         options={danceExperienceOptions}
-                        selected={[field.value.toString()]}
-                        onChange={(selected) => field.onChange(parseInt(selected[0] || "0"))}
+                        selected={field.value !== undefined ? [field.value.toString()] : []}
+                        onChange={(selected) => field.onChange(selected.length > 0 ? parseInt(selected[0]) : 0)}
                         placeholder="Choose your experience level"
                         columns={3}
                         maxSelected={1}
