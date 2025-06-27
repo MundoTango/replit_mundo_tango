@@ -407,7 +407,7 @@ export default function Onboarding() {
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-indigo-700 transition-colors">Where are you dancing?</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-indigo-700 transition-colors">Where are you exploring Tango the most?</FormLabel>
                     <FormControl>
                       <LocationPicker
                         value={field.value}
