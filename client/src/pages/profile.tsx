@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/hooks/useAuth";
 import { getAuthToken } from "@/lib/authUtils";
 import Navbar from "@/components/layout/navbar";
 import MobileNav from "@/components/layout/mobile-nav";
@@ -120,7 +120,7 @@ export default function Profile() {
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-tango-gray">
-        <Navbar onOpenChat={() => setIsChatOpen(true)} />
+        <Navbar onMenuClick={() => setIsChatOpen(true)} />
         <div className="pt-16 flex items-center justify-center min-h-screen">
           <div className="loading-spinner w-8 h-8"></div>
         </div>
@@ -137,7 +137,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-tango-gray">
-      <Navbar onOpenChat={() => setIsChatOpen(true)} />
+      <Navbar onMenuClick={() => setIsChatOpen(true)} />
       
       <div className="pt-16 pb-20 lg:pb-6">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
