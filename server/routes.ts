@@ -13,7 +13,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
   await setupAuth(app);
-  
+
   // Set up file upload middleware
   const upload = setupUpload();
 
@@ -35,7 +35,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const user = await storage.createUser(validatedData);
-      
+
       // Generate JWT token like original backend
       const jwt = require('jsonwebtoken');
       const token = jwt.sign(
@@ -80,7 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/user/login", async (req, res) => {
     try {
       const { email, password } = req.body;
-      
+
       if (!email || !password) {
         return res.status(400).json({ success: false, message: "Email and password are required" });
       }
@@ -174,7 +174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const files = req.files as Express.Multer.File[];
       const profileImageFile = files?.find(file => file.fieldname === 'image_url');
       const backgroundImageFile = files?.find(file => file.fieldname === 'background_url');
-      
+
       const updateData: any = {};
       if (req.body.name) updateData.name = req.body.name;
       if (req.body.bio) updateData.bio = req.body.bio;
@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (backgroundImageFile) updateData.backgroundImage = `/uploads/${backgroundImageFile.filename}`;
 
       const updatedUser = await storage.updateUser(req.user!.id, updateData);
-      
+
       res.json({
         success: true,
         message: "Profile updated successfully",
@@ -201,11 +201,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-      
+
       if (!user) {
         return res.status(404).json({ success: false, message: "User not found" });
       }
-      
+
       // Update user to mark code of conduct as accepted and complete onboarding
       const updatedUser = await storage.updateUser(user.id, {
         codeOfConductAccepted: true,
@@ -228,7 +228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const query = req.query.search as string;
       const limit = parseInt(req.query.limit as string) || 20;
-      
+
       const users = await storage.searchUsers(query || "", limit);
       res.json({ success: true, data: users });
     } catch (error: any) {
@@ -243,7 +243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const visibility = req.query.visibility as string;
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
-      
+
       const posts = await storage.getFeedPosts(userId, limit, offset);
       res.json({ success: true, data: { rows: posts, count: posts.length } });
     } catch (error: any) {
@@ -255,14 +255,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-      
+
       if (!user) {
         return res.status(404).json({ success: false, message: "User not found" });
       }
-      
+
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
-      
+
       const posts = await storage.getFeedPosts(user.id, limit, offset);
       res.json({ success: true, data: posts });
     } catch (error: any) {
@@ -275,7 +275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const files = req.files as Express.Multer.File[];
       const imageFile = files?.find(file => file.fieldname === 'attachments' || file.fieldname === 'image');
       const videoFile = files?.find(file => file.fieldname === 'video');
-      
+
       const validatedData = insertPostSchema.parse({
         userId: req.user!.id,
         content: req.body.content,
@@ -339,7 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
-      
+
       const events = await storage.getEvents(limit, offset);
       res.json({ success: true, data: events });
     } catch (error: any) {
@@ -351,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
-      
+
       const events = await storage.getEvents(limit, offset);
       res.json({ success: true, data: events });
     } catch (error: any) {
@@ -363,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const files = req.files as Express.Multer.File[];
       const imageFile = files?.find(file => file.fieldname === 'image_url' || file.fieldname === 'image');
-      
+
       const validatedData = insertEventSchema.parse({
         userId: req.user!.id,
         title: req.body.name || req.body.title,
@@ -421,11 +421,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-      
+
       if (!user) {
         return res.status(404).json({ success: false, message: "User not found" });
       }
-      
+
       const stories = await storage.getFollowingStories(user.id);
       res.json({ success: true, data: stories });
     } catch (error: any) {
@@ -437,7 +437,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const files = req.files as Express.Multer.File[];
       const mediaFile = files?.find(file => file.fieldname === 'media');
-      
+
       if (!mediaFile) {
         return res.status(400).json({ success: false, message: "Media file is required" });
       }
@@ -449,7 +449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mediaType,
         req.body.caption
       );
-      
+
       res.json({ success: true, message: "Story created successfully", data: { story } });
     } catch (error: any) {
       res.status(400).json({ success: false, message: error.message });
@@ -479,7 +479,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -536,14 +536,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/search/locations", async (req, res) => {
     try {
       const { q: query, limit = 50 } = req.query;
-      
+
       if (!query || typeof query !== 'string' || query.length < 2) {
         return res.json([]);
       }
 
       const fs = require('fs');
       const path = require('path');
-      
+
       const countriesData = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data/location/countries.json'), 'utf8'));
       const statesData = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data/location/states.json'), 'utf8'));
       const citiesData = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data/location/cities.json'), 'utf8'));
@@ -642,6 +642,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Location search error:', error);
       res.status(500).json({ error: 'Failed to search locations' });
     }
+  });
+
+  app.get("/api/auth/logout", (req: any, res) => {
+    req.logout((err: any) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.status(500).json({ success: false, message: "Logout failed" });
+      }
+      // Clear session and redirect to landing page
+      req.session.destroy(() => {
+        res.clearCookie('connect.sid');
+        res.redirect("/");
+      });
+    });
   });
 
   const server = createServer(app);

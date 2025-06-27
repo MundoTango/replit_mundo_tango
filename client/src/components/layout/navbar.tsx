@@ -20,7 +20,10 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
   const { user } = useAuth();
   
   const handleLogout = () => {
-    // Implement logout functionality by redirecting to auth logout endpoint
+    // Clear any local storage data
+    localStorage.clear();
+    
+    // Redirect to auth logout endpoint which will clear the session and redirect to home
     window.location.href = '/api/auth/logout';
   };
   const [searchQuery, setSearchQuery] = useState("");
