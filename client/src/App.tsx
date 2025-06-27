@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Onboarding from "@/pages/onboarding";
+import CodeOfConduct from "@/pages/code-of-conduct";
 import Home from "@/pages/home";
 import Profile from "@/pages/profile";
 import Events from "@/pages/events";
@@ -32,8 +33,13 @@ function Router() {
     return <Landing />;
   }
 
-  // If authenticated but onboarding not complete, show onboarding
+  // If authenticated but onboarding not complete, handle registration flow
   if (user && !(user as any).isOnboardingComplete) {
+    // Check if basic onboarding is done but code of conduct not accepted
+    if ((user as any).formStatus >= 1 && !(user as any).codeOfConductAccepted) {
+      return <CodeOfConduct />;
+    }
+    // Otherwise show basic onboarding
     return <Onboarding />;
   }
 

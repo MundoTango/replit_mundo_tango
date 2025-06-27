@@ -153,6 +153,14 @@ Changelog:
   * Enhanced LocationPicker component with better error handling and validation
   * Resolved runtime errors and improved component stability
   * App now runs successfully with all onboarding features functional
+- June 27, 2025. Complete registration flow with code of conduct:
+  * Added comprehensive code of conduct screen with community values
+  * Created two-step registration flow: onboarding → code of conduct → main app
+  * Enhanced dancing experience with both level tiles and year input field
+  * Implemented complete location database with 157,251 global cities and country flags
+  * Fixed location picker to work with client-side database for better performance
+  * Added database columns for started_dancing_year and code_of_conduct_accepted
+  * Updated routing logic to handle multi-step registration process
 ```
 
 ## User Preferences

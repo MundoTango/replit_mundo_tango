@@ -47,6 +47,7 @@ export const users = pgTable("users", {
   stateCode: varchar("state_code", { length: 10 }),
   formStatus: integer("form_status").default(0),
   isOnboardingComplete: boolean("is_onboarding_complete").default(false),
+  codeOfConductAccepted: boolean("code_of_conduct_accepted").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

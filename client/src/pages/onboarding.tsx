@@ -119,11 +119,11 @@ export default function Onboarding() {
     },
     onSuccess: () => {
       toast({
-        title: "Welcome to Mundo Tango!",
-        description: "Your profile has been set up successfully.",
+        title: "Profile Created!",
+        description: "Now let's review our community guidelines.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      window.location.href = "/user";
+      // Navigation will be handled by App.tsx routing logic
     },
     onError: (error) => {
       toast({
