@@ -4,14 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { ArrowLeft } from "lucide-react";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
+  const [location, navigate] = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,15 +41,24 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl border-0">
-        <CardHeader className="text-center space-y-4 pb-8">
+        <CardHeader className="text-center space-y-4 pb-8 relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/")}
+            className="absolute left-6 top-6 flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
           <div className="mx-auto w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
             <span className="text-white text-2xl font-bold">MT</span>
           </div>
           <CardTitle className="text-3xl font-bold text-gray-900">
-            Mundo Tango
+            Welcome Back
           </CardTitle>
           <CardDescription className="text-gray-600">
-            Welcome back to the global tango community
+            Sign in to your Mundo Tango account
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -63,7 +76,7 @@ export default function Login() {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
                 Password
@@ -83,7 +96,7 @@ export default function Login() {
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? "Sign in..." : "Sign In"}
             </Button>
           </form>
 

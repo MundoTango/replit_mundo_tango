@@ -1,15 +1,18 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Heart, Shield, Users, Globe, CheckCircle, UserCheck, MessageSquare, AlertTriangle, Flag } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
+import { Heart, Shield, Users, Globe, CheckCircle, UserCheck, MessageSquare, AlertTriangle, Flag } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 
 const codeOfConductSchema = z.object({
@@ -28,6 +31,7 @@ export default function CodeOfConduct() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const form = useForm<CodeOfConductData>({
     resolver: zodResolver(codeOfConductSchema),

@@ -1,17 +1,29 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { TileSelect } from "@/components/ui/tile-select";
-import { LocationPicker } from "@/components/onboarding/LocationPicker";
-import { Heart, Sparkles, Globe, Users, Music, Calendar } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { LocationPicker } from "@/components/onboarding/LocationPicker";
+import { Heart, Sparkles, Globe, Users, Music, Calendar, ArrowLeft } from "lucide-react";
+import { useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
+
+const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+const years = Array.from({ length: 100 }, (_, i) => (new Date().getFullYear() - i).toString());
 
 const languages = [
   { value: "spanish", label: "Spanish", emoji: "🇪🇸" },
@@ -91,6 +103,7 @@ type OnboardingData = z.infer<typeof onboardingSchema>;
 export default function Onboarding() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
@@ -149,15 +162,26 @@ export default function Onboarding() {
             <Heart className="w-16 h-16 mx-auto mb-4 text-pink-500 animate-pulse hover:scale-110 transition-transform duration-300 cursor-pointer" />
             <div className="absolute -top-2 -right-2 w-6 h-6 bg-cyan-400 rounded-full animate-bounce"></div>
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 hover:scale-105 transition-transform duration-300">
-            Complete Your Profile
-          </h1>
-          <p className="text-xl text-gray-600 hover:text-gray-800 transition-colors duration-200">Join the global tango community</p>
+          <CardHeader className="text-center space-y-4 pb-8 relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="absolute left-6 top-6 flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 hover:scale-105 transition-transform duration-300">
+              Complete Your Profile
+            </h1>
+            <p className="text-xl text-gray-600 hover:text-gray-800 transition-colors duration-200">Join the global tango community</p>
+          </CardHeader>
         </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
-            
+
             {/* Nickname Section */}
             <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50">
               <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-cyan-300 transition-colors">
@@ -263,7 +287,7 @@ export default function Onboarding() {
                   <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">🕺 Your dance style!</span>
                 </div>
               </div>
-              
+
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Leader Level */}
                 <FormField
@@ -338,7 +362,7 @@ export default function Onboarding() {
                   <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">📅 Your journey!</span>
                 </div>
               </div>
-              
+
               <div className="grid md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}

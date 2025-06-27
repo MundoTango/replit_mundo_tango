@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { ArrowLeft } from "lucide-react";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -17,6 +18,7 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
   const { toast } = useToast();
+  const [location, navigate] = useLocation();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -64,7 +66,16 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl border-0">
-        <CardHeader className="text-center space-y-4 pb-8">
+        <CardHeader className="text-center space-y-4 pb-8 relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/")}
+            className="absolute left-6 top-6 flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
           <div className="mx-auto w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
             <span className="text-white text-2xl font-bold">MT</span>
           </div>
