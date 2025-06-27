@@ -36,7 +36,12 @@ export function TileSelect({
       onChange(selectedArray.filter((item) => item !== value));
     } else {
       if (maxSelected && selectedArray.length >= maxSelected) return;
-      onChange([...selectedArray, value]);
+      // For single selection, replace the current selection
+      if (maxSelected === 1) {
+        onChange([value]);
+      } else {
+        onChange([...selectedArray, value]);
+      }
     }
   };
 
