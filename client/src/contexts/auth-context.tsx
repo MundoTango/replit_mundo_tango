@@ -27,46 +27,43 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchUser();
-  }, []);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const fetchUser = async () => {
     try {
+      setIsLoading(true);
       const response = await fetch('/api/auth/user', {
         credentials: 'include'
       });
 
       if (response.ok) {
         const userData = await response.json();
+        console.log("Auth user data:", userData);
         setUser(userData);
+        setIsAuthenticated(true);
       } else {
+        console.log("No authenticated user found");
         setUser(null);
+        setIsAuthenticated(false);
       }
     } catch (error) {
-      console.error('Auth error:', error);
+      console.error('Error fetching user:', error);
       setUser(null);
+      setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const login = (userData: User) => {
-    setUser(userData);
-  };
-
-  const logout = () => {
-    setUser(null);
-    window.location.href = '/api/auth/logout';
-  };
+  useEffect(() => {
+    fetchUser();
+  }, []);
 
   const value = {
     user,
     isLoading,
-    isAuthenticated: !!user,
-    login,
-    logout
+    isAuthenticated,
+    refetch: fetchUser
   };
 
   return (
