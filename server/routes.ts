@@ -471,8 +471,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         city: location.city,
         countryCode: location.countryCode,
         stateCode: location.stateCode,
-        isOnboardingComplete: true,
-        formStatus: 13,
+        leaderLevel: req.body.leaderLevel,
+        followerLevel: req.body.followerLevel,
+        yearsOfDancing: req.body.yearsOfDancing,
+        startedDancingYear: req.body.startedDancingYear,
+        isOnboardingComplete: false,
+        formStatus: 1,
       });
 
       res.json({ success: true, data: updatedUser });
