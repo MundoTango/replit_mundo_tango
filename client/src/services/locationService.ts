@@ -16,7 +16,10 @@ export interface Country {
   tld: string;
   native: string;
   region: string;
+  region_id: number;
   subregion: string;
+  subregion_id: number;
+  nationality: string;
   timezones: Array<{
     zoneName: string;
     gmtOffset: number;
@@ -58,11 +61,11 @@ export interface City {
 }
 
 class LocationService {
-  private countries: any[] = countriesData as any[];
-  private states: any[] = statesData as any[];
-  private cities: any[] = citiesData as any[];
+  private countries: Country[] = countriesData as Country[];
+  private states: State[] = statesData as State[];
+  private cities: City[] = citiesData as City[];
 
-  getAllCountries(): any[] {
+  getAllCountries(): Country[] {
     return this.countries.sort((a, b) => a.name.localeCompare(b.name));
   }
 
@@ -104,19 +107,29 @@ class LocationService {
   }
 
   searchCountries(query: string): Country[] {
+    if (!query || query.length < 2) return [];
     const lowerQuery = query.toLowerCase();
     return this.countries
       .filter(country => 
         country.name.toLowerCase().includes(lowerQuery) ||
-        country.native?.toLowerCase().includes(lowerQuery) ||
+        (country.native && country.native.toLowerCase().includes(lowerQuery)) ||
         country.iso2.toLowerCase().includes(lowerQuery) ||
-        country.iso3.toLowerCase().includes(lowerQuery)
+        country.iso3.toLowerCase().includes(lowerQuery) ||
+        country.capital.toLowerCase().includes(lowerQuery)
       )
-      .sort((a, b) => a.name.localeCompare(b.name))
+      .sort((a, b) => {
+        // Prioritize exact matches at the beginning
+        const aStartsWith = a.name.toLowerCase().startsWith(lowerQuery);
+        const bStartsWith = b.name.toLowerCase().startsWith(lowerQuery);
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+        return a.name.localeCompare(b.name);
+      })
       .slice(0, 20);
   }
 
   searchStates(query: string, countryId?: number): State[] {
+    if (!query || query.length < 2) return [];
     const lowerQuery = query.toLowerCase();
     let filteredStates = this.states;
 
@@ -129,11 +142,18 @@ class LocationService {
         state.name.toLowerCase().includes(lowerQuery) ||
         state.state_code.toLowerCase().includes(lowerQuery)
       )
-      .sort((a, b) => a.name.localeCompare(b.name))
+      .sort((a, b) => {
+        const aStartsWith = a.name.toLowerCase().startsWith(lowerQuery);
+        const bStartsWith = b.name.toLowerCase().startsWith(lowerQuery);
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+        return a.name.localeCompare(b.name);
+      })
       .slice(0, 50);
   }
 
   searchCities(query: string, stateId?: number, countryId?: number): City[] {
+    if (!query || query.length < 2) return [];
     const lowerQuery = query.toLowerCase();
     let filteredCities = this.cities;
 
@@ -145,7 +165,13 @@ class LocationService {
 
     return filteredCities
       .filter(city => city.name.toLowerCase().includes(lowerQuery))
-      .sort((a, b) => a.name.localeCompare(b.name))
+      .sort((a, b) => {
+        const aStartsWith = a.name.toLowerCase().startsWith(lowerQuery);
+        const bStartsWith = b.name.toLowerCase().startsWith(lowerQuery);
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+        return a.name.localeCompare(b.name);
+      })
       .slice(0, 100);
   }
 
