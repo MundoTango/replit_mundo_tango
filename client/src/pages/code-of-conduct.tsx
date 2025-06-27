@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+// Router import handled via wouter below
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Heart, Shield, Users, Globe, CheckCircle, UserCheck, MessageSquare, AlertTriangle, Flag } from "lucide-react";
@@ -31,7 +31,6 @@ export default function CodeOfConduct() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-  const navigate = useNavigate();
 
   const form = useForm<CodeOfConductData>({
     resolver: zodResolver(codeOfConductSchema),

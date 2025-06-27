@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
 import { useState } from "react";
 
@@ -17,7 +17,12 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onMenuClick }: NavbarProps) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  
+  const handleLogout = () => {
+    // Implement logout functionality by redirecting to auth logout endpoint
+    window.location.href = '/api/auth/logout';
+  };
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
@@ -151,7 +156,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             </DropdownMenuItem>
             <DropdownMenuItem 
               className="font-semibold text-red-600 px-3 py-3"
-              onClick={logout}
+              onClick={handleLogout}
             >
               Logout
             </DropdownMenuItem>

@@ -13,7 +13,6 @@ import Home from "@/pages/home";
 import Profile from "@/pages/profile";
 import Events from "@/pages/events";
 import Messages from "@/pages/messages";
-import { AuthProvider } from "@/contexts/auth-context"; //Import AuthProvider
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -37,9 +36,9 @@ function Router() {
     return <Landing />;
   }
 
-  // Check if user needs to go through onboarding flow
-  const needsOnboarding = !user?.formStatus || user.formStatus === 0;
-  const needsCodeOfConduct = user?.formStatus >= 1 && !user?.codeOfConductAccepted;
+  // Check if user needs to go through onboarding flow - use safe property access
+  const needsOnboarding = !user || !user.formStatus || user.formStatus === 0;
+  const needsCodeOfConduct = user && user.formStatus && user.formStatus >= 1 && !user.codeOfConductAccepted;
 
   console.log("User flow check:", { 
     needsOnboarding, 
@@ -75,14 +74,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider> {/* Wrap with AuthProvider */}
-        <SocketProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
-        </SocketProvider>
-      </AuthProvider>
+      <SocketProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </SocketProvider>
     </QueryClientProvider>
   );
 }

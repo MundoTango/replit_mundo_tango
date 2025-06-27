@@ -9,9 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { TileSelect } from "@/components/ui/tile-select";
+import { Slider } from "@/components/ui/slider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { LocationPicker } from "@/components/onboarding/LocationPicker";
 import { Heart, Sparkles, Globe, Users, Music, Calendar, ArrowLeft } from "lucide-react";
 import { useState } from "react";
@@ -103,7 +104,7 @@ type OnboardingData = z.infer<typeof onboardingSchema>;
 export default function Onboarding() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
 
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
@@ -166,7 +167,7 @@ export default function Onboarding() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate(-1)}
+              onClick={() => setLocation("/")}
               className="absolute left-6 top-6 flex items-center gap-2 text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft className="h-4 w-4" />
