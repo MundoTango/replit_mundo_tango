@@ -146,6 +146,13 @@ Changelog:
   * Integrated with existing Express backend API endpoints
   * Added proper route rewrites in Next.js config for API proxy
   * Maintained original Mundo Tango styling and component architecture
+- June 27, 2025. Fixed database schema and onboarding improvements:
+  * Fixed database schema mismatch by adding missing columns (leader_level, follower_level, years_of_dancing)
+  * Updated tango role options with comprehensive list including new categories (Content Creator, Historian, Tango House, Tango School)
+  * Converted dancing experience from slider to interactive tile selection with descriptive options
+  * Enhanced LocationPicker component with better error handling and validation
+  * Resolved runtime errors and improved component stability
+  * App now runs successfully with all onboarding features functional
 ```
 
 ## User Preferences

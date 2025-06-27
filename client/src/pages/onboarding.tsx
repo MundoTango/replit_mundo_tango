@@ -46,11 +46,26 @@ const tangoRoles = [
   { value: "volunteer", label: "Volunteer", emoji: "🤝", description: "Community supporters helping at events" },
   { value: "host", label: "Housing Host", emoji: "🏠", description: "Hosts welcoming traveling dancers" },
   { value: "photographer", label: "Photographer", emoji: "📸", description: "Visual storytellers capturing tango moments" },
-  { value: "traveler", label: "Traveler/Nomadic", emoji: "🌍", description: "Nomadic dancers exploring global tango scenes" },
+  { value: "traveler", label: "Traveler", emoji: "🌍", description: "Nomadic dancers exploring global tango scenes" },
   { value: "taxi", label: "Taxi Dancer", emoji: "🚕", description: "Professional dance partners" },
-  { value: "student", label: "Student/Beginner", emoji: "🎓", description: "New to tango, eager to learn and grow" },
-  { value: "musician", label: "Musician", emoji: "🎼", description: "Musicians playing for tango events" },
-  { value: "promoter", label: "Promoter", emoji: "📢", description: "Marketing and promoting tango events and culture" },
+  { value: "musician", label: "Musician", emoji: "🎼", description: "Live music performers" },
+  { value: "content-creator", label: "Content Creator", emoji: "🎙️", description: "Podcasters, YouTubers, article writers sharing tango stories" },
+  { value: "historian", label: "Historian", emoji: "📜", description: "Cultural preservationists documenting tango heritage" },
+  { value: "tango-house", label: "Tango House", emoji: "🏠", description: "A trusted home that hosts visiting dancers" },
+  { value: "tango-school", label: "Tango School", emoji: "📚", description: "A hub for classes, teachers, and learning" },
+];
+
+const danceExperienceOptions = [
+  { value: "0", label: "Just Starting", emoji: "🌱", description: "New to tango, taking first steps" },
+  { value: "1", label: "Beginner", emoji: "👶", description: "0-1 years, learning basic steps" },
+  { value: "2", label: "Early Beginner", emoji: "🚶", description: "1-2 years, building foundation" },
+  { value: "3", label: "Developing", emoji: "🌿", description: "2-3 years, gaining confidence" },
+  { value: "4", label: "Progressing", emoji: "🌳", description: "3-4 years, expanding vocabulary" },
+  { value: "5", label: "Intermediate", emoji: "💪", description: "4-6 years, solid social dancer" },
+  { value: "7", label: "Advanced", emoji: "⭐", description: "6-10 years, experienced dancer" },
+  { value: "10", label: "Expert", emoji: "🏆", description: "10-15 years, very skilled" },
+  { value: "15", label: "Master", emoji: "👑", description: "15-20 years, exceptional skill" },
+  { value: "20", label: "Legendary", emoji: "🔥", description: "20+ years, tango master" },
 ];
 
 const onboardingSchema = z.object({
@@ -323,28 +338,16 @@ export default function Onboarding() {
                 name="yearsOfDancing"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-orange-700 transition-colors flex items-center gap-2">
-                      <span className="text-lg">🎭</span>
-                      How long have you been dancing tango? {field.value === 30 ? '30+' : field.value} years
-                    </FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-orange-700 transition-colors">How long have you been dancing tango?</FormLabel>
                     <FormControl>
-                      <div className="px-3">
-                        <Slider
-                          value={[field.value]}
-                          onValueChange={(value) => field.onChange(value[0])}
-                          max={30}
-                          step={1}
-                          className="w-full"
-                        />
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>Just starting</span>
-                          <span>0-1</span>
-                          <span>2-5</span>
-                          <span>6-10</span>
-                          <span>11-20</span>
-                          <span>20+</span>
-                        </div>
-                      </div>
+                      <TileSelect
+                        options={danceExperienceOptions}
+                        selected={[field.value.toString()]}
+                        onChange={(selected) => field.onChange(parseInt(selected[0] || "0"))}
+                        placeholder="Choose your experience level"
+                        columns={3}
+                        maxSelected={1}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

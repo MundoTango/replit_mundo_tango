@@ -23,26 +23,44 @@ export function LocationPicker({ value, onChange, className }: LocationPickerPro
   const [countries, setCountries] = useState<any[]>([]);
   const [states, setStates] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const allCountries = Country.getAllCountries();
-    setCountries(allCountries);
+    try {
+      const allCountries = Country.getAllCountries();
+      setCountries(allCountries || []);
+      setError(null);
+    } catch (err) {
+      console.error('Error loading countries:', err);
+      setError('Failed to load countries');
+      setCountries([]);
+    }
   }, []);
 
   useEffect(() => {
-    if (value.countryCode) {
-      const allStates = State.getStatesOfCountry(value.countryCode);
-      setStates(allStates);
-    } else {
+    try {
+      if (value.countryCode) {
+        const allStates = State.getStatesOfCountry(value.countryCode);
+        setStates(allStates || []);
+      } else {
+        setStates([]);
+      }
+    } catch (err) {
+      console.error('Error loading states:', err);
       setStates([]);
     }
   }, [value.countryCode]);
 
   useEffect(() => {
-    if (value.countryCode && value.stateCode) {
-      const allCities = City.getCitiesOfState(value.countryCode, value.stateCode);
-      setCities(allCities);
-    } else {
+    try {
+      if (value.countryCode && value.stateCode) {
+        const allCities = City.getCitiesOfState(value.countryCode, value.stateCode);
+        setCities(allCities || []);
+      } else {
+        setCities([]);
+      }
+    } catch (err) {
+      console.error('Error loading cities:', err);
       setCities([]);
     }
   }, [value.countryCode, value.stateCode]);
@@ -78,6 +96,11 @@ export function LocationPicker({ value, onChange, className }: LocationPickerPro
   return (
     <Card className={className}>
       <CardContent className="p-6 space-y-4">
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="country">Country</Label>
           <Select value={value.countryCode} onValueChange={handleCountryChange}>
