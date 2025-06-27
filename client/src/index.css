@@ -1,0 +1,222 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(348, 71%, 31%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+  
+  /* Tango-specific colors */
+  --tango-red: hsl(348, 71%, 31%);
+  --tango-gold: hsl(45, 65%, 55%);
+  --tango-black: hsl(0, 0%, 10%);
+  --tango-gray: hsl(0, 0%, 96%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(348, 71%, 31%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  
+  /* Tango-specific colors for dark mode */
+  --tango-red: hsl(348, 71%, 45%);
+  --tango-gold: hsl(45, 65%, 65%);
+  --tango-black: hsl(0, 0%, 85%);
+  --tango-gray: hsl(240, 3.7%, 15.9%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+@layer components {
+  .tango-red {
+    color: var(--tango-red);
+  }
+  
+  .bg-tango-red {
+    background-color: var(--tango-red);
+  }
+  
+  .tango-gold {
+    color: var(--tango-gold);
+  }
+  
+  .bg-tango-gold {
+    background-color: var(--tango-gold);
+  }
+  
+  .tango-black {
+    color: var(--tango-black);
+  }
+  
+  .bg-tango-black {
+    background-color: var(--tango-black);
+  }
+  
+  .tango-gray {
+    color: var(--tango-gray);
+  }
+  
+  .bg-tango-gray {
+    background-color: var(--tango-gray);
+  }
+
+  .card-shadow {
+    box-shadow: 0 4px 6px -1px rgba(139, 21, 56, 0.1), 0 2px 4px -1px rgba(139, 21, 56, 0.06);
+  }
+
+  .story-ring {
+    background: linear-gradient(45deg, var(--tango-red), var(--tango-gold));
+    padding: 3px;
+    border-radius: 50%;
+  }
+
+  .chat-overlay {
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .chat-overlay.open {
+    transform: translateX(0);
+  }
+
+  .notification-dot {
+    animation: pulse 2s infinite;
+  }
+
+  .hero-gradient {
+    background: linear-gradient(135deg, var(--tango-red) 0%, var(--tango-black) 100%);
+  }
+}
+
+@layer utilities {
+  .text-tango-red {
+    color: var(--tango-red);
+  }
+  
+  .text-tango-gold {
+    color: var(--tango-gold);
+  }
+  
+  .text-tango-black {
+    color: var(--tango-black);
+  }
+  
+  .text-tango-gray {
+    color: var(--tango-gray);
+  }
+  
+  .border-tango-red {
+    border-color: var(--tango-red);
+  }
+  
+  .hover\:bg-tango-red:hover {
+    background-color: var(--tango-red);
+  }
+  
+  .hover\:text-tango-red:hover {
+    color: var(--tango-red);
+  }
+  
+  .focus\:ring-tango-red:focus {
+    --tw-ring-color: var(--tango-red);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--tango-red);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--tango-gold);
+}
+
+/* Custom animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  border: 2px solid var(--muted);
+  border-top: 2px solid var(--tango-red);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .mobile-padding {
+    padding-bottom: 80px; /* Account for mobile bottom navigation */
+  }
+}

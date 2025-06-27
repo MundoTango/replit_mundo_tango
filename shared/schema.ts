@@ -1,0 +1,326 @@
+import { 
+  pgTable, 
+  text, 
+  serial, 
+  integer, 
+  boolean, 
+  timestamp, 
+  varchar,
+  jsonb,
+  index
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+// Users table
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  username: varchar("username", { length: 50 }).unique().notNull(),
+  email: varchar("email", { length: 255 }).unique().notNull(),
+  password: text("password").notNull(),
+  mobileNo: varchar("mobile_no", { length: 20 }),
+  profileImage: text("profile_image"),
+  backgroundImage: text("background_image"),
+  bio: text("bio"),
+  firstName: varchar("first_name", { length: 100 }),
+  lastName: varchar("last_name", { length: 100 }),
+  country: varchar("country", { length: 100 }),
+  city: varchar("city", { length: 100 }),
+  facebookUrl: text("facebook_url"),
+  isVerified: boolean("is_verified").default(false),
+  isActive: boolean("is_active").default(true),
+  deviceType: varchar("device_type", { length: 20 }),
+  deviceToken: text("device_token"),
+  apiToken: text("api_token"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Posts table
+export const posts = pgTable("posts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  content: text("content").notNull(),
+  imageUrl: text("image_url"),
+  videoUrl: text("video_url"),
+  likesCount: integer("likes_count").default(0),
+  commentsCount: integer("comments_count").default(0),
+  sharesCount: integer("shares_count").default(0),
+  hashtags: text("hashtags").array(),
+  isPublic: boolean("is_public").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_posts_user_created").on(table.userId, table.createdAt),
+]);
+
+// Activities/Categories table
+export const activities = pgTable("activities", {
+  id: serial("id").primaryKey(),
+  parentId: integer("parent_id"),
+  name: varchar("name", { length: 255 }).notNull(),
+  iconUrl: text("icon_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Attachments table
+export const attachments = pgTable("attachments", {
+  id: serial("id").primaryKey(),
+  instanceType: varchar("instance_type", { length: 50 }),
+  instanceId: integer("instance_id"),
+  mediaType: varchar("media_type", { length: 50 }),
+  mediaUrl: text("media_url"),
+  thumbnailUrl: text("thumbnail_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Events table
+export const events = pgTable("events", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  location: text("location"),
+  latitude: text("latitude"),
+  longitude: text("longitude"),
+  price: text("price"),
+  maxAttendees: integer("max_attendees"),
+  currentAttendees: integer("current_attendees").default(0),
+  isPublic: boolean("is_public").default(true),
+  status: varchar("status", { length: 20 }).default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Event RSVPs table
+export const eventRsvps = pgTable("event_rsvps", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").references(() => events.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  status: varchar("status", { length: 20 }).notNull(), // going, interested, not_going
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Chat rooms table
+export const chatRooms = pgTable("chat_rooms", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 100 }).unique().notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  title: varchar("title", { length: 150 }).notNull(),
+  imageUrl: text("image_url"),
+  description: text("description"),
+  type: varchar("type", { length: 50 }).notNull(), // single, group
+  status: varchar("status", { length: 30 }),
+  memberLimit: integer("member_limit").default(1024),
+  canMemberEditGroup: boolean("can_member_edit_group").default(true),
+  canMemberSendMessage: boolean("can_member_send_message").default(true),
+  canMemberAddMember: boolean("can_member_add_member").default(true),
+  lastMessageTimestamp: timestamp("last_message_timestamp"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Chat messages table
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 100 }).unique().notNull(),
+  chatRoomSlug: varchar("chat_room_slug", { length: 100 }).references(() => chatRooms.slug).notNull(),
+  userSlug: varchar("user_slug", { length: 100 }).notNull(),
+  messageType: varchar("message_type", { length: 30 }).notNull(),
+  message: text("message"),
+  fileUrl: text("file_url"),
+  fileName: text("file_name"),
+  fileThumb: text("file_thumb"),
+  isForwarded: boolean("is_forwarded").default(false),
+  isReply: boolean("is_reply").default(false),
+  replyMessageSlug: varchar("reply_message_slug", { length: 100 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Chat room users table
+export const chatRoomUsers = pgTable("chat_room_users", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 100 }).unique().notNull(),
+  chatRoomSlug: varchar("chat_room_slug", { length: 100 }).references(() => chatRooms.slug).notNull(),
+  userSlug: varchar("user_slug", { length: 100 }).notNull(),
+  isOwner: boolean("is_owner").default(false),
+  isSubAdmin: boolean("is_sub_admin").default(false),
+  status: varchar("status", { length: 30 }).notNull(),
+  unreadMessageCount: integer("unread_message_count").default(0),
+  isLeaved: boolean("is_leaved").default(false),
+  isKicked: boolean("is_kicked").default(false),
+  isBlocked: boolean("is_blocked").default(false),
+  isVisible: boolean("is_visible").default(true),
+  lastMessageTimestamp: timestamp("last_message_timestamp"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Follows table
+export const follows = pgTable("follows", {
+  id: serial("id").primaryKey(),
+  followerId: integer("follower_id").references(() => users.id).notNull(),
+  followingId: integer("following_id").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Post likes table
+export const postLikes = pgTable("post_likes", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").references(() => posts.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Post comments table
+export const postComments = pgTable("post_comments", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").references(() => posts.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  content: text("content").notNull(),
+  parentId: integer("parent_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Dance experiences table
+export const danceExperiences = pgTable("dance_experiences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  socialDancingCities: text("social_dancing_cities").array(),
+  recentWorkshopCities: text("recent_workshop_cities").array(),
+  favouriteDancingCities: text("favourite_dancing_cities").array(),
+  annualEventCount: integer("annual_event_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Creator experiences table
+export const creatorExperiences = pgTable("creator_experiences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  shoesUrl: text("shoes_url"),
+  clothingUrl: text("clothing_url"),
+  jewelry: text("jewelry"),
+  vendorActivities: text("vendor_activities"),
+  vendorUrl: text("vendor_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Stories table
+export const stories = pgTable("stories", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  mediaUrl: text("media_url").notNull(),
+  mediaType: varchar("media_type", { length: 20 }).notNull(), // image, video
+  caption: text("caption"),
+  viewsCount: integer("views_count").default(0),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Story views table
+export const storyViews = pgTable("story_views", {
+  id: serial("id").primaryKey(),
+  storyId: integer("story_id").references(() => stories.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  viewedAt: timestamp("viewed_at").defaultNow(),
+});
+
+// Define relations
+export const usersRelations = relations(users, ({ many }) => ({
+  posts: many(posts),
+  events: many(events),
+  eventRsvps: many(eventRsvps),
+  followers: many(follows, { relationName: "following" }),
+  following: many(follows, { relationName: "follower" }),
+  postLikes: many(postLikes),
+  postComments: many(postComments),
+  danceExperience: many(danceExperiences),
+  creatorExperience: many(creatorExperiences),
+  stories: many(stories),
+  storyViews: many(storyViews),
+}));
+
+export const postsRelations = relations(posts, ({ one, many }) => ({
+  user: one(users, { fields: [posts.userId], references: [users.id] }),
+  likes: many(postLikes),
+  comments: many(postComments),
+  attachments: many(attachments),
+}));
+
+export const eventsRelations = relations(events, ({ one, many }) => ({
+  user: one(users, { fields: [events.userId], references: [users.id] }),
+  rsvps: many(eventRsvps),
+}));
+
+export const eventRsvpsRelations = relations(eventRsvps, ({ one }) => ({
+  event: one(events, { fields: [eventRsvps.eventId], references: [events.id] }),
+  user: one(users, { fields: [eventRsvps.userId], references: [users.id] }),
+}));
+
+// Insert schemas
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPostSchema = createInsertSchema(posts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  likesCount: true,
+  commentsCount: true,
+  sharesCount: true,
+});
+
+export const insertEventSchema = createInsertSchema(events).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  currentAttendees: true,
+});
+
+export const insertChatRoomSchema = createInsertSchema(chatRooms).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type Post = typeof posts.$inferSelect;
+export type InsertPost = z.infer<typeof insertPostSchema>;
+export type Event = typeof events.$inferSelect;
+export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type ChatRoom = typeof chatRooms.$inferSelect;
+export type InsertChatRoom = z.infer<typeof insertChatRoomSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type EventRsvp = typeof eventRsvps.$inferSelect;
+export type PostLike = typeof postLikes.$inferSelect;
+export type PostComment = typeof postComments.$inferSelect;
+export type Follow = typeof follows.$inferSelect;
+export type Story = typeof stories.$inferSelect;
+export type StoryView = typeof storyViews.$inferSelect;
+export type DanceExperience = typeof danceExperiences.$inferSelect;
+export type CreatorExperience = typeof creatorExperiences.$inferSelect;
