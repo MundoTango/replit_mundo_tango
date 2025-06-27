@@ -11,6 +11,17 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        'primary-color': '#0D448A',
+        'background-color': '#f8fafc',
+        'profile-name-color': '#0F172A',
+        'gray-text-color': '#64748B',
+        'gray-text': '#64748B',
+        'tag-color': '#8E142E',
+        'light-gray-color': '#94A3B8',
+        'red-color': '#EB2560',
+        'border-color': '#F1F5F9',
+        'secondary-red': '#ED4B3B',
+        'btn-color': '#EB2560',
         background: "var(--background)",
         foreground: "var(--foreground)",
         card: {

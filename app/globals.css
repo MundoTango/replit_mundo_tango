@@ -2,6 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+    font-family: 'Gilroy' !important;
+}
+
+:root {
+    --primary-color: #0D448A;
+    --background-color: #f8fafc;
+    --profile-name-color: #0F172A;
+    --gray-text: #64748B;
+    --tag-color: #8E142E;
+    --light-gray-color: #94A3B8;
+    --red-color: #EB2560;
+    --border-color: #F1F5F9;
+    --secondary-red: #ED4B3B;
+}
+
+@layer utilities {
+    .lc-1 {
+        @apply overflow-hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+    }
+
+    .tags {
+        @apply bg-tag-color inline-block rounded-full border px-3 py-0.5 text-center text-white mx-0.5 h-fit w-fit;
+    }
+
+    .card {
+        @apply w-full rounded-xl bg-white p-4 mb-4;
+    }
+
+    .main_card {
+        @apply w-full rounded-xl bg-white p-4 mb-4;
+    }
+
+    .centered_card {
+        @apply rounded-xl bg-white p-4 mb-4;
+    }
+}
+
+.input-text {
+    @apply bg-background-color rounded-xl text-[#949393];
+}
+
+.normal-text {
+    font-family: 'Gilroy';
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 22.4px;
+    letter-spacing: 0.2px;
+    color: #64748B;
+}
+
+.heading-text {
+    font-family: 'Gilroy';
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 32px;
+}
+
+.main-spinner {
+    border: 5px dashed white; 
+    border-top: 5px dashed var(--primary-color); 
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s infinite;
+    margin: auto;
+  }
+  
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+  
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
 :root {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
