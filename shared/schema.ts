@@ -252,6 +252,87 @@ export const storyViews = pgTable("story_views", {
   viewedAt: timestamp("viewed_at").defaultNow(),
 });
 
+// Additional specialized experience tables from original database
+export const djExperiences = pgTable("dj_experiences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  performedEvents: integer("performed_events").default(0),
+  cities: text("cities"),
+  favouriteOrchestra: varchar("favourite_orchestra", { length: 255 }),
+  favouriteSinger: varchar("favourite_singer", { length: 255 }),
+  milongaSize: varchar("milonga_size", { length: 255 }),
+  useExternalEquipments: boolean("use_external_equipments").default(false),
+  djSoftwares: text("dj_softwares"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const teachingExperiences = pgTable("teaching_experiences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  partnerFacebookUrl: varchar("partner_facebook_url", { length: 255 }),
+  cities: text("cities"),
+  onlinePlatforms: text("online_platforms"),
+  aboutTangoFuture: text("about_tango_future"),
+  teachingReason: text("teaching_reason"),
+  preferredSize: integer("preferred_size"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const performerExperiences = pgTable("performer_experiences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  partnerProfileLink: text("partner_profile_link"),
+  recentPerformanceUrl: varchar("recent_performance_url", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const photographerExperiences = pgTable("photographer_experiences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  role: varchar("role", { length: 20 }).default("photographer"), // photographer, videographer, both
+  facebookProfileUrl: varchar("facebook_profile_url", { length: 255 }),
+  videosTakenCount: integer("videos_taken_count"),
+  cities: text("cities"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const tourOperatorExperiences = pgTable("tour_operator_experiences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  cities: text("cities"),
+  websiteUrl: varchar("website_url", { length: 255 }),
+  theme: text("theme"),
+  vendorActivities: varchar("vendor_activities", { length: 255 }),
+  vendorUrl: varchar("vendor_url", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Blocked users table
+export const blockedUsers = pgTable("blocked_users", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  blockedUserId: integer("blocked_user_id").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// User API tokens for session management  
+export const userApiTokens = pgTable("user_api_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  apiToken: text("api_token").notNull(),
+  deviceType: varchar("device_type", { length: 100 }),
+  deviceToken: text("device_token"),
+  type: varchar("type", { length: 20 }).default("ACCESS"), // ACCESS, RESET, INVITE
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
