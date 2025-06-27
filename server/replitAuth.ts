@@ -76,6 +76,7 @@ export async function setupAuth(app: Express) {
   app.use(passport.session());
 
   const config = await getOidcConfig();
+  console.log('OIDC Config loaded successfully');
 
   const verify: VerifyFunction = async (
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
@@ -89,9 +90,11 @@ export async function setupAuth(app: Express) {
 
   for (const domain of process.env
     .REPLIT_DOMAINS!.split(",")) {
+    const strategyName = `replitauth:${domain}`;
+    console.log(`Registering strategy: ${strategyName} for domain: ${domain}`);
     const strategy = new Strategy(
       {
-        name: `replitauth:${domain}`,
+        name: strategyName,
         config,
         scope: "openid email profile offline_access",
         callbackURL: `https://${domain}/api/callback`,
@@ -99,20 +102,25 @@ export async function setupAuth(app: Express) {
       verify,
     );
     passport.use(strategy);
+    console.log(`Strategy ${strategyName} registered successfully`);
   }
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    const domains = process.env.REPLIT_DOMAINS!.split(",");
+    const strategyName = `replitauth:${domains[0]}`;
+    passport.authenticate(strategyName, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    const domains = process.env.REPLIT_DOMAINS!.split(",");
+    const strategyName = `replitauth:${domains[0]}`;
+    passport.authenticate(strategyName, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
     })(req, res, next);
