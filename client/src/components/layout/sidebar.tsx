@@ -1,3 +1,4 @@
+
 import { 
   Home, 
   Calendar, 
@@ -25,7 +26,7 @@ interface SidebarProps {
 
 const SIDEBAR_ROUTES = [
   {
-    title: "Feed",
+    title: "Timeline",
     icon: <Home className="w-5 h-5" />,
     link: "/",
   },
@@ -53,6 +54,21 @@ const SIDEBAR_ROUTES = [
     title: "Groups",
     icon: <Users className="w-5 h-5" />,
     link: "/groups",
+  },
+  {
+    title: "Trango Community",
+    icon: <MapPin className="w-5 h-5" />,
+    link: "/community",
+  },
+  {
+    title: "Photos",
+    icon: <Heart className="w-5 h-5" />,
+    link: "/photos",
+  },
+  {
+    title: "Videos",
+    icon: <Trophy className="w-5 h-5" />,
+    link: "/videos",
   },
 ];
 
@@ -117,7 +133,7 @@ export default function Sidebar({ isOpen, setIsOpen, onClose }: SidebarProps) {
     <div onClick={onClose}>
       <div
         className={cn(
-          "fixed inset-y-0 left-0 transform transition-transform duration-300 ease-in-out bg-white w-64 text-gray-800 z-20 border-r-2 border-gray-200 overflow-y-auto",
+          "fixed inset-y-0 left-0 transform transition-transform duration-300 ease-in-out bg-white w-64 text-gray-800 z-20 border-r-2 border-gray-200 overflow-y-auto sidebar",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

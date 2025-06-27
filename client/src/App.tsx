@@ -14,6 +14,17 @@ import Profile from "@/pages/profile";
 import Events from "@/pages/events";
 import Messages from "@/pages/messages";
 
+import HomePage from "@/pages/home";
+import ProfilePage from "@/pages/profile";
+import EventsPage from "@/pages/events";
+import MessagesPage from "@/pages/messages";
+import CommunityPage from "@/pages/community";
+import PhotosPage from "@/pages/photos";
+import VideosPage from "@/pages/videos";
+import OnboardingPage from "@/pages/onboarding";
+import CodeOfConductPage from "@/pages/code-of-conduct";
+import NotFoundPage from "@/pages/not-found";
+
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
 
@@ -62,11 +73,17 @@ function Router() {
   console.log("Showing main app");
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/events" component={Events} />
-      <Route path="/messages" component={Messages} />
-      <Route component={NotFound} />
+      {/* Protected Routes */}
+      <Route path="/" component={HomePage} />
+      <Route path="/profile" component={ProfilePage} />
+      <Route path="/events" component={EventsPage} />
+      <Route path="/messages" component={MessagesPage} />
+      <Route path="/community" component={CommunityPage} />
+      <Route path="/photos" component={PhotosPage} />
+      <Route path="/videos" component={VideosPage} />
+      <Route path="/onboarding" component={OnboardingPage} />
+      <Route path="/code-of-conduct" component={CodeOfConductPage} />
+      <Route component={NotFoundPage} />
     </Switch>
   );
 }
