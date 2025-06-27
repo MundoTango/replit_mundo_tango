@@ -17,6 +17,8 @@ import Messages from "@/pages/messages";
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
 
+  console.log("Router state:", { user, isLoading, isAuthenticated });
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 flex items-center justify-center">
@@ -30,20 +32,34 @@ function Router() {
 
   // If not authenticated, show landing page
   if (!isAuthenticated) {
+    console.log("Not authenticated, showing landing");
     return <Landing />;
   }
 
-  // If authenticated but onboarding not complete, handle registration flow
-  if (user && (!(user as any).isOnboardingComplete || !(user as any).codeOfConductAccepted)) {
-    // Check if basic onboarding is done but code of conduct not accepted
-    if ((user as any).formStatus >= 1 && !(user as any).codeOfConductAccepted) {
-      return <CodeOfConduct />;
-    }
-    // Otherwise show basic onboarding
+  // Check if user needs to go through onboarding flow
+  const needsOnboarding = !user?.formStatus || user.formStatus === 0;
+  const needsCodeOfConduct = user?.formStatus >= 1 && !user?.codeOfConductAccepted;
+  
+  console.log("User flow check:", { 
+    needsOnboarding, 
+    needsCodeOfConduct, 
+    formStatus: user?.formStatus,
+    isOnboardingComplete: user?.isOnboardingComplete,
+    codeOfConductAccepted: user?.codeOfConductAccepted
+  });
+
+  if (needsOnboarding) {
+    console.log("Showing onboarding");
     return <Onboarding />;
   }
 
-  // If authenticated and onboarding complete, show main app
+  if (needsCodeOfConduct) {
+    console.log("Showing code of conduct");
+    return <CodeOfConduct />;
+  }
+
+  // If authenticated and fully onboarded, show main app
+  console.log("Showing main app");
   return (
     <Switch>
       <Route path="/" component={Home} />
