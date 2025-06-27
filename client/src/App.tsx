@@ -5,15 +5,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SocketProvider } from "@/contexts/socket-context";
 import { useAuth } from "@/hooks/useAuth";
-import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Onboarding from "@/pages/onboarding";
 import CodeOfConduct from "@/pages/code-of-conduct";
-import Home from "@/pages/home";
-import Profile from "@/pages/profile";
-import Events from "@/pages/events";
-import Messages from "@/pages/messages";
-
 import HomePage from "@/pages/home";
 import FeedPage from "@/pages/feed";
 import ProfilePage from "@/pages/profile";
@@ -21,12 +15,10 @@ import EventsPage from "@/pages/events";
 import MessagesPage from "@/pages/messages";
 import FriendsPage from "@/pages/friends";
 import GroupsPage from "@/pages/groups";
-import OnboardingPage from "@/pages/onboarding";
-import CodeOfConductPage from "@/pages/code-of-conduct";
+import CommunityPage from "@/pages/community";
+import PhotosPage from "@/pages/photos";
+import VideosPage from "@/pages/videos";
 import NotFoundPage from "@/pages/not-found";
-import LandingPage from "@/pages/landing";
-import LoginPage from "@/pages/auth/login";
-import RegisterPage from "@/pages/auth/register";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -77,15 +69,16 @@ function Router() {
   return (
     <Switch>
       {/* Protected Routes */}
-      <Route path="/" component={HomePage} />
+      <Route path="/" component={FeedPage} />
+      <Route path="/feed" component={FeedPage} />
       <Route path="/profile" component={ProfilePage} />
       <Route path="/events" component={EventsPage} />
       <Route path="/messages" component={MessagesPage} />
+      <Route path="/friends" component={FriendsPage} />
+      <Route path="/groups" component={GroupsPage} />
       <Route path="/community" component={CommunityPage} />
       <Route path="/photos" component={PhotosPage} />
       <Route path="/videos" component={VideosPage} />
-      <Route path="/onboarding" component={OnboardingPage} />
-      <Route path="/code-of-conduct" component={CodeOfConductPage} />
       <Route component={NotFoundPage} />
     </Switch>
   );
