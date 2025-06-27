@@ -113,36 +113,45 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 p-6">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-semibold text-gray-900 mb-3">Complete Your Profile</h1>
-          <p className="text-lg text-gray-600">Join the global tango community</p>
+          <div className="relative inline-block">
+            <Heart className="w-16 h-16 mx-auto mb-4 text-pink-500 animate-pulse hover:scale-110 transition-transform duration-300 cursor-pointer" />
+            <div className="absolute -top-2 -right-2 w-6 h-6 bg-cyan-400 rounded-full animate-bounce"></div>
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 hover:scale-105 transition-transform duration-300">
+            Complete Your Profile
+          </h1>
+          <p className="text-xl text-gray-600 hover:text-gray-800 transition-colors duration-200">Join the global tango community</p>
         </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
             
             {/* Nickname Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
-                <div className="w-8 h-8 bg-cyan-100 rounded-full flex items-center justify-center">
-                  <Heart className="w-4 h-4 text-cyan-600" />
+            <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50">
+              <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-cyan-300 transition-colors">
+                <div className="w-10 h-10 bg-gradient-to-br from-cyan-100 to-pink-100 rounded-full flex items-center justify-center group-hover:animate-bounce shadow-lg">
+                  <Heart className="w-5 h-5 text-cyan-600 group-hover:text-pink-500 transition-colors duration-300" />
                 </div>
-                <h2 className="text-xl font-medium text-gray-900">Nickname</h2>
+                <h2 className="text-xl font-medium text-gray-900 group-hover:text-cyan-700 transition-colors">Nickname</h2>
+                <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs bg-cyan-100 text-cyan-700 px-2 py-1 rounded-full">✨ Your tango identity!</span>
+                </div>
               </div>
               <FormField
                 control={form.control}
                 name="nickname"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700">How should the community know you?</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-cyan-700 transition-colors">How should the community know you?</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Enter your tango nickname"
                         {...field}
-                        className="h-12 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 rounded-lg"
+                        className="h-12 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 rounded-lg hover:border-cyan-300 transition-all duration-200 focus:shadow-lg focus:shadow-cyan-100"
                       />
                     </FormControl>
                     <FormMessage />
@@ -152,26 +161,29 @@ export default function Onboarding() {
             </div>
 
             {/* Languages Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Globe className="w-4 h-4 text-blue-600" />
+            <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50">
+              <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-blue-300 transition-colors">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full flex items-center justify-center group-hover:animate-spin shadow-lg">
+                  <Globe className="w-5 h-5 text-blue-600 group-hover:text-cyan-600 transition-colors duration-300" />
                 </div>
-                <h2 className="text-xl font-medium text-gray-900">Languages</h2>
+                <h2 className="text-xl font-medium text-gray-900 group-hover:text-blue-700 transition-colors">Languages</h2>
+                <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">🌍 Connect globally!</span>
+                </div>
               </div>
               <FormField
                 control={form.control}
                 name="languages"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700">What languages do you speak?</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-blue-700 transition-colors">What languages do you speak?</FormLabel>
                     <FormControl>
                       <MultiSelect
                         options={languages}
                         selected={field.value}
                         onChange={field.onChange}
                         placeholder="Select languages"
-                        className="border-gray-200 focus:border-blue-500 rounded-lg"
+                        className="border-gray-200 focus:border-blue-500 rounded-lg hover:border-blue-300 transition-all duration-200 focus:shadow-lg focus:shadow-blue-100"
                       />
                     </FormControl>
                     <FormMessage />
@@ -181,26 +193,29 @@ export default function Onboarding() {
             </div>
 
             {/* Tango Roles Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
-                <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
-                  <Users className="w-4 h-4 text-teal-600" />
+            <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50">
+              <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-teal-300 transition-colors">
+                <div className="w-10 h-10 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-full flex items-center justify-center group-hover:animate-pulse shadow-lg">
+                  <Users className="w-5 h-5 text-teal-600 group-hover:text-emerald-600 transition-colors duration-300" />
                 </div>
-                <h2 className="text-xl font-medium text-gray-900">Tango Activities</h2>
+                <h2 className="text-xl font-medium text-gray-900 group-hover:text-teal-700 transition-colors">Tango Activities</h2>
+                <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full">💃 Your tango style!</span>
+                </div>
               </div>
               <FormField
                 control={form.control}
                 name="tangoRoles"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700">What do you do in tango?</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-teal-700 transition-colors">What do you do in tango?</FormLabel>
                     <FormControl>
                       <MultiSelect
                         options={tangoRoles}
                         selected={field.value}
                         onChange={field.onChange}
                         placeholder="Select your roles"
-                        className="border-gray-200 focus:border-teal-500 rounded-lg"
+                        className="border-gray-200 focus:border-teal-500 rounded-lg hover:border-teal-300 transition-all duration-200 focus:shadow-lg focus:shadow-teal-100"
                       />
                     </FormControl>
                     <FormMessage />
@@ -210,24 +225,27 @@ export default function Onboarding() {
             </div>
 
             {/* Location Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
-                <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-indigo-600" />
+            <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50">
+              <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-indigo-300 transition-colors">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center group-hover:animate-bounce shadow-lg">
+                  <Sparkles className="w-5 h-5 text-indigo-600 group-hover:text-purple-600 transition-colors duration-300" />
                 </div>
-                <h2 className="text-xl font-medium text-gray-900">Location</h2>
+                <h2 className="text-xl font-medium text-gray-900 group-hover:text-indigo-700 transition-colors">Location</h2>
+                <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">📍 Find your scene!</span>
+                </div>
               </div>
               <FormField
                 control={form.control}
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700">Where are you dancing?</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-indigo-700 transition-colors">Where are you dancing?</FormLabel>
                     <FormControl>
                       <LocationPicker
                         value={field.value}
                         onChange={field.onChange}
-                        className="border-gray-200 focus:border-indigo-500 rounded-lg"
+                        className="border-gray-200 focus:border-indigo-500 rounded-lg hover:border-indigo-300 transition-all duration-200 focus:shadow-lg focus:shadow-indigo-100"
                       />
                     </FormControl>
                     <FormMessage />
@@ -237,18 +255,33 @@ export default function Onboarding() {
             </div>
 
             {/* Submit Button */}
-            <div className="pt-8">
-              <Button
-                type="submit"
-                disabled={onboardingMutation.isPending}
-                className="w-full h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-200"
-              >
-                {onboardingMutation.isPending ? (
-                  "Setting up profile..."
-                ) : (
-                  "Complete Profile"
-                )}
-              </Button>
+            <div className="pt-8 text-center">
+              <div className="relative inline-block group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-pink-400 via-cyan-400 to-blue-400 rounded-xl blur opacity-75 group-hover:opacity-100 group-hover:blur-sm transition duration-300"></div>
+                <Button
+                  type="submit"
+                  disabled={onboardingMutation.isPending}
+                  className="relative w-full h-14 bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 hover:from-cyan-700 hover:via-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl group-hover:shadow-cyan-500/25 disabled:hover:scale-100 disabled:opacity-50"
+                >
+                  <span className="flex items-center justify-center gap-3">
+                    {onboardingMutation.isPending ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Setting up profile...
+                      </>
+                    ) : (
+                      <>
+                        <span className="group-hover:animate-bounce">✨</span>
+                        Complete Profile
+                        <Heart className="w-5 h-5 group-hover:animate-pulse text-pink-200" />
+                      </>
+                    )}
+                  </span>
+                </Button>
+              </div>
+              <p className="text-sm text-gray-500 mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                Join thousands of tango dancers worldwide!
+              </p>
             </div>
           </form>
         </Form>
