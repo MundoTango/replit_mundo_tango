@@ -15,15 +15,18 @@ import Events from "@/pages/events";
 import Messages from "@/pages/messages";
 
 import HomePage from "@/pages/home";
+import FeedPage from "@/pages/feed";
 import ProfilePage from "@/pages/profile";
 import EventsPage from "@/pages/events";
 import MessagesPage from "@/pages/messages";
-import CommunityPage from "@/pages/community";
-import PhotosPage from "@/pages/photos";
-import VideosPage from "@/pages/videos";
+import FriendsPage from "@/pages/friends";
+import GroupsPage from "@/pages/groups";
 import OnboardingPage from "@/pages/onboarding";
 import CodeOfConductPage from "@/pages/code-of-conduct";
 import NotFoundPage from "@/pages/not-found";
+import LandingPage from "@/pages/landing";
+import LoginPage from "@/pages/auth/login";
+import RegisterPage from "@/pages/auth/register";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
