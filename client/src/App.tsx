@@ -34,7 +34,7 @@ function Router() {
   }
 
   // If authenticated but onboarding not complete, handle registration flow
-  if (user && !(user as any).isOnboardingComplete) {
+  if (user && (!(user as any).isOnboardingComplete || !(user as any).codeOfConductAccepted)) {
     // Check if basic onboarding is done but code of conduct not accepted
     if ((user as any).formStatus >= 1 && !(user as any).codeOfConductAccepted) {
       return <CodeOfConduct />;
