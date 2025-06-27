@@ -44,7 +44,12 @@ export default function CodeOfConduct() {
 
   const acceptCodeOfConductMutation = useMutation({
     mutationFn: async (data: CodeOfConductData) => {
-      return apiRequest("POST", "/api/code-of-conduct/accept", data);
+      const token = localStorage.getItem('token');
+      return apiRequest("POST", "/api/code-of-conduct/accept", data, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
     },
     onSuccess: () => {
       toast({
