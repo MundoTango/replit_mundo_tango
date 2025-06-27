@@ -1,0 +1,2230 @@
+{
+	"info": {
+		"_postman_id": "d24684d0-d0fb-4823-8eee-c5d8ed4ec8a8",
+		"name": "MundoTango",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "35233566"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Account",
+					"item": [
+						{
+							"name": "Create User",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "token",
+										"value": "{{token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\":\"Test\",\r\n    \"username\":\"Test\",\r\n    \"email\":\"test432@yopmail.com\",\r\n    \"mobile_no\":\"+92322222222\",\r\n    \"password\":\"test@123\",\r\n    \"confirm_password\":\"test@123\",\r\n    \"device_type\":\"android\",\r\n    \"device_token\":\"123123123\",\r\n    \"facebook_url\": \"https://www.facebook.com/\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}api/user",
+									"host": [
+										"{{base_url}}api"
+									],
+									"path": [
+										"user"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Verify OTP ( Register Screen )",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "token",
+										"value": "{{token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\":\"test432@yopmail.com\",\r\n    \"mobile_no\":\"+92322222222\",\r\n    \"otp\":\"452940\",\r\n    \"device_type\":\"web\",\r\n    \"device_token\":\"123\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}api/user/verify-otp/register",
+									"host": [
+										"{{base_url}}api"
+									],
+									"path": [
+										"user",
+										"verify-otp",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Verify OTP ( Forgot Password Screen)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall5TURFek9UQXNJbVY0Y0NJNk1UY3lOall6TXpNNU1Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS41MXpCZXFTNmtxMVg2YURBQlZBa2IwVC1uSWRDY1kzSmZzbVcyei1KeGFR",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "token",
+										"value": "d022611f-6c8a-4e72-a19b-e55da5b64c64",
+										"type": "text",
+										"disabled": true
+									},
+									{
+										"key": "token",
+										"value": "{{token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\":\"test432@yopmail.com\",\r\n    \"otp\":\"659411\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}api/user/verify-otp/forgot-password",
+									"host": [
+										"{{base_url}}api"
+									],
+									"path": [
+										"user",
+										"verify-otp",
+										"forgot-password"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Login",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "token",
+										"value": "{{token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\":\"test432@yopmail.com\",\r\n    \"password\":\"test@123\",\r\n    \"device_type\":\"ios\",\r\n    \"device_token\":\"123123\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}api/user/login",
+									"host": [
+										"{{base_url}}api"
+									],
+									"path": [
+										"user",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Send OTP",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "token",
+										"value": "d022611f-6c8a-4e72-a19b-e55da5b64c64",
+										"type": "text",
+										"disabled": true
+									},
+									{
+										"key": "token",
+										"value": "68bdbd1c-a197-4d78-9483-3f8f292a42be",
+										"type": "text",
+										"disabled": true
+									},
+									{
+										"key": "token",
+										"value": "{{token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\":\"test432@yopmail.com\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}api/user/send-otp/mail",
+									"host": [
+										"{{base_url}}api"
+									],
+									"path": [
+										"user",
+										"send-otp",
+										"mail"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Set New Password",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall5TURFek9UQXNJbVY0Y0NJNk1UY3lOall6TXpNNU1Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS41MXpCZXFTNmtxMVg2YURBQlZBa2IwVC1uSWRDY1kzSmZzbVcyei1KeGFR",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"new_password\":\"test@123\",\r\n    \"confirm_password\":\"test@123\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}api/user/set-password",
+									"host": [
+										"{{base_url}}api"
+									],
+									"path": [
+										"user",
+										"set-password"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Social Login",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "token",
+										"value": "d022611f-6c8a-4e72-a19b-e55da5b64c64",
+										"type": "text",
+										"disabled": true
+									},
+									{
+										"key": "token",
+										"value": "68bdbd1c-a197-4d78-9483-3f8f292a42be",
+										"type": "text",
+										"disabled": true
+									},
+									{
+										"key": "token",
+										"value": "{{token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\":\"test\",\r\n    \"email\":\"test2@yopmail.com\",\r\n    \"device_type\":\"web\",\r\n    \"device_token\":\"123\",\r\n    \"platform_type\":\"google\",\r\n    \"platform_id\":\"123123123\"\r\n    \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}api/user/social-login",
+									"host": [
+										"{{base_url}}api"
+									],
+									"path": [
+										"user",
+										"social-login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Profile",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "image_url",
+											"type": "file",
+											"src": []
+										},
+										{
+											"key": "name",
+											"value": "test",
+											"type": "text"
+										},
+										{
+											"key": "sports_type",
+											"value": "gender",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}api/user",
+									"host": [
+										"{{base_url}}api"
+									],
+									"path": [
+										"user"
+									],
+									"query": [
+										{
+											"key": "image_url",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Change Password",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{api_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "token",
+										"value": "{{token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"current_password\":\"test@123\",\r\n    \"new_password\":\"Test@123\",\r\n    \"confirm_password\":\"Test@123\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}api/user/change-password",
+									"host": [
+										"{{base_url}}api"
+									],
+									"path": [
+										"user",
+										"change-password"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Account",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "token",
+										"value": "{{token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}api/user",
+									"host": [
+										"{{base_url}}api"
+									],
+									"path": [
+										"user"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{api_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "token",
+										"value": "{{token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}api/user/logout",
+									"host": [
+										"{{base_url}}api"
+									],
+									"path": [
+										"user",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get My Profile",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{authorization}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "token",
+										"value": "{{token}}",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{authorization}}",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}api/user",
+									"host": [
+										"{{base_url}}api"
+									],
+									"path": [
+										"user"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "SetUp Profile Forms",
+					"item": [
+						{
+							"name": "From 1 - User Questions",
+							"item": [
+								{
+									"name": "Add User Questions",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/user-questions/store",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"user-questions",
+												"store"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get User Questions",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/user-questions/get",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"user-questions",
+												"get"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get User Questions By Id",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/user-questions/get/3",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"user-questions",
+												"get",
+												"3"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Form 2 - Tango Activities",
+							"item": [
+								{
+									"name": "Add Tango Activities",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"teacher_at\": {{$timestamp}},\r\n    \"dj_at\": {{$timestamp}},\r\n    \"photographer_at\": {{$timestamp}},\r\n    \"host_at\": {{$timestamp}},\r\n    \"organizer_at\": {{$timestamp}},\r\n    \"creator_at\": {{$timestamp}},\r\n    \"performer_at\": {{$timestamp}},\r\n    \"tour_operator_at\": {{$timestamp}},\r\n    \"other\": \"text string\",\r\n    \"social_dancer\": true\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/tango-activities/store",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"tango-activities",
+												"store"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Tango Activities",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/tango-activities/get",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"tango-activities",
+												"get"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Tango Activities By Id",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/tango-activities/get/1",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"tango-activities",
+												"get",
+												"1"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Form 3 - Teacher Experience Form",
+							"item": [
+								{
+									"name": "Add Teacher Experience",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"partner_facebook_url\": \"https://www.youtube.com/\",\r\n    \"cities\":  [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"online_platforms\": [\"facebook\", \"twitter\", \"instagram\", \"youtube\"],\r\n    \"about_tango_future\": \"check text\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/teaching-experience/store",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"teaching-experience",
+												"store"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Teacher Experience",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/teaching-experience/get",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"teaching-experience",
+												"get"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Teacher Experience By Id",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/teaching-experience/get/1",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"teaching-experience",
+												"get",
+												"1"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Form 4 - DJ Experience Form",
+							"item": [
+								{
+									"name": "Add DJ Experience",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"performed_events\": 3,\r\n    \"cities\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"lahore\"\r\n    ],\r\n    \"favourite_orchestra\": \"text\",\r\n    \"favourite_singer\": \"check text\",\r\n    \"milonga_size\": \"check text\",\r\n    \"use_external_equipments\": true,\r\n    \"dj_softwares\": \"check text\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/dj-experience/store",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"dj-experience",
+												"store"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get DJ Experience",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/dj-experience/get",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"dj-experience",
+												"get"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get DJ Experience By Id",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/dj-experience/get/1",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"dj-experience",
+												"get",
+												"1"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Form 5 - Organizer Experience Form",
+							"item": [
+								{
+									"name": "Add Organizer Experience",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"cities\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"lahore\"\r\n    ],\r\n    \"hosted_events\": 5,\r\n    \"hosted_event_types\":\"text\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/organizer-experience/store",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"organizer-experience",
+												"store"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Organizer Experience",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/organizer-experience/get",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"organizer-experience",
+												"get"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Organizer Experience By Id",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/organizer-experience/get/1",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"organizer-experience",
+												"get",
+												"1"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Form 6 - Performer Experience Form",
+							"item": [
+								{
+									"name": "Add Performer Experience",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"partner_profile_link\": [\r\n        \"https://www.youtube.com/\",\r\n        \"https://www.youtube.com/\",\r\n        \"https://www.youtube.com/\"\r\n    ],\r\n    \"recent_performance_url\": \"https://www.youtube.com/\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/performer-experience/store",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"performer-experience",
+												"store"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Performer Experience",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/performer-experience/get",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"performer-experience",
+												"get"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Performer Experience By Id",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/performer-experience/get/1",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"performer-experience",
+												"get",
+												"1"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Form 7 - Housing Host",
+							"item": [
+								{
+									"name": "Add Housing Host",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall5TURVME5ERXNJbVY0Y0NJNk1UY3lOall6TnpRME1Td2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS4zbl9GbU5Td1hTR1FxN3JVYUxCZ25TZWNLSW53bFJsclprS2YxWnRobE9R",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "image[0]",
+													"type": "file",
+													"src": [
+														"/C:/Users/syed.shaheer/Downloads/auth-image.png",
+														"/C:/Users/syed.shaheer/Downloads/1722946783260-770939961-1000000082.jpg"
+													]
+												},
+												{
+													"key": "property_url[0]",
+													"value": "https://example.com",
+													"type": "text"
+												},
+												{
+													"key": "city[0]",
+													"value": "karachi",
+													"type": "text"
+												},
+												{
+													"key": "space[0]",
+													"value": "anywhere",
+													"type": "text"
+												},
+												{
+													"key": "people[0]",
+													"value": "33",
+													"type": "text"
+												},
+												{
+													"key": "image[1]",
+													"type": "file",
+													"src": "/C:/Users/syed.shaheer/Downloads/vecteezy_cartoon-characters-using-mobile-wireless-technology-for_24492291.png"
+												},
+												{
+													"key": "property_url[1]",
+													"value": "https://example.com",
+													"type": "text"
+												},
+												{
+													"key": "city[1]",
+													"value": "hyderabad",
+													"type": "text"
+												},
+												{
+													"key": "space[1]",
+													"value": "anywhere 1",
+													"type": "text"
+												},
+												{
+													"key": "people[1]",
+													"value": "54",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}api/host-experience/store",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"host-experience",
+												"store"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Form 8 - Creator Experience Form",
+							"item": [
+								{
+									"name": "Add Creator Experience",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"shoes_url\": \"https://www.youtube.com/\",\r\n    \"clothing_url\": \"https://www.youtube.com/\",\r\n    \"jewelry\": \"https://www.youtube.com/\",\r\n    \"vendor_activities\": \"https://www.youtube.com/\",\r\n    \"vendor_url\": \"https://www.youtube.com/\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/creator-experience/store",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"creator-experience",
+												"store"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Creator Experience",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/creator-experience/get",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"creator-experience",
+												"get"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Creator Experience By Id",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/creator-experience/get/1",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"creator-experience",
+												"get",
+												"1"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Form 9 - Photographer Experience Form",
+							"item": [
+								{
+									"name": "Add Photographer Experience",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"theme\": \"photographer\", // videographer, photographer\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"vendor_url\": \"https://www.youtube.com/\",\r\n    \"vendor_activities\": \"test\",\r\n    \"cities\": [\"karachi\", \"lahore\"]\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/tour-operator-experience/store",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"tour-operator-experience",
+												"store"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Photographer Experience",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/photographer-experience/get",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"photographer-experience",
+												"get"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Creator Experience By Id",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/photographer-experience/get/1",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"photographer-experience",
+												"get",
+												"1"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Form 10 - Tour Operator Experience Form",
+							"item": [
+								{
+									"name": "Add Tour Operator Experience",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"theme\": \"test\",\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"vendor_url\": \"https://www.youtube.com/\",\r\n    \"vendor_activities\": \"test\",\r\n    \"cities\": [\"karachi\", \"lahore\"]\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/tour-operator-experience/store",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"tour-operator-experience",
+												"store"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Tour Operator Experience",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/tour-operator-experience/get",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"tour-operator-experience",
+												"get"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Tour Operator Experience By Id",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/tour-operator-experience/get/1",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"tour-operator-experience",
+												"get",
+												"1"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Form 11 - Dance Experience Form",
+							"item": [
+								{
+									"name": "Add Dance Experience",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{api_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"social_dancing_cities\": [\"karachi\", \"lahore\"],\r\n    \"recent_workshop_cities\": [\"karachi\", \"lahore\"],\r\n    \"favourite_dancing_cities\": [\"karachi\", \"lahore\"],\r\n    \"annual_event_count\": 5\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/dance-experience/store",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"dance-experience",
+												"store"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Dance Experience",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{api_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/dance-experience/get",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"dance-experience",
+												"get"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Dance Experience By Id",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{api_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/dance-experience/get/1",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"dance-experience",
+												"get",
+												"1"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Form 12 - Learning Source Form",
+							"item": [
+								{
+									"name": "Add Learning Source",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{api_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "[\r\n    {\r\n        \"first_teacher\": \"abcdef\",\r\n        \"leading_teachers\": [\"ab\", \"cd\", \"ef\"],\r\n        \"chacarera_skill\": \"test0\",\r\n        \"tango_story\": \"test\", \r\n        \"zamba_skill\": 5,\r\n        \"visited_buenos_aires\": true,\r\n        \"visited_buenos_aires_at\": \"2024-09-05 18:00:00\"\r\n    },\r\n    {\r\n        \"first_teacher\": \"abcdef\",\r\n        \"leading_teachers\": [\"ab\", \"cd\", \"ef\"],\r\n        \"chacarera_skill\": \"test0\",\r\n        \"tango_story\": \"test\", \r\n        \"zamba_skill\": 5,\r\n        \"visited_buenos_aires\": true,\r\n        \"visited_buenos_aires_at\": \"2024-09-05 18:00:00\"\r\n    }\r\n]",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/learning-source/store",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"learning-source",
+												"store"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Learning Source",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{api_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"city\": \"karachi\",\r\n    \"start_dancing\": {{$timestamp}},\r\n    \"is_nomad\": true,\r\n    // \"guide_visitors\": true,\r\n    \"lived_for_tango\": [\r\n        \"karachi\",\r\n        \"hyderabad\",\r\n        \"sialkot\"\r\n    ],\r\n    \"languages\": [\r\n        \"english\",\r\n        \"urdu\"\r\n    ],\r\n    \"website_url\": \"https://www.youtube.com/\",\r\n    \"dance_role_leader\": 2,\r\n    \"dance_role_follower\": 3,\r\n    \"about\": \"check \"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}api/learning-source/get",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"learning-source",
+												"get"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Add User Images",
+							"item": [
+								{
+									"name": "Add User Images",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{api_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "token",
+												"value": "{{token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "profileImage",
+													"type": "file",
+													"src": [
+														"/C:/Users/syed.shaheer/Downloads/auth-image.png",
+														"/C:/Users/syed.shaheer/Downloads/vecteezy_cartoon-characters-using-mobile-wireless-technology-for_24492291.png",
+														"/C:/Users/syed.shaheer/Downloads/login_image.jpg"
+													]
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}api/user/add-user-images",
+											"host": [
+												"{{base_url}}api"
+											],
+											"path": [
+												"user",
+												"add-user-images"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnpiSFZuSWpvaVl6aGlNVE0zWVdZdE9UZG1aaTAwWW1KaExUZzROVGN0TXpFeU16VTJZVE5rWXpjM0lpd2lhV0YwSWpveE56STBNak00TURRMUxDSmxlSEFpT2pFM01qUTROREk0TkRVc0ltbHpjeUk2SWpJMk1EUmtabU14TFdJNE1HWXROREprTmkwNE1EWTRMVFF4WVRnd05UTXlaV0UxTnlJc0luTjFZaUk2SWpJMk1EUmtabU14TFdJNE1HWXROREprTmkwNE1EWTRMVFF4WVRnd05UTXlaV0UxTnlJc0ltcDBhU0k2SW1NNFlqRXpOMkZtTFRrM1ptWXROR0ppWVMwNE9EVTNMVE14TWpNMU5tRXpaR00zTnlKOS54R1k4UHJDeFVnMXozRkg2bURfQl85Y3NxSVRzRE9Dd2pVRHZSaXljakJV",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3024/",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "miyqggucnmhijwlbweoanucplvxmezcq",
+			"type": "string"
+		},
+		{
+			"key": "authorization",
+			"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+			"type": "string"
+		},
+		{
+			"key": "api_token",
+			"value": "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lMQ0pwWVhRaU9qRTNNall3TlRNd09EZ3NJbVY0Y0NJNk1UY3lOalE0TlRBNE9Dd2lhWE56SWpvaWJXbDVjV2RuZFdOdWJXaHBhbmRzWW5kbGIyRnVkV053YkhaNGJXVjZZM0VpTENKemRXSWlPaUp0YVhseFoyZDFZMjV0YUdscWQyeGlkMlZ2WVc1MVkzQnNkbmh0WlhwamNTSXNJbXAwYVNJNkluVnpaWEl0TWlKOS5hbFVjVDhldGhTSlI5bzZ2bmJYS2VNV25fY0lLY1E5VFgzanNNUFJHaEJV",
+			"type": "string"
+		}
+	]
+}

@@ -1,0 +1,40 @@
+name: Deploy with SSH Username and Password
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow on pushes to the deployment branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup SSH and Known Hosts
+      env:
+        SERVER_IP: ${{ secrets.CPANEL_SERVER_IP }}
+      run: |
+        # Create the .ssh directory if it doesn't exist
+        mkdir -p ~/.ssh
+
+        # Add the server's SSH key to the known_hosts file
+        ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
+    - name: SSH and Deploy Application using Username and Password
+      env:
+        SSH_USER: ${{ secrets.SSH_USER }}
+        SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        SERVER_IP: ${{ secrets.CPANEL_SERVER_IP }}
+        TARGET_DIR: ${{ secrets.CPANEL_TARGET_DIR }}
+      run: |
+        # Install sshpass for password-based SSH authentication
+        sudo apt-get install sshpass
+
+        # Connect via SSH using username and password, and execute commands
+        sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no $SSH_USER@$SERVER_IP << EOF
+          cd $TARGET_DIR  # Navigate to your application directory
+          git pull # Pull the latest changes from the deployment branch
+          npm install  # Install any updated dependencies
+          pm2 restart 0 # Restart or start the PM2 process
+        EOF

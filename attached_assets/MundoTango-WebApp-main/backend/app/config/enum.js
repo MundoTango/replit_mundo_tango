@@ -1,0 +1,63 @@
+const LOGIN_TYPE = {
+  CUSTOM: "custom",
+  GOOGLE: "google",
+  APPLE: "apple",
+  FACEBOOK: "facebook",
+};
+
+const API_TOKENS_ENUM = {
+  ACCESS: "ACCESS",
+  RESET: "RESET",
+};
+
+const POST_TYPE_ENUM = {
+  VIDEO: "VIDEO",
+  WORKOUT: "WORKOUT",
+};
+
+const TRAINING_LOG_TYPE_ENUM = {
+  WEEKLY: "week",
+  MONTHLY: "month",
+  YEARLY: "year",
+};
+
+const SETTING_CONTENT = {
+  TERMS: "TERMS",
+  PRIVACY: "PRIVACY",
+};
+
+const CHAT_ROOM_TYPE_ENUM = {
+  SINGLE: "single",
+  GROUP: "group",
+};
+
+const CHAT_ROOM_STATUS_ENUM = {
+  PENDING: "pending",
+  ACCEPTED: "accepted",
+  REJECTED: "rejected",
+};
+
+const MESSAGE_TYPE_ENUM = {
+  TEXT: "TEXT",
+  FILE: "FILE",
+  BADGE: "BADGE",
+};
+
+const BADGE_TYPE_ENUM = {
+  ADD_MEMBER: "ADD_NEW_MEMBER",
+  REMOVE_MEMBER: "REMOVE_MEMBER",
+  LEAVE_GROUP: "LEAVE_GROUP",
+  DETAILS_UPDATED: "DETAILS_UPDATED",
+};
+
+module.exports = {
+  LOGIN_TYPE,
+  API_TOKENS_ENUM,
+  POST_TYPE_ENUM,
+  TRAINING_LOG_TYPE_ENUM,
+  SETTING_CONTENT,
+  CHAT_ROOM_TYPE_ENUM,
+  CHAT_ROOM_STATUS_ENUM,
+  MESSAGE_TYPE_ENUM,
+  BADGE_TYPE_ENUM,
+};

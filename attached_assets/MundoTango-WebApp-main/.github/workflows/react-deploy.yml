@@ -1,0 +1,73 @@
+name: Deploy Mundo Tango App to cPanel
+
+on:
+  push:
+    branches:
+      - main # Deploy only on push to the main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: List files in the repository
+        run: ls -R
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.x" # Adjust as necessary
+
+      - name: Install dependencies
+        working-directory: frontend 
+        run: npm install --force
+
+      - name: Build Mundo tango app
+        working-directory: frontend 
+        run: npm run build
+
+      - name: Compress build folder
+        working-directory: frontend 
+        run:  tar -czf build.tar.gz out/
+
+      # - name: List files in the repository
+      #   working-directory: frontend 
+      #   run: ls -R
+
+      - name: Upload to cPanel via SSH (with username and password)
+        env:
+          CPANEL_USERNAME: ${{ secrets.CPANEL_USERNAME }}
+          CPANEL_PASSWORD: ${{ secrets.CPANEL_PASSWORD }}
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_TARGET_DIR: ${{ secrets.CPANEL_TARGET_DIR }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y sshpass
+
+          # Ensure the target directory exists
+          echo "Ensuring the directory exists on the server..."
+          sshpass -p "$CPANEL_PASSWORD" ssh -o StrictHostKeyChecking=no $CPANEL_USERNAME@$CPANEL_HOST "mkdir -p $CPANEL_TARGET_DIR"
+
+          # Upload the compressed build folder
+          echo "Uploading the compressed build folder..."
+          sshpass -p "$CPANEL_PASSWORD" scp -v -o StrictHostKeyChecking=no ./frontend/build.tar.gz $CPANEL_USERNAME@$CPANEL_HOST:$CPANEL_TARGET_DIR/build.tar.gz || echo "Upload failed"
+
+          # Extract and synchronize files
+          echo "Extracting and synchronizing files on the server..."
+          sshpass -p "$CPANEL_PASSWORD" ssh -o StrictHostKeyChecking=no $CPANEL_USERNAME@$CPANEL_HOST << EOF
+            cd $CPANEL_TARGET_DIR
+            # Find and remove all files and directories except for build.tar.gz
+            # find . -mindepth 1 -maxdepth 1 ! -name 'build.tar.gz' -exec rm -rf {} +
+            find . -mindepth 1 -maxdepth 1 ! -name 'build.tar.gz' ! -name '.htaccess' -exec rm -rf {} +
+            # Extract the tar file
+            tar -xzf build.tar.gz
+            # move all files to root directory
+            mv out/* .
+            rm -rf out
+            # Remove the tar file
+            rm build.tar.gz
+          EOF

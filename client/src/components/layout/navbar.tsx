@@ -1,138 +1,166 @@
-import { useState } from "react";
-import { useAuth } from "@/contexts/auth-context";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Bell, Menu, Search, MessageCircle, Users, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Home, 
-  MessageCircle, 
-  Bell, 
-  Search, 
-  Settings, 
-  User, 
-  LogOut,
-  Calendar,
-  Users
-} from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { Link } from "wouter";
+import { useState } from "react";
 
 interface NavbarProps {
-  onOpenChat: () => void;
+  onMenuClick: () => void;
 }
 
-export default function Navbar({ onOpenChat }: NavbarProps) {
+export default function Navbar({ onMenuClick }: NavbarProps) {
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Implement search functionality
-    console.log("Searching for:", searchQuery);
-  };
-
   return (
-    <nav className="bg-white shadow-lg fixed top-0 w-full z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex items-center">
-            <h1 className="text-2xl font-bold text-tango-red">Mundo Tango</h1>
-          </div>
+    <div className="bg-white h-16 border-b-2 border-gray-200 transition-all flex items-center gap-3 p-3 md:p-5 select-none">
+      <div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onMenuClick}
+          className="p-2"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      </div>
 
-          {/* Search Bar */}
-          <div className="flex-1 max-w-lg mx-8 hidden md:block">
-            <form onSubmit={handleSearch}>
-              <div className="relative">
-                <Input
-                  type="text"
-                  placeholder="Search users, events, or topics..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-tango-red focus:border-transparent"
-                />
-                <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+      <div className="flex-1 relative">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search posts, events, people..."
+            className="pl-10 bg-gray-50 border-gray-300 rounded-lg"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <div className="absolute w-full max-h-96 overflow-y-auto left-0 top-full mt-1 bg-white rounded-lg border border-gray-200 shadow-lg z-50">
+              <div className="grid grid-cols-4 gap-4 p-4">
+                <div>
+                  <h3 className="font-semibold text-sm text-gray-700 mb-2">Posts</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                      <img src="/api/placeholder/32/32" className="w-8 h-8 rounded-full object-cover" />
+                      <span className="text-sm">Sample post content...</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm text-gray-700 mb-2">Groups</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                      <img src="/api/placeholder/32/32" className="w-8 h-8 rounded-full object-cover" />
+                      <span className="text-sm">Tango Buenos Aires</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm text-gray-700 mb-2">Friends</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                      <img src="/api/placeholder/32/32" className="w-8 h-8 rounded-full object-cover" />
+                      <span className="text-sm">Maria Rodriguez</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm text-gray-700 mb-2">Events</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                      <img src="/api/placeholder/32/32" className="w-8 h-8 rounded-full object-cover" />
+                      <span className="text-sm">Milonga Night</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </form>
-          </div>
+            </div>
+          )}
+        </div>
+      </div>
 
-          {/* Navigation Icons */}
-          <div className="flex items-center space-x-6">
-            <Button variant="ghost" size="sm" className="text-gray-700 hover:text-tango-red relative">
-              <Home className="h-6 w-6" />
+      <div className="mr-1 md:mr-4 flex items-center md:space-x-5">
+        <div className="flex items-center gap-5">
+          <div className="relative">
+            <Button variant="ghost" size="icon" className="relative">
+              <Users className="h-5 w-5 text-gray-600" />
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                2
+              </span>
             </Button>
-
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-gray-700 hover:text-tango-red relative"
-              onClick={onOpenChat}
-            >
-              <MessageCircle className="h-6 w-6" />
-              <span className="absolute -top-2 -right-2 bg-tango-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          </div>
+          
+          <div>
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/messages">
+                <MessageCircle className="h-5 w-5 text-gray-600" />
+              </Link>
+            </Button>
+          </div>
+          
+          <div className="relative">
+            <Button variant="ghost" size="icon" className="relative">
+              <Bell className="h-5 w-5 text-gray-600" />
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                 3
               </span>
             </Button>
-
-            <Button variant="ghost" size="sm" className="text-gray-700 hover:text-tango-red relative">
-              <Bell className="h-6 w-6" />
-              <span className="absolute -top-2 -right-2 bg-tango-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                5
-              </span>
-            </Button>
-
-            {/* User Profile Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.profileImage || ""} alt={user?.name} />
-                    <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user?.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      @{user?.username}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Calendar className="mr-2 h-4 w-4" />
-                  <span>Events</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Users className="mr-2 h-4 w-4" />
-                  <span>Community</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="cursor-pointer pl-2 md:pl-0 flex items-center gap-2">
+              <Avatar className="h-10 w-10">
+                <AvatarImage 
+                  src={user?.profileImage || "/images/user-placeholder.jpeg"} 
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-red-600 text-white">
+                  {user?.name?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="p-2">
+                <ChevronDown className="h-4 w-4 text-gray-600" />
+              </div>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuItem className="font-semibold text-gray-700 px-3 py-3">
+              Change Password
+            </DropdownMenuItem>
+            <DropdownMenuItem className="font-semibold text-gray-700 px-3 py-3">
+              FAQs
+            </DropdownMenuItem>
+            <DropdownMenuItem className="font-semibold text-gray-700 px-3 py-3">
+              Help & Support
+            </DropdownMenuItem>
+            <DropdownMenuItem className="font-semibold text-gray-700 px-3 py-3">
+              Privacy Policy
+            </DropdownMenuItem>
+            <DropdownMenuItem className="font-semibold text-gray-700 px-3 py-3">
+              Terms & Conditions
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              className="font-semibold text-red-600 px-3 py-3"
+              onClick={logout}
+            >
+              Logout
+            </DropdownMenuItem>
+            <DropdownMenuItem className="font-semibold text-red-600 px-3 py-3">
+              Delete Account
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-    </nav>
+    </div>
   );
 }

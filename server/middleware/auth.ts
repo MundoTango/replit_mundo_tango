@@ -16,6 +16,20 @@ declare global {
         email: string;
         username: string;
         name: string;
+        bio?: string;
+        firstName?: string;
+        lastName?: string;
+        mobileNo?: string;
+        profileImage?: string;
+        backgroundImage?: string;
+        country?: string;
+        city?: string;
+        facebookUrl?: string;
+        isVerified?: boolean;
+        isActive?: boolean;
+        apiToken?: string;
+        createdAt?: Date;
+        updatedAt?: Date;
       };
     }
   }
@@ -42,6 +56,20 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       email: user.email,
       username: user.username,
       name: user.name,
+      bio: user.bio,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      mobileNo: user.mobileNo,
+      profileImage: user.profileImage,
+      backgroundImage: user.backgroundImage,
+      country: user.country,
+      city: user.city,
+      facebookUrl: user.facebookUrl,
+      isVerified: user.isVerified,
+      isActive: user.isActive,
+      apiToken: user.apiToken,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
 
     next();

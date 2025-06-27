@@ -1,0 +1,294 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap'); */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: 'Gilroy';
+    font-style: normal;
+    font-weight: bolder;
+    src: url("../fonts/Gilroy/Gilroy-Bold.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    font-style: italic;
+    font-weight: bolder;
+    src: url("../fonts/Gilroy/Gilroy-BoldItalic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    font-style: normal;
+    font-weight: 800;
+    src: url("../fonts/Gilroy/Gilroy-ExtraBold.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    font-style: italic;
+    font-weight: 800;
+    src: url("../fonts/Gilroy/Gilroy-ExtraBoldItalic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    font-style: italic;
+    font-weight: normal;
+    src: url("../fonts/Gilroy/Gilroy-SemiBoldItalic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    font-style: normal;
+    font-weight: 300;
+    src: url("../fonts/Gilroy/Gilroy-Light.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    font-style: italic;
+    font-weight: 300;
+    src: url("../fonts/Gilroy/Gilroy-LightItalic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    font-style: normal;
+    font-weight: 500;
+    src: url("../fonts/Gilroy/Gilroy-Medium.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    font-style: italic;
+    font-weight: 500;
+    src: url("../fonts/Gilroy/Gilroy-MediumItalic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    font-style: normal;
+    font-weight: normal;
+    src: url("../fonts/Gilroy/Gilroy-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    font-style: normal;
+    font-weight: bold;
+    src: url("../fonts/Gilroy/Gilroy-SemiBold.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    font-style: italic;
+    font-weight: bold;
+    src: url("../fonts/Gilroy/Gilroy-SemiBoldItalic.ttf") format("truetype");
+}
+
+body {
+    font-family: 'Gilroy' !important;
+}
+
+
+:root {
+    --primary-color: #0D448A;
+    --background-color: #f8fafc;
+    --profile-name-color: #0F172A;
+    --gray-text: #64748B;
+    --tag-color: #8E142E;
+    --light-gray-color: #94A3B8;
+    --red-color: #EB2560;
+    --border-color: #F1F5F9;
+    --secondary-red: #ED4B3B;
+}
+
+@layer base {
+    h2 {
+        @apply text-lg font-bold;
+    }
+}
+
+
+@layer utilities {
+    .lc-1 {
+        @apply overflow-hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+    }
+
+    .tags {
+        @apply bg-tag-color inline-block rounded-full border px-3 py-0.5 text-center text-white mx-0.5 h-fit w-fit;
+    }
+
+    .card {
+        @apply w-full rounded-xl bg-white p-4 mb-4;
+    }
+
+    .main_card {
+        @apply w-full rounded-xl bg-white p-4 mb-4;
+    }
+
+    .centered_card {
+        @apply rounded-xl bg-white p-4 mb-4;
+    }
+
+    .card {
+        @apply w-full rounded-xl bg-white p-6 pr-0 mb-4;
+    }
+
+    .travel-details-card {
+        @apply mt-6 max-h-72 overflow-x-hidden overflow-y-auto;
+    }
+
+    .travel-details-card::-webkit-scrollbar {
+
+        background-color: transparent;
+        width: 5px;
+    }
+
+    .travel-details-card::-webkit-scrollbar:hover {
+        /* height: 1px; */
+    }
+
+    .travel-details-card::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
+
+    .travel-details-card::-webkit-scrollbar-thumb {
+        background-color: #e1e1e1;
+        border-radius: 10px;
+        width: 2px;
+    }
+
+    .travel-details-card>table>thead>tr {
+        @apply h-10 text-left;
+    }
+
+    .travel-details-card>table>tbody>tr {
+        @apply h-12 text-left font-light text-gray-text-color tracking-wide;
+    }
+
+    .photos-card,
+    .friend-card {
+        @apply grid grid-cols-2 gap-2 pr-6;
+    }
+
+    .photos-card>div>img,
+    .friend-card>div>img {
+        @apply h-auto max-w-full object-contain rounded-xl;
+    }
+
+}
+
+
+/* width */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+/* Track */
+.sidebar::-webkit-scrollbar-track {
+    background: white;
+}
+
+/* Handle */
+.sidebar::-webkit-scrollbar-thumb {
+    /* background: #9c9b9b; */
+    cursor: pointer;
+    border-radius: 20px;
+}
+
+/* Handle on hover */
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #818080;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: white;
+    border-radius: 20px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    /* background: #9c9b9b; */
+    cursor: pointer;
+    border-radius: 20px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #818080;
+}
+
+.comment-section::-webkit-scrollbar-track {
+    border-radius: 20px;
+    background: #f0f2f5;
+}
+
+.comment-section::-webkit-scrollbar-thumb {
+    background: #818080;
+}
+
+.input-text {
+    @apply bg-background-color rounded-xl text-[#949393];
+}
+
+.normal-text {
+    font-family: 'Gilroy';
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 22.4px;
+    letter-spacing: 0.2px;
+    color: #64748B;
+}
+
+.heading-text {
+    font-family: 'Gilroy';
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 32px;
+}
+
+.pac-container {
+    z-index: 1100000;
+}
+
+.css-15k6ek6-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input {
+    padding: 0px;
+}
+.css-1h4bzp1-MuiButtonBase-root-MuiMenuItem-root {
+    font-family: inherit !important;
+}
+.css-27l715-MuiInputBase-root-MuiInput-root-MuiSelect-root {
+    font-family: inherit !important;
+}
+
+.main-spinner {
+    border: 5px dashed white; 
+    border-top: 5px dashed var(--primary-color); 
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s infinite;
+    margin: auto;
+  }
+  
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+  
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  

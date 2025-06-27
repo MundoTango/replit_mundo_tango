@@ -1,68 +1,75 @@
-import type { Express } from "express";
-import express from "express";
+import { Express } from "express";
 import { createServer, type Server } from "http";
-import { WebSocketServer, WebSocket } from "ws";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import multer from "multer";
-import path from "path";
-import { storage } from "./storage";
+import { setupVite, serveStatic, log } from "./vite";
 import { authMiddleware } from "./middleware/auth";
 import { setupUpload } from "./middleware/upload";
-import { SocketService } from "./services/socketService";
+import { storage } from "./storage";
+import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema } from "../shared/schema";
 import { z } from "zod";
-import { insertUserSchema, insertPostSchema, insertEventSchema } from "@shared/schema";
-
-const JWT_SECRET = process.env.JWT_SECRET || "mundo-tango-secret-key";
+import { SocketService } from "./services/socketService";
+import { WebSocketServer } from "ws";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  const httpServer = createServer(app);
-  
-  // Setup WebSocket server
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  const socketService = new SocketService(wss);
-
-  // Setup file upload middleware
+  // Set up file upload middleware
   const upload = setupUpload();
 
-  // Helper function to generate JWT token
-  const generateToken = (userId: number) => {
-    return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' });
-  };
-
-  // Auth routes
-  app.post("/api/user", async (req, res) => {
+  // User Authentication Routes - exactly matching original backend
+  app.post("/api/user", upload.any(), async (req, res) => {
     try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmail(userData.email);
-      if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
-      }
-
-      // Hash password
-      const hashedPassword = await bcrypt.hash(userData.password, 12);
-      
-      // Create user
-      const user = await storage.createUser({
-        ...userData,
-        password: hashedPassword,
+      const validatedData = insertUserSchema.parse({
+        name: req.body.name,
+        username: req.body.username || req.body.name,
+        email: req.body.email,
+        password: req.body.password,
+        bio: req.body.bio,
+        firstName: req.body.firstname,
+        lastName: req.body.lastname,
+        mobileNo: req.body.mobile_no,
+        country: req.body.country,
+        city: req.body.city,
+        facebookUrl: req.body.facebook_url,
       });
 
-      // Generate token
-      const token = generateToken(user.id);
+      const user = await storage.createUser(validatedData);
+      
+      // Generate JWT token like original backend
+      const jwt = require('jsonwebtoken');
+      const token = jwt.sign(
+        { userId: user.id },
+        process.env.JWT_SECRET || "mundo-tango-secret",
+        { expiresIn: "7d" }
+      );
+
       await storage.updateUserApiToken(user.id, token);
 
-      res.status(201).json({
-        success: true,
-        data: {
-          user: { ...user, password: undefined },
-          api_token: token,
-        },
+      res.json({ 
+        success: true, 
+        message: "User registered successfully",
+        data: { 
+          user: {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            email: user.email,
+            bio: user.bio || null,
+            firstName: user.firstName || null,
+            lastName: user.lastName || null,
+            mobileNo: user.mobileNo || null,
+            profileImage: user.profileImage || null,
+            backgroundImage: user.backgroundImage || null,
+            country: user.country || null,
+            city: user.city || null,
+            facebookUrl: user.facebookUrl || null,
+            isVerified: user.isVerified || false,
+            isActive: user.isActive || true,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+          },
+          api_token: token
+        } 
       });
     } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ success: false, message: error.message });
     }
   });
 
@@ -70,393 +77,368 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = req.body;
       
+      if (!email || !password) {
+        return res.status(400).json({ success: false, message: "Email and password are required" });
+      }
+
       const user = await storage.getUserByEmail(email);
       if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ success: false, message: "Invalid credentials" });
       }
 
+      const bcrypt = require('bcrypt');
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ success: false, message: "Invalid credentials" });
       }
 
-      const token = generateToken(user.id);
+      const jwt = require('jsonwebtoken');
+      const token = jwt.sign(
+        { userId: user.id },
+        process.env.JWT_SECRET || "mundo-tango-secret",
+        { expiresIn: "7d" }
+      );
+
       await storage.updateUserApiToken(user.id, token);
 
       res.json({
         success: true,
+        message: "Login successful",
         data: {
-          user: { ...user, password: undefined },
+          user: {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            email: user.email,
+            bio: user.bio,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            mobileNo: user.mobileNo,
+            profileImage: user.profileImage,
+            backgroundImage: user.backgroundImage,
+            country: user.country,
+            city: user.city,
+            facebookUrl: user.facebookUrl,
+            isVerified: user.isVerified,
+            isActive: user.isActive,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+          },
           api_token: token,
         },
       });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   });
 
-  // User profile routes
   app.get("/api/user/profile", authMiddleware, async (req, res) => {
     try {
-      const user = await storage.getUser(req.user!.id);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const stats = await storage.getUserStats(user.id);
-      
+      const user = req.user;
       res.json({
         success: true,
         data: {
-          user: { ...user, password: undefined },
-          stats,
+          user: {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            email: user.email,
+            bio: user.bio,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            mobileNo: user.mobileNo,
+            profileImage: user.profileImage,
+            backgroundImage: user.backgroundImage,
+            country: user.country,
+            city: user.city,
+            facebookUrl: user.facebookUrl,
+            isVerified: user.isVerified,
+            isActive: user.isActive,
+            apiToken: user.apiToken,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+          },
         },
       });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   });
 
-  app.patch("/api/user", authMiddleware, upload.fields([
-    { name: 'image_url', maxCount: 1 },
-    { name: 'background_url', maxCount: 1 }
-  ]), async (req, res) => {
+  app.patch("/api/user", authMiddleware, upload.any(), async (req, res) => {
     try {
-      const updates: any = { ...req.body };
+      const files = req.files as Express.Multer.File[];
+      const profileImageFile = files?.find(file => file.fieldname === 'image_url');
+      const backgroundImageFile = files?.find(file => file.fieldname === 'background_url');
       
-      // Handle file uploads
-      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-      if (files?.image_url?.[0]) {
-        updates.profileImage = `/uploads/${files.image_url[0].filename}`;
-      }
-      if (files?.background_url?.[0]) {
-        updates.backgroundImage = `/uploads/${files.background_url[0].filename}`;
-      }
+      const updateData: any = {};
+      if (req.body.name) updateData.name = req.body.name;
+      if (req.body.bio) updateData.bio = req.body.bio;
+      if (req.body.country) updateData.country = req.body.country;
+      if (req.body.city) updateData.city = req.body.city;
+      if (req.body.facebook_url) updateData.facebookUrl = req.body.facebook_url;
+      if (profileImageFile) updateData.profileImage = `/uploads/${profileImageFile.filename}`;
+      if (backgroundImageFile) updateData.backgroundImage = `/uploads/${backgroundImageFile.filename}`;
 
-      const user = await storage.updateUser(req.user!.id, updates);
+      const updatedUser = await storage.updateUser(req.user!.id, updateData);
       
       res.json({
         success: true,
-        data: { ...user, password: undefined },
+        message: "Profile updated successfully",
+        data: { user: updatedUser }
       });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(400).json({ success: false, message: error.message });
     }
   });
 
-  // Posts routes
-  app.post("/api/posts", authMiddleware, upload.single('image'), async (req, res) => {
+  app.get("/api/user/get-all-users", authMiddleware, async (req, res) => {
     try {
-      const postData = insertPostSchema.parse({
-        ...req.body,
-        userId: req.user!.id,
-        imageUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
-      });
-
-      const post = await storage.createPost(postData);
+      const query = req.query.search as string;
+      const limit = parseInt(req.query.limit as string) || 20;
       
-      // Emit to connected clients
-      socketService.broadcastToFollowers(req.user!.id, 'new_post', post);
-
-      res.status(201).json({
-        success: true,
-        data: post,
-      });
+      const users = await storage.searchUsers(query || "", limit);
+      res.json({ success: true, data: users });
     } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
+
+  // Posts routes - matching original backend structure
+  app.get("/api/post", authMiddleware, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const visibility = req.query.visibility as string;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const posts = await storage.getFeedPosts(userId, limit, offset);
+      res.json({ success: true, data: { rows: posts, count: posts.length } });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
     }
   });
 
   app.get("/api/posts/feed", authMiddleware, async (req, res) => {
     try {
+      const userId = req.user!.id;
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
       
-      const posts = await storage.getFeedPosts(req.user!.id, limit, offset);
-      
-      res.json({
-        success: true,
-        data: posts,
-      });
+      const posts = await storage.getFeedPosts(userId, limit, offset);
+      res.json({ success: true, data: posts });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   });
 
-  app.post("/api/posts/:id/like", authMiddleware, async (req, res) => {
+  app.post("/api/post", authMiddleware, upload.any(), async (req, res) => {
     try {
-      const postId = parseInt(req.params.id);
-      await storage.likePost(postId, req.user!.id);
+      const files = req.files as Express.Multer.File[];
+      const imageFile = files?.find(file => file.fieldname === 'attachments' || file.fieldname === 'image');
+      const videoFile = files?.find(file => file.fieldname === 'video');
       
-      res.json({
-        success: true,
-        message: "Post liked successfully",
+      const validatedData = insertPostSchema.parse({
+        userId: req.user!.id,
+        content: req.body.content,
+        imageUrl: imageFile ? `/uploads/${imageFile.filename}` : undefined,
+        videoUrl: videoFile ? `/uploads/${videoFile.filename}` : undefined,
+        hashtags: req.body.hashtags ? req.body.hashtags.split(',') : [],
+        isPublic: req.body.visibility !== 'private',
       });
+
+      const post = await storage.createPost(validatedData);
+      res.json({ success: true, message: "Post created successfully", data: { post } });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(400).json({ success: false, message: error.message });
     }
   });
 
-  app.delete("/api/posts/:id/like", authMiddleware, async (req, res) => {
+  // Post likes
+  app.post("/api/post-like", authMiddleware, async (req, res) => {
+    try {
+      const { post_id } = req.body;
+      await storage.likePost(parseInt(post_id), req.user!.id);
+      res.json({ success: true, message: "Post liked successfully" });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  });
+
+  app.delete("/api/post-like/:id", authMiddleware, async (req, res) => {
     try {
       const postId = parseInt(req.params.id);
       await storage.unlikePost(postId, req.user!.id);
-      
-      res.json({
-        success: true,
-        message: "Post unliked successfully",
-      });
+      res.json({ success: true, message: "Post unliked successfully" });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(400).json({ success: false, message: error.message });
     }
   });
 
-  app.post("/api/posts/:id/comment", authMiddleware, async (req, res) => {
+  // Post comments
+  app.post("/api/post-comment", authMiddleware, async (req, res) => {
     try {
-      const postId = parseInt(req.params.id);
-      const { content } = req.body;
-      
-      const comment = await storage.commentOnPost(postId, req.user!.id, content);
-      
-      res.json({
-        success: true,
-        data: comment,
-      });
+      const { post_id, content } = req.body;
+      const comment = await storage.commentOnPost(parseInt(post_id), req.user!.id, content);
+      res.json({ success: true, message: "Comment added successfully", data: { comment } });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(400).json({ success: false, message: error.message });
     }
   });
 
-  app.get("/api/posts/:id/comments", async (req, res) => {
+  app.get("/api/post-comment", authMiddleware, async (req, res) => {
     try {
-      const postId = parseInt(req.params.id);
+      const postId = parseInt(req.query.post_id as string);
       const comments = await storage.getPostComments(postId);
-      
-      res.json({
-        success: true,
-        data: comments,
-      });
+      res.json({ success: true, data: comments });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   });
 
-  // Events routes
-  app.post("/api/events", authMiddleware, upload.single('image'), async (req, res) => {
-    try {
-      const eventData = insertEventSchema.parse({
-        ...req.body,
-        userId: req.user!.id,
-        imageUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
-        startDate: new Date(req.body.startDate),
-        endDate: req.body.endDate ? new Date(req.body.endDate) : undefined,
-      });
-
-      const event = await storage.createEvent(eventData);
-      
-      res.status(201).json({
-        success: true,
-        data: event,
-      });
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
-    }
-  });
-
-  app.get("/api/events", async (req, res) => {
+  // Events routes - matching original backend
+  app.get("/api/event", authMiddleware, async (req, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
       
       const events = await storage.getEvents(limit, offset);
-      
-      res.json({
-        success: true,
-        data: events,
-      });
+      res.json({ success: true, data: events });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   });
 
-  app.post("/api/events/:id/rsvp", authMiddleware, async (req, res) => {
+  app.get("/api/events", authMiddleware, async (req, res) => {
     try {
-      const eventId = parseInt(req.params.id);
-      const { status } = req.body; // 'going', 'interested', 'not_going'
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = parseInt(req.query.offset as string) || 0;
       
-      const rsvp = await storage.rsvpEvent(eventId, req.user!.id, status);
-      
-      res.json({
-        success: true,
-        data: rsvp,
-      });
+      const events = await storage.getEvents(limit, offset);
+      res.json({ success: true, data: events });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   });
 
-  // Follow routes
-  app.post("/api/users/:id/follow", authMiddleware, async (req, res) => {
+  app.post("/api/event", authMiddleware, upload.any(), async (req, res) => {
     try {
-      const followingId = parseInt(req.params.id);
-      const follow = await storage.followUser(req.user!.id, followingId);
+      const files = req.files as Express.Multer.File[];
+      const imageFile = files?.find(file => file.fieldname === 'image_url' || file.fieldname === 'image');
       
-      res.json({
-        success: true,
-        data: follow,
+      const validatedData = insertEventSchema.parse({
+        userId: req.user!.id,
+        title: req.body.name || req.body.title,
+        description: req.body.description,
+        imageUrl: imageFile ? `/uploads/${imageFile.filename}` : undefined,
+        startDate: new Date(req.body.start_date || req.body.startDate),
+        endDate: req.body.end_date ? new Date(req.body.end_date || req.body.endDate) : undefined,
+        location: req.body.location,
+        price: req.body.price,
+        maxAttendees: req.body.max_attendees ? parseInt(req.body.max_attendees) : undefined,
+        isPublic: req.body.visibility !== 'private',
       });
+
+      const event = await storage.createEvent(validatedData);
+      res.json({ success: true, message: "Event created successfully", data: { event } });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(400).json({ success: false, message: error.message });
     }
   });
 
-  app.delete("/api/users/:id/follow", authMiddleware, async (req, res) => {
+  // Friends/Following routes
+  app.post("/api/friend", authMiddleware, async (req, res) => {
     try {
-      const followingId = parseInt(req.params.id);
-      await storage.unfollowUser(req.user!.id, followingId);
-      
-      res.json({
-        success: true,
-        message: "User unfollowed successfully",
-      });
+      const { friend_id } = req.body;
+      const follow = await storage.followUser(req.user!.id, parseInt(friend_id));
+      res.json({ success: true, message: "User followed successfully", data: { follow } });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(400).json({ success: false, message: error.message });
+    }
+  });
+
+  app.delete("/api/friend/:id", authMiddleware, async (req, res) => {
+    try {
+      const friendId = parseInt(req.params.id);
+      await storage.unfollowUser(req.user!.id, friendId);
+      res.json({ success: true, message: "User unfollowed successfully" });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  });
+
+  app.get("/api/friend", authMiddleware, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const followers = await storage.getFollowers(userId);
+      const following = await storage.getFollowing(userId);
+      res.json({ success: true, data: { followers, following } });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
     }
   });
 
   // Stories routes
-  app.post("/api/stories", authMiddleware, upload.single('media'), async (req, res) => {
+  app.get("/api/stories/following", authMiddleware, async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: "Media file is required" });
+      const userId = req.user!.id;
+      const stories = await storage.getFollowingStories(userId);
+      res.json({ success: true, data: stories });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
+
+  app.post("/api/story", authMiddleware, upload.any(), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      const mediaFile = files?.find(file => file.fieldname === 'media');
+      
+      if (!mediaFile) {
+        return res.status(400).json({ success: false, message: "Media file is required" });
       }
 
-      const mediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+      const mediaType = mediaFile.mimetype.startsWith('video/') ? 'video' : 'image';
       const story = await storage.createStory(
         req.user!.id,
-        `/uploads/${req.file.filename}`,
+        `/uploads/${mediaFile.filename}`,
         mediaType,
         req.body.caption
       );
       
-      res.status(201).json({
-        success: true,
-        data: story,
-      });
+      res.json({ success: true, message: "Story created successfully", data: { story } });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  app.get("/api/stories/following", authMiddleware, async (req, res) => {
-    try {
-      const stories = await storage.getFollowingStories(req.user!.id);
-      
-      res.json({
-        success: true,
-        data: stories,
-      });
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  app.post("/api/stories/:id/view", authMiddleware, async (req, res) => {
-    try {
-      const storyId = parseInt(req.params.id);
-      await storage.viewStory(storyId, req.user!.id);
-      
-      res.json({
-        success: true,
-        message: "Story view recorded",
-      });
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  // Search routes
-  app.get("/api/search", async (req, res) => {
-    try {
-      const query = req.query.q as string;
-      const type = req.query.type as string || 'all';
-      
-      if (!query) {
-        return res.status(400).json({ message: "Search query is required" });
-      }
-
-      const results: any = {};
-
-      if (type === 'all' || type === 'users') {
-        results.users = await storage.searchUsers(query);
-      }
-
-      if (type === 'all' || type === 'posts') {
-        results.posts = await storage.searchPosts(query);
-      }
-
-      res.json({
-        success: true,
-        data: results,
-      });
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(400).json({ success: false, message: error.message });
     }
   });
 
   // Chat routes
-  app.get("/api/chat/rooms", authMiddleware, async (req, res) => {
+  app.get("/api/chat-rooms", authMiddleware, async (req, res) => {
     try {
-      const rooms = await storage.getUserChatRooms(req.user!.id);
-      
-      res.json({
-        success: true,
-        data: rooms,
-      });
+      const userId = req.user!.id;
+      const chatRooms = await storage.getUserChatRooms(userId);
+      res.json({ success: true, data: chatRooms });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   });
 
-  app.get("/api/chat/rooms/:slug/messages", authMiddleware, async (req, res) => {
+  app.get("/api/chat/:slug/messages", authMiddleware, async (req, res) => {
     try {
-      const { slug } = req.params;
+      const roomSlug = req.params.slug;
       const limit = parseInt(req.query.limit as string) || 50;
-      
-      const messages = await storage.getChatMessages(slug, limit);
-      
-      res.json({
-        success: true,
-        data: messages,
-      });
+      const messages = await storage.getChatMessages(roomSlug, limit);
+      res.json({ success: true, data: messages });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   });
 
-  // File upload route
-  app.post("/api/upload", authMiddleware, upload.single('file'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
+  const server = createServer(app);
 
-      res.json({
-        success: true,
-        data: {
-          url: `/uploads/${req.file.filename}`,
-          filename: req.file.filename,
-          originalName: req.file.originalname,
-          size: req.file.size,
-        },
-      });
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
+  // WebSocket setup for real-time features - use different port to avoid Vite conflicts
+  const wss = new WebSocketServer({ port: 8080 });
+  new SocketService(wss);
 
-  // Serve uploaded files
-  app.use('/uploads', express.static('uploads'));
-
-  return httpServer;
+  return server;
 }
