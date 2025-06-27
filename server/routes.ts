@@ -482,6 +482,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Location search endpoint
+  app.get("/api/search/locations", async (req, res) => {
+    try {
+      const { q: query, limit = 50 } = req.query;
+      
+      if (!query || typeof query !== 'string' || query.length < 2) {
+        return res.json([]);
+      }
+
+      const fs = require('fs');
+      const path = require('path');
+      
+      const countriesData = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data/location/countries.json'), 'utf8'));
+      const statesData = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data/location/states.json'), 'utf8'));
+      const citiesData = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data/location/cities.json'), 'utf8'));
+
+      const results: Array<{
+        id: string;
+        display: string;
+        city: string;
+        state: string;
+        country: string;
+        countryId: number;
+        stateId: number;
+        cityId: number;
+        type: 'city' | 'state' | 'country';
+      }> = [];
+
+      const lowerQuery = query.toLowerCase();
+
+      // Search cities first (prioritize exact matches)
+      const cities = citiesData.filter((city: any) => 
+        city.name.toLowerCase().includes(lowerQuery)
+      ).sort((a: any, b: any) => {
+        const aStartsWith = a.name.toLowerCase().startsWith(lowerQuery);
+        const bStartsWith = b.name.toLowerCase().startsWith(lowerQuery);
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+        return a.name.localeCompare(b.name);
+      }).slice(0, parseInt(limit as string));
+
+      cities.forEach((city: any) => {
+        const state = statesData.find((s: any) => s.id === city.state_id);
+        const country = countriesData.find((c: any) => c.id === city.country_id);
+        if (state && country) {
+          results.push({
+            id: `city-${city.id}`,
+            display: `${city.name}, ${state.name}, ${country.name}`,
+            city: city.name,
+            state: state.name,
+            country: country.name,
+            countryId: country.id,
+            stateId: state.id,
+            cityId: city.id,
+            type: 'city'
+          });
+        }
+      });
+
+      // Add some states if we have room
+      if (results.length < 20) {
+        const states = statesData.filter((state: any) => 
+          state.name.toLowerCase().includes(lowerQuery)
+        ).slice(0, Math.max(0, 20 - results.length));
+
+        states.forEach((state: any) => {
+          const country = countriesData.find((c: any) => c.id === state.country_id);
+          if (country) {
+            results.push({
+              id: `state-${state.id}`,
+              display: `${state.name}, ${country.name}`,
+              city: "",
+              state: state.name,
+              country: country.name,
+              countryId: country.id,
+              stateId: state.id,
+              cityId: 0,
+              type: 'state'
+            });
+          }
+        });
+      }
+
+      // Add some countries if we still have room
+      if (results.length < 10) {
+        const countries = countriesData.filter((country: any) => 
+          country.name.toLowerCase().includes(lowerQuery) ||
+          country.capital.toLowerCase().includes(lowerQuery)
+        ).slice(0, Math.max(0, 10 - results.length));
+
+        countries.forEach((country: any) => {
+          results.push({
+            id: `country-${country.id}`,
+            display: country.name,
+            city: "",
+            state: "",
+            country: country.name,
+            countryId: country.id,
+            stateId: 0,
+            cityId: 0,
+            type: 'country'
+          });
+        });
+      }
+
+      res.json(results);
+    } catch (error) {
+      console.error('Location search error:', error);
+      res.status(500).json({ error: 'Failed to search locations' });
+    }
+  });
+
   const server = createServer(app);
 
   // WebSocket setup for real-time features - use different port to avoid Vite conflicts

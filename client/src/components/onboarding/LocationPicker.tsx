@@ -1,6 +1,5 @@
 import * as React from "react";
-import { useState, useMemo } from "react";
-import { locationService } from "@/services/locationService";
+import { useState, useMemo, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -8,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { Search, MapPin, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import locationsData from "@/data/locations.json";
 
 interface LocationData {
   country: string;
@@ -41,82 +41,49 @@ export function LocationPicker({ value, onChange, className }: LocationPickerPro
     return "";
   }, [value.city, value.state, value.country]);
 
-  // Search all locations and format as "city, state, country"
+  // Client-side search using complete location database
   const searchResults = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2) return [];
     
     try {
-      const results: Array<{
-        id: string;
-        display: string;
-        city: string;
-        state: string;
-        country: string;
-        countryId: number;
-        stateId: number;
-        cityId: number;
-      }> = [];
+      const lowerQuery = searchQuery.toLowerCase();
+      const results = (locationsData as any[])
+        .filter(item => 
+          item.name.toLowerCase().includes(lowerQuery) ||
+          item.display.toLowerCase().includes(lowerQuery)
+        )
+        .sort((a, b) => {
+          // Prioritize exact matches at the beginning
+          const aStartsWith = a.name.toLowerCase().startsWith(lowerQuery);
+          const bStartsWith = b.name.toLowerCase().startsWith(lowerQuery);
+          if (aStartsWith && !bStartsWith) return -1;
+          if (!aStartsWith && bStartsWith) return 1;
+          
+          // Then prioritize cities over states over countries
+          const typeOrder = { city: 0, state: 1, country: 2 };
+          const aOrder = typeOrder[a.type as keyof typeof typeOrder] || 3;
+          const bOrder = typeOrder[b.type as keyof typeof typeOrder] || 3;
+          if (aOrder !== bOrder) return aOrder - bOrder;
+          
+          return a.name.localeCompare(b.name);
+        })
+        .slice(0, 50)
+        .map(item => ({
+          id: item.id,
+          display: item.display,
+          city: item.type === 'city' ? item.name : '',
+          state: item.state,
+          country: item.country,
+          countryId: 0, // Not needed for display
+          stateId: 0,   // Not needed for display
+          cityId: 0,    // Not needed for display
+          type: item.type
+        }));
 
-      // Search cities first (most specific)
-      const cities = locationService.searchCities(searchQuery);
-      cities.forEach(city => {
-        const state = locationService.getStateById(city.state_id);
-        const country = locationService.getCountryById(city.country_id);
-        if (state && country) {
-          results.push({
-            id: `city-${city.id}`,
-            display: `${city.name}, ${state.name}, ${country.name}`,
-            city: city.name,
-            state: state.name,
-            country: country.name,
-            countryId: country.id,
-            stateId: state.id,
-            cityId: city.id,
-          });
-        }
-      });
-
-      // Search states (if not too many city results)
-      if (results.length < 20) {
-        const states = locationService.searchStates(searchQuery);
-        states.forEach(state => {
-          const country = locationService.getCountryById(state.country_id);
-          if (country) {
-            results.push({
-              id: `state-${state.id}`,
-              display: `${state.name}, ${country.name}`,
-              city: "",
-              state: state.name,
-              country: country.name,
-              countryId: country.id,
-              stateId: state.id,
-              cityId: 0,
-            });
-          }
-        });
-      }
-
-      // Search countries (if not too many results)
-      if (results.length < 15) {
-        const countries = locationService.searchCountries(searchQuery);
-        countries.forEach(country => {
-          results.push({
-            id: `country-${country.id}`,
-            display: country.name,
-            city: "",
-            state: "",
-            country: country.name,
-            countryId: country.id,
-            stateId: 0,
-            cityId: 0,
-          });
-        });
-      }
-
-      return results.slice(0, 50); // Limit results for performance
-    } catch (err) {
-      console.error('Error searching locations:', err);
-      setError('Failed to search locations');
+      return results;
+    } catch (error) {
+      console.error("Error searching locations:", error);
+      setError("Failed to search locations. Please try again.");
       return [];
     }
   }, [searchQuery]);
