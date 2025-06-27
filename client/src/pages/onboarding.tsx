@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { MultiSelect } from "@/components/ui/multi-select";
+import { TileSelect } from "@/components/ui/tile-select";
 import { LocationPicker } from "@/components/onboarding/LocationPicker";
 import { Heart, Sparkles, Globe, Users } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -178,12 +178,12 @@ export default function Onboarding() {
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-blue-700 transition-colors">What languages do you speak?</FormLabel>
                     <FormControl>
-                      <MultiSelect
+                      <TileSelect
                         options={languages}
                         selected={field.value}
                         onChange={field.onChange}
-                        placeholder="Select languages"
-                        className="border-gray-200 focus:border-blue-500 rounded-lg hover:border-blue-300 transition-all duration-200 focus:shadow-lg focus:shadow-blue-100"
+                        placeholder="Choose the languages you speak"
+                        columns={4}
                       />
                     </FormControl>
                     <FormMessage />
@@ -210,12 +210,12 @@ export default function Onboarding() {
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-teal-700 transition-colors">What do you do in tango?</FormLabel>
                     <FormControl>
-                      <MultiSelect
+                      <TileSelect
                         options={tangoRoles}
                         selected={field.value}
                         onChange={field.onChange}
-                        placeholder="Select your roles"
-                        className="border-gray-200 focus:border-teal-500 rounded-lg hover:border-teal-300 transition-all duration-200 focus:shadow-lg focus:shadow-teal-100"
+                        placeholder="Choose your tango activities"
+                        columns={2}
                       />
                     </FormControl>
                     <FormMessage />
