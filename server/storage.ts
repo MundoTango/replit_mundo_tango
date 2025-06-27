@@ -175,13 +175,53 @@ export class DatabaseStorage implements IStorage {
 
     const userIds = [userId, ...followingIds.map(f => f.id)];
 
-    return await db
-      .select()
+    // For now, show all public posts to populate the feed
+    const feedPosts = await db
+      .select({
+        id: posts.id,
+        userId: posts.userId,
+        content: posts.content,
+        imageUrl: posts.imageUrl,
+        videoUrl: posts.videoUrl,
+        likesCount: posts.likesCount,
+        commentsCount: posts.commentsCount,
+        sharesCount: posts.sharesCount,
+        hashtags: posts.hashtags,
+        isPublic: posts.isPublic,
+        createdAt: posts.createdAt,
+        updatedAt: posts.updatedAt,
+        userName: users.name,
+        userUsername: users.username,
+        userProfileImage: users.profileImage,
+      })
       .from(posts)
-      .where(inArray(posts.userId, userIds))
+      .leftJoin(users, eq(posts.userId, users.id))
+      .where(eq(posts.isPublic, true))
       .orderBy(desc(posts.createdAt))
       .limit(limit)
       .offset(offset);
+
+    // Transform to include user object
+    return feedPosts.map(post => ({
+      id: post.id,
+      userId: post.userId,
+      content: post.content,
+      imageUrl: post.imageUrl,
+      videoUrl: post.videoUrl,
+      likesCount: post.likesCount,
+      commentsCount: post.commentsCount,
+      sharesCount: post.sharesCount,
+      hashtags: post.hashtags,
+      isPublic: post.isPublic,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+      user: {
+        id: post.userId,
+        name: post.userName,
+        username: post.userUsername,
+        profileImage: post.userProfileImage,
+      }
+    })) as Post[];
   }
 
   async likePost(postId: number, userId: number): Promise<void> {

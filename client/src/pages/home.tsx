@@ -31,15 +31,18 @@ interface Post {
 export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const { data: posts, isLoading } = useQuery({
+  const { data: postsResponse, isLoading } = useQuery({
     queryKey: ['/api/posts/feed'],
     queryFn: getQueryFn({ on401: "throw" }),
   });
 
-  const { data: stories } = useQuery({
+  const { data: storiesResponse } = useQuery({
     queryKey: ['/api/stories/following'],
     queryFn: getQueryFn({ on401: "throw" }),
   });
+
+  const posts = (postsResponse as any)?.data || [];
+  const stories = (storiesResponse as any)?.data || [];
 
   const handleCloseSidebar = () => {
     setIsSidebarOpen(false);
