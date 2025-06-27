@@ -11,11 +11,11 @@ import locationsData from "@/data/locations.json";
 
 interface LocationData {
   country: string;
-  state: string;
-  city: string;
+  state?: string;
+  city?: string;
   countryId: number;
-  stateId: number;
-  cityId: number;
+  stateId?: number;
+  cityId?: number;
 }
 
 interface LocationPickerProps {
@@ -92,11 +92,11 @@ export function LocationPicker({ value, onChange, className }: LocationPickerPro
   const handleLocationSelect = (result: any) => {
     onChange({
       country: result.country,
-      state: result.state,
-      city: result.city,
+      state: result.state || undefined,
+      city: result.city || undefined,
       countryId: result.countryId,
-      stateId: result.stateId,
-      cityId: result.cityId,
+      stateId: result.stateId || undefined,
+      cityId: result.cityId || undefined,
     });
     setOpen(false);
     setSearchQuery("");

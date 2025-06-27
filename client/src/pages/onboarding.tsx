@@ -78,11 +78,11 @@ const onboardingSchema = z.object({
   startedDancingYear: z.number().min(1900).max(new Date().getFullYear()).optional(),
   location: z.object({
     country: z.string().min(1, "Country is required"),
-    state: z.string(),
-    city: z.string(),
+    state: z.string().optional(),
+    city: z.string().optional(),
     countryId: z.number().min(1, "Country is required"),
-    stateId: z.number().default(0),
-    cityId: z.number().default(0),
+    stateId: z.number().optional(),
+    cityId: z.number().optional(),
   }),
 });
 
@@ -107,8 +107,8 @@ export default function Onboarding() {
         state: "",
         city: "",
         countryId: 0,
-        stateId: 0,
-        cityId: 0,
+        stateId: undefined,
+        cityId: undefined,
       },
     },
   });
@@ -135,6 +135,8 @@ export default function Onboarding() {
   });
 
   const onSubmit = (data: OnboardingData) => {
+    console.log("Form submitted with data:", data);
+    console.log("Form errors:", form.formState.errors);
     onboardingMutation.mutate(data);
   };
 
@@ -426,6 +428,12 @@ export default function Onboarding() {
                 <Button
                   type="submit"
                   disabled={onboardingMutation.isPending}
+                  onClick={() => {
+                    console.log("Button clicked!");
+                    console.log("Form errors:", form.formState.errors);
+                    console.log("Form values:", form.getValues());
+                    console.log("Form valid:", form.formState.isValid);
+                  }}
                   className="relative w-full h-14 bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 hover:from-cyan-700 hover:via-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl group-hover:shadow-cyan-500/25 disabled:hover:scale-100 disabled:opacity-50"
                 >
                   <span className="flex items-center justify-center gap-3">
