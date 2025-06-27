@@ -9,6 +9,17 @@ import { Search, MapPin, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import locationsData from "@/data/locations.json";
 
+// Simple hash function for generating consistent IDs from strings
+const hashCode = (str: string): number => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+};
+
 interface LocationData {
   country: string;
   state?: string;
@@ -68,15 +79,15 @@ export function LocationPicker({ value, onChange, className }: LocationPickerPro
           return a.name.localeCompare(b.name);
         })
         .slice(0, 50)
-        .map(item => ({
+        .map((item, index) => ({
           id: item.id,
           display: item.displayWithFlag || item.display,
           city: item.type === 'city' ? item.name : '',
           state: item.state,
           country: item.country,
-          countryId: 0, // Not needed for display
-          stateId: 0,   // Not needed for display
-          cityId: 0,    // Not needed for display
+          countryId: hashCode(item.country) || index + 1, // Generate consistent ID from country name
+          stateId: item.state ? hashCode(item.state) : undefined,
+          cityId: item.type === 'city' ? hashCode(item.name) : undefined,
           type: item.type,
           flag: item.flag || '🌍'
         }));
