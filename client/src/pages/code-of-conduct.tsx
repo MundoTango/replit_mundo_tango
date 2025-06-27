@@ -44,7 +44,7 @@ export default function CodeOfConduct() {
 
   const acceptCodeOfConductMutation = useMutation({
     mutationFn: async (data: CodeOfConductData) => {
-      return apiRequest("/api/code-of-conduct/accept", "POST", data);
+      return apiRequest("POST", "/api/code-of-conduct/accept", data);
     },
     onSuccess: () => {
       toast({
