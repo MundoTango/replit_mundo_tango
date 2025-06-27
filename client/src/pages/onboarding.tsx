@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { TileSelect } from "@/components/ui/tile-select";
 import { LocationPicker } from "@/components/onboarding/LocationPicker";
-import { Heart, Sparkles, Globe, Users } from "lucide-react";
+import { Heart, Sparkles, Globe, Users, Music } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -56,6 +57,9 @@ const onboardingSchema = z.object({
   nickname: z.string().min(1, "Nickname is required").max(50, "Nickname too long"),
   languages: z.array(z.string()).min(1, "Select at least one language"),
   tangoRoles: z.array(z.string()).min(1, "Select at least one tango role"),
+  leaderLevel: z.number().min(0).max(10),
+  followerLevel: z.number().min(0).max(10),
+  yearsOfDancing: z.number().min(0).max(30),
   location: z.object({
     country: z.string().min(1, "Country is required"),
     state: z.string(),
@@ -77,6 +81,9 @@ export default function Onboarding() {
       nickname: "",
       languages: [],
       tangoRoles: [],
+      leaderLevel: 0,
+      followerLevel: 0,
+      yearsOfDancing: 0,
       location: {
         country: "",
         state: "",
@@ -217,6 +224,127 @@ export default function Onboarding() {
                         placeholder="Choose your tango activities"
                         columns={2}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Dance Role Skills Section */}
+            <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50">
+              <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-purple-300 transition-colors">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center group-hover:animate-pulse shadow-lg">
+                  <Music className="w-5 h-5 text-purple-600 group-hover:text-pink-600 transition-colors duration-300" />
+                </div>
+                <h2 className="text-xl font-medium text-gray-900 group-hover:text-purple-700 transition-colors">Do you dance as:</h2>
+                <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">🕺 Your dance style!</span>
+                </div>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Leader Level */}
+                <FormField
+                  control={form.control}
+                  name="leaderLevel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-purple-700 transition-colors flex items-center gap-2">
+                        <span className="text-lg">🤵</span>
+                        Leader Level: {field.value}/10
+                      </FormLabel>
+                      <FormControl>
+                        <div className="px-3">
+                          <Slider
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                            max={10}
+                            step={1}
+                            className="w-full"
+                          />
+                          <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>Beginner</span>
+                            <span>Expert</span>
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Follower Level */}
+                <FormField
+                  control={form.control}
+                  name="followerLevel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-purple-700 transition-colors flex items-center gap-2">
+                        <span className="text-lg">💃</span>
+                        Follower Level: {field.value}/10
+                      </FormLabel>
+                      <FormControl>
+                        <div className="px-3">
+                          <Slider
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                            max={10}
+                            step={1}
+                            className="w-full"
+                          />
+                          <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>Beginner</span>
+                            <span>Expert</span>
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Years of Dancing Experience Section */}
+            <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50">
+              <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-orange-300 transition-colors">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-full flex items-center justify-center group-hover:animate-bounce shadow-lg">
+                  <span className="text-xl group-hover:animate-pulse">⏰</span>
+                </div>
+                <h2 className="text-xl font-medium text-gray-900 group-hover:text-orange-700 transition-colors">Dancing Experience</h2>
+                <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">📅 Your journey!</span>
+                </div>
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="yearsOfDancing"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-orange-700 transition-colors flex items-center gap-2">
+                      <span className="text-lg">🎭</span>
+                      How long have you been dancing tango? {field.value === 30 ? '30+' : field.value} years
+                    </FormLabel>
+                    <FormControl>
+                      <div className="px-3">
+                        <Slider
+                          value={[field.value]}
+                          onValueChange={(value) => field.onChange(value[0])}
+                          max={30}
+                          step={1}
+                          className="w-full"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>Just starting</span>
+                          <span>0-1</span>
+                          <span>2-5</span>
+                          <span>6-10</span>
+                          <span>11-20</span>
+                          <span>20+</span>
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
