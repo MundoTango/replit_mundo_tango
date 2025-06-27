@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { LocationPicker } from "@/components/onboarding/LocationPicker";
-import { Heart, Sparkles, Globe, Users, ArrowRight, CheckCircle } from "lucide-react";
+import { Heart, Sparkles, Globe, Users } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -48,10 +47,9 @@ const tangoRoles = [
   { value: "photographer", label: "Photographer", emoji: "📸", description: "Visual storytellers capturing tango moments" },
   { value: "traveler", label: "Traveler/Nomadic", emoji: "🌍", description: "Nomadic dancers exploring global tango scenes" },
   { value: "taxi", label: "Taxi Dancer", emoji: "🚕", description: "Professional dance partners" },
-  { value: "musician", label: "Musician", emoji: "🎼", description: "Live music performers" },
-  { value: "content", label: "Content Creator", emoji: "🎙️", description: "Podcasters, YouTubers, article writers sharing tango stories" },
-  { value: "historian", label: "Historian", emoji: "📜", description: "Cultural preservationists documenting tango heritage" },
-  { value: "school", label: "Tango School", emoji: "📚", description: "A hub for classes, teachers, and learning" },
+  { value: "student", label: "Student/Beginner", emoji: "🎓", description: "New to tango, eager to learn and grow" },
+  { value: "musician", label: "Musician", emoji: "🎼", description: "Musicians playing for tango events" },
+  { value: "promoter", label: "Promoter", emoji: "📢", description: "Marketing and promoting tango events and culture" },
 ];
 
 const onboardingSchema = z.object({
@@ -70,7 +68,6 @@ const onboardingSchema = z.object({
 type OnboardingData = z.infer<typeof onboardingSchema>;
 
 export default function Onboarding() {
-  const [currentStep, setCurrentStep] = useState(1);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -115,210 +112,156 @@ export default function Onboarding() {
     onboardingMutation.mutate(data);
   };
 
-  const nextStep = () => {
-    if (currentStep < 4) setCurrentStep(currentStep + 1);
-  };
-
-  const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
-  };
-
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <Heart className="w-16 h-16 mx-auto mb-4 text-blue-500" />
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">Welcome to Mundo Tango!</h2>
-              <p className="text-gray-600">What do you want to be called in the milonga?</p>
-            </div>
-            <FormField
-              control={form.control}
-              name="nickname"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-lg font-semibold text-gray-700">Your Nickname</FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field} 
-                      placeholder="How should we call you?"
-                      className="text-lg p-4 border-2 border-blue-200 focus:border-blue-500 rounded-xl"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <Globe className="w-16 h-16 mx-auto mb-4 text-cyan-500" />
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">What languages do you speak?</h2>
-              <p className="text-gray-600">Help us connect you with the right community</p>
-            </div>
-            <FormField
-              control={form.control}
-              name="languages"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-lg font-semibold text-gray-700">Languages</FormLabel>
-                  <FormControl>
-                    <MultiSelect
-                      options={languages}
-                      selected={field.value}
-                      onChange={field.onChange}
-                      placeholder="Select languages you speak..."
-                      className="border-2 border-cyan-200 focus:border-cyan-500 rounded-xl"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <Users className="w-16 h-16 mx-auto mb-4 text-teal-500" />
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">Your role in tango 🎭</h2>
-              <p className="text-gray-600">Select all roles that describe you in the tango community</p>
-            </div>
-            <FormField
-              control={form.control}
-              name="tangoRoles"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-lg font-semibold text-gray-700">What do you do in tango?</FormLabel>
-                  <FormControl>
-                    <MultiSelect
-                      options={tangoRoles}
-                      selected={field.value}
-                      onChange={field.onChange}
-                      placeholder="Select your tango roles..."
-                      className="border-2 border-teal-200 focus:border-teal-500 rounded-xl"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <Sparkles className="w-16 h-16 mx-auto mb-4 text-blue-500" />
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">Where are you located?</h2>
-              <p className="text-gray-600">Help us connect you with local tango events and communities</p>
-            </div>
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-lg font-semibold text-gray-700">Your Location</FormLabel>
-                  <FormControl>
-                    <LocationPicker
-                      value={field.value}
-                      onChange={field.onChange}
-                      className="border-2 border-blue-200 rounded-xl"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl border-0 shadow-2xl bg-white/90 backdrop-blur-sm">
-        <CardHeader className="text-center pb-2">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-teal-500 rounded-xl flex items-center justify-center">
-              <Heart className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
-              Mundo Tango
-            </span>
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="flex items-center justify-center gap-2 mb-6">
-            {[1, 2, 3, 4].map((step) => (
-              <div key={step} className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                  step < currentStep ? 'bg-green-500 text-white' :
-                  step === currentStep ? 'bg-blue-500 text-white' :
-                  'bg-gray-200 text-gray-500'
-                }`}>
-                  {step < currentStep ? <CheckCircle className="w-6 h-6" /> : step}
-                </div>
-                {step < 4 && (
-                  <div className={`w-8 h-1 mx-2 ${
-                    step < currentStep ? 'bg-green-500' : 'bg-gray-200'
-                  }`} />
-                )}
-              </div>
-            ))}
-          </div>
-        </CardHeader>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <Heart className="w-20 h-20 mx-auto mb-4 text-pink-500" />
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">Welcome to Mundo Tango! 💃</h1>
+          <p className="text-xl text-gray-600">Let's get you connected with the global tango community</p>
+        </div>
 
-        <CardContent className="p-8">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              {renderStepContent()}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            
+            {/* Nickname Section */}
+            <Card className="border-2 border-pink-200 shadow-lg">
+              <CardHeader className="text-center bg-gradient-to-r from-pink-100 to-rose-100">
+                <CardTitle className="flex items-center justify-center gap-3 text-2xl text-gray-800">
+                  <Heart className="w-8 h-8 text-pink-500" />
+                  Your Tango Nickname
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <FormField
+                  control={form.control}
+                  name="nickname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-lg font-semibold text-gray-700">How should the community know you?</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter your tango nickname..."
+                          {...field}
+                          className="border-2 border-pink-200 focus:border-pink-500 rounded-xl text-lg p-4"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
 
-              <div className="flex justify-between pt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={prevStep}
-                  disabled={currentStep === 1}
-                  className="border-2 border-gray-300 text-gray-600 hover:bg-gray-50 px-8 py-3 rounded-xl"
-                >
-                  Previous
-                </Button>
+            {/* Languages Section */}
+            <Card className="border-2 border-cyan-200 shadow-lg">
+              <CardHeader className="text-center bg-gradient-to-r from-cyan-100 to-blue-100">
+                <CardTitle className="flex items-center justify-center gap-3 text-2xl text-gray-800">
+                  <Globe className="w-8 h-8 text-cyan-500" />
+                  What languages do you speak?
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <FormField
+                  control={form.control}
+                  name="languages"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-lg font-semibold text-gray-700">Help us connect you with the right community</FormLabel>
+                      <FormControl>
+                        <MultiSelect
+                          options={languages}
+                          selected={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select languages you speak..."
+                          className="border-2 border-cyan-200 focus:border-cyan-500 rounded-xl"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
 
-                {currentStep < 4 ? (
-                  <Button
-                    type="button"
-                    onClick={nextStep}
-                    className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white px-8 py-3 rounded-xl flex items-center gap-2"
-                  >
-                    Next <ArrowRight className="w-4 h-4" />
-                  </Button>
+            {/* Tango Roles Section */}
+            <Card className="border-2 border-teal-200 shadow-lg">
+              <CardHeader className="text-center bg-gradient-to-r from-teal-100 to-emerald-100">
+                <CardTitle className="flex items-center justify-center gap-3 text-2xl text-gray-800">
+                  <Users className="w-8 h-8 text-teal-500" />
+                  Your role in tango 🎭
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <FormField
+                  control={form.control}
+                  name="tangoRoles"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-lg font-semibold text-gray-700">What do you do in tango?</FormLabel>
+                      <FormControl>
+                        <MultiSelect
+                          options={tangoRoles}
+                          selected={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select your tango activities..."
+                          className="border-2 border-teal-200 focus:border-teal-500 rounded-xl"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Location Section */}
+            <Card className="border-2 border-blue-200 shadow-lg">
+              <CardHeader className="text-center bg-gradient-to-r from-blue-100 to-indigo-100">
+                <CardTitle className="flex items-center justify-center gap-3 text-2xl text-gray-800">
+                  <Sparkles className="w-8 h-8 text-blue-500" />
+                  Where are you dancing? 🌍
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-lg font-semibold text-gray-700">Help local dancers find you</FormLabel>
+                      <FormControl>
+                        <LocationPicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          className="border-2 border-blue-200 focus:border-blue-500 rounded-xl"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Submit Button */}
+            <div className="text-center pt-6">
+              <Button
+                type="submit"
+                disabled={onboardingMutation.isPending}
+                className="bg-gradient-to-r from-pink-500 via-cyan-500 to-teal-500 hover:from-pink-600 hover:via-cyan-600 hover:to-teal-600 text-white px-12 py-4 text-xl font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                {onboardingMutation.isPending ? (
+                  "Setting up your profile..."
                 ) : (
-                  <Button
-                    type="submit"
-                    disabled={onboardingMutation.isPending}
-                    className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white px-8 py-3 rounded-xl flex items-center gap-2"
-                  >
-                    {onboardingMutation.isPending ? "Setting up..." : "Complete Setup"}
-                    <Sparkles className="w-4 h-4" />
-                  </Button>
+                  "Join the Tango Community 🎉"
                 )}
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 }
