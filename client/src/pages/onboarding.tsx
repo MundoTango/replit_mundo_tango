@@ -78,7 +78,7 @@ export default function Onboarding() {
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
       nickname: "",
-      languages: ["english"],
+      languages: [],
       tangoRoles: [],
       location: {
         country: "",
