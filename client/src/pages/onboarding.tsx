@@ -79,8 +79,9 @@ const onboardingSchema = z.object({
     country: z.string().min(1, "Country is required"),
     state: z.string(),
     city: z.string(),
-    countryCode: z.string(),
-    stateCode: z.string(),
+    countryId: z.number().min(1, "Country is required"),
+    stateId: z.number().default(0),
+    cityId: z.number().default(0),
   }),
 });
 
@@ -103,8 +104,9 @@ export default function Onboarding() {
         country: "",
         state: "",
         city: "",
-        countryCode: "",
-        stateCode: "",
+        countryId: 0,
+        stateId: 0,
+        cityId: 0,
       },
     },
   });
