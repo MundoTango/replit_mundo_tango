@@ -24,17 +24,20 @@ export function MultiSelect({
   maxSelected,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
+  
+  // Ensure selected is always an array
+  const selectedArray = Array.isArray(selected) ? selected : [];
 
   const handleUnselect = (item: string) => {
-    onChange(selected.filter((i) => i !== item));
+    onChange(selectedArray.filter((i) => i !== item));
   };
 
   const handleSelect = (item: string) => {
-    if (selected.includes(item)) {
+    if (selectedArray.includes(item)) {
       handleUnselect(item);
     } else {
-      if (maxSelected && selected.length >= maxSelected) return;
-      onChange([...selected, item]);
+      if (maxSelected && selectedArray.length >= maxSelected) return;
+      onChange([...selectedArray, item]);
     }
   };
 
@@ -51,10 +54,10 @@ export function MultiSelect({
           )}
         >
           <div className="flex flex-wrap gap-1 flex-1">
-            {selected.length === 0 && (
+            {selectedArray.length === 0 && (
               <span className="text-muted-foreground">{placeholder}</span>
             )}
-            {selected.map((item) => {
+            {selectedArray.map((item) => {
               const option = options.find((opt) => opt.value === item);
               return (
                 <Badge
@@ -64,8 +67,9 @@ export function MultiSelect({
                 >
                   {option?.emoji && <span className="mr-1">{option.emoji}</span>}
                   {option?.label || item}
-                  <button
-                    className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  <span
+                    className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
+                    tabIndex={0}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         handleUnselect(item);
@@ -78,7 +82,7 @@ export function MultiSelect({
                     onClick={() => handleUnselect(item)}
                   >
                     <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                  </button>
+                  </span>
                 </Badge>
               );
             })}
@@ -101,7 +105,7 @@ export function MultiSelect({
                   <div
                     className={cn(
                       "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                      selected.includes(option.value)
+                      selectedArray.includes(option.value)
                         ? "bg-primary text-primary-foreground"
                         : "opacity-50 [&_svg]:invisible"
                     )}
