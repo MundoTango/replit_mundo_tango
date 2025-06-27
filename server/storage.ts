@@ -15,6 +15,7 @@ import {
   creatorExperiences,
   type User,
   type InsertUser,
+  type UpsertUser,
   type Post,
   type InsertPost,
   type Event,
@@ -43,6 +44,11 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User>;
   updateUserApiToken(id: number, token: string): Promise<void>;
+  
+  // Replit Auth operations
+  getUserByReplitId(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  updateOnboardingStatus(id: number, formStatus: number, isComplete: boolean): Promise<User>;
   
   // Posts operations
   createPost(post: InsertPost): Promise<Post>;
@@ -480,6 +486,63 @@ export class DatabaseStorage implements IStorage {
       followingCount: followingCount.count,
       eventsCount: eventsCount.count,
     };
+  }
+
+  // Replit Auth operations
+  async getUserByReplitId(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.apiToken, id));
+    return user || undefined;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    // For Replit Auth, we'll store the Replit user ID in apiToken field for now
+    const existingUser = await this.getUserByReplitId(userData.id?.toString() || '');
+    
+    if (existingUser) {
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          profileImage: userData.profileImage,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, existingUser.id))
+        .returning();
+      return updatedUser;
+    } else {
+      // Create new user with Replit data
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          name: `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || 'User',
+          username: userData.email?.split('@')[0] || `user_${Date.now()}`,
+          email: userData.email || '',
+          password: '', // No password needed for Replit Auth
+          profileImage: userData.profileImage,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          apiToken: userData.id?.toString() || '', // Store Replit ID here
+          formStatus: 0,
+          isOnboardingComplete: false,
+        })
+        .returning();
+      return newUser;
+    }
+  }
+
+  async updateOnboardingStatus(id: number, formStatus: number, isComplete: boolean): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        formStatus,
+        isOnboardingComplete: isComplete,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
   }
 }
 

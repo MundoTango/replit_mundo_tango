@@ -8,8 +8,12 @@ import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSc
 import { z } from "zod";
 import { SocketService } from "./services/socketService";
 import { WebSocketServer } from "ws";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up Replit Auth middleware
+  await setupAuth(app);
+  
   // Set up file upload middleware
   const upload = setupUpload();
 
@@ -409,6 +413,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: "Story created successfully", data: { story } });
     } catch (error: any) {
       res.status(400).json({ success: false, message: error.message });
+    }
+  });
+
+  // Replit Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Onboarding endpoint
+  app.post('/api/onboarding', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { nickname, languages, tangoRoles, location } = req.body;
+
+      const updatedUser = await storage.updateUser(user.id, {
+        nickname,
+        languages,
+        tangoRoles,
+        country: location.country,
+        state: location.state,
+        city: location.city,
+        countryCode: location.countryCode,
+        stateCode: location.stateCode,
+        isOnboardingComplete: true,
+        formStatus: 13,
+      });
+
+      res.json({ success: true, data: updatedUser });
+    } catch (error: any) {
+      console.error("Onboarding error:", error);
+      res.status(500).json({ message: error.message });
     }
   });
 

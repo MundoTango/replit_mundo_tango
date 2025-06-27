@@ -34,6 +34,15 @@ export const users = pgTable("users", {
   deviceType: varchar("device_type", { length: 20 }),
   deviceToken: text("device_token"),
   apiToken: text("api_token"),
+  // New onboarding fields for redesigned registration
+  nickname: varchar("nickname", { length: 100 }),
+  languages: text("languages").array(),
+  tangoRoles: text("tango_roles").array(),
+  state: varchar("state", { length: 100 }),
+  countryCode: varchar("country_code", { length: 10 }),
+  stateCode: varchar("state_code", { length: 10 }),
+  formStatus: integer("form_status").default(0),
+  isOnboardingComplete: boolean("is_onboarding_complete").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -308,7 +317,17 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = typeof users.$inferInsert;
 export type Post = typeof posts.$inferSelect;
+
+// Replit Auth specific types
+export type ReplitUser = {
+  id: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
+};
 export type InsertPost = z.infer<typeof insertPostSchema>;
 export type Event = typeof events.$inferSelect;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
