@@ -74,7 +74,7 @@ const onboardingSchema = z.object({
   tangoRoles: z.array(z.string()).min(1, "Select at least one tango role"),
   leaderLevel: z.number().min(0).max(10),
   followerLevel: z.number().min(0).max(10),
-  yearsOfDancing: z.number().min(0).max(30),
+  yearsOfDancing: z.number().min(0).max(30).optional(),
   location: z.object({
     country: z.string().min(1, "Country is required"),
     state: z.string(),
@@ -99,7 +99,7 @@ export default function Onboarding() {
       tangoRoles: [],
       leaderLevel: 0,
       followerLevel: 0,
-      yearsOfDancing: 0,
+      yearsOfDancing: undefined, // Don't default to any value so user must choose
       location: {
         country: "",
         state: "",
@@ -345,7 +345,7 @@ export default function Onboarding() {
                       <TileSelect
                         options={danceExperienceOptions}
                         selected={field.value !== undefined ? [field.value.toString()] : []}
-                        onChange={(selected) => field.onChange(selected.length > 0 ? parseInt(selected[0]) : 0)}
+                        onChange={(selected) => field.onChange(selected.length > 0 ? parseInt(selected[0]) : undefined)}
                         placeholder="Choose your experience level"
                         columns={3}
                         maxSelected={1}

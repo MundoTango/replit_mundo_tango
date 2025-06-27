@@ -70,14 +70,15 @@ export function LocationPicker({ value, onChange, className }: LocationPickerPro
         .slice(0, 50)
         .map(item => ({
           id: item.id,
-          display: item.display,
+          display: item.displayWithFlag || item.display,
           city: item.type === 'city' ? item.name : '',
           state: item.state,
           country: item.country,
           countryId: 0, // Not needed for display
           stateId: 0,   // Not needed for display
           cityId: 0,    // Not needed for display
-          type: item.type
+          type: item.type,
+          flag: item.flag || '🌍'
         }));
 
       return results;
