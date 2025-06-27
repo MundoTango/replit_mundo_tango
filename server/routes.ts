@@ -251,13 +251,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/posts/feed", authMiddleware, async (req, res) => {
+  app.get("/api/posts/feed", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+      
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
       
-      const posts = await storage.getFeedPosts(userId, limit, offset);
+      const posts = await storage.getFeedPosts(user.id, limit, offset);
       res.json({ success: true, data: posts });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
@@ -411,10 +417,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Stories routes
-  app.get("/api/stories/following", authMiddleware, async (req, res) => {
+  app.get("/api/stories/following", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user!.id;
-      const stories = await storage.getFollowingStories(userId);
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+      
+      const stories = await storage.getFollowingStories(user.id);
       res.json({ success: true, data: stories });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });

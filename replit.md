@@ -161,6 +161,12 @@ Changelog:
   * Fixed location picker to work with client-side database for better performance
   * Added database columns for started_dancing_year and code_of_conduct_accepted
   * Updated routing logic to handle multi-step registration process
+- June 27, 2025. Fixed navigation and authentication issues:
+  * Resolved refresh navigation redirecting to timeline instead of home screen
+  * Fixed authentication middleware inconsistency between JWT and Replit OAuth
+  * Updated posts feed API to use Replit session authentication
+  * App now properly loads posts data on home screen
+  * Stories endpoint authentication still needs fixing
 ```
 
 ## User Preferences

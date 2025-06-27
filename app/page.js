@@ -13,11 +13,11 @@ export default function Home() {
   useEffect(() => {
     const initialize = () => {
       const accessToken = getToken();
-      if (accessToken) {
-        push("/user");
-      }
-      else {
+      if (!accessToken) {
         push(PATH_AUTH.login);
+      } else {
+        // Redirect to client app which handles the home screen properly
+        window.location.replace(window.location.origin);
       }
     }
 
