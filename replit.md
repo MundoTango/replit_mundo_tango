@@ -127,6 +127,13 @@ The application follows a clean, modern full-stack architecture:
 ```
 Changelog:
 - June 27, 2025. Initial setup
+- June 27, 2025. Fixed app startup issues:
+  * Resolved ES module require() error in routes.ts
+  * Fixed missing auth context exports
+  * Added missing auth pages (login/register)
+  * Fixed import paths for useAuth hook
+  * Created test user with sample content
+  * Restored complete social media interface
 ```
 
 ## User Preferences
