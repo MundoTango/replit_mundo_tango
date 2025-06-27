@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { useAuth } from "./auth-context";
+import { useAuth } from "@/contexts/auth-context";
 
 interface SocketContextType {
   socket: WebSocket | null;

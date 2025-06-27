@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/auth-context";
 import { getAuthToken } from "@/lib/authUtils";
 import Navbar from "@/components/layout/navbar";
 import MobileNav from "@/components/layout/mobile-nav";

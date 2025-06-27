@@ -62,14 +62,17 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-tango-gray">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-tango-red">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-2xl border-0">
+        <CardHeader className="text-center space-y-4 pb-8">
+          <div className="mx-auto w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
+            <span className="text-white text-2xl font-bold">MT</span>
+          </div>
+          <CardTitle className="text-3xl font-bold text-gray-900">
             Join Mundo Tango
           </CardTitle>
-          <CardDescription>
-            Create your account to connect with the tango community.
+          <CardDescription className="text-gray-600">
+            Connect with the global tango community
           </CardDescription>
         </CardHeader>
         <CardContent>

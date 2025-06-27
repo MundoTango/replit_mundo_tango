@@ -7,8 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 
 export default function Login() {
-  const [email, setEmail] = useState("maria@mundotango.com");
-  const [password, setPassword] = useState("password");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
@@ -35,14 +35,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-tango-gray">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-tango-red">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-2xl border-0">
+        <CardHeader className="text-center space-y-4 pb-8">
+          <div className="mx-auto w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
+            <span className="text-white text-2xl font-bold">MT</span>
+          </div>
+          <CardTitle className="text-3xl font-bold text-gray-900">
             Mundo Tango
           </CardTitle>
-          <CardDescription>
-            Welcome back! Sign in to your account.
+          <CardDescription className="text-gray-600">
+            Welcome back to the global tango community
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -36,12 +36,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const data = await response.json();
         setUser(data.data.user);
+        console.log('User authenticated:', data.data.user);
       } else {
+        console.log('Token validation failed, removing token');
         localStorage.removeItem('auth_token');
+        setUser(null);
       }
     } catch (error) {
       console.error('Token validation failed:', error);
       localStorage.removeItem('auth_token');
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
