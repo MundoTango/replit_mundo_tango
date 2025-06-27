@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { TileSelect } from "@/components/ui/tile-select";
 import { LocationPicker } from "@/components/onboarding/LocationPicker";
-import { Heart, Sparkles, Globe, Users, Music } from "lucide-react";
+import { Heart, Sparkles, Globe, Users, Music, Calendar } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -57,15 +57,15 @@ const tangoRoles = [
 
 const danceExperienceOptions = [
   { value: "0", label: "Just Starting", emoji: "🌱", description: "New to tango, taking first steps" },
-  { value: "1", label: "Beginner", emoji: "👶", description: "0-1 years, learning basic steps" },
-  { value: "2", label: "Early Beginner", emoji: "🚶", description: "1-2 years, building foundation" },
-  { value: "3", label: "Developing", emoji: "🌿", description: "2-3 years, gaining confidence" },
-  { value: "4", label: "Progressing", emoji: "🌳", description: "3-4 years, expanding vocabulary" },
-  { value: "5", label: "Intermediate", emoji: "💪", description: "4-6 years, solid social dancer" },
-  { value: "7", label: "Advanced", emoji: "⭐", description: "6-10 years, experienced dancer" },
-  { value: "10", label: "Expert", emoji: "🏆", description: "10-15 years, very skilled" },
-  { value: "15", label: "Master", emoji: "👑", description: "15-20 years, exceptional skill" },
-  { value: "20", label: "Legendary", emoji: "🔥", description: "20+ years, tango master" },
+  { value: "1", label: "1 Year", emoji: "👶", description: "Learning basic steps and rhythm" },
+  { value: "2", label: "2 Years", emoji: "🚶", description: "Building foundation and confidence" },
+  { value: "3", label: "3 Years", emoji: "🌿", description: "Gaining social dancing experience" },
+  { value: "4", label: "4 Years", emoji: "🌳", description: "Expanding vocabulary and style" },
+  { value: "5", label: "5 Years", emoji: "💪", description: "Solid social dancer" },
+  { value: "7", label: "7 Years", emoji: "⭐", description: "Advanced social dancer" },
+  { value: "10", label: "10 Years", emoji: "🏆", description: "Very experienced dancer" },
+  { value: "15", label: "15 Years", emoji: "👑", description: "Master level dancer" },
+  { value: "20", label: "20+ Years", emoji: "🔥", description: "Tango legend" },
 ];
 
 const onboardingSchema = z.object({
@@ -74,7 +74,8 @@ const onboardingSchema = z.object({
   tangoRoles: z.array(z.string()).min(1, "Select at least one tango role"),
   leaderLevel: z.number().min(0).max(10),
   followerLevel: z.number().min(0).max(10),
-  yearsOfDancing: z.number().min(0).max(30).optional(),
+  yearsOfDancing: z.number().min(0).max(50).optional(),
+  startedDancingYear: z.number().min(1900).max(new Date().getFullYear()).optional(),
   location: z.object({
     country: z.string().min(1, "Country is required"),
     state: z.string(),
@@ -99,7 +100,8 @@ export default function Onboarding() {
       tangoRoles: [],
       leaderLevel: 0,
       followerLevel: 0,
-      yearsOfDancing: undefined, // Don't default to any value so user must choose
+      yearsOfDancing: undefined,
+      startedDancingYear: undefined,
       location: {
         country: "",
         state: "",
@@ -335,26 +337,56 @@ export default function Onboarding() {
                 </div>
               </div>
               
-              <FormField
-                control={form.control}
-                name="yearsOfDancing"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-orange-700 transition-colors">How long have you been dancing tango?</FormLabel>
-                    <FormControl>
-                      <TileSelect
-                        options={danceExperienceOptions}
-                        selected={field.value !== undefined ? [field.value.toString()] : []}
-                        onChange={(selected) => field.onChange(selected.length > 0 ? parseInt(selected[0]) : undefined)}
-                        placeholder="Choose your experience level"
-                        columns={3}
-                        maxSelected={1}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="yearsOfDancing"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-orange-700 transition-colors">Experience Level</FormLabel>
+                      <FormControl>
+                        <TileSelect
+                          options={danceExperienceOptions}
+                          selected={field.value !== undefined ? [field.value.toString()] : []}
+                          onChange={(selected) => field.onChange(selected.length > 0 ? parseInt(selected[0]) : undefined)}
+                          placeholder="Choose your experience level"
+                          columns={2}
+                          maxSelected={1}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="startedDancingYear"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-orange-700 transition-colors flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        Year You Started Dancing
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="e.g. 2018"
+                          min="1900"
+                          max={new Date().getFullYear()}
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                          className="text-center font-medium"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      <p className="text-xs text-gray-500 mt-1">
+                        This helps us understand your tango timeline
+                      </p>
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             {/* Location Section */}

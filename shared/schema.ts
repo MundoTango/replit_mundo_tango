@@ -41,6 +41,7 @@ export const users = pgTable("users", {
   leaderLevel: integer("leader_level").default(0),
   followerLevel: integer("follower_level").default(0),
   yearsOfDancing: integer("years_of_dancing").default(0),
+  startedDancingYear: integer("started_dancing_year"),
   state: varchar("state", { length: 100 }),
   countryCode: varchar("country_code", { length: 10 }),
   stateCode: varchar("state_code", { length: 10 }),
