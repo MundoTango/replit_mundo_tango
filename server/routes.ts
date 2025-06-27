@@ -197,12 +197,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Code of conduct acceptance endpoint
-  app.post("/api/code-of-conduct/accept", authMiddleware, async (req, res) => {
+  app.post("/api/code-of-conduct/accept", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user!.id;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
       
       // Update user to mark code of conduct as accepted and complete onboarding
-      const updatedUser = await storage.updateUser(userId, {
+      const updatedUser = await storage.updateUser(user.id, {
         codeOfConductAccepted: true,
         isOnboardingComplete: true,
         formStatus: 2
@@ -214,6 +219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         data: { user: updatedUser }
       });
     } catch (error: any) {
+      console.error("Code of conduct error:", error);
       res.status(500).json({ success: false, message: error.message });
     }
   });
