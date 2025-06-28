@@ -225,13 +225,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Original Trango Tech User API endpoints - matching exact structure
-
+  
   // User profile and management endpoints
   app.get('/api/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -259,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -270,16 +270,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const files = req.files as Express.Multer.File[];
       const updateData: any = {};
-
+      
       if (req.body.name) updateData.name = req.body.name;
       if (req.body.bio) updateData.bio = req.body.bio;
       if (req.body.country) updateData.country = req.body.country;
       if (req.body.city) updateData.city = req.body.city;
       if (req.body.facebook_url) updateData.facebookUrl = req.body.facebook_url;
-
+      
       const profileImageFile = files?.find(file => file.fieldname === 'image_url');
       const backgroundImageFile = files?.find(file => file.fieldname === 'background_url');
-
+      
       if (profileImageFile) updateData.profileImage = `/uploads/${profileImageFile.filename}`;
       if (backgroundImageFile) updateData.backgroundImage = `/uploads/${backgroundImageFile.filename}`;
 
@@ -304,7 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -333,7 +333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -362,9 +362,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { search = '', page = 1, limit = 20 } = req.query;
       const parsedLimit = parseInt(limit as string);
-
+      
       const users = await storage.searchUsers(search as string, parsedLimit);
-
+      
       res.json({
         code: 200,
         message: 'Record fetched successfully.',
@@ -385,9 +385,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const targetUserId = parseInt(req.params.user_id);
       const { page = 1, limit = 20 } = req.query;
       const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
-
+      
       const posts = await storage.getUserPosts(targetUserId, parseInt(limit as string), offset);
-
+      
       res.json({
         code: 200,
         message: 'Record fetched successfully.',
@@ -407,7 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const targetUserId = parseInt(req.params.id);
       const user = await storage.getUser(targetUserId);
-
+      
       if (!user) {
         return res.status(404).json({
           code: 404,
@@ -435,7 +435,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const targetUserId = parseInt(req.params.id);
       const user = await storage.getUser(targetUserId);
-
+      
       if (!user) {
         return res.status(404).json({
           code: 404,
@@ -474,7 +474,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -486,7 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get users from the same city
       const { limit = 20 } = req.query;
       const cityMembers = await storage.searchUsers(user.city || '', parseInt(limit as string));
-
+      
       res.json({
         code: 200,
         message: 'Record fetched successfully.',
@@ -505,14 +505,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/user/global-search', isAuthenticated, async (req: any, res) => {
     try {
       const { q: query = '', type = 'all', limit = 20 } = req.query;
-
+      
       let results = {};
-
+      
       if (type === 'users' || type === 'all') {
         const users = await storage.searchUsers(query as string, parseInt(limit as string));
         results = { ...results, users };
       }
-
+      
       if (type === 'posts' || type === 'all') {
         const posts = await storage.searchPosts(query as string, parseInt(limit as string));
         results = { ...results, posts };
@@ -537,7 +537,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -568,13 +568,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Original Trango Tech Experience API endpoints - matching exact structure
-
+  
   // Dance Experience endpoints
   app.post('/api/user/dance-experience/store', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -584,7 +584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { social_dancing_cities, leader_level, follower_level, years_of_dancing } = req.body;
-
+      
       if (!social_dancing_cities) {
         return res.status(400).json({ 
           code: 400,
@@ -619,7 +619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -654,7 +654,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -683,7 +683,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -712,7 +712,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -740,7 +740,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -769,7 +769,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -797,7 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -826,7 +826,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -854,7 +854,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -883,7 +883,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -911,7 +911,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -940,7 +940,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -968,7 +968,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -1005,13 +1005,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Original Trango Tech Post API endpoints - matching exact structure
-
+  
   // Post CRUD operations
   app.post('/api/post/store', isAuthenticated, upload.array('files', 10), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -1021,7 +1021,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { content, visibility = 'public', status = 'active' } = req.body;
-
+      
       if (!content) {
         return res.status(400).json({ 
           code: 400,
@@ -1056,7 +1056,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -1095,7 +1095,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
       const postId = parseInt(req.params.id);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -1140,7 +1140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -1151,9 +1151,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { page = 1, limit = 20 } = req.query;
       const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
-
+      
       const posts = await storage.getUserPosts(user.id, parseInt(limit as string), offset);
-
+      
       res.json({
         code: 200,
         message: 'Record fetched successfully.',
@@ -1173,7 +1173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
-
+      
       if (!user) {
         return res.status(401).json({ 
           code: 401,
@@ -1184,9 +1184,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { page = 1, limit = 20 } = req.query;
       const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
-
+      
       const posts = await storage.getFeedPosts(user.id, parseInt(limit as string), offset);
-
+      
       res.json({
         code: 200,
         message: 'Record fetched successfully.',
@@ -1206,7 +1206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const postId = parseInt(req.params.id);
       const post = await storage.getPostById(postId);
-
+      
       if (!post) {
         return res.status(404).json({
           code: 404,
@@ -1681,316 +1681,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Location search error:', error);
       res.status(500).json({ error: 'Failed to search locations' });
-    }
-  });
-
-  // Get community details
-  app.get("/api/community/details", isAuthenticated, async (req: any, res) => {
-    try {
-      // Mock data for now - in a real app this would come from database
-      const communityDetails = {
-        dancer_count: 1250,
-        events_count: 45,
-        user_count: 2890,
-        dancer_city_count: 89
-      };
-
-      res.json({ success: true, data: communityDetails });
-    } catch (error: any) {
-      console.error("Community details error:", error);
-      res.status(500).json({ success: false, message: error.message });
-    }
-  });
-
-  // Get nearby dancers
-  app.get("/api/community/nearby-dancers", isAuthenticated, async (req: any, res) => {
-    try {
-      // Mock data for now
-      const nearbyDancers = [
-        {
-          id: 1,
-          name: "Maria Rodriguez",
-          username: "maria_tango",
-          location: "Buenos Aires, Argentina",
-          profileImage: "/images/user-placeholder.jpeg",
-          experience: "Advanced",
-          mutualFriends: 12
-        },
-        {
-          id: 2,
-          name: "Carlos Mendez", 
-          username: "carlos_dance",
-          location: "Montevideo, Uruguay",
-          profileImage: "/images/user-placeholder.jpeg",
-          experience: "Intermediate",
-          mutualFriends: 8
-        }
-      ];
-
-      res.json({ success: true, data: nearbyDancers });
-    } catch (error: any) {
-      console.error("Nearby dancers error:", error);
-      res.status(500).json({ success: false, message: error.message });
-    }
-  });
-
-  // Original Trango Tech Groups API endpoints - matching exact structure
-
-  // Groups CRUD operations
-  app.post('/api/groups', isAuthenticated, upload.array('files', 5), async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUserByReplitId(userId);
-
-      if (!user) {
-        return res.status(401).json({ 
-          code: 401,
-          message: 'User not found',
-          data: {}
-        });
-      }
-
-      const { name, description, location, isPublic = true } = req.body;
-
-      if (!name || !description) {
-        return res.status(400).json({ 
-          code: 400,
-          message: 'Name and description are required',
-          data: {}
-        });
-      }
-
-      // Mock group creation - in real app would use database
-      const group = {
-        id: Date.now(),
-        name,
-        description,
-        location,
-        isPublic: isPublic === 'true' || isPublic === true,
-        creatorId: user.id,
-        memberCount: 1,
-        createdAt: new Date().toISOString()
-      };
-
-      res.json({
-        code: 200,
-        message: 'Group created successfully.',
-        data: group
-      });
-    } catch (error: any) {
-      console.error('Error creating group:', error);
-      res.status(500).json({ 
-        code: 500,
-        message: 'Internal server error. Please try again later.',
-        data: {}
-      });
-    }
-  });
-
-  app.get('/api/groups', isAuthenticated, async (req: any, res) => {
-    try {
-      const { search = '', limit = 20 } = req.query;
-
-      // Mock groups data
-      const mockGroups = [
-        {
-          id: 1,
-          name: "Buenos Aires Tango Lovers",
-          description: "A community for tango enthusiasts in Buenos Aires",
-          location: "Buenos Aires, Argentina",
-          isPublic: true,
-          memberCount: 245,
-          imageUrl: "/images/groups/group1.jpg",
-          createdAt: "2024-01-15T00:00:00Z"
-        },
-        {
-          id: 2,
-          name: "Milonga Seekers",
-          description: "Find the best milongas around the world",
-          location: "Global",
-          isPublic: true,
-          memberCount: 892,
-          imageUrl: "/images/groups/group2.jpg",
-          createdAt: "2024-02-01T00:00:00Z"
-        },
-        {
-          id: 3,
-          name: "Tango Technique Workshop",
-          description: "Improve your tango technique with fellow dancers",
-          location: "New York, USA",
-          isPublic: false,
-          memberCount: 56,
-          createdAt: "2024-03-10T00:00:00Z"
-        }
-      ];
-
-      const filteredGroups = search 
-        ? mockGroups.filter(group => 
-            group.name.toLowerCase().includes(search.toLowerCase()) ||
-            group.description.toLowerCase().includes(search.toLowerCase())
-          )
-        : mockGroups;
-
-      res.json({
-        code: 200,
-        message: 'Groups fetched successfully.',
-        data: filteredGroups.slice(0, parseInt(limit as string))
-      });
-    } catch (error: any) {
-      console.error('Error fetching groups:', error);
-      res.status(500).json({ 
-        code: 500,
-        message: 'Internal server error. Please try again later.',
-        data: {}
-      });
-    }
-  });
-
-  app.get('/api/groups/my', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUserByReplitId(userId);
-
-      if (!user) {
-        return res.status(401).json({ 
-          code: 401,
-          message: 'User not found',
-          data: {}
-        });
-      }
-
-      // Mock user's groups
-      const myGroups = [
-        {
-          id: 1,
-          name: "Buenos Aires Tango Lovers",
-          description: "A community for tango enthusiasts in Buenos Aires",
-          location: "Buenos Aires, Argentina",
-          isPublic: true,
-          memberCount: 245,
-          imageUrl: "/images/groups/group1.jpg",
-          createdAt: "2024-01-15T00:00:00Z",
-          role: "member"
-        }
-      ];
-
-      res.json({
-        code: 200,
-        message: 'User groups fetched successfully.',
-        data: myGroups
-      });
-    } catch (error: any) {
-      console.error('Error fetching user groups:', error);
-      res.status(500).json({ 
-        code: 500,
-        message: 'Internal server error. Please try again later.',
-        data: {}
-      });
-    }
-  });
-
-  app.post('/api/groups/:id/join', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUserByReplitId(userId);
-      const groupId = parseInt(req.params.id);
-
-      if (!user) {
-        return res.status(401).json({ 
-          code: 401,
-          message: 'User not found',
-          data: {}
-        });
-      }
-
-      res.json({
-        code: 200,
-        message: 'Joined group successfully.',
-        data: { groupId, userId: user.id }
-      });
-    } catch (error: any) {
-      console.error('Error joining group:', error);
-      res.status(500).json({ 
-        code: 500,
-        message: 'Internal server error. Please try again later.',
-        data: {}
-      });
-    }
-  });
-
-  app.get('/api/groups/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const groupId = parseInt(req.params.id);
-
-      // Mock group details
-      const group = {
-        id: groupId,
-        name: "Buenos Aires Tango Lovers",
-        description: "A community for tango enthusiasts in Buenos Aires. We organize weekly milongas and workshops.",
-        location: "Buenos Aires, Argentina",
-        isPublic: true,
-        memberCount: 245,
-        imageUrl: "/images/groups/group1.jpg",
-        createdAt: "2024-01-15T00:00:00Z",
-        creator: {
-          id: 1,
-          name: "Maria Rodriguez",
-          username: "maria_tango"
-        }
-      };
-
-      res.json({
-        code: 200,
-        message: 'Group details fetched successfully.',
-        data: group
-      });
-    } catch (error: any) {
-      console.error('Error fetching group details:', error);
-      res.status(500).json({ 
-        code: 500,
-        message: 'Internal server error. Please try again later.',
-        data: {}
-      });
-    }
-  });
-
-  app.get('/api/groups/:id/members', isAuthenticated, async (req: any, res) => {
-    try {
-      const groupId = parseInt(req.params.id);
-      const { limit = 20 } = req.query;
-
-      // Mock group members
-      const members = [
-        {
-          id: 1,
-          name: "Maria Rodriguez",
-          username: "maria_tango",
-          profileImage: "/images/user-placeholder.jpeg",
-          role: "admin",
-          joinedAt: "2024-01-15T00:00:00Z"
-        },
-        {
-          id: 2,
-          name: "Carlos Mendez",
-          username: "carlos_dance",
-          profileImage: "/images/user-placeholder.jpeg",
-          role: "member",
-          joinedAt: "2024-01-20T00:00:00Z"
-        }
-      ];
-
-      res.json({
-        code: 200,
-        message: 'Group members fetched successfully.',
-        data: members.slice(0, parseInt(limit as string))
-      });
-    } catch (error: any) {
-      console.error('Error fetching group members:', error);
-      res.status(500).json({ 
-        code: 500,
-        message: 'Internal server error. Please try again later.',
-        data: {}
-      });
     }
   });
 
