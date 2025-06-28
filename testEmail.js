@@ -11,7 +11,7 @@ async function sendTestEmail() {
     },
     body: JSON.stringify({
       from: 'onboarding@resend.dev',
-      to: 'your-email@example.com',  // 👈 Replace this with your real email address
+      to: 'scott@boddye.com',  // 👈 Updated email address
       subject: '🎉 Hello from Mundo Tango',
       html: `<strong>This is your first test email from the platform. Everything is working!</strong>`
     })
