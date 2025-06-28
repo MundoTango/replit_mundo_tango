@@ -10,10 +10,14 @@ import { SocketService } from "./services/socketService";
 import { WebSocketServer } from "ws";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { uploadMedia, uploadMediaWithMetadata, deleteMedia, deleteMediaWithMetadata, getSignedUrl, initializeStorageBucket } from "./services/uploadService";
+import { setUserContext, auditSecurityEvent, checkResourcePermission, rateLimit } from "./middleware/security";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
   await setupAuth(app);
+
+  // Apply security middleware to all authenticated routes
+  app.use('/api', setUserContext);
 
   // Set up file upload middleware
   const upload = setupUpload();
