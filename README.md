@@ -73,35 +73,45 @@ Mundo Tango uses **Plausible Analytics** for privacy-first web analytics with en
 
 ### Integration Details
 
-**Installation Method**: Manual installation following [Plausible.io's official documentation](https://plausible.io/docs/integration-guides)
+**Installation Method**: Manual installation following Plausible's verified integration guide
 
-**Location**: Analytics script installed in `client/index.html` within the `<head>` section
+**Location**: Analytics script installed in `client/index.html` within the `<head>` section (before all other scripts)
 ```html
-<!-- 🌐 Plausible Analytics (Privacy-first tracking) -->
-<script defer data-domain="mundotango.life" src="https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js"></script>
+<script defer data-domain="mundo-tango.replit.dev" src="https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js"></script>
 <script>
-  window.plausible = window.plausible || function() {
+  window.plausible = window.plausible || function () {
     (window.plausible.q = window.plausible.q || []).push(arguments)
   }
 </script>
 ```
 
-**Verification**: This is the verified, standards-based manual setup for `mundotango.life` domain tracking
+**GDPR Compliance**: 
+- Cookie-free tracking (no consent banners required)
+- No personal data collection
+- Anonymous visitor analytics only
+- Fully compliant with privacy regulations
 
-**Domain Configuration**: Configured to track visits to `mundotango.life` production domain
+**Domain Configuration**: Tracks visits to `mundo-tango.replit.dev` domain
+
+**Enabled Tracking Features**:
+- **file-downloads**: Automatic tracking of PDF, image, and document downloads
+- **hash**: Hash-based navigation tracking for single-page application routes
+- **outbound-links**: External link click tracking to other websites
+- **pageview-props**: Enhanced page views with custom properties
+- **revenue**: Revenue and conversion tracking for paid features
+- **tagged-events**: Custom event tracking with A/B testing support
 
 ### Enhanced Analytics Features
 
-**Automatic Tracking**:
-- Page views with custom properties
+**Automatic Tracking** (No code required):
+- Page views and unique visitors
 - File downloads (PDFs, images, documents)
 - Outbound link clicks to external websites
-- Hash-based navigation (SPA routing)
-- Unique visitors and session data
+- Hash-based navigation (SPA routing changes)
 - Referrer sources and popular pages
 - Device, browser, and geographic analytics
 
-**Custom Events Tracked**:
+**Custom Events Available**:
 - User lifecycle: registration, onboarding, profile updates
 - Content interactions: post creation, likes, comments, shares
 - Event management: RSVP tracking, event payments
@@ -110,8 +120,8 @@ Mundo Tango uses **Plausible Analytics** for privacy-first web analytics with en
 - Search patterns and filter usage
 - Feature adoption and engagement metrics
 
-**Tagged Events for Analytics**:
-- A/B test variant tracking
+**A/B Testing & Experiments**:
+- Tagged events for variant tracking
 - Feature flag experiments
 - User journey optimization
 - Conversion funnel analysis

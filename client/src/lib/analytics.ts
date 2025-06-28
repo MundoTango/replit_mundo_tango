@@ -116,7 +116,7 @@ export const analytics = {
 export function initAnalytics(): void {
   // Track initial page load
   if (typeof window !== 'undefined') {
-    console.log('Plausible Analytics initialized for Mundo Tango');
+    console.log('📊 Plausible Analytics is live on mundo-tango.replit.dev');
     
     // Optional: Track that analytics was successfully loaded
     setTimeout(() => {
