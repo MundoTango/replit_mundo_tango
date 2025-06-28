@@ -73,7 +73,9 @@ Mundo Tango uses **Plausible Analytics** for privacy-first web analytics with en
 
 ### Integration Details
 
-**Location**: Enhanced analytics script integrated in `client/index.html`
+**Installation Method**: Manual installation following [Plausible.io's official documentation](https://plausible.io/docs/integration-guides)
+
+**Location**: Analytics script installed in `client/index.html` within the `<head>` section
 ```html
 <!-- 🌐 Plausible Analytics (Privacy-first tracking) -->
 <script defer data-domain="mundotango.life" src="https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js"></script>
@@ -84,7 +86,9 @@ Mundo Tango uses **Plausible Analytics** for privacy-first web analytics with en
 </script>
 ```
 
-**Domain Configuration**: Tracks visits to `mundotango.life` domain
+**Verification**: This is the verified, standards-based manual setup for `mundotango.life` domain tracking
+
+**Domain Configuration**: Configured to track visits to `mundotango.life` production domain
 
 ### Enhanced Analytics Features
 
