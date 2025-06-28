@@ -9,6 +9,7 @@ import { z } from "zod";
 import { SocketService } from "./services/socketService";
 import { WebSocketServer } from "ws";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { uploadMedia, deleteMedia, initializeStorageBucket } from "./services/uploadService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
@@ -1700,6 +1701,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     });
   });
+
+  // Supabase Storage Upload Routes
+  app.post('/api/upload', isAuthenticated, upload.single('file'), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({
+          code: 401,
+          message: 'User not found',
+          data: {}
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({
+          code: 400,
+          message: 'No file provided',
+          data: {}
+        });
+      }
+
+      const folder = req.body.folder || 'general';
+      const result = await uploadMedia(
+        req.file.buffer,
+        req.file.originalname,
+        folder,
+        user.id
+      );
+
+      if (!result.success) {
+        return res.status(500).json({
+          code: 500,
+          message: result.error || 'Upload failed',
+          data: {}
+        });
+      }
+
+      res.json({
+        code: 200,
+        message: 'File uploaded successfully',
+        data: {
+          url: result.url,
+          path: result.path
+        }
+      });
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Internal server error during upload',
+        data: {}
+      });
+    }
+  });
+
+  app.delete('/api/upload/:path(*)', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({
+          code: 401,
+          message: 'User not found',
+          data: {}
+        });
+      }
+
+      const filePath = req.params.path;
+      const result = await deleteMedia(filePath);
+
+      if (!result.success) {
+        return res.status(500).json({
+          code: 500,
+          message: result.error || 'Delete failed',
+          data: {}
+        });
+      }
+
+      res.json({
+        code: 200,
+        message: 'File deleted successfully',
+        data: {}
+      });
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Internal server error during delete',
+        data: {}
+      });
+    }
+  });
+
+  // Initialize Supabase Storage bucket on server start
+  initializeStorageBucket();
 
   const server = createServer(app);
 

@@ -59,6 +59,7 @@ A modern social media platform connecting the global tango community through aut
 - Responsive design for all devices
 - Privacy-first analytics
 - Comprehensive search functionality
+- Supabase Storage for file uploads
 
 ## Analytics Setup
 
@@ -139,6 +140,100 @@ Mundo Tango uses **Plausible Analytics** for privacy-first web analytics with en
 - Feature flag experiments
 - User journey optimization
 - Conversion funnel analysis
+
+## Supabase Storage Integration
+
+### Overview
+Mundo Tango uses **Supabase Storage** for secure, scalable file uploads and media management:
+- Bucket-based file organization
+- Row-Level Security (RLS) policies
+- Automatic CDN distribution
+- Support for images, videos, documents
+- Client and server-side upload capabilities
+
+### Storage Setup
+
+**Bucket Configuration**: `media-uploads` bucket with public read access
+**RLS Policies**: 
+- Public read access for all files
+- Authenticated write access (only logged-in users can upload)
+- Users can only delete their own files
+
+**File Organization**:
+```
+media-uploads/
+├── profile-images/{userId}/
+├── posts/{userId}/
+├── events/{userId}/
+├── general/{userId}/
+└── documents/{userId}/
+```
+
+### Upload Flow
+
+**Client-side Upload** (Direct to Supabase):
+```typescript
+import { uploadFile } from '@/services/upload';
+
+const result = await uploadFile(file, 'posts', userId);
+if (result.success) {
+  console.log('File URL:', result.url);
+}
+```
+
+**Server-side Upload** (via API endpoint):
+```javascript
+const formData = new FormData();
+formData.append('file', file);
+formData.append('folder', 'posts');
+
+const response = await fetch('/api/upload', {
+  method: 'POST',
+  body: formData
+});
+```
+
+**React Component Usage**:
+```jsx
+import UploadMedia from '@/components/UploadMedia';
+
+<UploadMedia
+  folder="posts"
+  userId={user.id}
+  onUploadComplete={(result) => {
+    console.log('Upload complete:', result.url);
+  }}
+  acceptedTypes="image/*,video/*"
+  maxSize={10}
+  multiple={true}
+/>
+```
+
+### API Endpoints
+
+- `POST /api/upload` - Upload file with authentication
+- `DELETE /api/upload/:path` - Delete file (owner only)
+
+### File Types Supported
+- **Images**: JPEG, PNG, GIF, WebP, SVG
+- **Videos**: MP4, WebM, MOV, AVI
+- **Documents**: PDF, DOC, DOCX, TXT
+- **Size Limit**: 10MB per file
+
+### RLS Policy Summary
+```sql
+-- Public read access
+CREATE POLICY "Public read access" ON storage.objects
+FOR SELECT USING (bucket_id = 'media-uploads');
+
+-- Authenticated users can upload
+CREATE POLICY "Authenticated users can upload" ON storage.objects
+FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+-- Users can delete their own files
+CREATE POLICY "Users can delete own files" ON storage.objects
+FOR DELETE USING (auth.uid()::text = (storage.foldername(name))[2]);
+```
 
 ### Enhanced Analytics API
 
