@@ -1,0 +1,58 @@
+// 📁 Extend Supabase Storage Integration
+
+// ✅ 1. Approve creation of supporting Supabase tables if prompted in SQL Editor:
+// - media_metadata (id, url, user_id, type, context, visibility, created_at)
+// - media_tags (id, media_id, tag)
+// - media_usage (media_id, used_in: [“memory”, “event”], ref_id)
+// - Automatically add foreign keys and RLS (only owner can modify, mutual can view if visibility is “mutual”)
+
+
+// ✅ 2. Define “mutual” visibility logic using existing logic from:
+// - TrangoTech schema (friends table / friendship mapping)
+// - Mundo Tango volumes (esp. Visibility, Identity, Emotional Web)
+// - Result: Only friends where a reciprocal record exists in `friends` table can view mutually-visible media
+
+
+// ✅ 3. Embed UploadMedia in all relevant forms, including:
+// - Memory creation
+- Event creation (POST /events)
+// - Profile edits
+// - DJ, teacher, and host setup forms
+// Add `onUploadComplete` handlers for storing media ref in the right model
+
+// Code Snippet Example:
+<UploadMedia
+  folder="events"
+  userId={user.id}
+  context="event_promo"
+  visibility="mutual"
+  onUploadComplete={(result) => {
+    console.log('Event media uploaded:', result.url);
+    // Save to media_usage or embed in event creation payload
+  }}
+  maxSize={5}
+  maxDimensions={{ width: 1200, height: 1200 }}
+  multiple
+/>
+
+
+
+// ✅ 4. Default file constraints:
+- Max file size: 5MB
+- Max dimensions: 1200x1200 px
+- Resize automatically to fit dimensions
+- Convert PNG to JPEG where possible for space savings
+- Use CDN URL variants if possible for optimized delivery
+
+
+// ✅ 5. Update Supabase bucket policies to:
+- Allow public read access for "public" and "mutual" content (if mutual friend)
+- Enforce signed URLs for private content
+- Add RLS on media_metadata so only the uploader can delete, mutual can view if tagged
+
+
+// ✅ 6. Update documentation:
+// - README.md > UploadMedia section
+// - Add metadata table references
+// - Show how to use UploadMedia across forms
+// - Link to analytics & plausible custom events for uploads

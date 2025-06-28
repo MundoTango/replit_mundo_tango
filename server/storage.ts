@@ -13,11 +13,15 @@ import {
   storyViews,
   danceExperiences,
   creatorExperiences,
+  mediaAssets,
+  mediaTags,
   type User,
   type InsertUser,
   type UpsertUser,
   type Post,
   type InsertPost,
+  type MediaAsset,
+  type InsertMediaAsset,
   type Event,
   type InsertEvent,
   type EventRsvp,
@@ -99,6 +103,17 @@ export interface IStorage {
     followingCount: number;
     eventsCount: number;
   }>;
+
+  // Media operations
+  createMediaAsset(mediaAsset: InsertMediaAsset): Promise<MediaAsset>;
+  getMediaAsset(id: string): Promise<MediaAsset | undefined>;
+  getUserMediaAssets(userId: number, folder?: string, limit?: number): Promise<MediaAsset[]>;
+  updateMediaAsset(id: string, updates: Partial<MediaAsset>): Promise<MediaAsset>;
+  deleteMediaAsset(id: string): Promise<void>;
+  addMediaTag(mediaId: string, tag: string): Promise<void>;
+  removeMediaTag(mediaId: string, tag: string): Promise<void>;
+  getMediaTags(mediaId: string): Promise<string[]>;
+  searchMediaByTag(tag: string, limit?: number): Promise<MediaAsset[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -583,6 +598,106 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return updatedUser;
+  }
+
+  // Media operations
+  async createMediaAsset(mediaAsset: InsertMediaAsset): Promise<MediaAsset> {
+    const [asset] = await db
+      .insert(mediaAssets)
+      .values(mediaAsset)
+      .returning();
+    return asset;
+  }
+
+  async getMediaAsset(id: string): Promise<MediaAsset | undefined> {
+    const [asset] = await db
+      .select()
+      .from(mediaAssets)
+      .where(eq(mediaAssets.id, id));
+    return asset || undefined;
+  }
+
+  async getUserMediaAssets(userId: number, folder?: string, limit = 20): Promise<MediaAsset[]> {
+    if (folder) {
+      return await db
+        .select()
+        .from(mediaAssets)
+        .where(and(
+          eq(mediaAssets.userId, userId),
+          eq(mediaAssets.folder, folder)
+        ))
+        .orderBy(desc(mediaAssets.createdAt))
+        .limit(limit);
+    }
+
+    return await db
+      .select()
+      .from(mediaAssets)
+      .where(eq(mediaAssets.userId, userId))
+      .orderBy(desc(mediaAssets.createdAt))
+      .limit(limit);
+  }
+
+  async updateMediaAsset(id: string, updates: Partial<MediaAsset>): Promise<MediaAsset> {
+    const [asset] = await db
+      .update(mediaAssets)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(mediaAssets.id, id))
+      .returning();
+    return asset;
+  }
+
+  async deleteMediaAsset(id: string): Promise<void> {
+    await db
+      .delete(mediaAssets)
+      .where(eq(mediaAssets.id, id));
+  }
+
+  async addMediaTag(mediaId: string, tag: string): Promise<void> {
+    await db
+      .insert(mediaTags)
+      .values({ mediaId, tag })
+      .onConflictDoNothing();
+  }
+
+  async removeMediaTag(mediaId: string, tag: string): Promise<void> {
+    await db
+      .delete(mediaTags)
+      .where(and(
+        eq(mediaTags.mediaId, mediaId),
+        eq(mediaTags.tag, tag)
+      ));
+  }
+
+  async getMediaTags(mediaId: string): Promise<string[]> {
+    const tags = await db
+      .select({ tag: mediaTags.tag })
+      .from(mediaTags)
+      .where(eq(mediaTags.mediaId, mediaId));
+    return tags.map(t => t.tag);
+  }
+
+  async searchMediaByTag(tag: string, limit = 20): Promise<MediaAsset[]> {
+    return await db
+      .select({
+        id: mediaAssets.id,
+        userId: mediaAssets.userId,
+        originalFilename: mediaAssets.originalFilename,
+        path: mediaAssets.path,
+        url: mediaAssets.url,
+        visibility: mediaAssets.visibility,
+        contentType: mediaAssets.contentType,
+        width: mediaAssets.width,
+        height: mediaAssets.height,
+        size: mediaAssets.size,
+        folder: mediaAssets.folder,
+        createdAt: mediaAssets.createdAt,
+        updatedAt: mediaAssets.updatedAt
+      })
+      .from(mediaAssets)
+      .innerJoin(mediaTags, eq(mediaAssets.id, mediaTags.mediaId))
+      .where(eq(mediaTags.tag, tag))
+      .limit(limit);
   }
 }
 

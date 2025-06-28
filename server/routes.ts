@@ -9,7 +9,7 @@ import { z } from "zod";
 import { SocketService } from "./services/socketService";
 import { WebSocketServer } from "ws";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { uploadMedia, deleteMedia, initializeStorageBucket } from "./services/uploadService";
+import { uploadMedia, uploadMediaWithMetadata, deleteMedia, deleteMediaWithMetadata, getSignedUrl, initializeStorageBucket } from "./services/uploadService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
@@ -1702,7 +1702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Supabase Storage Upload Routes
+  // Enhanced Supabase Storage Upload Routes with Phase 2 capabilities
   app.post('/api/upload', isAuthenticated, upload.single('file'), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -1724,12 +1724,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const folder = req.body.folder || 'general';
-      const result = await uploadMedia(
+      const { 
+        folder = 'general', 
+        visibility = 'public',
+        tags = '[]'
+      } = req.body;
+
+      // Parse tags if it's a string
+      const parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+
+      const result = await uploadMediaWithMetadata(
         req.file.buffer,
         req.file.originalname,
-        folder,
-        user.id
+        {
+          folder,
+          userId: user.id,
+          visibility,
+          tags: parsedTags
+        }
       );
 
       if (!result.success) {
@@ -1742,10 +1754,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         code: 200,
-        message: 'File uploaded successfully',
+        message: 'File uploaded successfully with metadata',
         data: {
+          id: result.mediaAsset?.id,
           url: result.url,
-          path: result.path
+          path: result.path,
+          mediaAsset: result.mediaAsset
         }
       });
     } catch (error: any) {
@@ -1758,7 +1772,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/upload/:path(*)', isAuthenticated, async (req: any, res) => {
+  // Enhanced delete endpoint with metadata cleanup
+  app.delete('/api/media/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
@@ -1771,8 +1786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const filePath = req.params.path;
-      const result = await deleteMedia(filePath);
+      const result = await deleteMediaWithMetadata(req.params.id);
 
       if (!result.success) {
         return res.status(500).json({
@@ -1784,14 +1798,276 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         code: 200,
-        message: 'File deleted successfully',
+        message: 'Media asset deleted successfully',
         data: {}
       });
     } catch (error: any) {
-      console.error('Delete error:', error);
+      console.error('Delete media error:', error);
       res.status(500).json({
         code: 500,
         message: 'Internal server error during delete',
+        data: {}
+      });
+    }
+  });
+
+  // Get user media assets
+  app.get('/api/media/user/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const requestUserId = req.user.claims.sub;
+      const requestUser = await storage.getUserByReplitId(requestUserId);
+      
+      if (!requestUser) {
+        return res.status(401).json({
+          code: 401,
+          message: 'User not found',
+          data: {}
+        });
+      }
+
+      const userId = parseInt(req.params.userId);
+      const { folder, limit } = req.query;
+
+      const mediaAssets = await storage.getUserMediaAssets(
+        userId, 
+        folder as string, 
+        limit ? parseInt(limit as string) : undefined
+      );
+
+      res.json({
+        code: 200,
+        message: 'Media assets retrieved successfully',
+        data: mediaAssets
+      });
+    } catch (error: any) {
+      console.error('Get user media error:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to fetch media assets',
+        data: {}
+      });
+    }
+  });
+
+  // Get media asset by ID
+  app.get('/api/media/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({
+          code: 401,
+          message: 'User not found',
+          data: {}
+        });
+      }
+
+      const mediaAsset = await storage.getMediaAsset(req.params.id);
+      
+      if (!mediaAsset) {
+        return res.status(404).json({
+          code: 404,
+          message: 'Media asset not found',
+          data: {}
+        });
+      }
+
+      res.json({
+        code: 200,
+        message: 'Media asset retrieved successfully',
+        data: mediaAsset
+      });
+    } catch (error: any) {
+      console.error('Get media asset error:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to fetch media asset',
+        data: {}
+      });
+    }
+  });
+
+  // Update media asset
+  app.patch('/api/media/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({
+          code: 401,
+          message: 'User not found',
+          data: {}
+        });
+      }
+
+      const { visibility, folder } = req.body;
+      const updates: any = {};
+      
+      if (visibility) updates.visibility = visibility;
+      if (folder) updates.folder = folder;
+
+      const mediaAsset = await storage.updateMediaAsset(req.params.id, updates);
+
+      res.json({
+        code: 200,
+        message: 'Media asset updated successfully',
+        data: mediaAsset
+      });
+    } catch (error: any) {
+      console.error('Update media asset error:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to update media asset',
+        data: {}
+      });
+    }
+  });
+
+  // Add tag to media
+  app.post('/api/media/:id/tags', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({
+          code: 401,
+          message: 'User not found',
+          data: {}
+        });
+      }
+
+      const { tag } = req.body;
+      await storage.addMediaTag(req.params.id, tag);
+
+      res.json({
+        code: 200,
+        message: 'Tag added successfully',
+        data: {}
+      });
+    } catch (error: any) {
+      console.error('Add media tag error:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to add tag',
+        data: {}
+      });
+    }
+  });
+
+  // Get media tags
+  app.get('/api/media/:id/tags', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({
+          code: 401,
+          message: 'User not found',
+          data: {}
+        });
+      }
+
+      const tags = await storage.getMediaTags(req.params.id);
+
+      res.json({
+        code: 200,
+        message: 'Tags retrieved successfully',
+        data: tags
+      });
+    } catch (error: any) {
+      console.error('Get media tags error:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to fetch tags',
+        data: {}
+      });
+    }
+  });
+
+  // Search media by tag
+  app.get('/api/media/search/tag/:tag', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({
+          code: 401,
+          message: 'User not found',
+          data: {}
+        });
+      }
+
+      const { limit } = req.query;
+      const mediaAssets = await storage.searchMediaByTag(
+        req.params.tag,
+        limit ? parseInt(limit as string) : undefined
+      );
+
+      res.json({
+        code: 200,
+        message: 'Media search completed successfully',
+        data: mediaAssets
+      });
+    } catch (error: any) {
+      console.error('Search media by tag error:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to search media',
+        data: {}
+      });
+    }
+  });
+
+  // Generate signed URL for private content
+  app.post('/api/media/:id/signed-url', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({
+          code: 401,
+          message: 'User not found',
+          data: {}
+        });
+      }
+
+      const { expiresIn = 3600 } = req.body;
+      const mediaAsset = await storage.getMediaAsset(req.params.id);
+      
+      if (!mediaAsset) {
+        return res.status(404).json({
+          code: 404,
+          message: 'Media asset not found',
+          data: {}
+        });
+      }
+
+      const result = await getSignedUrl(mediaAsset.path, expiresIn);
+
+      if (result.url) {
+        res.json({
+          code: 200,
+          message: 'Signed URL generated successfully',
+          data: { signedUrl: result.url }
+        });
+      } else {
+        res.status(500).json({
+          code: 500,
+          message: result.error || 'Failed to generate signed URL',
+          data: {}
+        });
+      }
+    } catch (error: any) {
+      console.error('Generate signed URL error:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to generate signed URL',
         data: {}
       });
     }

@@ -7,7 +7,9 @@ import {
   timestamp, 
   varchar,
   jsonb,
-  index
+  index,
+  uuid,
+  unique
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -333,6 +335,31 @@ export const userApiTokens = pgTable("user_api_tokens", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Media assets table for Supabase Storage metadata
+export const mediaAssets = pgTable("media_assets", {
+  id: text("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  originalFilename: text("original_filename").notNull(),
+  path: text("path").notNull(),
+  url: text("url").notNull(),
+  visibility: varchar("visibility", { length: 20 }).notNull().default("public"),
+  contentType: text("content_type").notNull(),
+  width: integer("width"),
+  height: integer("height"),
+  size: integer("size").notNull(),
+  folder: text("folder").notNull().default("general"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
+
+// Media tags table for tagging system
+export const mediaTags = pgTable("media_tags", {
+  id: serial("id").primaryKey(),
+  mediaId: text("media_id").notNull().references(() => mediaAssets.id, { onDelete: "cascade" }),
+  tag: text("tag").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
@@ -346,6 +373,16 @@ export const usersRelations = relations(users, ({ many }) => ({
   creatorExperience: many(creatorExperiences),
   stories: many(stories),
   storyViews: many(storyViews),
+  mediaAssets: many(mediaAssets),
+}));
+
+export const mediaAssetsRelations = relations(mediaAssets, ({ one, many }) => ({
+  user: one(users, { fields: [mediaAssets.userId], references: [users.id] }),
+  tags: many(mediaTags),
+}));
+
+export const mediaTagsRelations = relations(mediaTags, ({ one }) => ({
+  media: one(mediaAssets, { fields: [mediaTags.mediaId], references: [mediaAssets.id] }),
 }));
 
 export const postsRelations = relations(posts, ({ one, many }) => ({
@@ -400,6 +437,16 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
   updatedAt: true,
 });
 
+export const insertMediaAssetSchema = createInsertSchema(mediaAssets).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMediaTagSchema = createInsertSchema(mediaTags).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -429,3 +476,7 @@ export type Story = typeof stories.$inferSelect;
 export type StoryView = typeof storyViews.$inferSelect;
 export type DanceExperience = typeof danceExperiences.$inferSelect;
 export type CreatorExperience = typeof creatorExperiences.$inferSelect;
+export type MediaAsset = typeof mediaAssets.$inferSelect;
+export type InsertMediaAsset = z.infer<typeof insertMediaAssetSchema>;
+export type MediaTag = typeof mediaTags.$inferSelect;
+export type InsertMediaTag = z.infer<typeof insertMediaTagSchema>;
