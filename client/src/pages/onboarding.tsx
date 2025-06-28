@@ -10,13 +10,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { TileSelect } from "@/components/ui/tile-select";
 import { Slider } from "@/components/ui/slider";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { LocationPicker } from "@/components/onboarding/LocationPicker";
-import { Heart, Sparkles, Globe, Users, Music, Calendar, ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import RoleSelector from "@/components/onboarding/RoleSelector";
+import { Heart, Sparkles, Globe, Users, Music, Calendar, ArrowLeft, CheckCircle } from "lucide-react";
+import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -49,24 +51,26 @@ const languages = [
   { value: "czech", label: "Czech", emoji: "🇨🇿" },
 ];
 
-const tangoRoles = [
-  { value: "dancer", label: "Dancer", emoji: "💃", description: "Social dancers seeking partners and events" },
-  { value: "dj", label: "DJ", emoji: "🎵", description: "Music curators setting the mood for milongas" },
-  { value: "teacher", label: "Teacher", emoji: "📚", description: "Instructors offering classes and workshops" },
-  { value: "performer", label: "Performer", emoji: "⭐", description: "Artists sharing tango through shows and festivals" },
-  { value: "organizer", label: "Organizer", emoji: "🎪", description: "Event planners managing milongas and festivals" },
-  { value: "creator", label: "Creator", emoji: "🎨", description: "Artisans making tango-related products and art" },
-  { value: "volunteer", label: "Volunteer", emoji: "🤝", description: "Community supporters helping at events" },
-  { value: "host", label: "Housing Host", emoji: "🏠", description: "Hosts welcoming traveling dancers" },
-  { value: "photographer", label: "Photographer", emoji: "📸", description: "Visual storytellers capturing tango moments" },
-  { value: "traveler", label: "Traveler", emoji: "🌍", description: "Nomadic dancers exploring global tango scenes" },
-  { value: "taxi", label: "Taxi Dancer", emoji: "🚕", description: "Professional dance partners" },
-  { value: "musician", label: "Musician", emoji: "🎼", description: "Live music performers" },
-  { value: "content-creator", label: "Content Creator", emoji: "🎙️", description: "Podcasters, YouTubers, article writers sharing tango stories" },
-  { value: "historian", label: "Historian", emoji: "📜", description: "Cultural preservationists documenting tango heritage" },
-  { value: "tango-house", label: "Tango House", emoji: "🏠", description: "A trusted home that hosts visiting dancers" },
-  { value: "tango-school", label: "Tango School", emoji: "📚", description: "A hub for classes, teachers, and learning" },
-];
+// Role icons mapping for visual display
+const roleIcons: Record<string, string> = {
+  dancer: "💃",
+  performer: "⭐",
+  teacher: "📚", 
+  learning_source: "📖",
+  dj: "🎵",
+  musician: "🎼",
+  organizer: "🎪",
+  host: "🏠",
+  photographer: "📸",
+  content_creator: "🎙️",
+  choreographer: "✨",
+  tango_traveler: "🌍",
+  tour_operator: "✈️",
+  vendor: "🛒",
+  wellness_provider: "💆",
+  tango_school: "🏫",
+  tango_hotel: "🏨"
+};
 
 const danceExperienceOptions = [
   { value: "0", label: "Just Starting", emoji: "🌱", description: "New to tango, taking first steps" },
@@ -84,7 +88,7 @@ const danceExperienceOptions = [
 const onboardingSchema = z.object({
   nickname: z.string().min(1, "Nickname is required").max(50, "Nickname too long"),
   languages: z.array(z.string()).min(1, "Select at least one language"),
-  tangoRoles: z.array(z.string()).min(1, "Select at least one tango role"),
+  selectedRoles: z.array(z.string()).optional(), // Optional - can register without roles
   leaderLevel: z.number().min(0).max(10),
   followerLevel: z.number().min(0).max(10),
   yearsOfDancing: z.number().min(0).max(50).optional(),
@@ -101,17 +105,37 @@ const onboardingSchema = z.object({
 
 type OnboardingData = z.infer<typeof onboardingSchema>;
 
+interface CommunityRole {
+  name: string;
+  description: string;
+}
+
 export default function Onboarding() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+
+  // Fetch community roles from database
+  const { data: communityRoles, isLoading: rolesLoading } = useQuery({
+    queryKey: ['/api/roles/community'],
+    queryFn: async () => {
+      const response = await fetch('/api/roles/community', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch community roles');
+      }
+      const result = await response.json();
+      return result.data.roles as CommunityRole[];
+    }
+  });
 
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
       nickname: "",
       languages: [],
-      tangoRoles: [],
+      selectedRoles: [],
       leaderLevel: 0,
       followerLevel: 0,
       yearsOfDancing: undefined,
@@ -258,17 +282,15 @@ export default function Onboarding() {
               </div>
               <FormField
                 control={form.control}
-                name="tangoRoles"
+                name="selectedRoles"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-teal-700 transition-colors">What do you do in tango?</FormLabel>
                     <FormControl>
-                      <TileSelect
-                        options={tangoRoles}
-                        selected={field.value}
-                        onChange={field.onChange}
-                        placeholder="Choose your tango activities"
-                        columns={2}
+                      <RoleSelector
+                        roles={communityRoles || []}
+                        selectedRoles={field.value || []}
+                        onRoleChange={field.onChange}
+                        isLoading={rolesLoading}
                       />
                     </FormControl>
                     <FormMessage />

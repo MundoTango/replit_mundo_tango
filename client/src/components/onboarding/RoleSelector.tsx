@@ -1,0 +1,173 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Users, Info } from 'lucide-react';
+
+interface CommunityRole {
+  name: string;
+  description: string;
+}
+
+interface RoleSelectorProps {
+  roles: CommunityRole[];
+  selectedRoles: string[];
+  onRoleChange: (roles: string[]) => void;
+  isLoading?: boolean;
+}
+
+const roleIcons: Record<string, string> = {
+  dancer: "💃",
+  performer: "⭐",
+  teacher: "📚", 
+  learning_source: "📖",
+  dj: "🎵",
+  musician: "🎼",
+  organizer: "🎪",
+  host: "🏠",
+  photographer: "📸",
+  content_creator: "🎙️",
+  choreographer: "✨",
+  tango_traveler: "🌍",
+  tour_operator: "✈️",
+  vendor: "🛒",
+  wellness_provider: "💆",
+  tango_school: "🏫",
+  tango_hotel: "🏨"
+};
+
+export default function RoleSelector({ 
+  roles, 
+  selectedRoles, 
+  onRoleChange, 
+  isLoading = false 
+}: RoleSelectorProps) {
+  const [showAll, setShowAll] = useState(false);
+  
+  const handleRoleToggle = (roleName: string) => {
+    if (selectedRoles.includes(roleName)) {
+      onRoleChange(selectedRoles.filter(role => role !== roleName));
+    } else {
+      onRoleChange([...selectedRoles, roleName]);
+    }
+  };
+
+  const displayedRoles = showAll ? roles : roles.slice(0, 8);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="animate-pulse space-y-3">
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-16 bg-gray-100 rounded-lg"></div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="border-2 border-blue-100">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Users className="h-5 w-5 text-blue-600" />
+          What do you do in tango?
+        </CardTitle>
+        <p className="text-sm text-gray-600 flex items-start gap-2">
+          <Info className="h-4 w-4 mt-0.5 text-blue-500" />
+          Choose all that apply. You can always update these later in your profile.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {displayedRoles.map((role) => (
+              <div
+                key={role.name}
+                className={`
+                  relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
+                  ${selectedRoles.includes(role.name)
+                    ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                    : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-25'
+                  }
+                `}
+                onClick={() => handleRoleToggle(role.name)}
+              >
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    checked={selectedRoles.includes(role.name)}
+                    onChange={() => handleRoleToggle(role.name)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-lg">{roleIcons[role.name] || "🎯"}</span>
+                      <h3 className="font-medium text-gray-900 capitalize">
+                        {role.name.replace(/_/g, ' ')}
+                      </h3>
+                    </div>
+                    <p className="text-xs text-gray-600 leading-relaxed">
+                      {role.description}
+                    </p>
+                  </div>
+                </div>
+                
+                {selectedRoles.includes(role.name) && (
+                  <div className="absolute top-2 right-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                      <div className="w-1 h-1 bg-white rounded-full"></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {roles.length > 8 && (
+            <div className="text-center pt-3">
+              <button
+                type="button"
+                onClick={() => setShowAll(!showAll)}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                {showAll ? 'Show less' : `Show ${roles.length - 8} more roles`}
+              </button>
+            </div>
+          )}
+
+          {selectedRoles.length > 0 && (
+            <div className="pt-4 border-t border-gray-100">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium text-gray-700">Selected roles:</span>
+                <Badge variant="outline" className="text-xs">
+                  {selectedRoles.length}
+                </Badge>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {selectedRoles.map(role => (
+                  <Badge 
+                    key={role} 
+                    className="bg-blue-100 text-blue-800 border-blue-200 text-xs px-2 py-1"
+                  >
+                    <span className="mr-1">{roleIcons[role] || "🎯"}</span>
+                    {role.replace(/_/g, ' ')}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+            <strong>No selection?</strong> No problem! You'll be assigned as a general member 
+            and can choose your roles anytime from your profile.
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

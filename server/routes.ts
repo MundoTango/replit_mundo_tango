@@ -4,11 +4,13 @@ import { setupVite, serveStatic, log } from "./vite";
 import { authMiddleware } from "./middleware/auth";
 import { setupUpload } from "./middleware/upload";
 import { storage } from "./storage";
-import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema } from "../shared/schema";
+import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema, roles, userProfiles, userRoles } from "../shared/schema";
 import { z } from "zod";
 import { SocketService } from "./services/socketService";
 import { WebSocketServer } from "ws";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { uploadMedia, uploadMediaWithMetadata, deleteMedia, deleteMediaWithMetadata, getSignedUrl, initializeStorageBucket } from "./services/uploadService";
 import { setUserContext, auditSecurityEvent, checkResourcePermission, rateLimit } from "./middleware/security";
 import { authService, UserRole } from "./services/authService";
@@ -1525,7 +1527,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Onboarding endpoint
+  // Onboarding endpoint with role assignment
   app.post('/api/onboarding', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -1535,12 +1537,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const { nickname, languages, tangoRoles, location } = req.body;
+      const { nickname, languages, selectedRoles, location } = req.body;
 
+      // Update user profile with basic information
       const updatedUser = await storage.updateUser(user.id, {
         nickname,
         languages,
-        tangoRoles,
+        tangoRoles: selectedRoles || [], // Keep legacy field
         country: location.country,
         state: location.state,
         city: location.city,
@@ -1552,7 +1555,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         startedDancingYear: req.body.startedDancingYear,
         isOnboardingComplete: false,
         formStatus: 1,
+        displayName: user.name || user.username, // Set display name
       });
+
+      // Handle role assignment using the enhanced role system
+      const rolesToAssign = selectedRoles && selectedRoles.length > 0 ? selectedRoles : ['guest'];
+      const primaryRole = rolesToAssign[0];
+
+      try {
+        // Create or update user profile in roles system
+        await db.insert(userProfiles).values({
+          userId: user.id,
+          roles: rolesToAssign,
+          primaryRole: primaryRole,
+          displayName: user.name || user.username,
+          isActive: true
+        }).onConflictDoUpdate({
+          target: userProfiles.userId,
+          set: {
+            roles: rolesToAssign,
+            primaryRole: primaryRole,
+            displayName: user.name || user.username,
+            isActive: true
+          }
+        });
+
+        // Add roles to junction table
+        for (const role of rolesToAssign) {
+          await db.insert(userRoles).values({
+            userId: user.id,
+            roleName: role
+          }).onConflictDoNothing();
+        }
+
+        console.log(`Assigned roles to user ${user.id}:`, rolesToAssign);
+      } catch (roleError) {
+        console.error('Error assigning roles during onboarding:', roleError);
+        // Continue with onboarding even if role assignment fails
+      }
 
       res.json({ success: true, data: updatedUser });
     } catch (error: any) {
@@ -2699,6 +2739,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         code: 500,
         message: 'Internal server error',
+        data: null
+      });
+    }
+  });
+
+  // Get community roles for registration
+  app.get('/api/roles/community', async (req, res) => {
+    try {
+      const communityRoles = await db
+        .select({
+          name: roles.name,
+          description: roles.description
+        })
+        .from(roles)
+        .where(eq(roles.isPlatformRole, false))
+        .orderBy(roles.name);
+
+      res.json({
+        code: 200,
+        message: 'Community roles retrieved successfully',
+        data: { roles: communityRoles }
+      });
+    } catch (error) {
+      console.error('Error getting community roles:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to retrieve community roles',
         data: null
       });
     }
