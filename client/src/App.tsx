@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SocketProvider } from "@/contexts/socket-context";
 import { useAuth } from "@/hooks/useAuth";
+import { initAnalytics, analytics } from "@/lib/analytics";
+import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Onboarding from "@/pages/onboarding";
@@ -33,6 +35,7 @@ function Router() {
   // If not authenticated, show landing page
   if (!isAuthenticated) {
     console.log("Not authenticated, showing landing");
+    analytics.pageView('Landing');
     return <Landing />;
   }
 
@@ -50,11 +53,13 @@ function Router() {
 
   if (needsOnboarding) {
     console.log("Showing onboarding");
+    analytics.pageView('Onboarding');
     return <Onboarding />;
   }
 
   if (needsCodeOfConduct) {
     console.log("Showing code of conduct");
+    analytics.pageView('Code of Conduct');
     return <CodeOfConduct />;
   }
 
@@ -72,6 +77,11 @@ function Router() {
 }
 
 function App() {
+  // Initialize analytics on app startup
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <SocketProvider>
