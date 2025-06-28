@@ -12,6 +12,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { uploadMedia, uploadMediaWithMetadata, deleteMedia, deleteMediaWithMetadata, getSignedUrl, initializeStorageBucket } from "./services/uploadService";
 import { setUserContext, auditSecurityEvent, checkResourcePermission, rateLimit } from "./middleware/security";
 import { authService, UserRole } from "./services/authService";
+import { enhancedRoleService, AllRoles } from "./services/enhancedRoleService";
 import { requireRole, requireAdmin, ensureUserProfile, auditRoleAction } from "./middleware/roleAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -2467,7 +2468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userId = (req as any).user.id;
-      const hasPermission = await authService.hasPermission(userId, permission);
+      const hasPermission = await enhancedRoleService.hasPermission(userId, permission);
       
       res.json({
         code: 200,
@@ -2480,6 +2481,221 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error checking permission:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Internal server error',
+        data: null
+      });
+    }
+  });
+
+  // Enhanced Multi-Role API Endpoints
+  
+  // Get user with all roles
+  app.get('/api/roles/enhanced/me', async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const userWithRoles = await enhancedRoleService.getUserWithRoles(userId);
+      
+      if (!userWithRoles) {
+        return res.status(404).json({
+          code: 404,
+          message: 'User profile not found',
+          data: null
+        });
+      }
+
+      res.json({
+        code: 200,
+        message: 'User roles retrieved successfully',
+        data: userWithRoles
+      });
+    } catch (error) {
+      console.error('Error getting user roles:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Internal server error',
+        data: null
+      });
+    }
+  });
+
+  // Get all available roles
+  app.get('/api/roles/enhanced/all', async (req, res) => {
+    try {
+      const roles = await enhancedRoleService.getAllRoles();
+      
+      res.json({
+        code: 200,
+        message: 'Roles retrieved successfully',
+        data: { roles }
+      });
+    } catch (error) {
+      console.error('Error getting all roles:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Internal server error',
+        data: null
+      });
+    }
+  });
+
+  // Assign role to user (Admin/Super Admin only)
+  app.post('/api/roles/enhanced/assign', requireAdmin, auditRoleAction('role_assign'), async (req, res) => {
+    try {
+      const { userId, roleName } = req.body;
+      
+      if (!userId || !roleName) {
+        return res.status(400).json({
+          code: 400,
+          message: 'userId and roleName are required',
+          data: null
+        });
+      }
+
+      const adminId = (req as any).user.id;
+      const success = await enhancedRoleService.assignRoleToUser(userId, roleName as AllRoles, adminId);
+      
+      if (!success) {
+        return res.status(400).json({
+          code: 400,
+          message: 'Failed to assign role',
+          data: null
+        });
+      }
+
+      res.json({
+        code: 200,
+        message: 'Role assigned successfully',
+        data: { userId, roleName }
+      });
+    } catch (error) {
+      console.error('Error assigning role:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Internal server error',
+        data: null
+      });
+    }
+  });
+
+  // Remove role from user (Admin/Super Admin only)
+  app.post('/api/roles/enhanced/remove', requireAdmin, auditRoleAction('role_remove'), async (req, res) => {
+    try {
+      const { userId, roleName } = req.body;
+      
+      if (!userId || !roleName) {
+        return res.status(400).json({
+          code: 400,
+          message: 'userId and roleName are required',
+          data: null
+        });
+      }
+
+      const adminId = (req as any).user.id;
+      const success = await enhancedRoleService.removeRoleFromUser(userId, roleName as AllRoles, adminId);
+      
+      if (!success) {
+        return res.status(400).json({
+          code: 400,
+          message: 'Failed to remove role',
+          data: null
+        });
+      }
+
+      res.json({
+        code: 200,
+        message: 'Role removed successfully',
+        data: { userId, roleName }
+      });
+    } catch (error) {
+      console.error('Error removing role:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Internal server error',
+        data: null
+      });
+    }
+  });
+
+  // Set primary role (Admin or Self)
+  app.put('/api/roles/enhanced/primary', async (req, res) => {
+    try {
+      const { userId, primaryRole } = req.body;
+      const requesterId = (req as any).user.id;
+      
+      if (!userId || !primaryRole) {
+        return res.status(400).json({
+          code: 400,
+          message: 'userId and primaryRole are required',
+          data: null
+        });
+      }
+
+      // Allow users to set their own primary role or admins to set others
+      const requesterRoles = await enhancedRoleService.getUserWithRoles(requesterId);
+      const isAdmin = requesterRoles?.roles.includes('admin') || requesterRoles?.roles.includes('super_admin');
+      
+      if (userId !== requesterId && !isAdmin) {
+        return res.status(403).json({
+          code: 403,
+          message: 'Access denied. Can only modify own primary role unless admin',
+          data: null
+        });
+      }
+
+      const success = await enhancedRoleService.setPrimaryRole(userId, primaryRole as AllRoles);
+      
+      if (!success) {
+        return res.status(400).json({
+          code: 400,
+          message: 'Failed to set primary role',
+          data: null
+        });
+      }
+
+      res.json({
+        code: 200,
+        message: 'Primary role updated successfully',
+        data: { userId, primaryRole }
+      });
+    } catch (error) {
+      console.error('Error setting primary role:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Internal server error',
+        data: null
+      });
+    }
+  });
+
+  // Get role-based route for user
+  app.get('/api/roles/enhanced/route', async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const userWithRoles = await enhancedRoleService.getUserWithRoles(userId);
+      
+      if (!userWithRoles) {
+        return res.json({
+          code: 200,
+          message: 'Route determined',
+          data: { route: '/welcome' }
+        });
+      }
+
+      const route = enhancedRoleService.getRouteForUser(userWithRoles);
+      
+      res.json({
+        code: 200,
+        message: 'Route determined successfully',
+        data: { 
+          route,
+          primaryRole: userWithRoles.primaryRole,
+          roles: userWithRoles.roles
+        }
+      });
+    } catch (error) {
+      console.error('Error determining route:', error);
       res.status(500).json({
         code: 500,
         message: 'Internal server error',

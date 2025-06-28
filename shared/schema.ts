@@ -54,11 +54,22 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// User Profiles table for role-based authentication
+// Roles table for comprehensive role management
+export const roles = pgTable("roles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").unique().notNull(),
+  description: text("description").notNull(),
+  isPlatformRole: boolean("is_platform_role").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User Profiles table for role-based authentication (enhanced)
 export const userProfiles = pgTable("user_profiles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull().unique(),
-  role: varchar("role", { length: 50 }).default("guest"),
+  role: varchar("role", { length: 50 }).default("guest"), // Legacy single role support
+  roles: text("roles").array().default(['guest']), // Multi-role support
+  primaryRole: text("primary_role").default("guest"),
   displayName: text("display_name"),
   avatarUrl: text("avatar_url"),
   permissions: jsonb("permissions").default({}),
@@ -68,6 +79,20 @@ export const userProfiles = pgTable("user_profiles", {
 }, (table) => [
   index("idx_user_profiles_user_id").on(table.userId),
   index("idx_user_profiles_role").on(table.role),
+  index("idx_user_profiles_primary_role").on(table.primaryRole),
+]);
+
+// User Roles junction table for multi-role management
+export const userRoles = pgTable("user_roles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  roleName: text("role_name").references(() => roles.name).notNull(),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  assignedBy: integer("assigned_by").references(() => users.id),
+}, (table) => [
+  unique().on(table.userId, table.roleName),
+  index("idx_user_roles_user_id").on(table.userId),
+  index("idx_user_roles_role_name").on(table.roleName),
 ]);
 
 // Posts table
@@ -518,6 +543,16 @@ export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
   updatedAt: true,
 });
 
+export const insertRoleSchema = createInsertSchema(roles).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserRoleSchema = createInsertSchema(userRoles).omit({
+  id: true,
+  assignedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -557,3 +592,7 @@ export type Friend = typeof friends.$inferSelect;
 export type InsertFriend = z.infer<typeof insertFriendSchema>;
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
+export type Role = typeof roles.$inferSelect;
+export type InsertRole = z.infer<typeof insertRoleSchema>;
+export type UserRole = typeof userRoles.$inferSelect;
+export type InsertUserRole = z.infer<typeof insertUserRoleSchema>;
