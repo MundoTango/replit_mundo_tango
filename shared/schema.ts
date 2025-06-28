@@ -358,7 +358,33 @@ export const mediaTags = pgTable("media_tags", {
   mediaId: text("media_id").notNull().references(() => mediaAssets.id, { onDelete: "cascade" }),
   tag: text("tag").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull()
-});
+}, (table) => ({
+  uniqueTag: unique().on(table.mediaId, table.tag),
+}));
+
+// Media usage tracking for relating media to specific content
+export const mediaUsage = pgTable("media_usage", {
+  id: serial("id").primaryKey(),
+  mediaId: text("media_id").notNull().references(() => mediaAssets.id, { onDelete: "cascade" }),
+  usedIn: text("used_in").notNull(), // 'memory', 'event', 'profile', 'experience'
+  refId: integer("ref_id").notNull(), // Reference to the specific record ID
+  context: text("context"), // Additional context like 'event_promo', 'profile_background'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUsage: unique().on(table.mediaId, table.usedIn, table.refId),
+}));
+
+// Friends table for mutual visibility logic
+export const friends = pgTable("friends", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  friendId: integer("friend_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'blocked'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueFriendship: unique().on(table.userId, table.friendId),
+}));
 
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -374,15 +400,27 @@ export const usersRelations = relations(users, ({ many }) => ({
   stories: many(stories),
   storyViews: many(storyViews),
   mediaAssets: many(mediaAssets),
+  friendships: many(friends, { relationName: "user_friendships" }),
+  friendOf: many(friends, { relationName: "friend_of" }),
 }));
 
 export const mediaAssetsRelations = relations(mediaAssets, ({ one, many }) => ({
   user: one(users, { fields: [mediaAssets.userId], references: [users.id] }),
   tags: many(mediaTags),
+  usage: many(mediaUsage),
 }));
 
 export const mediaTagsRelations = relations(mediaTags, ({ one }) => ({
   media: one(mediaAssets, { fields: [mediaTags.mediaId], references: [mediaAssets.id] }),
+}));
+
+export const mediaUsageRelations = relations(mediaUsage, ({ one }) => ({
+  media: one(mediaAssets, { fields: [mediaUsage.mediaId], references: [mediaAssets.id] }),
+}));
+
+export const friendsRelations = relations(friends, ({ one }) => ({
+  user: one(users, { fields: [friends.userId], references: [users.id] }),
+  friend: one(users, { fields: [friends.friendId], references: [users.id] }),
 }));
 
 export const postsRelations = relations(posts, ({ one, many }) => ({
@@ -447,6 +485,17 @@ export const insertMediaTagSchema = createInsertSchema(mediaTags).omit({
   createdAt: true,
 });
 
+export const insertMediaUsageSchema = createInsertSchema(mediaUsage).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertFriendSchema = createInsertSchema(friends).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -480,3 +529,7 @@ export type MediaAsset = typeof mediaAssets.$inferSelect;
 export type InsertMediaAsset = z.infer<typeof insertMediaAssetSchema>;
 export type MediaTag = typeof mediaTags.$inferSelect;
 export type InsertMediaTag = z.infer<typeof insertMediaTagSchema>;
+export type MediaUsage = typeof mediaUsage.$inferSelect;
+export type InsertMediaUsage = z.infer<typeof insertMediaUsageSchema>;
+export type Friend = typeof friends.$inferSelect;
+export type InsertFriend = z.infer<typeof insertFriendSchema>;

@@ -1,134 +1,113 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
+// Upload service for media files
 export interface UploadResponse {
   success: boolean;
-  url?: string;
-  path?: string;
+  data?: {
+    id: string;
+    url: string;
+    path: string;
+    mediaAsset?: any;
+  };
   error?: string;
 }
 
-/**
- * Upload file to Supabase Storage from client
- */
-export async function uploadFile(
-  file: File,
-  folder: string = 'general',
-  userId?: number
-): Promise<UploadResponse> {
+export const uploadMedia = async (formData: FormData): Promise<UploadResponse> => {
   try {
-    // Validate file
-    if (!file) {
-      return { success: false, error: 'No file provided' };
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.statusText}`);
     }
 
-    // Check file size (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
-      return { success: false, error: 'File size must be less than 10MB' };
-    }
-
-    // Generate unique filename
-    const timestamp = Date.now();
-    const fileExtension = file.name.split('.').pop();
-    const fileName = `${timestamp}_${Math.random().toString(36).substring(7)}.${fileExtension}`;
-    const filePath = userId ? `${folder}/${userId}/${fileName}` : `${folder}/${fileName}`;
-
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from('media-uploads')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
-
-    if (error) {
-      console.error('Upload error:', error);
+    const result = await response.json();
+    
+    if (result.code === 200) {
+      return {
+        success: true,
+        data: result.data
+      };
+    } else {
       return {
         success: false,
-        error: error.message
+        error: result.message || 'Upload failed'
       };
     }
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('media-uploads')
-      .getPublicUrl(filePath);
-
-    return {
-      success: true,
-      url: urlData.publicUrl,
-      path: filePath
-    };
-
   } catch (error) {
-    console.error('Client upload error:', error);
+    console.error('Upload service error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Upload failed'
     };
   }
-}
+};
 
-/**
- * Delete file from storage
- */
-export async function deleteFile(filePath: string): Promise<{ success: boolean; error?: string }> {
+export const deleteMedia = async (mediaId: string): Promise<{ success: boolean; error?: string }> => {
   try {
-    const { error } = await supabase.storage
-      .from('media-uploads')
-      .remove([filePath]);
+    const response = await fetch(`/api/media/${mediaId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
 
-    if (error) {
-      return { success: false, error: error.message };
+    const result = await response.json();
+    
+    if (result.code === 200) {
+      return { success: true };
+    } else {
+      return { success: false, error: result.message || 'Delete failed' };
     }
-
-    return { success: true };
   } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Delete failed'
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Delete failed' 
     };
   }
-}
+};
 
-/**
- * Get download URL for a file
- */
-export function getFileUrl(filePath: string): string {
-  const { data } = supabase.storage
-    .from('media-uploads')
-    .getPublicUrl(filePath);
-  
-  return data.publicUrl;
-}
-
-/**
- * List files in a folder
- */
-export async function listFiles(folder: string = '', limit: number = 100) {
+export const getMediaAsset = async (mediaId: string) => {
   try {
-    const { data, error } = await supabase.storage
-      .from('media-uploads')
-      .list(folder, {
-        limit,
-        sortBy: { column: 'created_at', order: 'desc' }
-      });
+    const response = await fetch(`/api/media/${mediaId}`, {
+      credentials: 'include'
+    });
 
-    if (error) {
-      return { success: false, error: error.message };
+    const result = await response.json();
+    
+    if (result.code === 200) {
+      return { success: true, data: result.data };
+    } else {
+      return { success: false, error: result.message };
     }
-
-    return { success: true, files: data };
   } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'List failed'
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to fetch media' 
     };
   }
-}
+};
 
-export { supabase };
+export const getUserMedia = async (userId: number, folder?: string, limit?: number) => {
+  try {
+    const params = new URLSearchParams();
+    if (folder) params.append('folder', folder);
+    if (limit) params.append('limit', limit.toString());
+
+    const response = await fetch(`/api/media/user/${userId}?${params}`, {
+      credentials: 'include'
+    });
+
+    const result = await response.json();
+    
+    if (result.code === 200) {
+      return { success: true, data: result.data };
+    } else {
+      return { success: false, error: result.message };
+    }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to fetch user media' 
+    };
+  }
+};

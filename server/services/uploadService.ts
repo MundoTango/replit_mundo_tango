@@ -15,8 +15,14 @@ export interface MediaUploadOptions {
   userId: number;
   visibility?: 'public' | 'private' | 'mutual';
   tags?: string[];
+  context?: string;
+  usedIn?: string;
+  refId?: number;
   maxWidth?: number;
   maxHeight?: number;
+  maxSize?: number; // in MB
+  autoResize?: boolean;
+  convertToJpeg?: boolean;
 }
 
 /**
@@ -36,9 +42,24 @@ export async function uploadMediaWithMetadata(
       userId,
       visibility = 'public',
       tags = [],
-      maxWidth = 1600,
-      maxHeight = 1600
+      context,
+      usedIn,
+      refId,
+      maxWidth = 1200,
+      maxHeight = 1200,
+      maxSize = 5, // 5MB default
+      autoResize = true,
+      convertToJpeg = true
     } = options;
+
+    // File size validation
+    const fileSizeInMB = file.length / (1024 * 1024);
+    if (fileSizeInMB > maxSize) {
+      return {
+        success: false,
+        error: `File size (${fileSizeInMB.toFixed(2)}MB) exceeds maximum allowed size of ${maxSize}MB`
+      };
+    }
 
     // Generate unique filename and ID
     const fileExtension = originalName.split('.').pop();
@@ -128,6 +149,16 @@ export async function uploadMediaWithMetadata(
       await Promise.all(
         tags.map(tag => storageModule.storage.addMediaTag(uniqueId, tag))
       );
+    }
+
+    // Add media usage tracking if provided
+    if (usedIn && refId) {
+      await storageModule.storage.createMediaUsage({
+        mediaId: uniqueId,
+        usedIn,
+        refId,
+        context
+      });
     }
 
     console.log('📁 File uploaded with metadata:', filePath);

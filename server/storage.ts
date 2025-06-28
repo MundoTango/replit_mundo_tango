@@ -15,6 +15,8 @@ import {
   creatorExperiences,
   mediaAssets,
   mediaTags,
+  mediaUsage,
+  friends,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -22,6 +24,10 @@ import {
   type InsertPost,
   type MediaAsset,
   type InsertMediaAsset,
+  type MediaUsage,
+  type InsertMediaUsage,
+  type Friend,
+  type InsertFriend,
   type Event,
   type InsertEvent,
   type EventRsvp,
@@ -114,6 +120,18 @@ export interface IStorage {
   removeMediaTag(mediaId: string, tag: string): Promise<void>;
   getMediaTags(mediaId: string): Promise<string[]>;
   searchMediaByTag(tag: string, limit?: number): Promise<MediaAsset[]>;
+  
+  // Media usage operations
+  createMediaUsage(usage: InsertMediaUsage): Promise<MediaUsage>;
+  getMediaUsage(mediaId: string): Promise<MediaUsage[]>;
+  deleteMediaUsage(mediaId: string, usedIn: string, refId: number): Promise<void>;
+  
+  // Friends operations for mutual visibility
+  createFriendship(friendship: InsertFriend): Promise<Friend>;
+  getFriends(userId: number): Promise<User[]>;
+  getMutualFriends(userId1: number, userId2: number): Promise<boolean>;
+  updateFriendshipStatus(userId: number, friendId: number, status: string): Promise<Friend>;
+  deleteFriendship(userId: number, friendId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -698,6 +716,111 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(mediaTags, eq(mediaAssets.id, mediaTags.mediaId))
       .where(eq(mediaTags.tag, tag))
       .limit(limit);
+  }
+
+  // Media usage operations
+  async createMediaUsage(usage: InsertMediaUsage): Promise<MediaUsage> {
+    const [mediaUsageRecord] = await db
+      .insert(mediaUsage)
+      .values(usage)
+      .returning();
+    return mediaUsageRecord;
+  }
+
+  async getMediaUsage(mediaId: string): Promise<MediaUsage[]> {
+    return await db
+      .select()
+      .from(mediaUsage)
+      .where(eq(mediaUsage.mediaId, mediaId));
+  }
+
+  async deleteMediaUsage(mediaId: string, usedIn: string, refId: number): Promise<void> {
+    await db
+      .delete(mediaUsage)
+      .where(and(
+        eq(mediaUsage.mediaId, mediaId),
+        eq(mediaUsage.usedIn, usedIn),
+        eq(mediaUsage.refId, refId)
+      ));
+  }
+
+  // Friends operations for mutual visibility
+  async createFriendship(friendship: InsertFriend): Promise<Friend> {
+    const [friend] = await db
+      .insert(friends)
+      .values(friendship)
+      .returning();
+    return friend;
+  }
+
+  async getFriends(userId: number): Promise<User[]> {
+    return await db
+      .select({
+        id: users.id,
+        name: users.name,
+        username: users.username,
+        email: users.email,
+        profileImage: users.profileImage,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        country: users.country,
+        city: users.city,
+        bio: users.bio,
+        isVerified: users.isVerified,
+        createdAt: users.createdAt
+      })
+      .from(friends)
+      .innerJoin(users, eq(friends.friendId, users.id))
+      .where(and(
+        eq(friends.userId, userId),
+        eq(friends.status, 'accepted')
+      ));
+  }
+
+  async getMutualFriends(userId1: number, userId2: number): Promise<boolean> {
+    // Check if there's a reciprocal friendship between the two users
+    const friendship1 = await db
+      .select()
+      .from(friends)
+      .where(and(
+        eq(friends.userId, userId1),
+        eq(friends.friendId, userId2),
+        eq(friends.status, 'accepted')
+      ))
+      .limit(1);
+
+    const friendship2 = await db
+      .select()
+      .from(friends)
+      .where(and(
+        eq(friends.userId, userId2),
+        eq(friends.friendId, userId1),
+        eq(friends.status, 'accepted')
+      ))
+      .limit(1);
+
+    return friendship1.length > 0 && friendship2.length > 0;
+  }
+
+  async updateFriendshipStatus(userId: number, friendId: number, status: string): Promise<Friend> {
+    const [friendship] = await db
+      .update(friends)
+      .set({ status, updatedAt: new Date() })
+      .where(and(
+        eq(friends.userId, userId),
+        eq(friends.friendId, friendId)
+      ))
+      .returning();
+    return friendship;
+  }
+
+  async deleteFriendship(userId: number, friendId: number): Promise<void> {
+    await db
+      .delete(friends)
+      .where(and(
+        eq(friends.userId, userId),
+        eq(friends.friendId, friendId)
+      ));
   }
 }
 

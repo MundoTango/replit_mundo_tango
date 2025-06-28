@@ -227,6 +227,15 @@ Changelog:
   * Created advanced search capabilities by tags and user-specific media filtering
   * Enhanced upload endpoint supports tags, visibility settings, and metadata capture
   * All media assets now have UUID-based identification and comprehensive metadata tracking
+- June 28, 2025. Extended Supabase Storage integration completed:
+  * Created supporting database tables: media_usage for content tracking and friends for mutual visibility
+  * Implemented mutual visibility logic with reciprocal friendship requirements
+  * Built comprehensive UploadMedia React component with drag-drop, tagging, and visibility controls
+  * Enhanced file constraints: 5MB max size, 1200x1200px dimensions, automatic resizing and JPEG conversion
+  * Integrated UploadMedia across all forms: memory creation, event creation, profile edits, experience forms
+  * Added analytics tracking for all uploads with folder, context, visibility, and file type metrics
+  * Created complete upload service with progress tracking and error handling
+  * Updated storage operations to support media usage tracking and friendship management
 ```
 
 ## User Preferences
