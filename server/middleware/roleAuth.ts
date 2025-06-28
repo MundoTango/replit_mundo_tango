@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService, UserRole } from '../services/authService';
+import { rolesService, AllRoles } from '../services/roles';
 
 // Extend Express Request to include user role information
 declare global {
@@ -13,7 +14,14 @@ declare global {
 }
 
 export interface RoleAuthOptions {
-  roles?: UserRole[];
+  roles?: (UserRole | AllRoles)[];
+  permissions?: string[];
+  requireAll?: boolean; // If true, user must have ALL permissions; if false, ANY permission
+}
+
+export interface EnhancedRoleAuthOptions {
+  roles?: AllRoles[];
+  anyRole?: boolean; // If true, user must have ANY of the roles; if false, ALL roles
   permissions?: string[];
   requireAll?: boolean; // If true, user must have ALL permissions; if false, ANY permission
 }
@@ -102,12 +110,86 @@ export function requireRole(options: RoleAuthOptions) {
 }
 
 /**
+ * Enhanced middleware to check user roles using new service
+ */
+export function requireEnhancedRole(options: EnhancedRoleAuthOptions) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = (req as any).user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          code: 401,
+          message: 'Authentication required',
+          data: null
+        });
+      }
+
+      // Check if user has required roles
+      if (options.roles && options.roles.length > 0) {
+        if (options.anyRole) {
+          // User needs ANY of the specified roles
+          const hasAnyRole = await rolesService.hasAnyRole(userId, options.roles);
+          if (!hasAnyRole) {
+            return res.status(403).json({
+              code: 403,
+              message: `Access denied. Required roles (any): ${options.roles.join(', ')}`,
+              data: { requiredRoles: options.roles, userRoles: await rolesService.getUserRoles(userId) }
+            });
+          }
+        } else {
+          // User needs ALL of the specified roles
+          const userRoles = await rolesService.getUserRoles(userId);
+          const hasAllRoles = options.roles.every(role => userRoles.includes(role));
+          if (!hasAllRoles) {
+            return res.status(403).json({
+              code: 403,
+              message: `Access denied. Required roles (all): ${options.roles.join(', ')}`,
+              data: { requiredRoles: options.roles, userRoles }
+            });
+          }
+        }
+      }
+
+      // Attach user roles to request
+      const userRoles = await rolesService.getUserRoles(userId);
+      const primaryRole = await rolesService.getPrimaryRole(userId);
+      
+      (req as any).userRoles = userRoles;
+      (req as any).primaryRole = primaryRole;
+
+      next();
+    } catch (error) {
+      console.error('Enhanced role authentication error:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Internal server error during role authentication',
+        data: null
+      });
+    }
+  };
+}
+
+/**
  * Convenience middleware for common role requirements
  */
 export const requireAdmin = requireRole({ roles: ['admin'] });
 export const requireOrganizer = requireRole({ roles: ['admin', 'organizer'] });
 export const requireTeacher = requireRole({ roles: ['admin', 'organizer', 'teacher'] });
 export const requireDancer = requireRole({ roles: ['admin', 'organizer', 'teacher', 'dancer'] });
+
+/**
+ * Enhanced convenience middleware
+ */
+export const requireAnyAdmin = requireEnhancedRole({ roles: ['super_admin', 'admin'], anyRole: true });
+export const requireCommunityRole = requireEnhancedRole({ 
+  roles: ['dancer', 'performer', 'teacher', 'organizer', 'dj', 'musician', 'photographer', 'content_creator'], 
+  anyRole: true 
+});
+export const requireBusinessRole = requireEnhancedRole({ 
+  roles: ['tango_school', 'tango_hotel', 'tour_operator', 'vendor'], 
+  anyRole: true 
+});
 
 /**
  * Convenience middleware for common permission requirements
