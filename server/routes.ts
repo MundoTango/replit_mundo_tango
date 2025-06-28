@@ -139,6 +139,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user/profile", authMiddleware, async (req, res) => {
     try {
       const user = req.user;
+      if (!user) {
+        return res.status(401).json({ success: false, message: "User not authenticated" });
+      }
       res.json({
         success: true,
         data: {
@@ -1700,8 +1703,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const server = createServer(app);
 
-  // WebSocket setup for real-time features - use different port to avoid Vite conflicts
-  const wss = new WebSocketServer({ port: 8080 });
+  // WebSocket setup for real-time features - use path-based routing to avoid Vite conflicts
+  const wss = new WebSocketServer({ 
+    server,
+    path: '/api/ws'
+  });
   new SocketService(wss);
 
   return server;
