@@ -13,9 +13,23 @@ export function useAuth() {
     retry: false,
   });
 
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      window.location.href = '/login';
+    }
+  };
+
   return {
     user,
     isLoading,
     isAuthenticated: !!user,
+    logout,
   };
 }

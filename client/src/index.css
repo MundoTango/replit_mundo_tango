@@ -2,40 +2,189 @@
 @tailwind components;
 @tailwind utilities;
 
-/* TrangoTech Global Styles */
-.card {
-  @apply bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6;
+/* TrangoTech CSS Variables */
+:root {
+    --primary-color: #0D448A;
+    --background-color: #f8fafc;
+    --profile-name-color: #0F172A;
+    --gray-text: #64748B;
+    --tag-color: #8E142E;
+    --light-gray-color: #94A3B8;
+    --red-color: #EB2560;
+    --border-color: #F1F5F9;
+    --secondary-red: #ED4B3B;
 }
 
-.text-gray-text-color {
-  @apply text-gray-600;
+/* TrangoTech Font Family */
+body {
+    font-family: 'Gilroy', 'Lato', ui-sans-serif, system-ui !important;
 }
 
-.text-light-gray-color {
-  @apply text-gray-500;
+@layer base {
+    h2 {
+        @apply text-lg font-bold;
+    }
 }
 
-.text-btn-color {
-  @apply text-blue-600;
+@layer utilities {
+    .lc-1 {
+        @apply overflow-hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+    }
+
+    .tags {
+        @apply bg-tag-color inline-block rounded-full border px-3 py-0.5 text-center text-white mx-0.5 h-fit w-fit;
+    }
+
+    .card {
+        @apply w-full rounded-xl bg-white p-6 pr-0 mb-4;
+    }
+
+    .main_card {
+        @apply w-full rounded-xl bg-white p-4 mb-4;
+    }
+
+    .centered_card {
+        @apply rounded-xl bg-white p-4 mb-4;
+    }
+
+    .travel-details-card {
+        @apply mt-6 max-h-72 overflow-x-hidden overflow-y-auto;
+    }
+
+    .travel-details-card::-webkit-scrollbar {
+        background-color: transparent;
+        width: 5px;
+    }
+
+    .travel-details-card::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
+
+    .travel-details-card::-webkit-scrollbar-thumb {
+        background-color: #e1e1e1;
+        border-radius: 10px;
+        width: 2px;
+    }
+
+    .travel-details-card>table>thead>tr {
+        @apply h-10 text-left;
+    }
+
+    .travel-details-card>table>tbody>tr {
+        @apply h-12 text-left font-light text-gray-text-color tracking-wide;
+    }
+
+    .photos-card,
+    .friend-card {
+        @apply grid grid-cols-2 gap-2 pr-6;
+    }
+
+    .photos-card>div>img,
+    .friend-card>div>img {
+        @apply h-auto max-w-full object-contain rounded-xl;
+    }
+
+    .input-text {
+        @apply bg-background-color rounded-xl text-[#949393];
+    }
+
+    .normal-text {
+        font-family: 'Gilroy';
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 22.4px;
+        letter-spacing: 0.2px;
+        color: #64748B;
+    }
+
+    .heading-text {
+        font-family: 'Gilroy';
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 32px;
+    }
 }
 
-.text-heart-color {
-  @apply text-red-500;
+/* TrangoTech Scrollbar Styles */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: white;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    cursor: pointer;
+    border-radius: 20px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #818080;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: white;
+    border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb {
+    cursor: pointer;
+    border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #818080;
+}
+
+.comment-section::-webkit-scrollbar-track {
+    border-radius: 20px;
+    background: #f0f2f5;
+}
+
+.comment-section::-webkit-scrollbar-thumb {
+    background: #818080;
+}
+
+/* TrangoTech Animations */
+@keyframes fade-up {
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-down {
+    0% { opacity: 0; transform: translateY(-30px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-up {
-  animation: fadeUp 0.5s ease-out;
+    animation: fade-up 0.4s ease-out;
 }
 
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.animate-fade-down {
+    animation: fade-down 0.4s ease-out;
+}
+
+.main-spinner {
+    border: 5px dashed white; 
+    border-top: 5px dashed var(--primary-color); 
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s infinite;
+    margin: auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 :root {

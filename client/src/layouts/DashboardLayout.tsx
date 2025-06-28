@@ -25,7 +25,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import DashboardSidebar from './DashboardSidebar';
+import TrangoTechSidebar from '@/components/TrangoTechSidebar';
 import { useQuery } from '@tanstack/react-query';
 
 interface DashboardLayoutProps {
@@ -267,13 +267,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </header>
 
       <div className="flex">
-        {/* Sidebar */}
-        <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        {/* TrangoTech Authentic Sidebar */}
+        <TrangoTechSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
-        {/* Main Content */}
+        {/* Main Content - TT Layout */}
         <main className={cn(
-          "flex-1 transition-all duration-300",
-          sidebarOpen ? "lg:ml-64" : "lg:ml-16"
+          "flex-1 transition-all duration-300 bg-background-color",
+          sidebarOpen ? "lg:ml-64" : "lg:ml-0"
         )}>
           <div className="p-6">
             {children}

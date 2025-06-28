@@ -10,6 +10,10 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        lato: ["lato", "ui-sans-serif", "system-ui"],
+        gilroy: ["Gilroy", "ui-sans-serif", "system-ui"],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
