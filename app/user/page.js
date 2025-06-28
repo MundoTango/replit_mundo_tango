@@ -6,6 +6,8 @@ import { useAuthContext } from "@/auth/useAuthContext";
 import { PATH_AUTH, PATH_DASHBOARD } from "@/routes/paths";
 import { getToken } from "@/data/services/localStorageService";
 import localStorageAvailable from "@/utils/localStorageAvailable";
+import TrustedConnectionsFilter from "../../components/Feed/TrustedConnectionsFilter";
+import SmartPostPrioritization from "../../components/Feed/SmartPostPrioritization";
 
 function UserClient() {
   const { user } = useAuthContext();
@@ -18,6 +20,8 @@ function UserClient() {
   const [editingPost, setEditingPost] = useState(null);
   const [postList, setPostList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [feedFilter, setFeedFilter] = useState("all");
+  const [prioritizedPosts, setPrioritizedPosts] = useState([]);
 
   // Enhanced post creation handler
   const handleCreatePost = (type) => {
@@ -34,13 +38,88 @@ function UserClient() {
       const data = await response.json();
       
       if (data.code === 200) {
-        setPostList(data.data || []);
+        const posts = data.data || [];
+        setPostList(posts);
+        filterAndPrioritizePosts(posts);
       }
     } catch (error) {
       console.error("Failed to fetch posts:", error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Smart post filtering and prioritization
+  const filterAndPrioritizePosts = (posts) => {
+    let filteredPosts = [...posts];
+
+    // Apply feed filter
+    switch (feedFilter) {
+      case "trusted":
+        // Simulate trusted connections (in real app, this would use relationship data)
+        filteredPosts = posts.filter(post => 
+          post.user && (
+            post.total_likes > 5 || // High engagement indicates trusted content
+            post.user.id === user?.id || // Own posts
+            (post.content && post.content.toLowerCase().includes('tango')) // Tango-related content
+          )
+        );
+        break;
+      case "local":
+        // Filter for local content
+        filteredPosts = posts.filter(post => 
+          post.location && post.location.toLowerCase().includes(user?.city?.toLowerCase() || user?.country?.toLowerCase() || 'argentina')
+        );
+        break;
+      case "events":
+        // Filter for event-related content
+        filteredPosts = posts.filter(post => 
+          post.content && (
+            post.content.toLowerCase().includes('event') ||
+            post.content.toLowerCase().includes('milonga') ||
+            post.content.toLowerCase().includes('workshop') ||
+            post.content.toLowerCase().includes('festival')
+          )
+        );
+        break;
+      default:
+        // "all" - no additional filtering
+        break;
+    }
+
+    // Smart prioritization based on user role and engagement
+    const prioritized = filteredPosts.sort((a, b) => {
+      let scoreA = 0;
+      let scoreB = 0;
+
+      // Engagement score
+      scoreA += (a.total_likes || 0) + (a.total_comments || 0) * 2;
+      scoreB += (b.total_likes || 0) + (b.total_comments || 0) * 2;
+
+      // Recency bonus (posts from last 24 hours get priority)
+      const hoursSinceA = (Date.now() - new Date(a.created_at).getTime()) / (1000 * 60 * 60);
+      const hoursSinceB = (Date.now() - new Date(b.created_at).getTime()) / (1000 * 60 * 60);
+      
+      if (hoursSinceA < 24) scoreA += 10;
+      if (hoursSinceB < 24) scoreB += 10;
+
+      // Role-specific content boost
+      const userRoles = user?.tangoRoles || [];
+      
+      if (userRoles.includes('teacher') || userRoles.includes('instructor')) {
+        if (a.content && a.content.toLowerCase().includes('teach')) scoreA += 5;
+        if (b.content && b.content.toLowerCase().includes('teach')) scoreB += 5;
+      }
+      
+      if (userRoles.includes('traveler')) {
+        if (a.content && (a.content.toLowerCase().includes('travel') || a.location)) scoreA += 5;
+        if (b.content && (b.content.toLowerCase().includes('travel') || b.location)) scoreB += 5;
+      }
+
+      return scoreB - scoreA;
+    });
+
+    setPrioritizedPosts(prioritized);
   };
 
   // Create post submission
@@ -89,10 +168,17 @@ function UserClient() {
     setPostImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Initialize posts on component mount and visibility change
+  // Initialize posts on component mount and visibility/filter change
   useEffect(() => {
     fetchPosts();
   }, [visibility]);
+
+  // Re-filter when feed filter changes
+  useEffect(() => {
+    if (postList.length > 0) {
+      filterAndPrioritizePosts(postList);
+    }
+  }, [feedFilter, user]);
 
   return (
     <div className="grid grid-cols-12 gap-5 overflow-hidden">
@@ -113,6 +199,83 @@ function UserClient() {
                   <option value="Private">Private</option>
                   <option value="All">All</option>
                 </select>
+              </div>
+            </div>
+
+            {/* Clean Feed Filter */}
+            <div className="bg-white rounded-xl p-4 border border-gray-200">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-gray-900 text-sm">Feed Focus</h3>
+                <span className="text-xs text-gray-500">Show posts from</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <button
+                  onClick={() => setFeedFilter("all")}
+                  className={`p-3 rounded-lg border text-left transition-all ${
+                    feedFilter === "all" 
+                      ? 'bg-red-50 border-red-200 text-red-700' 
+                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium text-sm">All Posts</span>
+                  </div>
+                  <p className="text-xs text-gray-500">Everything in your feed</p>
+                </button>
+
+                <button
+                  onClick={() => setFeedFilter("trusted")}
+                  className={`p-3 rounded-lg border text-left transition-all ${
+                    feedFilter === "trusted" 
+                      ? 'bg-red-50 border-red-200 text-red-700' 
+                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    <span className="font-medium text-sm">Close Circle</span>
+                  </div>
+                  <p className="text-xs text-gray-500">Your dance partners & close friends</p>
+                </button>
+
+                <button
+                  onClick={() => setFeedFilter("local")}
+                  className={`p-3 rounded-lg border text-left transition-all ${
+                    feedFilter === "local" 
+                      ? 'bg-red-50 border-red-200 text-red-700' 
+                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium text-sm">Local Scene</span>
+                  </div>
+                  <p className="text-xs text-gray-500">Your city's tango community</p>
+                </button>
+
+                <button
+                  onClick={() => setFeedFilter("events")}
+                  className={`p-3 rounded-lg border text-left transition-all ${
+                    feedFilter === "events" 
+                      ? 'bg-red-50 border-red-200 text-red-700' 
+                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium text-sm">Events Only</span>
+                  </div>
+                  <p className="text-xs text-gray-500">Milongas, workshops & festivals</p>
+                </button>
               </div>
             </div>
 
@@ -202,7 +365,7 @@ function UserClient() {
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
               </div>
-            ) : postList.length === 0 ? (
+            ) : prioritizedPosts.length === 0 ? (
               <div className="bg-white rounded-xl p-6 text-center">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">Welcome to Mundo Tango!</h3>
                 <p className="text-gray-600 mb-6">Start following people to see their posts in your timeline.</p>
@@ -211,10 +374,50 @@ function UserClient() {
                 </button>
               </div>
             ) : (
-              postList.map((post, index) => (
-                <div key={post.id} className="bg-white rounded-xl p-6 shadow-sm">
+              prioritizedPosts.map((post, index) => {
+                // Calculate post priority indicators
+                const hoursSincePost = (Date.now() - new Date(post.created_at).getTime()) / (1000 * 60 * 60);
+                const isRecent = hoursSincePost < 24;
+                const isHighEngagement = (post.total_likes || 0) + (post.total_comments || 0) > 5;
+                const isRelevantToRole = user?.tangoRoles?.some(role => 
+                  post.content?.toLowerCase().includes(role) || 
+                  (role === 'traveler' && post.location)
+                );
+
+                return (
+                <div key={post.id} className={`bg-white rounded-xl p-6 shadow-sm relative ${
+                  isHighEngagement ? 'ring-1 ring-red-100' : ''
+                }`}>
+                  {/* Priority indicator */}
+                  <div className="absolute top-4 right-4 flex gap-2">
+                    {isRecent && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                        </svg>
+                        Recent
+                      </span>
+                    )}
+                    {isHighEngagement && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-100 text-red-700">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        Popular
+                      </span>
+                    )}
+                    {isRelevantToRole && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                        </svg>
+                        For You
+                      </span>
+                    )}
+                  </div>
+
                   {/* Post header */}
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-4 pr-20">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white font-semibold">
                         {post.user?.name?.charAt(0) || "U"}
@@ -284,9 +487,35 @@ function UserClient() {
                     </div>
                   </div>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
+          
+          {/* Filter Status Indicator */}
+          {feedFilter !== "all" && prioritizedPosts.length > 0 && (
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-2 text-sm text-blue-700">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
+                </svg>
+                <span>
+                  Showing {prioritizedPosts.length} posts filtered by{" "}
+                  <span className="font-semibold">
+                    {feedFilter === "trusted" && "Close Circle"}
+                    {feedFilter === "local" && "Local Scene"}
+                    {feedFilter === "events" && "Events Only"}
+                  </span>
+                </span>
+                <button
+                  onClick={() => setFeedFilter("all")}
+                  className="ml-2 text-blue-600 hover:text-blue-800 underline text-xs"
+                >
+                  Show all posts
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
