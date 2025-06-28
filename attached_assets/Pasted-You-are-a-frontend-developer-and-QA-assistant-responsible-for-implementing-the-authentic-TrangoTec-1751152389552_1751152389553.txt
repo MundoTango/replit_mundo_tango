@@ -1,0 +1,77 @@
+You are a frontend developer and QA assistant responsible for implementing the **authentic TrangoTech UI design system** inside the Mundo Tango app. Follow these instructions to migrate the TT UI components, apply the original design language, and run a detailed visual checklist to ensure pixel-perfect fidelity.
+
+---
+
+### 🔧 IMPLEMENTATION PHASE
+
+1. Extract original components from the TrangoTech archive:
+   - Located at `attached_assets/MundoTango-WebApp-main/frontend/src/`
+
+2. Migrate and rebuild these components using the exact structure, Tailwind classes, and layout:
+   - [ ] Sidebar → `Layout/Sidebar.jsx`
+   - [ ] PostCard / Feed → `sections/profile/components/profile_content/Timeline/PostLikeComment.jsx`
+   - [ ] Profile Head → `Profile/ProfileHead.jsx`
+   - [ ] Layout → `Layout/Header.jsx`, `Layout/Sidebar.jsx`
+   - [ ] PostComposer → `sections/home/Share.jsx`
+
+3. Apply the original **TT styling system** from:
+   - `tailwind.config.js` (colors, fonts)
+   - `globals.css` and `index.css` (spacing, buttons, card classes)
+
+4. Ensure routes are using updated TT components:
+   - `/moments`
+   - `/profile`
+   - `/events`
+
+5. Remove any fallback or scaffolded UI that conflicts with the authentic TT design.
+
+---
+
+### ✅ QA CHECKLIST (Run This After Implementation)
+
+Once the components are implemented, verify everything below:
+
+#### 🌐 GLOBAL STYLING
+- [ ] Fonts: Inter + Roboto properly applied
+- [ ] TT Colors: `#8E142E` (primary), `#0D448A` (secondary)
+- [ ] Tailwind spacing, padding, text styles match TT files
+- [ ] `.card`, `.text-gray-text-color`, `.btn` classes rendered correctly
+
+#### 🧱 COMPONENTS
+
+**Sidebar**
+- [ ] Emojis and route names match TT file
+- [ ] Highlight on active route
+- [ ] Responsive collapse on mobile
+
+**PostComposer**
+- [ ] Composer shows “What’s on your mind?”
+- [ ] Modal matches TT layout with branding gradient
+- [ ] Upload buttons (photo, video, etc.) render properly
+
+**PostCard / Feed**
+- [ ] Role badges rendered (dancer, organizer, etc.)
+- [ ] Reactions: like, comment, share, save icons styled
+- [ ] Author + timestamp UI uses TT layout
+
+**Profile Page**
+- [ ] Avatar, banner, and roles visible
+- [ ] Tabs show: Moments, Events, About
+- [ ] Experience/progress bars styled
+
+#### 🔁 INTERACTIONS
+- [ ] Composer modal opens and closes properly
+- [ ] Sidebar role-based routes work (e.g., dancer → `/moments`)
+- [ ] Authenticated user roles show correct layout
+- [ ] Mobile layout renders without issues
+
+#### 🧪 CONFIG + CSS VERIFICATION
+- [ ] `tailwind.config.ts` reflects TT fonts and colors
+- [ ] `index.css` includes `.card`, `.btn`, TT gray text
+- [ ] App restarted and styles recompiled
+
+---
+
+### ✅ END STATE
+If everything checks out, log this message:
+> ✅ TrangoTech UI fully integrated and visually verified for all routes and roles.

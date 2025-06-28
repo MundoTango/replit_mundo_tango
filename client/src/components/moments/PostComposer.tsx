@@ -23,7 +23,7 @@ export default function PostComposer() {
     content: '', 
     tags: '', 
     location: '',
-    visibility: 'public' as 'public' | 'friends' | 'private'
+    visibility: 'Public' as 'Public' | 'Friend' | 'Private'
   });
   const [uploadedMedia, setUploadedMedia] = useState<any[]>([]);
 
