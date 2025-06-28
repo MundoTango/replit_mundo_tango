@@ -11,6 +11,8 @@ import { WebSocketServer } from "ws";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { uploadMedia, uploadMediaWithMetadata, deleteMedia, deleteMediaWithMetadata, getSignedUrl, initializeStorageBucket } from "./services/uploadService";
 import { setUserContext, auditSecurityEvent, checkResourcePermission, rateLimit } from "./middleware/security";
+import { authService, UserRole } from "./services/authService";
+import { requireRole, requireAdmin, ensureUserProfile, auditRoleAction } from "./middleware/roleAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
@@ -2335,6 +2337,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error sending feedback summary:', error);
       res.status(500).json({ success: false, message: 'Failed to send summary' });
+    }
+  });
+
+  // Role-based Authentication Routes
+  app.use('/api/roles', isAuthenticated, ensureUserProfile);
+
+  // Get current user's role and permissions
+  app.get('/api/roles/me', async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const userWithRole = await authService.getUserWithRole(userId);
+      
+      if (!userWithRole) {
+        return res.status(404).json({
+          code: 404,
+          message: 'User profile not found',
+          data: null
+        });
+      }
+
+      res.json({
+        code: 200,
+        message: 'User role retrieved successfully',
+        data: {
+          id: userWithRole.id,
+          role: userWithRole.role,
+          permissions: userWithRole.permissions,
+          displayName: userWithRole.displayName,
+          avatarUrl: userWithRole.avatarUrl,
+          isActive: userWithRole.isActive
+        }
+      });
+    } catch (error) {
+      console.error('Error getting user role:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Internal server error',
+        data: null
+      });
+    }
+  });
+
+  // Update user role (Admin only)
+  app.put('/api/roles/update', requireAdmin, auditRoleAction('role_update'), async (req, res) => {
+    try {
+      const { userId, role } = req.body;
+      
+      if (!userId || !role) {
+        return res.status(400).json({
+          code: 400,
+          message: 'userId and role are required',
+          data: null
+        });
+      }
+
+      const adminId = (req as any).user.id;
+      const success = await authService.updateUserRole(userId, role as UserRole, adminId);
+      
+      if (!success) {
+        return res.status(400).json({
+          code: 400,
+          message: 'Failed to update user role',
+          data: null
+        });
+      }
+
+      res.json({
+        code: 200,
+        message: 'User role updated successfully',
+        data: { userId, newRole: role }
+      });
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Internal server error',
+        data: null
+      });
+    }
+  });
+
+  // Get users by role (Admin only)
+  app.get('/api/roles/users', requireAdmin, async (req, res) => {
+    try {
+      const { role, limit = 50 } = req.query;
+      
+      let users;
+      if (role && typeof role === 'string') {
+        users = await authService.getUsersByRole(role as UserRole, Number(limit));
+      } else {
+        const allRoles: UserRole[] = ['admin', 'organizer', 'teacher', 'dancer', 'guest'];
+        const usersByRole = await Promise.all(
+          allRoles.map(async (r) => ({
+            role: r,
+            users: await authService.getUsersByRole(r, Number(limit))
+          }))
+        );
+        
+        users = usersByRole.flatMap(({ users }) => users);
+      }
+
+      res.json({
+        code: 200,
+        message: 'Users retrieved successfully',
+        data: { users }
+      });
+    } catch (error) {
+      console.error('Error getting users with roles:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Internal server error',
+        data: null
+      });
+    }
+  });
+
+  // Check user permissions
+  app.get('/api/roles/permissions/check', async (req, res) => {
+    try {
+      const { permission } = req.query;
+      
+      if (!permission || typeof permission !== 'string') {
+        return res.status(400).json({
+          code: 400,
+          message: 'Permission parameter is required',
+          data: null
+        });
+      }
+
+      const userId = (req as any).user.id;
+      const hasPermission = await authService.hasPermission(userId, permission);
+      
+      res.json({
+        code: 200,
+        message: 'Permission check completed',
+        data: {
+          userId,
+          permission,
+          hasPermission
+        }
+      });
+    } catch (error) {
+      console.error('Error checking permission:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Internal server error',
+        data: null
+      });
     }
   });
 

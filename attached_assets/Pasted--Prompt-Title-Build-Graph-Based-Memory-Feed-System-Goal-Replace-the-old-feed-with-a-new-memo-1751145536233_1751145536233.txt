@@ -1,0 +1,54 @@
+🔧 Prompt Title: Build Graph-Based Memory Feed System
+
+🎯 Goal: Replace the old feed with a new memory-based, graph-connected feed system for Mundo Tango.
+
+✅ Key Features:
+- Graph schema: `memories`, `memory_tags`, `memory_people`, `memory_roles`, `memory_media`
+- Emotional tags, trust tiers, visibility rules
+- Supabase RLS (auth.uid()), public/mutual/private logic
+- Memory co-tagging with people, events, media
+- Feed filtering by role (Dancer, Organizer, DJ, etc.)
+- Supports scrollback, resurfacing, and memory linking
+
+📦 Stack:
+- Supabase (Postgres schema + Realtime)
+- Supabase Storage for media
+- Supabase Edge Functions (optional later for AI surfacing)
+- React + Tailwind (Replit frontend)
+- API: REST or RPC, later GraphQL layer if needed
+
+🧩 Tasks:
+
+1. **Create Supabase Tables** (`shared/schema.ts`)
+   - `memories`: id, user_id, title, body, visibility, created_at
+   - `memory_tags`: memory_id, tag
+   - `memory_people`: memory_id, person_id, relationship
+   - `memory_roles`: memory_id, role (enum), trust_level
+   - `memory_media`: memory_id, file_url, file_type
+
+2. **Enable RLS** (SQL Policies)
+   - `memories`: 
+     - SELECT if `auth.uid() = user_id` OR is mutual (via friends)
+     - INSERT/UPDATE/DELETE only by owner
+   - Mutual visibility logic via `friends` table (bidirectional match)
+
+3. **Embed UploadMedia in memory creation + tagging UI**
+   - Use enhanced `<UploadMedia>` for file drop
+   - Auto-tag people if possible via relationship graph
+
+4. **Build Feed Component**
+   - File: `client/components/MemoryFeed.tsx`
+   - Filters: by role, tag, city, date, visibility
+   - Pagination + "1 year ago today" logic
+
+5. **Optional UI Enhancements**
+   - Add `MemoryCard.tsx` with media preview
+   - Display emotion tags, event references, and friend tags
+
+📖 Documentation:
+- Update `replit.md` with new schema, RLS, API, and feed UI
+
+✅ Done when:
+- New feed displays all memories from user, mutuals, or public
+- Upload and tagging flows work inside memory creation
+- Realtime updates supported on new memory post

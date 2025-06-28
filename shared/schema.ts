@@ -54,6 +54,22 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// User Profiles table for role-based authentication
+export const userProfiles = pgTable("user_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull().unique(),
+  role: varchar("role", { length: 50 }).default("guest"),
+  displayName: text("display_name"),
+  avatarUrl: text("avatar_url"),
+  permissions: jsonb("permissions").default({}),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_user_profiles_user_id").on(table.userId),
+  index("idx_user_profiles_role").on(table.role),
+]);
+
 // Posts table
 export const posts = pgTable("posts", {
   id: serial("id").primaryKey(),
@@ -496,6 +512,12 @@ export const insertFriendSchema = createInsertSchema(friends).omit({
   updatedAt: true,
 });
 
+export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -533,3 +555,5 @@ export type MediaUsage = typeof mediaUsage.$inferSelect;
 export type InsertMediaUsage = z.infer<typeof insertMediaUsageSchema>;
 export type Friend = typeof friends.$inferSelect;
 export type InsertFriend = z.infer<typeof insertFriendSchema>;
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;

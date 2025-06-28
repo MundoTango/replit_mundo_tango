@@ -1,0 +1,57 @@
+You are configuring the complete user role system for the Mundo Tango platform. Your goal is to support 16+ community-facing roles and platform-level admin roles for use with Supabase Auth and role-based logic (RBAC/ABAC).
+
+☑️ Create a `roles` table (if not already existing) with fields:
+- id (uuid)
+- name (text, primary key or unique)
+- description (text)
+- is_platform_role (boolean, default: false)
+
+☑️ Insert the following roles:
+
+-- Community Roles
+('dancer', 'Social tango dancer', false),
+('performer', 'Stage/showcase tango performer', false),
+('teacher', 'Teaches classes or privates', false),
+('learning_source', 'Resource for learning tango', false),
+('dj', 'Plays music at tango events', false),
+('musician', 'Performs live tango music', false),
+('organizer', 'Organizes milongas, festivals, etc.', false),
+('host', 'Provides hospitality or space', false),
+('photographer', 'Captures tango moments visually', false),
+('content_creator', 'Creates tango media content', false),
+('choreographer', 'Designs choreographed pieces', false),
+('tango_traveler', 'Travels to tango communities', false),
+('tour_operator', 'Organizes tango-themed tours', false),
+('vendor', 'Sells tango shoes or accessories', false),
+('wellness_provider', 'Provides tango wellness services', false),
+('tango_school', 'Tango instruction center or academy', false),
+('tango_hotel', 'Venue offering tango lodging/events', false),
+
+-- Platform Roles
+('guest', 'Default new user role', true),
+('super_admin', 'Full system access', true),
+('admin', 'Moderates, manages platform tools', true),
+('moderator', 'Handles community safety/reporting', true),
+('curator', 'Curates memories, events, visibility', true),
+('bot', 'Internal automation or AI account', true)
+
+☑️ Ensure each user has a `role` or `roles` array in the `user_profiles` table.
+If using arrays: Use `text[]` to store multi-role users.
+If using a join table: Create `user_roles(user_id, role_name)`.
+
+☑️ Add RLS support (optional) — sample for `memories`:
+- Public: `visibility = 'public'`
+- Mutual: check mutual friendship via `friends` table
+- Private: `user_id = auth.uid()`
+
+☑️ Support role-based routing after login:
+- If `role = 'admin'` → /admin
+- If `role = 'organizer'` → /organizer/dashboard
+- If `role = 'dancer'` → /moments
+- Else → /welcome
+
+☑️ Enable use in UI components via:
+```tsx
+<Select value={user.role} onChange={...}>
+  {roles.map((r) => <option value={r.name}>{r.name}</option>)}
+</Select>
