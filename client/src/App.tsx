@@ -15,6 +15,7 @@ import Home from "@/pages/home";
 import Profile from "@/pages/profile";
 import Events from "@/pages/events";
 import Messages from "@/pages/messages";
+import Moments from "@/pages/moments";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -68,6 +69,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/moments" component={Moments} />
       <Route path="/profile" component={Profile} />
       <Route path="/events" component={Events} />
       <Route path="/messages" component={Messages} />

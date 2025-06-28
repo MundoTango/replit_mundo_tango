@@ -1,335 +1,453 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAuthToken } from "@/lib/authUtils";
-import Navbar from "@/components/layout/navbar";
-import MobileNav from "@/components/layout/mobile-nav";
-import EventCard from "@/components/events/event-card";
-import EventCalendar from "@/components/events/event-calendar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import DashboardLayout from '@/layouts/DashboardLayout';
+import EventCard from '@/components/events/EventCard';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from '@/components/ui/dialog';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   Plus, 
-  Calendar as CalendarIcon, 
+  Calendar, 
   MapPin, 
+  Users, 
   Search,
   Filter,
-  Grid3X3,
-  List
-} from "lucide-react";
+  Clock,
+  Star
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { format, addDays } from 'date-fns';
+import { apiRequest } from '@/lib/queryClient';
+import UploadMedia from '@/components/UploadMedia';
 
-export default function Events() {
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'calendar'>('grid');
-  const [searchQuery, setSearchQuery] = useState("");
-  const [eventData, setEventData] = useState({
-    title: "",
-    description: "",
-    location: "",
-    startDate: "",
-    endDate: "",
-    price: "",
-    maxAttendees: "",
-  });
+interface Event {
+  id: number;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  location?: string;
+  startDate: string;
+  endDate?: string;
+  userId: number;
+  isPublic: boolean;
+  maxAttendees?: number;
+  currentAttendees?: number;
+  user?: {
+    id: number;
+    name: string;
+    username: string;
+    profileImage?: string;
+  };
+  participants?: any[];
+  userStatus?: 'going' | 'interested' | 'maybe' | null;
+}
+
+export default function EventsPage() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterBy, setFilterBy] = useState<'all' | 'my' | 'attending' | 'nearby'>('all');
+  const [activeTab, setActiveTab] = useState('upcoming');
+  
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    description: '',
+    location: '',
+    startDate: '',
+    endDate: '',
+    maxAttendees: '',
+    isPublic: true
+  });
+  const [uploadedMedia, setUploadedMedia] = useState<any[]>([]);
 
   // Fetch events
-  const { data: events = [], isLoading } = useQuery({
-    queryKey: ['/api/events'],
+  const { data: events, isLoading } = useQuery({
+    queryKey: ['/api/events', filterBy, searchQuery, activeTab],
     queryFn: async () => {
-      const response = await fetch('/api/events');
-      if (!response.ok) throw new Error('Failed to fetch events');
-      const data = await response.json();
-      return data.data;
-    },
+      const params = new URLSearchParams();
+      if (filterBy !== 'all') params.append('filter', filterBy);
+      if (searchQuery) params.append('q', searchQuery);
+      if (activeTab !== 'upcoming') params.append('timeframe', activeTab);
+      
+      const response = await fetch(`/api/events?${params}`, {
+        credentials: 'include'
+      });
+      const result = await response.json();
+      return result.data || [];
+    }
   });
 
   // Create event mutation
   const createEventMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const response = await fetch('/api/events', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`,
-        },
-        body: formData,
-      });
-      if (!response.ok) throw new Error('Failed to create event');
-      return response.json();
+    mutationFn: async (eventData: any) => {
+      return apiRequest('POST', '/api/events', eventData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
-      setIsCreateEventOpen(false);
-      setEventData({
-        title: "",
-        description: "",
-        location: "",
-        startDate: "",
-        endDate: "",
-        price: "",
-        maxAttendees: "",
-      });
       toast({
-        title: "Event created!",
-        description: "Your event has been published successfully.",
+        title: "Event created",
+        description: "Your tango event has been created successfully.",
       });
+      setShowCreateForm(false);
+      setNewEvent({
+        title: '',
+        description: '',
+        location: '',
+        startDate: '',
+        endDate: '',
+        maxAttendees: '',
+        isPublic: true
+      });
+      setUploadedMedia([]);
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
     },
-    onError: (error: any) => {
+    onError: () => {
       toast({
         title: "Error",
-        description: error.message || "Failed to create event",
+        description: "Failed to create event. Please try again.",
         variant: "destructive",
       });
-    },
+    }
   });
 
-  const handleCreateEvent = (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = new FormData();
-    Object.entries(eventData).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
-    createEventMutation.mutate(formData);
+  const handleCreateEvent = () => {
+    if (!newEvent.title.trim() || !newEvent.startDate) {
+      toast({
+        title: "Required fields missing",
+        description: "Please fill in the event title and start date.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const eventData = {
+      ...newEvent,
+      maxAttendees: newEvent.maxAttendees ? parseInt(newEvent.maxAttendees) : undefined,
+      imageUrl: uploadedMedia.find(m => m.type?.startsWith('image/'))?.url,
+    };
+
+    createEventMutation.mutate(eventData);
   };
 
-  const filteredEvents = events.filter((event: any) =>
-    event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleMediaUpload = (files: any[]) => {
+    setUploadedMedia(files);
+  };
 
-  const upcomingEvents = filteredEvents.filter((event: any) => 
-    new Date(event.startDate) > new Date()
-  );
+  const handleEditEvent = (event: Event) => {
+    // Navigate to edit event page or open edit modal
+    console.log('Edit event:', event);
+  };
 
-  const todayEvents = filteredEvents.filter((event: any) => {
+  const handleShareEvent = (event: Event) => {
+    if (navigator.share) {
+      navigator.share({
+        title: event.title,
+        text: event.description,
+        url: window.location.origin + `/events/${event.id}`,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.origin + `/events/${event.id}`);
+      toast({
+        title: "Link copied",
+        description: "Event link has been copied to clipboard.",
+      });
+    }
+  };
+
+  // Quick date presets
+  const getQuickDatePresets = () => {
     const today = new Date();
-    const eventDate = new Date(event.startDate);
-    return eventDate.toDateString() === today.toDateString();
-  });
+    return [
+      { label: 'Today', value: format(today, 'yyyy-MM-dd') },
+      { label: 'Tomorrow', value: format(addDays(today, 1), 'yyyy-MM-dd') },
+      { label: 'This Weekend', value: format(addDays(today, 6 - today.getDay()), 'yyyy-MM-dd') },
+      { label: 'Next Week', value: format(addDays(today, 7), 'yyyy-MM-dd') },
+    ];
+  };
 
   return (
-    <div className="min-h-screen bg-tango-gray">
-      <Navbar onOpenChat={() => setIsChatOpen(true)} />
-      
-      <div className="pt-16 pb-20 lg:pb-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <DashboardLayout>
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Tango Events</h1>
+            <p className="text-gray-600 mt-1">Discover and organize tango events worldwide</p>
+          </div>
           
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-tango-black mb-2">Tango Events</h1>
-              <p className="text-gray-600">Discover and join tango events near you</p>
-            </div>
-            
-            <Dialog open={isCreateEventOpen} onOpenChange={setIsCreateEventOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-tango-red hover:bg-tango-red/90 mt-4 md:mt-0">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Event
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Create New Event</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleCreateEvent} className="space-y-4">
-                  <div>
-                    <Label htmlFor="title">Event Title</Label>
+          <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Event
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>Create New Tango Event</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
                     <Input
-                      id="title"
-                      value={eventData.title}
-                      onChange={(e) => setEventData(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="e.g., Friday Night Milonga"
-                      required
+                      placeholder="Event title"
+                      value={newEvent.title}
+                      onChange={(e) => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
+                      className="text-lg font-semibold"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="description">Description</Label>
+                  
+                  <div className="col-span-2">
                     <Textarea
-                      id="description"
-                      value={eventData.description}
-                      onChange={(e) => setEventData(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Describe your event..."
-                      required
+                      placeholder="Event description"
+                      value={newEvent.description}
+                      onChange={(e) => setNewEvent(prev => ({ ...prev, description: e.target.value }))}
+                      className="min-h-[100px]"
                     />
                   </div>
+                  
+                  <Input
+                    placeholder="Location"
+                    value={newEvent.location}
+                    onChange={(e) => setNewEvent(prev => ({ ...prev, location: e.target.value }))}
+                  />
+                  
+                  <Input
+                    type="number"
+                    placeholder="Max attendees (optional)"
+                    value={newEvent.maxAttendees}
+                    onChange={(e) => setNewEvent(prev => ({ ...prev, maxAttendees: e.target.value }))}
+                  />
+                  
                   <div>
-                    <Label htmlFor="location">Location</Label>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">Start Date & Time</label>
                     <Input
-                      id="location"
-                      value={eventData.location}
-                      onChange={(e) => setEventData(prev => ({ ...prev, location: e.target.value }))}
-                      placeholder="Event venue address"
-                      required
+                      type="datetime-local"
+                      value={newEvent.startDate}
+                      onChange={(e) => setNewEvent(prev => ({ ...prev, startDate: e.target.value }))}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="startDate">Start Date & Time</Label>
-                      <Input
-                        id="startDate"
-                        type="datetime-local"
-                        value={eventData.startDate}
-                        onChange={(e) => setEventData(prev => ({ ...prev, startDate: e.target.value }))}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="endDate">End Date & Time</Label>
-                      <Input
-                        id="endDate"
-                        type="datetime-local"
-                        value={eventData.endDate}
-                        onChange={(e) => setEventData(prev => ({ ...prev, endDate: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="price">Price</Label>
-                      <Input
-                        id="price"
-                        value={eventData.price}
-                        onChange={(e) => setEventData(prev => ({ ...prev, price: e.target.value }))}
-                        placeholder="e.g., $20 or Free"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="maxAttendees">Max Attendees</Label>
-                      <Input
-                        id="maxAttendees"
-                        type="number"
-                        value={eventData.maxAttendees}
-                        onChange={(e) => setEventData(prev => ({ ...prev, maxAttendees: e.target.value }))}
-                        placeholder="e.g., 50"
-                      />
-                    </div>
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-tango-red hover:bg-tango-red/90"
-                    disabled={createEventMutation.isPending}
-                  >
-                    {createEventMutation.isPending ? "Creating..." : "Create Event"}
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          {/* Search and Filters */}
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-              <Input
-                placeholder="Search events by title or location..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex space-x-2">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className={viewMode === 'grid' ? 'bg-tango-red hover:bg-tango-red/90' : ''}
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'calendar' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('calendar')}
-                className={viewMode === 'calendar' ? 'bg-tango-red hover:bg-tango-red/90' : ''}
-              >
-                <CalendarIcon className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {viewMode === 'calendar' ? (
-            <EventCalendar events={filteredEvents} />
-          ) : (
-            <div className="space-y-6">
-              {/* Today's Events */}
-              {todayEvents.length > 0 && (
-                <div>
-                  <h2 className="text-xl font-semibold text-tango-black mb-4">Today's Events</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {todayEvents.map((event: any) => (
-                      <EventCard key={event.id} event={event} />
-                    ))}
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">End Date & Time (optional)</label>
+                    <Input
+                      type="datetime-local"
+                      value={newEvent.endDate}
+                      onChange={(e) => setNewEvent(prev => ({ ...prev, endDate: e.target.value }))}
+                    />
                   </div>
                 </div>
-              )}
-
-              {/* Upcoming Events */}
-              <div>
-                <h2 className="text-xl font-semibold text-tango-black mb-4">
-                  {todayEvents.length > 0 ? 'Upcoming Events' : 'All Events'}
-                </h2>
                 
-                {isLoading ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[...Array(6)].map((_, i) => (
-                      <Card key={i} className="card-shadow animate-pulse">
-                        <div className="h-48 bg-gray-200 rounded-t-lg"></div>
-                        <CardContent className="p-4">
-                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
-                          <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-medium">Visibility:</span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant={newEvent.isPublic ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setNewEvent(prev => ({ ...prev, isPublic: true }))}
+                      >
+                        Public
+                      </Button>
+                      <Button
+                        variant={!newEvent.isPublic ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setNewEvent(prev => ({ ...prev, isPublic: false }))}
+                      >
+                        Private
+                      </Button>
+                    </div>
                   </div>
-                ) : upcomingEvents.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {upcomingEvents.map((event: any) => (
-                      <EventCard key={event.id} event={event} />
-                    ))}
-                  </div>
-                ) : (
-                  <Card className="card-shadow">
-                    <CardContent className="p-12 text-center">
-                      <div className="text-gray-400 mb-4">
-                        <CalendarIcon className="h-16 w-16 mx-auto" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                        {searchQuery ? 'No events found' : 'No events yet'}
-                      </h3>
-                      <p className="text-gray-500 mb-4">
-                        {searchQuery 
-                          ? 'Try adjusting your search terms'
-                          : 'Be the first to organize a tango event in your area!'
-                        }
-                      </p>
-                      {!searchQuery && (
-                        <Button 
-                          className="bg-tango-red hover:bg-tango-red/90"
-                          onClick={() => setIsCreateEventOpen(true)}
-                        >
-                          Create First Event
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
+                  
+                  <UploadMedia
+                    onUpload={handleMediaUpload}
+                    maxFiles={1}
+                    folder="events"
+                    tags={['event', 'tango']}
+                    visibility="public"
+                    context="event_creation"
+                  />
+                </div>
+                
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setShowCreateForm(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleCreateEvent}
+                    disabled={createEventMutation.isPending}
+                    className="bg-gradient-to-r from-pink-500 to-purple-600"
+                  >
+                    {createEventMutation.isPending ? 'Creating...' : 'Create Event'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Filters and Search */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col lg:flex-row gap-4 items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search events..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  variant={filterBy === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFilterBy('all')}
+                >
+                  All Events
+                </Button>
+                <Button
+                  variant={filterBy === 'my' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFilterBy('my')}
+                >
+                  My Events
+                </Button>
+                <Button
+                  variant={filterBy === 'attending' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFilterBy('attending')}
+                >
+                  Attending
+                </Button>
+                <Button
+                  variant={filterBy === 'nearby' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFilterBy('nearby')}
+                >
+                  Nearby
+                </Button>
               </div>
             </div>
-          )}
+          </CardContent>
+        </Card>
+
+        {/* Event Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+            <TabsTrigger value="this-week">This Week</TabsTrigger>
+            <TabsTrigger value="past">Past Events</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value={activeTab} className="mt-6">
+            {/* Events Grid */}
+            <div className="space-y-6">
+              {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <Card key={i}>
+                      <CardContent className="p-4">
+                        <div className="animate-pulse space-y-4">
+                          <div className="h-48 bg-gray-200 rounded"></div>
+                          <div className="space-y-2">
+                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : events?.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {events.map((event: Event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      onEdit={handleEditEvent}
+                      onShare={handleShareEvent}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <div className="space-y-4">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                        <Calendar className="h-8 w-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900">No events found</h3>
+                      <p className="text-gray-600 max-w-md mx-auto">
+                        {filterBy === 'my' 
+                          ? "You haven't created any events yet. Create your first tango event to get started!"
+                          : "No events match your current filters. Try adjusting your search or create a new event."
+                        }
+                      </p>
+                      <Button 
+                        onClick={() => setShowCreateForm(true)}
+                        className="bg-gradient-to-r from-pink-500 to-purple-600"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Event
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <Calendar className="h-8 w-8 text-blue-500 mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Weekly Milongas</h3>
+              <p className="text-sm text-gray-600">Find regular milonga events in your area</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <Star className="h-8 w-8 text-yellow-500 mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Workshops</h3>
+              <p className="text-sm text-gray-600">Discover tango workshops and masterclasses</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <Users className="h-8 w-8 text-green-500 mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Festivals</h3>
+              <p className="text-sm text-gray-600">Join tango festivals around the world</p>
+            </CardContent>
+          </Card>
         </div>
       </div>
-
-      {/* Mobile Navigation */}
-      <MobileNav onOpenChat={() => setIsChatOpen(true)} />
-    </div>
+    </DashboardLayout>
   );
 }
