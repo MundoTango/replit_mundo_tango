@@ -22,13 +22,18 @@ declare global {
  * Track a custom event in Plausible Analytics
  * @param eventName - Name of the event (e.g., 'Sign Up', 'Post Created')
  * @param props - Optional properties to track with the event
+ * @param revenue - Optional revenue data for conversion tracking
  */
 export function trackEvent(
   eventName: string, 
-  props?: Record<string, string | number | boolean>
+  props?: Record<string, string | number | boolean>,
+  revenue?: { amount: number; currency: string }
 ): void {
   if (typeof window !== 'undefined' && window.plausible) {
-    window.plausible(eventName, { props });
+    const options: any = {};
+    if (props) options.props = props;
+    if (revenue) options.revenue = revenue;
+    window.plausible(eventName, options);
   }
 }
 
@@ -46,6 +51,7 @@ export function trackPageView(path?: string): void {
 
 /**
  * Common analytics events for Mundo Tango
+ * Now includes enhanced tracking with revenue and tagged events
  */
 export const analytics = {
   // User events
@@ -60,26 +66,47 @@ export const analytics = {
   postComment: () => trackEvent('Post Comment'),
   postShare: () => trackEvent('Post Share'),
 
-  // Event management
+  // Event management with revenue tracking
   eventCreate: () => trackEvent('Event Create'),
   eventRSVP: (status: string) => trackEvent('Event RSVP', { status }),
   eventView: () => trackEvent('Event View'),
+  eventPayment: (amount: number, currency = 'USD') => 
+    trackEvent('Event Payment', { amount }, { amount, currency }),
 
   // Social features
   userFollow: () => trackEvent('User Follow'),
   messageStart: () => trackEvent('Message Start'),
   groupJoin: () => trackEvent('Group Join'),
 
-  // Navigation
-  pageView: (pageName: string) => trackEvent('Page View', { page: pageName }),
+  // Navigation (enhanced with pageview props)
+  pageView: (pageName: string, props?: Record<string, string>) => 
+    trackEvent('Page View', { page: pageName, ...props }),
   
   // Search and discovery
   searchPerform: (query: string) => trackEvent('Search', { query: query.substring(0, 50) }),
   filterApply: (type: string) => trackEvent('Filter Apply', { type }),
 
-  // Engagement
+  // File downloads (automatically tracked by enhanced script)
+  downloadResource: (filename: string, type: string) => 
+    trackEvent('Download', { filename, type }),
+
+  // Outbound link tracking (automatically tracked by enhanced script)
+  externalLink: (url: string) => trackEvent('External Link', { url }),
+
+  // Engagement with tagged events
   timeSpent: (section: string, seconds: number) => trackEvent('Time Spent', { section, seconds }),
-  featureUse: (feature: string) => trackEvent('Feature Use', { feature })
+  featureUse: (feature: string) => trackEvent('Feature Use', { feature }),
+
+  // Revenue tracking for premium features
+  premiumUpgrade: (plan: string, amount: number) => 
+    trackEvent('Premium Upgrade', { plan }, { amount, currency: 'USD' }),
+  
+  // Tagged events for A/B testing and feature flags
+  experimentView: (experiment: string, variant: string) => 
+    trackEvent('Experiment View', { experiment, variant }),
+
+  // Hash navigation tracking (automatically tracked by enhanced script)
+  hashNavigation: (hash: string) => trackEvent('Hash Navigation', { hash })
 };
 
 /**

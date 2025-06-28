@@ -63,40 +63,58 @@ A modern social media platform connecting the global tango community through aut
 ## Analytics Setup
 
 ### Overview
-Mundo Tango uses **Plausible Analytics** for privacy-first web analytics. This solution:
-- Complies with GDPR by default
-- Doesn't use cookies or collect personal data
-- Provides anonymous visitor insights
+Mundo Tango uses **Plausible Analytics** for privacy-first web analytics with enhanced tracking capabilities:
+- GDPR compliant by default (no cookies, no personal data collection)
+- Lightweight and fast loading
+- Comprehensive tracking: page views, file downloads, outbound links, hash navigation
+- Custom event tracking with properties and revenue analytics
+- Tagged events for A/B testing and feature experimentation
 - Requires no consent banners
-- Has a lightweight footprint (< 1KB)
 
 ### Integration Details
 
-**Location**: Analytics script is integrated in `client/index.html`
+**Location**: Enhanced analytics script integrated in `client/index.html`
 ```html
-<script defer data-domain="your-domain.com" src="https://plausible.io/js/script.js"></script>
+<!-- 🌐 Plausible Analytics (Privacy-first tracking) -->
+<script defer data-domain="mundotango.life" src="https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js"></script>
+<script>
+  window.plausible = window.plausible || function() {
+    (window.plausible.q = window.plausible.q || []).push(arguments)
+  }
+</script>
 ```
 
-**Configuration**: The domain is currently set to the Replit development URL. Update this when deploying to production.
+**Domain Configuration**: Tracks visits to `mundotango.life` domain
 
-### Analytics Features
+### Enhanced Analytics Features
 
 **Automatic Tracking**:
-- Page views and unique visitors
+- Page views with custom properties
+- File downloads (PDFs, images, documents)
+- Outbound link clicks to external websites
+- Hash-based navigation (SPA routing)
+- Unique visitors and session data
 - Referrer sources and popular pages
-- Device and browser analytics
-- Geographic data (country-level only)
+- Device, browser, and geographic analytics
 
 **Custom Events Tracked**:
-- User registration and authentication flows
-- Content creation (posts, events)
-- Social interactions (likes, comments, follows)
-- Navigation patterns and feature usage
-- Search queries and filter applications
+- User lifecycle: registration, onboarding, profile updates
+- Content interactions: post creation, likes, comments, shares
+- Event management: RSVP tracking, event payments
+- Social features: follows, messaging, group joins
+- Revenue tracking: event payments, premium upgrades
+- Search patterns and filter usage
+- Feature adoption and engagement metrics
 
-### Analytics API
+**Tagged Events for Analytics**:
+- A/B test variant tracking
+- Feature flag experiments
+- User journey optimization
+- Conversion funnel analysis
 
-The analytics system provides a comprehensive API for tracking user interactions:
+### Enhanced Analytics API
+
+The analytics system provides comprehensive tracking with enhanced Plausible features:
 
 ```typescript
 import { analytics } from '@/lib/analytics';
@@ -106,14 +124,29 @@ analytics.userSignUp();
 analytics.userLogin();
 analytics.userOnboardingComplete();
 
-// Content interactions
+// Content interactions with properties
 analytics.postCreate('photo');
 analytics.postLike();
 analytics.eventRSVP('confirmed');
 
-// Navigation tracking
-analytics.pageView('Events');
+// Revenue tracking for events
+analytics.eventPayment(25.00, 'USD'); // Event ticket purchase
+analytics.premiumUpgrade('pro', 99.00); // Premium subscription
+
+// Enhanced page tracking with properties
+analytics.pageView('Events', { category: 'milonga', location: 'buenos-aires' });
+
+// Search and discovery
 analytics.searchPerform('milonga buenos aires');
+analytics.filterApply('location');
+
+// A/B testing and experiments
+analytics.experimentView('new_onboarding', 'variant_b');
+
+// Automatic tracking (no code needed):
+// - File downloads (PDFs, images, documents)
+// - Outbound link clicks
+// - Hash navigation (#/path changes)
 ```
 
 ### Data Collected

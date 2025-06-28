@@ -4,18 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     
-    <!-- Plausible Analytics - Privacy-first web analytics -->
+    <!-- 🌐 Plausible Analytics (Privacy-first tracking) -->
     <!-- 
-      Plausible Analytics integration for Mundo Tango
+      Enhanced Plausible Analytics for Mundo Tango
       - GDPR compliant by default (no cookies, no personal data collection)
-      - Lightweight script (< 1KB)
-      - Anonymous visitor tracking only
+      - Tracks: page views, file downloads, hash navigation, outbound links
+      - Custom event tracking and revenue analytics enabled
+      - Pageview properties for enhanced insights
       - No consent banners required
       
-      Replace 'mundo-tango.replit.app' with your actual domain when deployed
-      For development, this will track the current Replit domain
+      Domain: mundotango.life (production tracking)
     -->
-    <script defer data-domain="18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev" src="https://plausible.io/js/script.js"></script>
+    <script defer data-domain="mundotango.life" src="https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js"></script>
+    <script>
+      window.plausible = window.plausible || function() {
+        (window.plausible.q = window.plausible.q || []).push(arguments)
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
