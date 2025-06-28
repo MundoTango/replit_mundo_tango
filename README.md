@@ -46,6 +46,24 @@ A modern social media platform connecting the global tango community through aut
 - Event creation and RSVP management
 - Social connections and following system
 
+### Real-time Communication
+- **WebSocket Chat Rooms**: Live messaging with typing indicators
+- **Presence Awareness**: See who's online and active
+- **Event Feedback**: Real-time ratings and safety reporting
+- **Friend Notifications**: Instant connection updates
+
+### Email Notification System
+- **Friend Requests**: Welcome new connections with email alerts
+- **Memory Tags**: Notify users when tagged in shared memories
+- **Event Feedback**: Automated summary reports for organizers
+- **Safety Reports**: Immediate alerts for community protection
+
+### Advanced Media Management
+- **Supabase Storage**: Secure file upload with CDN delivery
+- **Visibility Controls**: Public, private, and friends-only content
+- **Tagging System**: Organize media with searchable tags
+- **Usage Tracking**: Monitor media usage across platform features
+
 ### Tango-Specific Features
 - Dance experience tracking (leader/follower levels)
 - Multiple role support (dancer, instructor, DJ, organizer)
