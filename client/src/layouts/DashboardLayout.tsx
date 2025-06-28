@@ -33,7 +33,7 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, logout } = useAuthContext();
+  const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

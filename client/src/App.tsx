@@ -68,7 +68,7 @@ function Router() {
   console.log("Showing main app");
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={Moments} />
       <Route path="/moments" component={Moments} />
       <Route path="/profile" component={Profile} />
       <Route path="/events" component={Events} />
