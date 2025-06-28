@@ -19,6 +19,8 @@ import Moments from "@/pages/moments";
 import Community from "@/pages/community";
 import OrganizerDashboard from "@/pages/organizer";
 import TeacherDashboard from "@/pages/teacher";
+import Friends from "@/pages/friends";
+import Groups from "@/pages/groups";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -76,6 +78,8 @@ function Router() {
       <Route path="/community" component={Community} />
       <Route path="/organizer" component={OrganizerDashboard} />
       <Route path="/teacher" component={TeacherDashboard} />
+      <Route path="/friends" component={Friends} />
+      <Route path="/groups" component={Groups} />
       <Route path="/profile" component={Profile} />
       <Route path="/events" component={Events} />
       <Route path="/messages" component={Messages} />
