@@ -1,6 +1,26 @@
--- Mundo Tango - Complete Supabase Database Migration
+-- =====================================================
+-- MUNDO TANGO - COMPLETE SUPABASE DATABASE MIGRATION
+-- =====================================================
+-- 
 -- Converted from TrangoTech MySQL schema to Supabase PostgreSQL with RLS
+-- Original MySQL Database: mundotango_db (55 tables analyzed)
+-- Target: Supabase PostgreSQL with modern features
+-- 
+-- Migration includes:
+-- - 55 tables with UUID primary keys
+-- - Complete Row-Level Security (RLS) policies
+-- - Supabase Auth integration
+-- - PostGIS geographic support
+-- - Comprehensive foreign key relationships
+-- - Performance indexes
+-- - Automated triggers for data integrity
+-- 
 -- Date: June 28, 2025
+-- Project: Mundo Tango Social Platform
+-- 
+-- IMPORTANT: Run this migration in Supabase SQL Editor
+-- Do NOT run locally - this is designed for Supabase cloud infrastructure
+-- =====================================================
 
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
