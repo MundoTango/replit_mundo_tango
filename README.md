@@ -73,33 +73,47 @@ Mundo Tango uses **Plausible Analytics** for privacy-first web analytics with en
 
 ### Integration Details
 
-**Installation Method**: Manual installation following Plausible's verified integration guide
+**Installation Method**: Dynamic integration following Plausible's verified integration guide
 
-**Location**: Analytics script installed in `client/index.html` within the `<head>` section (before all other scripts)
+**Location**: Analytics script dynamically loaded in `client/index.html` within the `<head>` section (before all other scripts)
 ```html
-<script defer data-domain="mundo-tango.replit.dev" src="https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js"></script>
 <script>
+  const domain = window.location.hostname.includes('replit.dev')
+    ? 'mundo-tango.replit.dev'
+    : 'mundotango.life';
+  const script = document.createElement('script');
+  script.setAttribute('defer', '');
+  script.setAttribute('data-domain', domain);
+  script.src = 'https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js';
+  document.head.appendChild(script);
+
   window.plausible = window.plausible || function () {
     (window.plausible.q = window.plausible.q || []).push(arguments)
   }
 </script>
 ```
 
+**Environment Detection**: 
+- **Staging**: Automatically detects `replit.dev` domains and tracks to `mundo-tango.replit.dev`
+- **Production**: Automatically detects production domains and tracks to `mundotango.life`
+- No manual configuration needed for different environments
+
 **GDPR Compliance**: 
 - Cookie-free tracking (no consent banners required)
 - No personal data collection
 - Anonymous visitor analytics only
 - Fully compliant with privacy regulations
+- No SDKs or external dependencies used
 
-**Domain Configuration**: Tracks visits to `mundo-tango.replit.dev` domain
-
-**Enabled Tracking Features**:
+**Enabled Tracking Features** (All Plausible options active):
 - **file-downloads**: Automatic tracking of PDF, image, and document downloads
 - **hash**: Hash-based navigation tracking for single-page application routes
 - **outbound-links**: External link click tracking to other websites
 - **pageview-props**: Enhanced page views with custom properties
-- **revenue**: Revenue and conversion tracking for paid features
+- **revenue**: Revenue and conversion tracking for paid features and ecommerce
 - **tagged-events**: Custom event tracking with A/B testing support
+
+**No SDKs or Cookies**: Pure JavaScript implementation with zero external dependencies
 
 ### Enhanced Analytics Features
 

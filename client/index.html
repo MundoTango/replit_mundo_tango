@@ -4,8 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     
-    <script defer data-domain="mundo-tango.replit.dev" src="https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js"></script>
     <script>
+      const domain = window.location.hostname.includes('replit.dev')
+        ? 'mundo-tango.replit.dev'
+        : 'mundotango.life';
+      const script = document.createElement('script');
+      script.setAttribute('defer', '');
+      script.setAttribute('data-domain', domain);
+      script.src = 'https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js';
+      document.head.appendChild(script);
+
       window.plausible = window.plausible || function () {
         (window.plausible.q = window.plausible.q || []).push(arguments)
       }
