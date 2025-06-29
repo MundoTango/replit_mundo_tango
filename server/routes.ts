@@ -1378,6 +1378,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get post comments - Updated path to match modal expectations
+  app.get("/api/posts/:postId/comments", isAuthenticated, async (req, res) => {
+    try {
+      const postId = parseInt(req.params.postId);
+      const comments = await storage.getPostComments(postId);
+      res.json({ 
+        success: true, 
+        data: comments.map(comment => ({
+          ...comment,
+          user: {
+            id: comment.userId,
+            name: comment.user?.name || 'Unknown User',
+            username: comment.user?.username || 'unknown',
+            profileImage: comment.user?.profileImage
+          }
+        }))
+      });
+    } catch (error: any) {
+      console.error('Error fetching comments:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch comments',
+        data: []
+      });
+    }
+  });
+
+  // Create post comment - New endpoint for modal
+  app.post("/api/posts/:postId/comments", isAuthenticated, async (req, res) => {
+    try {
+      const postId = parseInt(req.params.postId);
+      const { content } = req.body;
+      const userId = (req as any).user.id;
+
+      if (!content || !content.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Comment content is required',
+          data: null
+        });
+      }
+
+      // Check if post exists
+      const post = await storage.getPostById(postId);
+      if (!post) {
+        return res.status(404).json({
+          success: false,
+          message: 'Post not found',
+          data: null
+        });
+      }
+
+      const comment = await storage.commentOnPost(postId, userId, content.trim());
+      
+      res.status(201).json({
+        success: true,
+        message: 'Comment posted successfully',
+        data: comment
+      });
+    } catch (error: any) {
+      console.error('Error creating comment:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to post comment',
+        data: null
+      });
+    }
+  });
+
+  // Legacy endpoint for backward compatibility
   app.get("/api/post-comment", authMiddleware, async (req, res) => {
     try {
       const postId = parseInt(req.query.post_id as string);

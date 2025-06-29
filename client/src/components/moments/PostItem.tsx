@@ -4,9 +4,11 @@ import {
   MessageCircle, 
   Share2, 
   MapPin, 
-  MoreVertical 
+  MoreVertical,
+  Expand
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import PostDetailModal from './PostDetailModal';
 
 interface Post {
   id: number;
@@ -38,6 +40,7 @@ interface PostItemProps {
 export default function PostItem({ post, onLike, onShare }: PostItemProps) {
   const [commentText, setCommentText] = useState('');
   const [isCommentFocused, setIsCommentFocused] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const getRoleBadgeColor = (role: string) => {
     const colors: Record<string, string> = {
@@ -150,25 +153,38 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
 
         {/* Media Preview - Enhanced with Hover Effects */}
         {(post.imageUrl || post.videoUrl) && (
-          <div className="mb-4">
+          <div className="mb-4 relative group">
             {post.imageUrl && (
-              <div className="rounded-xl overflow-hidden hover:scale-[1.01] transition-transform duration-200 cursor-pointer">
+              <div 
+                className="rounded-xl overflow-hidden hover:scale-[1.01] transition-transform duration-200 cursor-pointer relative"
+                onClick={() => setShowModal(true)}
+              >
                 <img
                   src={post.imageUrl}
                   alt="Post media"
                   className="w-full h-64 md:h-80 object-cover"
                   loading="lazy"
                 />
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-full p-2">
+                    <Expand className="h-5 w-5 text-gray-700" />
+                  </div>
+                </div>
               </div>
             )}
             {post.videoUrl && (
-              <div className="rounded-xl overflow-hidden hover:scale-[1.01] transition-transform duration-200">
+              <div className="rounded-xl overflow-hidden hover:scale-[1.01] transition-transform duration-200 relative">
                 <video
                   src={post.videoUrl}
-                  className="w-full h-64 md:h-80 object-cover"
-                  controls
+                  className="w-full h-64 md:h-80 object-cover cursor-pointer"
                   preload="metadata"
+                  onClick={() => setShowModal(true)}
                 />
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center pointer-events-none">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-full p-2">
+                    <Expand className="h-5 w-5 text-gray-700" />
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -198,7 +214,7 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
 
             {/* Comment Button */}
             <button
-              onClick={() => setIsCommentFocused(true)}
+              onClick={() => setShowModal(true)}
               className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-all duration-200 group"
             >
               <MessageCircle className="h-5 w-5 text-gray-500 group-hover:text-blue-500 transition-colors duration-200" />
@@ -265,6 +281,15 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
           </div>
         </div>
       </div>
+
+      {/* Post Detail Modal */}
+      <PostDetailModal
+        post={post}
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onLike={onLike}
+        onShare={onShare}
+      />
     </div>
   );
 }
