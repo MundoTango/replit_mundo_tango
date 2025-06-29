@@ -2795,6 +2795,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Memory Media API Endpoints for Media Reuse
+  
+  // Get user's media library for reuse
+  app.get('/api/media/library', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const limit = parseInt(req.query.limit as string) || 50;
+      
+      const userMedia = await storage.getUserMedia(userId, limit);
+      
+      res.json({
+        code: 200,
+        message: 'Media library retrieved successfully',
+        data: userMedia
+      });
+    } catch (error) {
+      console.error('Error getting user media library:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to retrieve media library',
+        data: null
+      });
+    }
+  });
+
+  // Attach existing media to a memory
+  app.post('/api/memory/:memoryId/media', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const memoryId = parseInt(req.params.memoryId);
+      const { mediaId, caption, sortOrder } = req.body;
+      
+      if (!mediaId) {
+        return res.status(400).json({
+          code: 400,
+          message: 'mediaId is required',
+          data: null
+        });
+      }
+
+      // Verify media belongs to user
+      const mediaAsset = await storage.getMediaAsset(mediaId);
+      if (!mediaAsset || mediaAsset.userId !== userId) {
+        return res.status(403).json({
+          code: 403,
+          message: 'Media not found or access denied',
+          data: null
+        });
+      }
+
+      // Verify memory belongs to user
+      const memory = await storage.getPostById(memoryId);
+      if (!memory || memory.userId !== userId) {
+        return res.status(403).json({
+          code: 403,
+          message: 'Memory not found or access denied',
+          data: null
+        });
+      }
+
+      const memoryMedia = await storage.createMemoryMedia({
+        memoryId,
+        mediaId,
+        taggedBy: userId,
+        caption: caption || null,
+        sortOrder: sortOrder || 0
+      });
+      
+      res.json({
+        code: 200,
+        message: 'Media attached to memory successfully',
+        data: memoryMedia
+      });
+    } catch (error) {
+      console.error('Error attaching media to memory:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to attach media to memory',
+        data: null
+      });
+    }
+  });
+
+  // Get media attached to a memory
+  app.get('/api/memory/:memoryId/media', isAuthenticated, async (req, res) => {
+    try {
+      const memoryId = parseInt(req.params.memoryId);
+      
+      const memoryMedia = await storage.getMemoryMedia(memoryId);
+      
+      res.json({
+        code: 200,
+        message: 'Memory media retrieved successfully',
+        data: memoryMedia
+      });
+    } catch (error) {
+      console.error('Error getting memory media:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to retrieve memory media',
+        data: null
+      });
+    }
+  });
+
+  // Remove media from a memory
+  app.delete('/api/memory/:memoryId/media/:mediaId', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const memoryId = parseInt(req.params.memoryId);
+      const mediaId = req.params.mediaId;
+      
+      const deleted = await storage.deleteMemoryMedia(memoryId, mediaId, userId);
+      
+      if (!deleted) {
+        return res.status(404).json({
+          code: 404,
+          message: 'Memory media association not found',
+          data: null
+        });
+      }
+      
+      res.json({
+        code: 200,
+        message: 'Media removed from memory successfully',
+        data: { memoryId, mediaId }
+      });
+    } catch (error) {
+      console.error('Error removing media from memory:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to remove media from memory',
+        data: null
+      });
+    }
+  });
+
   // Remove role from user (Admin/Super Admin only)
   app.post('/api/roles/enhanced/remove', requireAdmin, auditRoleAction('role_remove'), async (req, res) => {
     try {

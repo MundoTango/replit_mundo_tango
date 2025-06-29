@@ -446,6 +446,19 @@ export const friends = pgTable("friends", {
   uniqueFriendship: unique().on(table.userId, table.friendId),
 }));
 
+// Memory media junction table for reusing media across memories
+export const memoryMedia = pgTable("memory_media", {
+  id: serial("id").primaryKey(),
+  memoryId: integer("memory_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  mediaId: text("media_id").notNull().references(() => mediaAssets.id, { onDelete: "cascade" }),
+  taggedBy: integer("tagged_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  caption: text("caption"),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueMemoryMedia: unique().on(table.memoryId, table.mediaId),
+}));
+
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
@@ -483,11 +496,18 @@ export const friendsRelations = relations(friends, ({ one }) => ({
   friend: one(users, { fields: [friends.friendId], references: [users.id] }),
 }));
 
+export const memoryMediaRelations = relations(memoryMedia, ({ one }) => ({
+  memory: one(posts, { fields: [memoryMedia.memoryId], references: [posts.id] }),
+  media: one(mediaAssets, { fields: [memoryMedia.mediaId], references: [mediaAssets.id] }),
+  tagger: one(users, { fields: [memoryMedia.taggedBy], references: [users.id] }),
+}));
+
 export const postsRelations = relations(posts, ({ one, many }) => ({
   user: one(users, { fields: [posts.userId], references: [users.id] }),
   likes: many(postLikes),
   comments: many(postComments),
   attachments: many(attachments),
+  memoryMedia: many(memoryMedia),
 }));
 
 export const eventsRelations = relations(events, ({ one, many }) => ({
@@ -556,6 +576,11 @@ export const insertFriendSchema = createInsertSchema(friends).omit({
   updatedAt: true,
 });
 
+export const insertMemoryMediaSchema = createInsertSchema(memoryMedia).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
   id: true,
   createdAt: true,
@@ -609,6 +634,8 @@ export type MediaUsage = typeof mediaUsage.$inferSelect;
 export type InsertMediaUsage = z.infer<typeof insertMediaUsageSchema>;
 export type Friend = typeof friends.$inferSelect;
 export type InsertFriend = z.infer<typeof insertFriendSchema>;
+export type MemoryMedia = typeof memoryMedia.$inferSelect;
+export type InsertMemoryMedia = z.infer<typeof insertMemoryMediaSchema>;
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
 export type Role = typeof roles.$inferSelect;

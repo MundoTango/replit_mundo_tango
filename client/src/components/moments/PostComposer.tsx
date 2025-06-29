@@ -9,10 +9,12 @@ import {
   Globe,
   Lock,
   Users,
-  X
+  X,
+  FolderOpen
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import MediaLibrary from '@/components/MediaLibrary';
 
 export default function PostComposer() {
   const { user } = useAuth();
@@ -26,6 +28,8 @@ export default function PostComposer() {
     visibility: 'Public' as 'Public' | 'Friend' | 'Private'
   });
   const [uploadedMedia, setUploadedMedia] = useState<any[]>([]);
+  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
+  const [reusedMedia, setReusedMedia] = useState<any[]>([]);
 
   // Create post mutation
   const createPostMutation = useMutation({
@@ -40,6 +44,7 @@ export default function PostComposer() {
       setShowExpandedComposer(false);
       setNewPost({ content: '', tags: '', location: '', visibility: 'Public' });
       setUploadedMedia([]);
+      setReusedMedia([]);
       queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
     },
     onError: () => {
@@ -51,6 +56,17 @@ export default function PostComposer() {
     }
   });
 
+  // Handle media reuse selection
+  const handleMediaSelected = (media: any[]) => {
+    setReusedMedia(media);
+  };
+
+  const removeReusedMedia = (mediaId: string) => {
+    setReusedMedia(prev => prev.filter(m => m.id !== mediaId));
+  };
+
+  const allMedia = [...uploadedMedia, ...reusedMedia];
+
   const handleCreatePost = () => {
     if (!newPost.content.trim()) {
       toast({
@@ -61,12 +77,15 @@ export default function PostComposer() {
       return;
     }
 
+    const imageMedia = allMedia.find(m => m.type?.startsWith('image/') || m.contentType?.startsWith('image/'));
+    const videoMedia = allMedia.find(m => m.type?.startsWith('video/') || m.contentType?.startsWith('video/'));
+
     const postData = {
       content: newPost.content,
       hashtags: newPost.tags.split(',').map(tag => tag.trim()).filter(Boolean),
       location: newPost.location || undefined,
-      imageUrl: uploadedMedia.find(m => m.type?.startsWith('image/'))?.url,
-      videoUrl: uploadedMedia.find(m => m.type?.startsWith('video/'))?.url,
+      imageUrl: imageMedia?.url,
+      videoUrl: videoMedia?.url,
       isPublic: newPost.visibility === 'Public',
     };
 
@@ -127,6 +146,13 @@ export default function PostComposer() {
               >
                 <MapPin className="h-4 w-4" />
                 <span className="text-sm font-medium">Location</span>
+              </button>
+              <button
+                onClick={() => setShowMediaLibrary(true)}
+                className="flex items-center gap-2 text-gray-600 hover:text-purple-600 px-3 py-2 rounded-lg hover:bg-purple-50 transition-all duration-200"
+              >
+                <FolderOpen className="h-4 w-4" />
+                <span className="text-sm font-medium">Reuse Media</span>
               </button>
             </div>
           </div>
@@ -200,6 +226,53 @@ export default function PostComposer() {
                     />
                   </div>
                 </div>
+
+                {/* Media Display */}
+                {allMedia.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium text-gray-700">
+                        Attached Media ({allMedia.length})
+                      </h4>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {allMedia.map((media, index) => (
+                        <div key={media.id || index} className="relative group">
+                          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                            {(media.type?.startsWith('image/') || media.contentType?.startsWith('image/')) ? (
+                              <img
+                                src={media.url}
+                                alt={media.originalFilename || `Media ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Video className="w-8 h-8 text-gray-400" />
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => {
+                              if (media.id) {
+                                removeReusedMedia(media.id);
+                              } else {
+                                setUploadedMedia(prev => prev.filter((_, i) => i !== index));
+                              }
+                            }}
+                            className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                          {media.originalFilename && (
+                            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg truncate">
+                              {media.originalFilename}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 
                 {/* Footer */}
                 <div className="flex items-center justify-between pt-5 border-t border-gray-100">
@@ -245,6 +318,15 @@ export default function PostComposer() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* MediaLibrary Modal for Reusing Existing Media */}
+      {showMediaLibrary && (
+        <MediaLibrary
+          onClose={() => setShowMediaLibrary(false)}
+          onMediaSelected={handleMediaSelected}
+          selectOnly={true}
+        />
       )}
     </div>
   );

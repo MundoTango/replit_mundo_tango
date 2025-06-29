@@ -18,6 +18,7 @@ import {
   mediaTags,
   mediaUsage,
   friends,
+  memoryMedia,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -29,6 +30,8 @@ import {
   type InsertMediaUsage,
   type Friend,
   type InsertFriend,
+  type MemoryMedia,
+  type InsertMemoryMedia,
   type Event,
   type InsertEvent,
   type EventRsvp,
@@ -974,6 +977,67 @@ export class DatabaseStorage implements IStorage {
       ))
       .limit(1);
     return invitation || undefined;
+  }
+
+  // Memory Media Management
+  async createMemoryMedia(memoryMediaData: InsertMemoryMedia): Promise<MemoryMedia> {
+    const [created] = await db.insert(memoryMedia).values(memoryMediaData).returning();
+    return created;
+  }
+
+  async getMemoryMedia(memoryId: number): Promise<(MemoryMedia & { mediaUrl: string, originalFilename: string, contentType: string })[]> {
+    return db
+      .select({
+        id: memoryMedia.id,
+        memoryId: memoryMedia.memoryId,
+        mediaId: memoryMedia.mediaId,
+        taggedBy: memoryMedia.taggedBy,
+        caption: memoryMedia.caption,
+        sortOrder: memoryMedia.sortOrder,
+        createdAt: memoryMedia.createdAt,
+        mediaUrl: mediaAssets.url,
+        originalFilename: mediaAssets.originalFilename,
+        contentType: mediaAssets.contentType,
+      })
+      .from(memoryMedia)
+      .innerJoin(mediaAssets, eq(memoryMedia.mediaId, mediaAssets.id))
+      .where(eq(memoryMedia.memoryId, memoryId))
+      .orderBy(memoryMedia.sortOrder, memoryMedia.createdAt);
+  }
+
+  async getUserMedia(userId: number, limit: number = 50): Promise<MediaAsset[]> {
+    return db
+      .select()
+      .from(mediaAssets)
+      .where(eq(mediaAssets.userId, userId))
+      .orderBy(desc(mediaAssets.createdAt))
+      .limit(limit);
+  }
+
+  async deleteMemoryMedia(memoryId: number, mediaId: string, userId: number): Promise<boolean> {
+    const result = await db
+      .delete(memoryMedia)
+      .where(and(
+        eq(memoryMedia.memoryId, memoryId),
+        eq(memoryMedia.mediaId, mediaId),
+        eq(memoryMedia.taggedBy, userId)
+      ))
+      .returning();
+    return result.length > 0;
+  }
+
+  async createMediaAsset(asset: InsertMediaAsset): Promise<MediaAsset> {
+    const [created] = await db.insert(mediaAssets).values(asset).returning();
+    return created;
+  }
+
+  async getMediaAsset(mediaId: string): Promise<MediaAsset | undefined> {
+    const [asset] = await db
+      .select()
+      .from(mediaAssets)
+      .where(eq(mediaAssets.id, mediaId))
+      .limit(1);
+    return asset || undefined;
   }
 }
 
