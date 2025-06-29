@@ -264,7 +264,7 @@ export default function ProfileHead({
 
         {/* Profile Tabs */}
         <Tabs value={currentTab} onValueChange={handleTabChange} className="mt-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="about" className="flex items-center gap-2">
               <Info className="h-4 w-4" />
               About
@@ -280,6 +280,10 @@ export default function ProfileHead({
             <TabsTrigger value="friends" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Friends
+            </TabsTrigger>
+            <TabsTrigger value="resume" className="flex items-center gap-2">
+              <Star className="h-4 w-4" />
+              Resume
             </TabsTrigger>
           </TabsList>
         </Tabs>

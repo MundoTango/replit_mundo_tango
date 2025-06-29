@@ -16,6 +16,7 @@ import { setUserContext, auditSecurityEvent, checkResourcePermission, rateLimit 
 import { authService, UserRole } from "./services/authService";
 import { enhancedRoleService, AllRoles } from "./services/enhancedRoleService";
 import { requireRole, requireAdmin, ensureUserProfile, auditRoleAction } from "./middleware/roleAuth";
+import { supabase } from "./supabaseClient";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
@@ -2952,6 +2953,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error getting user resume:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to retrieve resume',
+        data: null
+      });
+    }
+  });
+
+  // Get resume data from existing database structure
+  app.get('/api/resume', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.query.user_id || (req as any).user.id;
+      
+      // Get accepted roles using existing storage method
+      const acceptedRoles = await storage.getUserAcceptedRoles(parseInt(userId));
+      
+      // Transform data to match expected format
+      const resumeData = acceptedRoles.map((role: any) => ({
+        event_id: role.eventId,
+        event_name: role.eventTitle,
+        event_date: role.eventStartDate,
+        event_location: role.eventLocation,
+        role: role.role,
+        accepted_at: role.respondedAt
+      }));
+
+      res.json({
+        code: 200,
+        message: 'Resume data retrieved successfully',
+        data: resumeData
+      });
+    } catch (error) {
+      console.error('Error getting resume data:', error);
       res.status(500).json({
         code: 500,
         message: 'Failed to retrieve resume',
