@@ -13,7 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-// Real-time functionality will be implemented using WebSocket polling for now
+import { supabase } from '@/services/supabaseClient';
 
 interface Post {
   id: number;
@@ -104,32 +104,74 @@ export default function PostDetailModal({
     }
   });
 
-  // Real-time comment polling system
+  // Real-time comment subscription using Supabase (with fallback to polling)
   useEffect(() => {
     if (!isOpen || !post.id) return;
 
-    // Poll for new comments every 3 seconds when modal is open
-    const pollInterval = setInterval(async () => {
-      try {
-        const response = await fetch(`/api/posts/${post.id}/comments`, {
-          credentials: 'include'
+    if (supabase) {
+      // Use Supabase Realtime if available
+      const channelName = `post-comments-${post.id}`;
+      
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'post_comments',
+            filter: `post_id=eq.${post.id}`
+          },
+          async (payload) => {
+            console.log('🔄 Real-time comment added:', payload);
+            
+            try {
+              const response = await fetch(`/api/posts/${post.id}/comments`, {
+                credentials: 'include'
+              });
+              const result = await response.json();
+              
+              if (result.success) {
+                queryClient.setQueryData(['/api/posts', post.id, 'comments'], result.data);
+                queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
+              }
+            } catch (error) {
+              console.error('Error fetching updated comments:', error);
+            }
+          }
+        )
+        .subscribe((status) => {
+          console.log(`📡 Comment subscription status for post ${post.id}:`, status);
         });
-        const result = await response.json();
-        
-        if (result.success) {
-          // Update the local cache with fresh data
-          queryClient.setQueryData(['/api/posts', post.id, 'comments'], result.data);
-          console.log(`🔄 Polled comments for post ${post.id}: ${result.data.length} comments`);
-        }
-      } catch (error) {
-        console.error('Error polling comments:', error);
-      }
-    }, 3000);
 
-    return () => {
-      console.log(`🔌 Stopping comment polling for post ${post.id}`);
-      clearInterval(pollInterval);
-    };
+      return () => {
+        console.log(`🔌 Unsubscribing from comments for post ${post.id}`);
+        supabase.removeChannel(channel);
+      };
+    } else {
+      // Fallback to polling when Supabase is not configured
+      console.log(`⚠️ Using polling fallback for post ${post.id} comments`);
+      
+      const pollInterval = setInterval(async () => {
+        try {
+          const response = await fetch(`/api/posts/${post.id}/comments`, {
+            credentials: 'include'
+          });
+          const result = await response.json();
+          
+          if (result.success) {
+            queryClient.setQueryData(['/api/posts', post.id, 'comments'], result.data);
+          }
+        } catch (error) {
+          console.error('Error polling comments:', error);
+        }
+      }, 5000);
+
+      return () => {
+        console.log(`🔌 Stopping comment polling for post ${post.id}`);
+        clearInterval(pollInterval);
+      };
+    }
   }, [isOpen, post.id, queryClient]);
 
   // Handle ESC key press and modal cleanup

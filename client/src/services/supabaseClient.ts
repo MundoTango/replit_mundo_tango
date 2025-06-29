@@ -3,7 +3,26 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+// Validate Supabase configuration
+const isValidUrl = (url: string) => {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+if (!supabaseUrl || !isValidUrl(supabaseUrl)) {
+  console.warn('⚠️ VITE_SUPABASE_URL not configured or invalid - real-time features will be disabled');
+}
+
+if (!supabaseAnonKey) {
+  console.warn('⚠️ VITE_SUPABASE_ANON_KEY not configured - real-time features will be disabled');
+}
+
+// Only create client if both URL and key are provided and URL is valid
+export const supabase = (supabaseUrl && supabaseAnonKey && isValidUrl(supabaseUrl)) ? createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
@@ -14,7 +33,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       eventsPerSecond: 10
     }
   }
-})
+}) : null
 
 // Auth helpers for client-side authentication
 export const auth = {
