@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Image, Video, FileText, Search } from 'lucide-react';
+import { X, Plus, Image, Video, FileText, Search, Tag, Calendar } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import tagMedia from '../utils/tagMedia';
 
 interface MediaAsset {
   id: string;
@@ -19,6 +20,13 @@ interface MediaAsset {
   updatedAt: string;
 }
 
+interface MediaMetadata {
+  id: string;
+  caption: string;
+  tags: string[];
+  sortOrder: number;
+}
+
 interface MediaLibraryProps {
   memoryId?: number;
   onClose: () => void;
@@ -29,6 +37,8 @@ interface MediaLibraryProps {
 export default function MediaLibrary({ memoryId, onClose, onMediaSelected, selectOnly = false }: MediaLibraryProps) {
   const [selectedMedia, setSelectedMedia] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
+  const [mediaMetadata, setMediaMetadata] = useState<Map<string, MediaMetadata>>(new Map());
+  const [newTagInput, setNewTagInput] = useState<Map<string, string>>(new Map());
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -64,7 +74,7 @@ export default function MediaLibrary({ memoryId, onClose, onMediaSelected, selec
         description: `${selectedMedia.size} file(s) attached to memory`,
       });
       queryClient.invalidateQueries({ queryKey: [`/api/memory/${memoryId}/media`] });
-      onMediaSelected(filteredMedia.filter(m => selectedMedia.has(m.id)));
+      onMediaSelected(filteredMedia.filter((m: MediaAsset) => selectedMedia.has(m.id)));
       onClose();
     },
     onError: (error) => {
@@ -86,13 +96,56 @@ export default function MediaLibrary({ memoryId, onClose, onMediaSelected, selec
     const newSelection = new Set(selectedMedia);
     if (newSelection.has(mediaId)) {
       newSelection.delete(mediaId);
+      // Remove metadata when deselecting
+      const newMetadata = new Map(mediaMetadata);
+      newMetadata.delete(mediaId);
+      setMediaMetadata(newMetadata);
     } else {
       newSelection.add(mediaId);
+      // Initialize metadata when selecting
+      const newMetadata = new Map(mediaMetadata);
+      newMetadata.set(mediaId, {
+        id: mediaId,
+        caption: '',
+        tags: [],
+        sortOrder: newSelection.size
+      });
+      setMediaMetadata(newMetadata);
     }
     setSelectedMedia(newSelection);
   };
 
-  const handleAttachSelected = () => {
+  const updateMediaMetadata = (mediaId: string, updates: Partial<MediaMetadata>) => {
+    const newMetadata = new Map(mediaMetadata);
+    const current = newMetadata.get(mediaId) || { id: mediaId, caption: '', tags: [], sortOrder: 0 };
+    newMetadata.set(mediaId, { ...current, ...updates });
+    setMediaMetadata(newMetadata);
+  };
+
+  const addTagToMedia = (mediaId: string, tag: string) => {
+    if (!tag.trim()) return;
+    const current = mediaMetadata.get(mediaId);
+    if (current && !current.tags.includes(tag.trim().toLowerCase())) {
+      updateMediaMetadata(mediaId, {
+        tags: [...current.tags, tag.trim().toLowerCase()]
+      });
+    }
+    // Clear the input
+    const newInput = new Map(newTagInput);
+    newInput.set(mediaId, '');
+    setNewTagInput(newInput);
+  };
+
+  const removeTagFromMedia = (mediaId: string, tagToRemove: string) => {
+    const current = mediaMetadata.get(mediaId);
+    if (current) {
+      updateMediaMetadata(mediaId, {
+        tags: current.tags.filter(tag => tag !== tagToRemove)
+      });
+    }
+  };
+
+  const handleAttachSelected = async () => {
     if (selectedMedia.size === 0) {
       toast({
         title: "No media selected",
@@ -103,10 +156,41 @@ export default function MediaLibrary({ memoryId, onClose, onMediaSelected, selec
     }
     
     if (selectOnly) {
-      // Selection-only mode: return selected media without attaching to memory
-      const selectedMediaAssets = filteredMedia.filter((m: any) => selectedMedia.has(m.id));
-      onMediaSelected(selectedMediaAssets);
-      onClose();
+      // Selection-only mode: return selected media with enriched metadata
+      const selectedMediaAssets = filteredMedia.filter((m: MediaAsset) => selectedMedia.has(m.id));
+      
+      // Enrich media assets with custom metadata
+      const enrichedMediaAssets = selectedMediaAssets.map((media: MediaAsset) => {
+        const metadata = mediaMetadata.get(media.id);
+        return {
+          ...media,
+          customCaption: metadata?.caption || '',
+          customTags: metadata?.tags || [],
+          sortOrder: metadata?.sortOrder || 0
+        };
+      });
+
+      // Apply tags to each media asset using the tagMedia utility
+      try {
+        for (const media of enrichedMediaAssets) {
+          if (media.customTags.length > 0) {
+            await tagMedia(media.id, media.customTags);
+          }
+        }
+        
+        console.log(`Tagged ${enrichedMediaAssets.length} media assets for reuse`);
+        onMediaSelected(enrichedMediaAssets);
+        onClose();
+      } catch (error) {
+        console.error('Error applying tags:', error);
+        toast({
+          title: "Warning",
+          description: "Media selected but tags may not have been saved",
+          variant: "destructive",
+        });
+        onMediaSelected(enrichedMediaAssets);
+        onClose();
+      }
     } else {
       // Attach to memory mode
       attachMediaMutation.mutate(Array.from(selectedMedia));
@@ -177,55 +261,175 @@ export default function MediaLibrary({ memoryId, onClose, onMediaSelected, selec
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredMedia.map((media: MediaAsset) => (
-                <div
-                  key={media.id}
-                  onClick={() => toggleMediaSelection(media.id)}
-                  className={`relative cursor-pointer rounded-lg border-2 transition-all hover:shadow-md ${
-                    selectedMedia.has(media.id)
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'
-                  }`}
-                >
-                  {/* Media Preview */}
-                  <div className="aspect-square rounded-t-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
-                    {media.contentType.startsWith('image/') ? (
-                      <img
-                        src={media.url}
-                        alt={media.originalFilename}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        {getMediaIcon(media.contentType)}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredMedia.map((media: MediaAsset) => {
+                const isSelected = selectedMedia.has(media.id);
+                const metadata = mediaMetadata.get(media.id);
+                const tagInput = newTagInput.get(media.id) || '';
+                
+                return (
+                  <div
+                    key={media.id}
+                    className={`relative rounded-xl border-2 transition-all duration-200 ${
+                      isSelected
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg'
+                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 hover:shadow-md'
+                    }`}
+                  >
+                    {/* Media Preview */}
+                    <div 
+                      onClick={() => toggleMediaSelection(media.id)}
+                      className="cursor-pointer aspect-video rounded-t-xl overflow-hidden bg-gray-100 dark:bg-gray-700 relative group"
+                    >
+                      {media.contentType.startsWith('image/') ? (
+                        <img
+                          src={media.url}
+                          alt={media.originalFilename}
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          {getMediaIcon(media.contentType)}
+                        </div>
+                      )}
+                      
+                      {/* Hover overlay with metadata preview */}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="text-white text-center p-4">
+                          <p className="text-sm font-medium mb-1">{media.originalFilename}</p>
+                          <div className="flex items-center justify-center gap-2 text-xs">
+                            <Calendar className="w-3 h-3" />
+                            <span>{new Date(media.createdAt).toLocaleDateString()}</span>
+                          </div>
+                          <p className="text-xs mt-1">{formatFileSize(media.size)} • {media.folder}</p>
+                        </div>
+                      </div>
+
+                      {/* Selection Indicator */}
+                      {isSelected && (
+                        <div className="absolute top-3 right-3 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                          <Plus className="w-5 h-5 text-white rotate-45" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Enhanced Metadata Section - Only show for selected items */}
+                    {isSelected && (
+                      <div className="p-4 bg-white dark:bg-gray-800 rounded-b-xl border-t border-gray-100 dark:border-gray-700">
+                        {/* Caption Input */}
+                        <div className="mb-3">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Custom Caption
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Add a caption for this reuse..."
+                            value={metadata?.caption || ''}
+                            onChange={(e) => updateMediaMetadata(media.id, { caption: e.target.value })}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        {/* Tags Section */}
+                        <div className="mb-3">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Tags
+                          </label>
+                          
+                          {/* Existing Tags */}
+                          {metadata?.tags && metadata.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {metadata.tags.map((tag, index) => (
+                                <span
+                                  key={index}
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full"
+                                >
+                                  <Tag className="w-3 h-3" />
+                                  {tag}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removeTagFromMedia(media.id, tag);
+                                    }}
+                                    className="ml-1 hover:text-red-500"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Add New Tag */}
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="Add tag..."
+                              value={tagInput}
+                              onChange={(e) => {
+                                const newInput = new Map(newTagInput);
+                                newInput.set(media.id, e.target.value);
+                                setNewTagInput(newInput);
+                              }}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  addTagToMedia(media.id, tagInput);
+                                }
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex-1 px-3 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                addTagToMedia(media.id, tagInput);
+                              }}
+                              className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Sort Order */}
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                            Sort Order:
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={metadata?.sortOrder || 0}
+                            onChange={(e) => updateMediaMetadata(media.id, { sortOrder: parseInt(e.target.value) || 0 })}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-16 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Basic Info for non-selected items */}
+                    {!isSelected && (
+                      <div className="p-3">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          {media.originalFilename}
+                        </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatFileSize(media.size)}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                            {media.folder}
+                          </span>
+                        </div>
                       </div>
                     )}
                   </div>
-
-                  {/* Media Info */}
-                  <div className="p-3">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {media.originalFilename}
-                    </p>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {formatFileSize(media.size)}
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                        {media.folder}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Selection Indicator */}
-                  {selectedMedia.has(media.id) && (
-                    <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                      <Plus className="w-4 h-4 text-white rotate-45" />
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
