@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import { 
-  Home, 
-  Users, 
+  Heart, 
+  UsersRound, 
   UserCheck, 
   Calendar, 
-  UsersRound,
+  Sitemap,
   X,
   Mail,
   BarChart3,
