@@ -315,11 +315,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPostComments(postId: number): Promise<PostComment[]> {
-    return await db
-      .select()
+    const result = await db
+      .select({
+        id: postComments.id,
+        content: postComments.content,
+        createdAt: postComments.createdAt,
+        updatedAt: postComments.updatedAt,
+        userId: postComments.userId,
+        postId: postComments.postId,
+        parentId: postComments.parentId,
+        user: {
+          id: users.id,
+          name: users.name,
+          username: users.username,
+          profileImage: users.profileImage
+        }
+      })
       .from(postComments)
+      .innerJoin(users, eq(postComments.userId, users.id))
       .where(eq(postComments.postId, postId))
       .orderBy(desc(postComments.createdAt));
+
+    return result as any[];
   }
 
   async searchPosts(query: string, limit = 20): Promise<Post[]> {

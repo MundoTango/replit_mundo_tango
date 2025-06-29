@@ -1385,15 +1385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const comments = await storage.getPostComments(postId);
       res.json({ 
         success: true, 
-        data: comments.map(comment => ({
-          ...comment,
-          user: {
-            id: comment.userId,
-            name: comment.user?.name || 'Unknown User',
-            username: comment.user?.username || 'unknown',
-            profileImage: comment.user?.profileImage
-          }
-        }))
+        data: comments
       });
     } catch (error: any) {
       console.error('Error fetching comments:', error);

@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+// Real-time functionality will be implemented using WebSocket polling for now
 
 interface Post {
   id: number;
@@ -103,7 +104,35 @@ export default function PostDetailModal({
     }
   });
 
-  // Handle ESC key press
+  // Real-time comment polling system
+  useEffect(() => {
+    if (!isOpen || !post.id) return;
+
+    // Poll for new comments every 3 seconds when modal is open
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/posts/${post.id}/comments`, {
+          credentials: 'include'
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+          // Update the local cache with fresh data
+          queryClient.setQueryData(['/api/posts', post.id, 'comments'], result.data);
+          console.log(`🔄 Polled comments for post ${post.id}: ${result.data.length} comments`);
+        }
+      } catch (error) {
+        console.error('Error polling comments:', error);
+      }
+    }, 3000);
+
+    return () => {
+      console.log(`🔌 Stopping comment polling for post ${post.id}`);
+      clearInterval(pollInterval);
+    };
+  }, [isOpen, post.id, queryClient]);
+
+  // Handle ESC key press and modal cleanup
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
