@@ -15,6 +15,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import MediaLibrary from '@/components/MediaLibrary';
+import { supabase } from '@/services/supabaseClient';
+import tagMedia from '@/utils/tagMedia';
 
 export default function PostComposer() {
   const { user } = useAuth();
@@ -31,12 +33,59 @@ export default function PostComposer() {
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [reusedMedia, setReusedMedia] = useState<any[]>([]);
 
+  // Function to save reused media with metadata
+  const saveReusedMediaToMemory = async (memoryId: number) => {
+    if (!reusedMedia.length || !user) return;
+
+    console.log(`Processing ${reusedMedia.length} reused media items for memory ${memoryId}`);
+
+    for (const media of reusedMedia) {
+      try {
+        // Apply tags to media asset using tagMedia utility
+        if (media.customTags && media.customTags.length > 0) {
+          await tagMedia(media.id, media.customTags);
+          console.log(`Tagged media ${media.id} with tags:`, media.customTags);
+        }
+
+        // Insert into memory_media table
+        if (supabase) {
+          const { error } = await supabase
+            .from('memory_media')
+            .insert({
+              memory_id: memoryId,
+              media_id: media.id,
+              caption: media.customCaption || '',
+              sort_order: media.sortOrder || 0,
+              tagged_by: user.id
+            });
+
+          if (error) {
+            console.error(`Error saving memory_media for ${media.id}:`, error);
+          } else {
+            console.log(`Successfully saved memory_media for ${media.id}`);
+          }
+        }
+      } catch (error) {
+        console.error(`Error processing reused media ${media.id}:`, error);
+        // Continue processing remaining items
+      }
+    }
+  };
+
   // Create post mutation
   const createPostMutation = useMutation({
     mutationFn: async (postData: any) => {
       return apiRequest('POST', '/api/posts', postData);
     },
-    onSuccess: () => {
+    onSuccess: async (response: any) => {
+      // Extract memoryId from response
+      const memoryId = response?.data?.id || response?.id;
+      
+      if (memoryId && reusedMedia.length > 0) {
+        // Save reused media with metadata to memory_media table
+        await saveReusedMediaToMemory(memoryId);
+      }
+
       toast({
         title: "Moment shared",
         description: "Your tango moment has been posted successfully.",
