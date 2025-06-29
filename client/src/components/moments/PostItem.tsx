@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import PostDetailModal from './PostDetailModal';
+import { renderWithMentions } from '@/utils/renderWithMentions';
 
 interface Post {
   id: number;
@@ -136,7 +137,7 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
         {/* Post Content - Enhanced Visual Hierarchy */}
         <div className="mb-4">
           <p className="text-gray-900 text-base leading-relaxed font-medium">
-            {post.content}
+            {renderWithMentions(post.content)}
           </p>
 
           {/* Hashtags */}

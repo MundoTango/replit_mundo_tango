@@ -14,6 +14,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { supabase } from '@/services/supabaseClient';
+import { renderWithMentions } from '@/utils/renderWithMentions';
 
 interface Post {
   id: number;
@@ -215,32 +216,7 @@ export default function PostDetailModal({
     return colors[role.toLowerCase()] || 'bg-gray-100 text-gray-700';
   };
 
-  // Helper function to render text with @mentions as clickable links
-  const renderWithMentions = (text: string) => {
-    const mentionRegex = /@([\w\d_]+)/g;
-    const parts = text.split(mentionRegex);
-    
-    return parts.map((part, index) => {
-      // If this part matches a username (odd indexes after split)
-      if (index % 2 === 1) {
-        return (
-          <a
-            key={index}
-            href={`/u/${part}`}
-            className="text-blue-500 hover:underline font-medium"
-            onClick={(e) => {
-              e.preventDefault();
-              window.location.href = `/u/${part}`;
-            }}
-          >
-            @{part}
-          </a>
-        );
-      }
-      // Regular text part
-      return part;
-    });
-  };
+
 
   if (!isOpen) return null;
 
@@ -321,7 +297,7 @@ export default function PostDetailModal({
             {/* Post Content */}
             <div className="p-4 border-b border-gray-100">
               <p className="text-gray-900 text-base leading-relaxed mb-3">
-                {post.content}
+                {renderWithMentions(post.content)}
               </p>
 
               {/* Role Badges */}
