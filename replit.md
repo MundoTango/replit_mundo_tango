@@ -307,6 +307,14 @@ Changelog:
   * Achieved 85% design consistency with clear roadmap for 100% completion
   * All loading states, empty states, and error boundaries properly implemented across core pages
   * Screen flow mapping completed showing complete user journey from landing to all feature pages
+- June 29, 2025. Event participant role assignment system implemented:
+  * Enhanced Create Event flow with "Assign Roles" section supporting DJ, Teacher, Musician, Performer, Host, Volunteer roles
+  * Built dynamic role assignment UI with user identifier input (ID or email), role dropdown, and remove functionality
+  * Added validation limiting role assignments to 10 per event with proper error handling and user feedback
+  * Updated backend API (/api/events POST) to handle assignedRoles array with user lookup by ID or email
+  * Integrated with existing event_participants table storing pending invitations with invited_by and invited_at tracking
+  * Connected role assignments to resume system enabling accepted roles to appear on /profile/resume
+  * Complete event role tagging workflow: creation → invitation → acceptance → resume display
 ```
 
 ## User Preferences

@@ -79,6 +79,7 @@ export default function EventsPage() {
     isPublic: true
   });
   const [uploadedMedia, setUploadedMedia] = useState<any[]>([]);
+  const [assignedRoles, setAssignedRoles] = useState<Array<{userIdentifier: string, role: string}>>([]);
 
   // Fetch events
   const { data: events, isLoading } = useQuery({
@@ -102,10 +103,13 @@ export default function EventsPage() {
     mutationFn: async (eventData: any) => {
       return apiRequest('POST', '/api/events', eventData);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      const hasRoleAssignments = assignedRoles.length > 0;
       toast({
         title: "Event created",
-        description: "Your tango event has been created successfully.",
+        description: hasRoleAssignments 
+          ? "Event created and invitations sent!" 
+          : "Your tango event has been created successfully.",
       });
       setShowCreateForm(false);
       setNewEvent({
@@ -118,6 +122,7 @@ export default function EventsPage() {
         isPublic: true
       });
       setUploadedMedia([]);
+      setAssignedRoles([]);
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
     },
     onError: () => {
@@ -139,10 +144,20 @@ export default function EventsPage() {
       return;
     }
 
+    if (assignedRoles.length > 10) {
+      toast({
+        title: "Error",
+        description: "Maximum 10 role assignments allowed per event.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const eventData = {
       ...newEvent,
       maxAttendees: newEvent.maxAttendees ? parseInt(newEvent.maxAttendees) : undefined,
       imageUrl: uploadedMedia.find(m => m.type?.startsWith('image/'))?.url,
+      assignedRoles: assignedRoles,
     };
 
     createEventMutation.mutate(eventData);
@@ -287,6 +302,76 @@ export default function EventsPage() {
                     visibility="public"
                     context="event_creation"
                   />
+                  
+                  {/* Assign Roles Section */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium text-gray-700">Assign Roles</label>
+                    <p className="text-xs text-gray-500">Tag users with specific roles for this event (optional)</p>
+                    
+                    {assignedRoles.map((assignment, index) => (
+                      <div key={index} className="flex gap-2 items-center bg-white rounded-md border p-2">
+                        <input
+                          type="text"
+                          placeholder="User ID or email"
+                          value={assignment.userIdentifier}
+                          onChange={(e) => {
+                            const newRoles = [...assignedRoles];
+                            newRoles[index].userIdentifier = e.target.value;
+                            setAssignedRoles(newRoles);
+                          }}
+                          className="flex-1 px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <select
+                          value={assignment.role}
+                          onChange={(e) => {
+                            const newRoles = [...assignedRoles];
+                            newRoles[index].role = e.target.value;
+                            setAssignedRoles(newRoles);
+                          }}
+                          className="px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="DJ">DJ</option>
+                          <option value="Teacher">Teacher</option>
+                          <option value="Musician">Musician</option>
+                          <option value="Performer">Performer</option>
+                          <option value="Host">Host</option>
+                          <option value="Volunteer">Volunteer</option>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newRoles = assignedRoles.filter((_, i) => i !== index);
+                            setAssignedRoles(newRoles);
+                          }}
+                          className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                    
+                    {assignedRoles.length < 10 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAssignedRoles([...assignedRoles, { userIdentifier: '', role: 'DJ' }]);
+                        }}
+                        className="w-full px-3 py-2 text-sm border-2 border-dashed border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                      >
+                        + Add Role Assignment
+                      </button>
+                    )}
+                    
+                    {assignedRoles.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {assignedRoles.map((assignment, index) => (
+                          <span key={index} className="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                            {assignment.userIdentifier} • {assignment.role}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="flex justify-end gap-2">

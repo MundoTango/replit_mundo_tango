@@ -1413,6 +1413,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Modern events creation endpoint with role assignment support
+  app.post("/api/events", authMiddleware, async (req, res) => {
+    try {
+      const validatedData = insertEventSchema.parse({
+        userId: req.user!.id,
+        title: req.body.title,
+        description: req.body.description,
+        imageUrl: req.body.imageUrl,
+        startDate: new Date(req.body.startDate),
+        endDate: req.body.endDate ? new Date(req.body.endDate) : undefined,
+        location: req.body.location,
+        price: req.body.price,
+        maxAttendees: req.body.maxAttendees,
+        isPublic: req.body.isPublic !== false,
+      });
+
+      const event = await storage.createEvent(validatedData);
+
+      // Handle role assignments if provided
+      const assignedRoles = req.body.assignedRoles;
+      if (assignedRoles && Array.isArray(assignedRoles) && assignedRoles.length > 0) {
+        // Limit to 10 assignments
+        const limitedRoles = assignedRoles.slice(0, 10);
+        
+        for (const assignment of limitedRoles) {
+          const { userIdentifier, role } = assignment;
+          if (!userIdentifier || !role) continue;
+
+          let targetUserId = null;
+
+          // Check if userIdentifier is a numeric ID
+          if (/^\d+$/.test(userIdentifier)) {
+            targetUserId = parseInt(userIdentifier);
+          } else {
+            // Try to find user by email
+            const userByEmail = await storage.getUserByEmail(userIdentifier);
+            if (userByEmail) {
+              targetUserId = userByEmail.id;
+            } else {
+              console.log(`User not found for identifier: ${userIdentifier}`);
+              continue;
+            }
+          }
+
+          if (targetUserId) {
+            try {
+              await storage.createEventParticipant({
+                eventId: event.id,
+                userId: targetUserId,
+                role: role,
+                status: 'pending',
+                invitedBy: req.user!.id,
+                invitedAt: new Date()
+              });
+              console.log(`Role assignment created: User ${targetUserId} as ${role} for event ${event.id}`);
+            } catch (roleError) {
+              console.error(`Failed to create role assignment for user ${targetUserId}:`, roleError);
+            }
+          }
+        }
+      }
+
+      res.json({ success: true, message: "Event created and invitations sent!", data: { event } });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  });
+
   app.post("/api/event", authMiddleware, upload.any(), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
@@ -1432,6 +1500,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const event = await storage.createEvent(validatedData);
+
+      // Handle role assignments if provided
+      const assignedRoles = req.body.assignedRoles;
+      if (assignedRoles && Array.isArray(assignedRoles) && assignedRoles.length > 0) {
+        // Limit to 10 assignments
+        const limitedRoles = assignedRoles.slice(0, 10);
+        
+        for (const assignment of limitedRoles) {
+          const { userIdentifier, role } = assignment;
+          if (!userIdentifier || !role) continue;
+
+          let targetUserId = null;
+
+          // Check if userIdentifier is a numeric ID
+          if (/^\d+$/.test(userIdentifier)) {
+            targetUserId = parseInt(userIdentifier);
+          } else {
+            // Try to find user by email
+            const userByEmail = await storage.getUserByEmail(userIdentifier);
+            if (userByEmail) {
+              targetUserId = userByEmail.id;
+            } else {
+              console.log(`User not found for identifier: ${userIdentifier}`);
+              continue;
+            }
+          }
+
+          if (targetUserId) {
+            try {
+              await storage.createEventParticipant({
+                eventId: event.id,
+                userId: targetUserId,
+                role: role,
+                status: 'pending',
+                invitedBy: req.user!.id,
+                invitedAt: new Date()
+              });
+              console.log(`Role assignment created: User ${targetUserId} as ${role} for event ${event.id}`);
+            } catch (roleError) {
+              console.error(`Failed to create role assignment for user ${targetUserId}:`, roleError);
+            }
+          }
+        }
+      }
+
       res.json({ success: true, message: "Event created successfully", data: { event } });
     } catch (error: any) {
       res.status(400).json({ success: false, message: error.message });
