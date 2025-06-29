@@ -2964,8 +2964,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get resume data from existing database structure
   app.get('/api/resume', isAuthenticated, async (req, res) => {
     try {
-      const userId = req.query.user_id || (req as any).user.id;
-      console.log('🎯 Resume API called for user ID:', userId);
+      // Get user ID from authenticated session
+      const sessionUserId = (req as any).user?.id;
+      const queryUserId = req.query.user_id;
+      const userId = queryUserId || sessionUserId;
+      
+      console.log('🎯 Resume API called - Session user:', sessionUserId, 'Query user:', queryUserId, 'Final userId:', userId);
+      
+      if (!userId) {
+        console.log('❌ No user ID found in session or query');
+        return res.status(400).json({
+          code: 400,
+          message: 'User ID not found',
+          data: null
+        });
+      }
       
       // Get accepted roles using existing storage method
       const acceptedRoles = await storage.getUserAcceptedRoles(parseInt(userId));
