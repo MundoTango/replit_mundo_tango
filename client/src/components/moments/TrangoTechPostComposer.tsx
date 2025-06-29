@@ -79,88 +79,99 @@ export default function TrangoTechPostComposer() {
 
   return (
     <div>
-      {/* TrangoTech Header - New Feeds */}
-      <div className="flex justify-between items-center my-5">
-        <div className="text-2xl font-bold">New Feeds</div>
+      {/* Modern Header - New Feeds */}
+      <div className="flex justify-between items-center my-8">
+        <div className="text-3xl font-black bg-gradient-to-r from-blue-600 via-teal-500 to-cyan-500 bg-clip-text text-transparent">
+          New Feeds
+        </div>
         <div>
-          <button className="rounded-xl bg-btn-color text-sm font-bold text-white flex items-center justify-center gap-2 w-32 h-10">
+          <button className="rounded-2xl bg-gradient-to-r from-coral-400 to-pink-500 hover:from-coral-500 hover:to-pink-600 
+                           text-sm font-bold text-white flex items-center justify-center gap-2 w-32 h-12 
+                           shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300">
             ALL <ChevronDown className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      {/* TrangoTech Card - What's on your mind */}
-      <div className="card select-none">
-        <div className="flex justify-between pr-5">
-          <div className="text-black flex items-center gap-4 cursor-pointer">
-            <div>
+      {/* Modern Card - What's on your mind */}
+      <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-blue-100/50 p-8 mb-8 
+                      hover:shadow-coral-500/10 transition-all duration-300 transform hover:-translate-y-1">
+        <div className="flex justify-between items-start mb-6">
+          <div className="text-blue-900 flex items-center gap-4 cursor-pointer">
+            <div className="relative">
               <img
-                src={user?.profileImage || '/images/user-placeholder.jpeg'}
+                src={user?.profileImage || '/api/placeholder/56/56'}
                 alt=""
                 loading="lazy"
-                className="w-10 h-10 object-cover rounded-full"
+                className="w-14 h-14 object-cover rounded-2xl border-3 border-gradient-to-br from-coral-200 to-pink-200 shadow-lg"
               />
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-green-400 to-green-500 
+                            rounded-full border-2 border-white shadow-lg"></div>
             </div>
             <div>
-              <div className="text-sm font-semibold">{user?.name}</div>
-              <div className="text-sm text-gray-text-color">
+              <div className="text-lg font-bold text-blue-900">{user?.name}</div>
+              <div className="text-sm text-blue-600 font-medium">
                 @{user?.username}
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2" onClick={() => setShowExpandedComposer(true)}>
-            <div>
+          <div className="flex items-center gap-3 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-2xl 
+                        border border-blue-200/50 shadow-lg cursor-pointer hover:bg-blue-50 transition-all duration-200" 
+               onClick={() => setShowExpandedComposer(true)}>
+            <div className="text-blue-600">
               {getVisibilityIcon()}
             </div>
-            <div className="font-semibold">{newPost.visibility}</div>
-            <ChevronDown className="h-4 w-4" />
+            <div className="font-bold text-blue-900">{newPost.visibility}</div>
+            <ChevronDown className="h-4 w-4 text-blue-500" />
           </div>
         </div>
 
-        <div className="mr-5 my-5 pr-3 input-text flex items-center gap-3">
+        <div className="mb-6">
           <input
             type="text"
             placeholder="What's on your mind?"
             onClick={() => setShowExpandedComposer(true)}
-            className="input-text border-none w-full bg-transparent outline-none"
+            className="w-full px-6 py-5 bg-gradient-to-br from-blue-50/30 to-teal-50/30 border-2 border-blue-200/50 
+                     rounded-2xl focus:outline-none text-blue-900 placeholder-blue-400/80 font-medium text-lg
+                     cursor-pointer hover:border-coral-300 transition-all duration-300"
             readOnly
           />
         </div>
 
-        <br />
-        <hr />
-        <br />
-
-        <div className="flex w-full justify-between flex-wrap">
-          <div className="flex w-auto justify-between flex-wrap gap-8">
-            <button
-              type="button"
-              className="text-light-gray-color text-md inline-flex items-center text-center text-sm font-medium cursor-default"
-              onClick={() => setShowExpandedComposer(true)}
-            >
-              <span className="px-2">
-                <MapPin className="h-4 w-4" />
-              </span>
-              Location
-            </button>
-            <button
-              type="button"
-              className="text-light-gray-color text-md inline-flex items-center text-center text-sm font-medium cursor-default"
-              onClick={() => setShowExpandedComposer(true)}
-            >
-              <span className="px-2">
-                <Camera className="h-4 w-4" />
-              </span>
-              Image/Video
-            </button>
-          </div>
-          <div className="pr-5 mt-4 xl:mt-0">
-            <button
-              onClick={() => setShowExpandedComposer(true)}
-              className="rounded-xl bg-btn-color px-10 py-2.5 text-sm font-bold text-white cursor-default"
-            >
-              Post
-            </button>
+        <div className="border-t-2 border-blue-100/50 pt-6">
+          <div className="flex w-full justify-between items-center flex-wrap gap-4">
+            <div className="flex gap-4">
+              <button
+                type="button"
+                className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-teal-50 text-teal-600 
+                         hover:bg-teal-100 hover:text-teal-700 font-bold transition-all duration-300 
+                         transform hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer"
+                onClick={() => setShowExpandedComposer(true)}
+              >
+                <MapPin className="h-5 w-5" />
+                Location
+              </button>
+              <button
+                type="button"
+                className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-coral-50 text-coral-600 
+                         hover:bg-coral-100 hover:text-coral-700 font-bold transition-all duration-300 
+                         transform hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer"
+                onClick={() => setShowExpandedComposer(true)}
+              >
+                <Camera className="h-5 w-5" />
+                Image/Video
+              </button>
+            </div>
+            <div>
+              <button
+                onClick={() => setShowExpandedComposer(true)}
+                className="bg-gradient-to-r from-coral-400 to-pink-500 hover:from-coral-500 hover:to-pink-600 
+                         px-8 py-4 rounded-2xl text-lg font-bold text-white shadow-2xl hover:shadow-coral-500/30 
+                         transform hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+              >
+                Post
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -105,21 +105,21 @@ export default function PostFeed() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-8">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="card animate-pulse">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-              <div className="space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-24"></div>
-                <div className="h-3 bg-gray-200 rounded w-16"></div>
+          <div key={i} className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-blue-100/50 p-8 animate-pulse">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-200 to-teal-200 rounded-2xl"></div>
+              <div className="space-y-3">
+                <div className="h-5 bg-gradient-to-r from-blue-200 to-teal-200 rounded-xl w-32"></div>
+                <div className="h-4 bg-gradient-to-r from-coral-200 to-pink-200 rounded-xl w-24"></div>
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="h-4 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="space-y-3 mb-6">
+              <div className="h-5 bg-gradient-to-r from-blue-200 to-teal-200 rounded-xl"></div>
+              <div className="h-5 bg-gradient-to-r from-blue-200 to-teal-200 rounded-xl w-3/4"></div>
             </div>
-            <div className="h-48 bg-gray-200 rounded-xl mt-4"></div>
+            <div className="h-64 bg-gradient-to-br from-coral-100 to-pink-100 rounded-3xl"></div>
           </div>
         ))}
       </div>
@@ -128,12 +128,14 @@ export default function PostFeed() {
 
   if (!posts?.length) {
     return (
-      <div className="card text-center py-12">
-        <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Heart className="h-8 w-8 text-pink-500" />
+      <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-blue-100/50 p-16 text-center">
+        <div className="w-24 h-24 bg-gradient-to-br from-coral-400 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
+          <Heart className="h-12 w-12 text-white" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No moments yet</h3>
-        <p className="text-gray-600 max-w-md mx-auto">
+        <h3 className="text-3xl font-black bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent mb-4">
+          No moments yet
+        </h3>
+        <p className="text-blue-600/80 max-w-lg mx-auto text-lg font-medium leading-relaxed">
           Be the first to share a tango moment! Share your dance journey, milestones, and experiences with the community.
         </p>
       </div>
@@ -142,49 +144,63 @@ export default function PostFeed() {
 
   return (
     <div className="space-y-6">
-      {/* Tag Filter Section */}
-      <div className="card">
-        <div className="flex items-center gap-3 mb-3">
-          <Tag className="h-5 w-5 text-gray-500" />
-          <h3 className="font-medium text-gray-900">Filter by Media Tags</h3>
+      {/* Modern Tag Filter Section */}
+      <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-blue-100/50 p-8 mb-8">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="bg-gradient-to-br from-teal-400 to-cyan-500 p-3 rounded-2xl shadow-xl">
+            <Tag className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+              Filter by Media Tags
+            </h3>
+            <p className="text-blue-600/70 font-medium">Discover memories by content type</p>
+          </div>
         </div>
         
-        {/* Tag Input */}
-        <div className="flex gap-2 mb-3">
+        {/* Modern Tag Input */}
+        <div className="flex gap-4 mb-6">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-400" />
             <input
               type="text"
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyPress={handleTagInputKeyPress}
               placeholder="Enter tag name and press Enter..."
-              className="input-text pl-10 w-full"
+              className="w-full pl-12 pr-4 py-4 bg-gradient-to-br from-blue-50/50 to-teal-50/50 border-2 border-blue-200/50 
+                       rounded-2xl focus:outline-none focus:border-coral-300 text-blue-900 placeholder-blue-400/80 
+                       font-medium text-lg transition-all duration-300"
             />
           </div>
           <button
             onClick={() => addTag(tagInput)}
             disabled={!tagInput.trim()}
-            className="btn-color btn-color:disabled"
+            className="bg-gradient-to-r from-teal-400 to-cyan-500 hover:from-teal-500 hover:to-cyan-600 
+                     disabled:from-gray-300 disabled:to-gray-400 px-8 py-4 rounded-2xl text-lg font-bold 
+                     text-white shadow-xl hover:shadow-teal-500/30 transform hover:-translate-y-1 
+                     transition-all duration-300 disabled:transform-none disabled:hover:shadow-none"
           >
             Add
           </button>
         </div>
 
-        {/* Active Filter Tags */}
+        {/* Modern Active Filter Tags */}
         {filterTags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             {filterTags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-br from-coral-100 to-pink-100 
+                         text-coral-700 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transform 
+                         hover:scale-105 transition-all duration-200"
               >
                 #{tag}
                 <button
                   onClick={() => removeTag(tag)}
-                  className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                  className="hover:bg-coral-200 rounded-xl p-1 transition-colors"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-4 w-4" />
                 </button>
               </span>
             ))}
@@ -192,21 +208,23 @@ export default function PostFeed() {
         )}
       </div>
 
-      {/* Filter Tabs - TT Style */}
-      <div className="flex items-center gap-2 bg-white p-1 rounded-lg border border-gray-200">
-        {(['all', 'following', 'nearby'] as const).map((filter) => (
-          <button
-            key={filter}
-            onClick={() => setFilterBy(filter)}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-              filterBy === filter
-                ? 'bg-[#8E142E] text-white'
-                : 'text-gray-600 hover:text-[#8E142E] hover:bg-gray-50'
-            }`}
-          >
-            {filter === 'all' ? 'All Moments' : filter === 'following' ? 'Following' : 'Nearby'}
-          </button>
-        ))}
+      {/* Modern Filter Tabs */}
+      <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl border-2 border-blue-100/50 p-3 mb-8">
+        <div className="flex items-center gap-3">
+          {(['all', 'following', 'nearby'] as const).map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setFilterBy(filter)}
+              className={`px-8 py-4 text-lg font-bold rounded-2xl transition-all duration-300 transform hover:scale-105 ${
+                filterBy === filter
+                  ? 'bg-gradient-to-r from-coral-400 to-pink-500 text-white shadow-2xl shadow-coral-500/30'
+                  : 'text-blue-600 hover:bg-blue-50 hover:text-coral-600 bg-blue-50/30'
+              }`}
+            >
+              {filter === 'all' ? 'All Moments' : filter === 'following' ? 'Following' : 'Nearby'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Enhanced Posts Feed */}
