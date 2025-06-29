@@ -72,7 +72,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     {
       title: "Communities",
       count: "6.8K",
-      icon: <Users className="w-4 h-4" />,
+      icon: <UsersRound className="w-4 h-4" />,
     },
     {
       title: "Your City",
