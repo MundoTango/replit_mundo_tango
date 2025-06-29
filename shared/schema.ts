@@ -166,6 +166,25 @@ export const eventRsvps = pgTable("event_rsvps", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Event Participants table for role tagging system
+export const eventParticipants = pgTable("event_participants", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").references(() => events.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  role: text("role").notNull(), // DJ, teacher, musician, performer, organizer, etc.
+  status: varchar("status", { length: 20 }).default("pending"), // pending, accepted, declined
+  invitedBy: integer("invited_by").references(() => users.id).notNull(),
+  invitedAt: timestamp("invited_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique().on(table.eventId, table.userId, table.role),
+  index("idx_event_participants_user_id").on(table.userId),
+  index("idx_event_participants_event_id").on(table.eventId),
+  index("idx_event_participants_status").on(table.status),
+]);
+
 // Chat rooms table
 export const chatRooms = pgTable("chat_rooms", {
   id: serial("id").primaryKey(),
@@ -596,3 +615,12 @@ export type Role = typeof roles.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type UserRole = typeof userRoles.$inferSelect;
 export type InsertUserRole = z.infer<typeof insertUserRoleSchema>;
+
+// Event Participants schemas and types for role tagging system
+export const insertEventParticipantSchema = createInsertSchema(eventParticipants, {
+  role: z.string().min(1, "Role is required"),
+  status: z.enum(["pending", "accepted", "declined"]).default("pending"),
+});
+
+export type EventParticipant = typeof eventParticipants.$inferSelect;
+export type InsertEventParticipant = z.infer<typeof insertEventParticipantSchema>;

@@ -2771,6 +2771,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Event Participants API endpoints for role tagging system
+  
+  // Create event participant (invite user to event with role)
+  app.post('/api/events/:eventId/participants', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const { userId, role } = req.body;
+      const invitedBy = (req as any).user.id;
+
+      if (!userId || !role) {
+        return res.status(400).json({
+          code: 400,
+          message: 'userId and role are required',
+          data: null
+        });
+      }
+
+      // Check if event exists and user is the creator
+      const event = await storage.getEventById(eventId);
+      if (!event) {
+        return res.status(404).json({
+          code: 404,
+          message: 'Event not found',
+          data: null
+        });
+      }
+
+      if (event.userId !== invitedBy) {
+        return res.status(403).json({
+          code: 403,
+          message: 'Only event creators can invite participants',
+          data: null
+        });
+      }
+
+      // Check if invitation already exists
+      const existingInvitation = await storage.getEventRoleInvitation(eventId, userId, role);
+      if (existingInvitation) {
+        return res.status(400).json({
+          code: 400,
+          message: 'User already invited for this role',
+          data: null
+        });
+      }
+
+      const participant = await storage.createEventParticipant({
+        eventId,
+        userId,
+        role,
+        invitedBy,
+        status: 'pending'
+      });
+
+      res.status(201).json({
+        code: 201,
+        message: 'Participant invited successfully',
+        data: participant
+      });
+    } catch (error) {
+      console.error('Error creating event participant:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to invite participant',
+        data: null
+      });
+    }
+  });
+
+  // Get event participants
+  app.get('/api/events/:eventId/participants', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const { status } = req.query;
+
+      const participants = await storage.getEventParticipants(eventId, status as string);
+
+      res.json({
+        code: 200,
+        message: 'Event participants retrieved successfully',
+        data: participants
+      });
+    } catch (error) {
+      console.error('Error getting event participants:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to retrieve participants',
+        data: null
+      });
+    }
+  });
+
+  // Get user's event invitations
+  app.get('/api/users/me/event-invitations', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const { status } = req.query;
+
+      const invitations = await storage.getUserEventInvitations(userId, status as string);
+
+      res.json({
+        code: 200,
+        message: 'Event invitations retrieved successfully',
+        data: invitations
+      });
+    } catch (error) {
+      console.error('Error getting user event invitations:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to retrieve invitations',
+        data: null
+      });
+    }
+  });
+
+  // Update event participation status (accept/decline)
+  app.patch('/api/event-participants/:participantId/status', isAuthenticated, async (req, res) => {
+    try {
+      const participantId = parseInt(req.params.participantId);
+      const { status } = req.body;
+      const userId = (req as any).user.id;
+
+      if (!['accepted', 'declined'].includes(status)) {
+        return res.status(400).json({
+          code: 400,
+          message: 'Status must be "accepted" or "declined"',
+          data: null
+        });
+      }
+
+      const updatedParticipant = await storage.updateEventParticipantStatus(participantId, status, userId);
+
+      res.json({
+        code: 200,
+        message: `Invitation ${status} successfully`,
+        data: updatedParticipant
+      });
+    } catch (error) {
+      console.error('Error updating participant status:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to update invitation status',
+        data: null
+      });
+    }
+  });
+
+  // Get user's accepted roles for resume
+  app.get('/api/users/:userId/resume', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const acceptedRoles = await storage.getUserAcceptedRoles(userId);
+
+      // Group roles by event and organize for resume display
+      const resumeData = acceptedRoles.reduce((acc: any, role: any) => {
+        const eventKey = `${role.eventId}`;
+        if (!acc[eventKey]) {
+          acc[eventKey] = {
+            eventId: role.eventId,
+            eventTitle: role.eventTitle,
+            eventStartDate: role.eventStartDate,
+            eventLocation: role.eventLocation,
+            roles: []
+          };
+        }
+        acc[eventKey].roles.push({
+          role: role.role,
+          acceptedAt: role.respondedAt,
+          inviterName: role.inviterName
+        });
+        return acc;
+      }, {});
+
+      const resume = Object.values(resumeData);
+
+      res.json({
+        code: 200,
+        message: 'Resume data retrieved successfully',
+        data: { resume }
+      });
+    } catch (error) {
+      console.error('Error getting user resume:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to retrieve resume',
+        data: null
+      });
+    }
+  });
+
   // Initialize Supabase Storage bucket on server start
   initializeStorageBucket();
 

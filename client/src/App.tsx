@@ -21,6 +21,7 @@ import OrganizerDashboard from "@/pages/organizer";
 import TeacherDashboard from "@/pages/teacher";
 import Friends from "@/pages/friends";
 import Groups from "@/pages/groups";
+import Invitations from "@/pages/invitations";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -82,6 +83,7 @@ function Router() {
       <Route path="/groups" component={Groups} />
       <Route path="/profile" component={Profile} />
       <Route path="/events" component={Events} />
+      <Route path="/invitations" component={Invitations} />
       <Route path="/messages" component={Messages} />
       <Route component={NotFound} />
     </Switch>

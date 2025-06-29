@@ -3,6 +3,7 @@ import {
   posts,
   events,
   eventRsvps,
+  eventParticipants,
   follows,
   postLikes,
   postComments,
@@ -31,6 +32,8 @@ import {
   type Event,
   type InsertEvent,
   type EventRsvp,
+  type EventParticipant,
+  type InsertEventParticipant,
   type ChatRoom,
   type InsertChatRoom,
   type ChatMessage,
@@ -132,6 +135,14 @@ export interface IStorage {
   getMutualFriends(userId1: number, userId2: number): Promise<boolean>;
   updateFriendshipStatus(userId: number, friendId: number, status: string): Promise<Friend>;
   deleteFriendship(userId: number, friendId: number): Promise<void>;
+
+  // Event Participants operations for role tagging system
+  createEventParticipant(participant: InsertEventParticipant): Promise<EventParticipant>;
+  getUserEventInvitations(userId: number, status?: string): Promise<EventParticipant[]>;
+  getEventParticipants(eventId: number, status?: string): Promise<EventParticipant[]>;
+  updateEventParticipantStatus(participantId: number, status: string, userId: number): Promise<EventParticipant>;
+  getUserAcceptedRoles(userId: number): Promise<EventParticipant[]>;
+  getEventRoleInvitation(eventId: number, userId: number, role: string): Promise<EventParticipant | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -821,6 +832,131 @@ export class DatabaseStorage implements IStorage {
         eq(friends.userId, userId),
         eq(friends.friendId, friendId)
       ));
+  }
+
+  // Event Participants operations for role tagging system
+  async createEventParticipant(participant: InsertEventParticipant): Promise<EventParticipant> {
+    const [newParticipant] = await db
+      .insert(eventParticipants)
+      .values(participant)
+      .returning();
+    return newParticipant;
+  }
+
+  async getUserEventInvitations(userId: number, status?: string): Promise<EventParticipant[]> {
+    let whereConditions = [eq(eventParticipants.userId, userId)];
+    
+    if (status) {
+      whereConditions.push(eq(eventParticipants.status, status));
+    }
+
+    return db
+      .select({
+        id: eventParticipants.id,
+        eventId: eventParticipants.eventId,
+        userId: eventParticipants.userId,
+        role: eventParticipants.role,
+        status: eventParticipants.status,
+        invitedBy: eventParticipants.invitedBy,
+        invitedAt: eventParticipants.invitedAt,
+        respondedAt: eventParticipants.respondedAt,
+        createdAt: eventParticipants.createdAt,
+        updatedAt: eventParticipants.updatedAt,
+        eventTitle: events.title,
+        eventStartDate: events.startDate,
+        eventLocation: events.location,
+        inviterName: users.name,
+      })
+      .from(eventParticipants)
+      .innerJoin(events, eq(eventParticipants.eventId, events.id))
+      .innerJoin(users, eq(eventParticipants.invitedBy, users.id))
+      .where(and(...whereConditions))
+      .orderBy(desc(eventParticipants.invitedAt));
+  }
+
+  async getEventParticipants(eventId: number, status?: string): Promise<EventParticipant[]> {
+    let whereConditions = [eq(eventParticipants.eventId, eventId)];
+    
+    if (status) {
+      whereConditions.push(eq(eventParticipants.status, status));
+    }
+
+    return db
+      .select({
+        id: eventParticipants.id,
+        eventId: eventParticipants.eventId,
+        userId: eventParticipants.userId,
+        role: eventParticipants.role,
+        status: eventParticipants.status,
+        invitedBy: eventParticipants.invitedBy,
+        invitedAt: eventParticipants.invitedAt,
+        respondedAt: eventParticipants.respondedAt,
+        createdAt: eventParticipants.createdAt,
+        updatedAt: eventParticipants.updatedAt,
+        userName: users.name,
+        userProfileImage: users.profileImage,
+      })
+      .from(eventParticipants)
+      .innerJoin(users, eq(eventParticipants.userId, users.id))
+      .where(and(...whereConditions))
+      .orderBy(desc(eventParticipants.invitedAt));
+  }
+
+  async updateEventParticipantStatus(participantId: number, status: string, userId: number): Promise<EventParticipant> {
+    const [updatedParticipant] = await db
+      .update(eventParticipants)
+      .set({ 
+        status, 
+        respondedAt: new Date(),
+        updatedAt: new Date() 
+      })
+      .where(and(
+        eq(eventParticipants.id, participantId),
+        eq(eventParticipants.userId, userId)
+      ))
+      .returning();
+    return updatedParticipant;
+  }
+
+  async getUserAcceptedRoles(userId: number): Promise<EventParticipant[]> {
+    return db
+      .select({
+        id: eventParticipants.id,
+        eventId: eventParticipants.eventId,
+        userId: eventParticipants.userId,
+        role: eventParticipants.role,
+        status: eventParticipants.status,
+        invitedBy: eventParticipants.invitedBy,
+        invitedAt: eventParticipants.invitedAt,
+        respondedAt: eventParticipants.respondedAt,
+        createdAt: eventParticipants.createdAt,
+        updatedAt: eventParticipants.updatedAt,
+        eventTitle: events.title,
+        eventStartDate: events.startDate,
+        eventLocation: events.location,
+        inviterName: users.name,
+      })
+      .from(eventParticipants)
+      .innerJoin(events, eq(eventParticipants.eventId, events.id))
+      .innerJoin(users, eq(eventParticipants.invitedBy, users.id))
+      .where(and(
+        eq(eventParticipants.userId, userId),
+        eq(eventParticipants.status, 'accepted')
+      ))
+      .orderBy(desc(events.startDate));
+  }
+
+  async getEventRoleInvitation(eventId: number, userId: number, role: string): Promise<EventParticipant | undefined> {
+    const [invitation] = await db
+      .select()
+      .from(eventParticipants)
+      .where(and(
+        eq(eventParticipants.eventId, eventId),
+        eq(eventParticipants.userId, userId),
+        eq(eventParticipants.role, role)
+      ))
+      .limit(1);
+    return invitation || undefined;
   }
 }
 

@@ -8,7 +8,8 @@ import {
   Calendar, 
   Star,
   Menu,
-  X
+  X,
+  Mail
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -46,6 +47,11 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       icon: <Calendar className="w-6 h-6" />,
       title: "Events",
       link: "/events",
+    },
+    {
+      icon: <Mail className="w-6 h-6" />,
+      title: "Role Invitations",
+      link: "/invitations",
     },
   ];
 
