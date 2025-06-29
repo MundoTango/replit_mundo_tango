@@ -49,6 +49,18 @@ interface Comment {
   };
 }
 
+interface ReusedMedia {
+  id: string;
+  memory_id: number;
+  media_id: string;
+  caption: string;
+  sort_order: number;
+  tagged_by: number;
+  url: string;
+  content_type: string;
+  original_filename: string;
+}
+
 interface PostDetailModalProps {
   post: Post;
   isOpen: boolean;
@@ -68,6 +80,7 @@ export default function PostDetailModal({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [newComment, setNewComment] = useState('');
+  const [reusedMedia, setReusedMedia] = useState<ReusedMedia[]>([]);
 
   // Fetch post comments
   const { data: comments = [], isLoading: commentsLoading } = useQuery({
@@ -104,6 +117,61 @@ export default function PostDetailModal({
       });
     }
   });
+
+  // Fetch reused media with captions and sort order
+  useEffect(() => {
+    if (!isOpen || !post.id) return;
+
+    const fetchReusedMedia = async () => {
+      try {
+        if (supabase) {
+          const { data, error } = await supabase
+            .from('memory_media')
+            .select(`
+              id,
+              memory_id,
+              media_id,
+              caption,
+              sort_order,
+              tagged_by,
+              media:media_id (
+                url,
+                content_type,
+                original_filename
+              )
+            `)
+            .eq('memory_id', post.id)
+            .order('sort_order', { ascending: true });
+
+          if (error) {
+            console.error('❌ Error fetching reused media:', error);
+            return;
+          }
+
+          if (data && data.length > 0) {
+            const formattedMedia = data.map((item: any) => ({
+              id: item.id,
+              memory_id: item.memory_id,
+              media_id: item.media_id,
+              caption: item.caption,
+              sort_order: item.sort_order,
+              tagged_by: item.tagged_by,
+              url: item.media?.url || '',
+              content_type: item.media?.content_type || '',
+              original_filename: item.media?.original_filename || ''
+            }));
+
+            console.log('✅ Fetched reused media:', formattedMedia);
+            setReusedMedia(formattedMedia);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error in fetchReusedMedia:', error);
+      }
+    };
+
+    fetchReusedMedia();
+  }, [isOpen, post.id]);
 
   // Real-time comment subscription using Supabase (with fallback to polling)
   useEffect(() => {
@@ -322,6 +390,43 @@ export default function PostDetailModal({
                       #{hashtag}
                     </span>
                   ))}
+                </div>
+              )}
+
+              {/* Reused Media Section */}
+              {reusedMedia.length > 0 && (
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Shared Media</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {reusedMedia.map((media, index) => (
+                      <div key={media.id} className="relative group">
+                        {media.content_type.startsWith('image/') ? (
+                          <img
+                            src={media.url}
+                            alt={media.original_filename}
+                            className="w-full h-20 object-cover rounded-md"
+                          />
+                        ) : media.content_type.startsWith('video/') ? (
+                          <video
+                            src={media.url}
+                            className="w-full h-20 object-cover rounded-md"
+                            muted
+                          />
+                        ) : (
+                          <div className="w-full h-20 bg-gray-200 rounded-md flex items-center justify-center">
+                            <span className="text-xs text-gray-500">{media.original_filename}</span>
+                          </div>
+                        )}
+                        {media.caption && (
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded-md transition-all duration-200 flex items-end p-2">
+                            <p className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                              {media.caption}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
