@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, X, Tag } from 'lucide-react';
+import { Search, Plus, X, Tag, Hash } from 'lucide-react';
 
 interface ModernTagFilterProps {
   activeTags: string[];
@@ -24,64 +24,80 @@ export default function ModernTagFilter({ activeTags, onAddTag, onRemoveTag }: M
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-blue-100 p-6 mb-6">
-      <div className="flex items-center space-x-3 mb-4">
-        <div className="bg-gradient-to-br from-teal-400 to-teal-500 p-2 rounded-xl">
-          <Tag className="w-5 h-5 text-white" />
+    <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-blue-100/50 p-8 mb-8">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-4">
+          <div className="bg-gradient-to-br from-teal-400 to-cyan-500 p-3 rounded-2xl shadow-xl 
+                        hover:shadow-teal-500/25 transform hover:scale-105 transition-all duration-300">
+            <Hash className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+              Filter by Media Tags
+            </h3>
+            <p className="text-blue-600/70 font-medium">Discover memories by content type</p>
+          </div>
         </div>
-        <h3 className="text-lg font-semibold text-blue-900">Filter by Tags</h3>
+        
+        {activeTags.length > 0 && (
+          <div className="bg-gradient-to-r from-teal-50 to-cyan-50 px-4 py-2 rounded-2xl border border-teal-200/50">
+            <span className="text-teal-700 font-bold text-sm">
+              {activeTags.length} active filter{activeTags.length > 1 ? 's' : ''}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Tag Input */}
-      <div className="flex gap-3 mb-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-5 h-5" />
+      <div className="flex gap-4 mb-6">
+        <div className="flex-1 relative group">
+          <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-blue-400 w-6 h-6 
+                          group-focus-within:text-teal-500 transition-colors duration-300" />
           <input
             type="text"
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Enter tag name..."
-            className="w-full pl-10 pr-4 py-3 bg-gradient-to-br from-blue-50/50 to-teal-50/50 
-                     border border-blue-200 rounded-xl focus:outline-none focus:ring-3 
-                     focus:ring-teal-200 focus:border-teal-300 text-blue-900 placeholder-blue-400 
-                     transition-all duration-200"
+            placeholder="Enter tag name and press Enter..."
+            className="w-full pl-14 pr-6 py-5 bg-gradient-to-br from-blue-50/30 to-teal-50/30 
+                     border-2 border-blue-200/50 rounded-2xl focus:outline-none focus:ring-4 
+                     focus:ring-teal-200/50 focus:border-teal-300 text-blue-900 placeholder-blue-400/70 
+                     font-medium text-lg hover:border-blue-300/70 transition-all duration-300"
           />
         </div>
         <button
           onClick={handleAddTag}
           disabled={!tagInput.trim() || activeTags.includes(tagInput.trim())}
-          className="bg-gradient-to-r from-teal-400 to-teal-500 hover:from-teal-500 hover:to-teal-600 
-                   disabled:from-gray-300 disabled:to-gray-400 text-white px-6 py-3 rounded-xl 
-                   font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 
-                   disabled:transform-none disabled:shadow-md transition-all duration-200 
-                   flex items-center space-x-2"
+          className="bg-gradient-to-r from-teal-400 to-cyan-500 hover:from-teal-500 hover:to-cyan-600 
+                   disabled:from-gray-300 disabled:to-gray-400 text-white px-8 py-5 rounded-2xl 
+                   font-bold text-lg shadow-2xl hover:shadow-teal-500/30 transform hover:-translate-y-1 
+                   disabled:transform-none disabled:shadow-lg transition-all duration-300 
+                   flex items-center space-x-3 group"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
           <span>Add</span>
         </button>
       </div>
 
       {/* Active Tags */}
       {activeTags.length > 0 && (
-        <div className="space-y-3">
-          <p className="text-sm font-medium text-blue-600">Active Filters:</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-3">
             {activeTags.map((tag) => (
               <div
                 key={tag}
-                className="bg-gradient-to-r from-orange-100 to-pink-100 border border-orange-200 
-                         text-orange-700 px-4 py-2 rounded-xl flex items-center space-x-2 
-                         shadow-sm hover:shadow-md transition-all duration-200"
+                className="bg-gradient-to-r from-coral-100 to-pink-100 border-2 border-coral-200/50 
+                         text-coral-700 px-5 py-3 rounded-2xl flex items-center space-x-3 
+                         shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group"
               >
                 <Tag className="w-4 h-4" />
-                <span className="font-medium">{tag}</span>
+                <span className="font-bold text-lg">{tag}</span>
                 <button
                   onClick={() => onRemoveTag(tag)}
-                  className="ml-1 p-1 rounded-lg text-orange-500 hover:text-red-500 
-                           hover:bg-red-50 transition-all duration-200"
+                  className="ml-2 p-2 rounded-xl text-coral-500 hover:text-red-500 
+                           hover:bg-red-50 transition-all duration-300 hover:scale-110"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             ))}
@@ -90,8 +106,19 @@ export default function ModernTagFilter({ activeTags, onAddTag, onRemoveTag }: M
       )}
 
       {activeTags.length === 0 && (
-        <div className="text-center py-4">
-          <p className="text-blue-400 text-sm">No active filters. Add tags to filter memories.</p>
+        <div className="text-center py-8">
+          <div className="bg-gradient-to-br from-blue-50 to-teal-50 rounded-2xl p-6 border-2 border-blue-100/50">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-teal-100 rounded-2xl 
+                          flex items-center justify-center mx-auto mb-4">
+              <Hash className="w-8 h-8 text-blue-400" />
+            </div>
+            <p className="text-blue-600 font-medium text-lg">
+              No active filters. Add tags to discover specific content!
+            </p>
+            <p className="text-blue-500 text-sm mt-2">
+              Try tags like "milonga", "performance", "class", or "social"
+            </p>
+          </div>
         </div>
       )}
     </div>

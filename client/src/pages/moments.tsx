@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../contexts/auth-context';
+import { useAuth } from '@/hooks/useAuth';
 import ModernMemoriesHeader from '@/components/modern/ModernMemoriesHeader';
 import ModernPostComposer from '@/components/modern/ModernPostComposer';
 import ModernPostCard from '@/components/modern/ModernPostCard';

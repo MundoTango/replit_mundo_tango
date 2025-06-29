@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Clock } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Clock, Sparkles, Users } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface ModernPostCardProps {
@@ -47,118 +47,158 @@ export default function ModernPostCard({
   };
 
   const formatDate = (date: string | Date) => {
-    return format(new Date(date), 'MMM d, yyyy');
+    const now = new Date();
+    const postDate = new Date(date);
+    const diffInHours = Math.floor((now.getTime() - postDate.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 48) return '1 day ago';
+    return format(postDate, 'MMM d, yyyy');
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 
-                    transform hover:-translate-y-1 border border-blue-50 overflow-hidden group">
+    <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl hover:shadow-coral-500/10 
+                    transition-all duration-500 transform hover:-translate-y-2 hover:scale-[1.02]
+                    border-2 border-blue-100/50 overflow-hidden group relative">
+      
+      {/* Floating engagement indicator */}
+      <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-all duration-300">
+        <div className="bg-gradient-to-r from-coral-400 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+          <Sparkles className="w-3 h-3" />
+          Hot
+        </div>
+      </div>
+
       {/* Header */}
-      <div className="p-6 pb-4">
+      <div className="p-8 pb-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="relative">
+          <div className="flex items-center space-x-4">
+            <div className="relative group/avatar">
               <img
-                src={post.user.profileImage || '/api/placeholder/40/40'}
+                src={post.user.profileImage || '/api/placeholder/48/48'}
                 alt={post.user.name}
-                className="w-12 h-12 rounded-2xl object-cover border-2 border-gradient-to-br from-orange-200 to-pink-200"
+                className="w-14 h-14 rounded-2xl object-cover border-3 border-gradient-to-br from-coral-200 to-pink-200 shadow-lg
+                         group-hover/avatar:scale-110 transition-transform duration-300"
               />
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-teal-400 to-teal-500 
-                            rounded-full border-2 border-white"></div>
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-green-400 to-emerald-500 
+                            rounded-full border-3 border-white shadow-lg animate-pulse"></div>
             </div>
             <div>
-              <h3 className="font-semibold text-blue-900 hover:text-teal-600 cursor-pointer transition-colors">
-                {post.user.name}
-              </h3>
-              <div className="flex items-center space-x-2 text-sm text-blue-500">
-                <span>@{post.user.username}</span>
+              <div className="flex items-center gap-3 mb-1">
+                <h3 className="font-bold text-blue-900 hover:text-teal-600 cursor-pointer transition-colors text-lg">
+                  {post.user.name}
+                </h3>
+                <span className="text-blue-500 font-semibold">@{post.user.username}</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-blue-600/70">
+                <Clock className="w-4 h-4" />
+                <span className="font-medium">{formatDate(post.createdAt)}</span>
                 <span>•</span>
-                <div className="flex items-center space-x-1">
-                  <Clock className="w-3 h-3" />
-                  <span>{formatDate(post.createdAt)}</span>
+                <div className="flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  <span>Public</span>
                 </div>
               </div>
             </div>
           </div>
           
-          <button className="p-2 rounded-xl text-blue-400 hover:text-blue-600 hover:bg-blue-50 
-                           transition-all duration-200 opacity-0 group-hover:opacity-100">
-            <MoreHorizontal className="w-5 h-5" />
+          <button className="p-3 rounded-2xl text-blue-400 hover:text-blue-600 hover:bg-blue-50 
+                           transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110">
+            <MoreHorizontal className="w-6 h-6" />
           </button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="px-6 pb-4">
-        <p className="text-blue-900 leading-relaxed">{post.content}</p>
+      <div className="px-8 pb-6">
+        <p className="text-blue-900 leading-relaxed text-lg font-medium">{post.content}</p>
       </div>
 
       {/* Media */}
       {post.imageUrl && (
-        <div className="px-6 pb-4">
-          <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-blue-50 to-teal-50">
+        <div className="px-8 pb-6">
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-blue-50 to-teal-50 shadow-xl">
             <img
               src={post.imageUrl}
               alt="Memory"
-              className={`w-full h-auto transition-all duration-500 ${
-                imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
+              className={`w-full h-auto transition-all duration-700 hover:scale-105 ${
+                imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
               }`}
               onLoad={() => setImageLoaded(true)}
             />
             {!imageLoaded && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 border-3 border-teal-300 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-teal-300 border-t-transparent rounded-full animate-spin"></div>
               </div>
             )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
           </div>
         </div>
       )}
 
       {/* Actions */}
-      <div className="px-6 py-4 border-t border-blue-50">
+      <div className="px-8 py-6 border-t-2 border-blue-50/50 bg-gradient-to-r from-blue-50/20 to-teal-50/20">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-2">
             <button
               onClick={handleLike}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-200 ${
+              className={`flex items-center space-x-3 px-5 py-3 rounded-2xl font-bold text-lg transition-all duration-300 
+                        transform hover:scale-105 shadow-lg hover:shadow-xl ${
                 isLiked
-                  ? 'text-pink-500 bg-pink-50'
-                  : 'text-blue-500 hover:text-pink-500 hover:bg-pink-50'
+                  ? 'text-pink-600 bg-gradient-to-r from-pink-50 to-rose-50 border-2 border-pink-200'
+                  : 'text-blue-600 hover:text-pink-600 bg-white hover:bg-gradient-to-r hover:from-pink-50 hover:to-rose-50 border-2 border-blue-200 hover:border-pink-200'
               }`}
             >
-              <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-              <span className="font-medium">{post.likesCount}</span>
+              <Heart className={`w-6 h-6 ${isLiked ? 'fill-current animate-pulse' : ''}`} />
+              <span>{post.likesCount}</span>
             </button>
             
             <button
               onClick={() => onComment?.(post.id)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-xl text-blue-500 
-                       hover:text-teal-500 hover:bg-teal-50 transition-all duration-200"
+              className="flex items-center space-x-3 px-5 py-3 rounded-2xl text-blue-600 
+                       hover:text-teal-600 bg-white hover:bg-gradient-to-r hover:from-teal-50 hover:to-cyan-50 
+                       font-bold text-lg transition-all duration-300 transform hover:scale-105 
+                       shadow-lg hover:shadow-xl border-2 border-blue-200 hover:border-teal-200"
             >
-              <MessageCircle className="w-5 h-5" />
-              <span className="font-medium">{post.commentsCount}</span>
+              <MessageCircle className="w-6 h-6" />
+              <span>{post.commentsCount}</span>
             </button>
             
             <button
               onClick={() => onShare?.(post.id)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-xl text-blue-500 
-                       hover:text-orange-500 hover:bg-orange-50 transition-all duration-200"
+              className="flex items-center space-x-3 px-5 py-3 rounded-2xl text-blue-600 
+                       hover:text-coral-600 bg-white hover:bg-gradient-to-r hover:from-coral-50 hover:to-orange-50 
+                       font-bold text-lg transition-all duration-300 transform hover:scale-105 
+                       shadow-lg hover:shadow-xl border-2 border-blue-200 hover:border-coral-200"
             >
-              <Share2 className="w-5 h-5" />
-              <span className="font-medium">{post.sharesCount}</span>
+              <Share2 className="w-6 h-6" />
+              <span>{post.sharesCount}</span>
             </button>
           </div>
           
           <button
             onClick={handleBookmark}
-            className={`p-2 rounded-xl transition-all duration-200 ${
+            className={`p-4 rounded-2xl transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl ${
               isBookmarked
-                ? 'text-orange-500 bg-orange-50'
-                : 'text-blue-400 hover:text-orange-500 hover:bg-orange-50'
+                ? 'text-coral-600 bg-gradient-to-r from-coral-50 to-orange-50 border-2 border-coral-200'
+                : 'text-blue-500 hover:text-coral-600 bg-white hover:bg-gradient-to-r hover:from-coral-50 hover:to-orange-50 border-2 border-blue-200 hover:border-coral-200'
             }`}
           >
-            <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
+            <Bookmark className={`w-6 h-6 ${isBookmarked ? 'fill-current' : ''}`} />
           </button>
+        </div>
+
+        {/* Engagement stats */}
+        <div className="mt-4 pt-4 border-t border-blue-100/50">
+          <div className="flex items-center justify-between text-sm text-blue-600/70">
+            <span className="font-medium">
+              {post.likesCount + post.commentsCount + post.sharesCount} total engagements
+            </span>
+            <button className="text-teal-600 hover:text-teal-700 font-semibold hover:underline transition-colors">
+              See Friendship
+            </button>
+          </div>
         </div>
       </div>
     </div>
