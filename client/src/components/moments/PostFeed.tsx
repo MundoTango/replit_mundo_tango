@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  Heart, 
-  MessageCircle, 
-  Share2, 
-  MapPin, 
-  MoreVertical
-} from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import PostItem from './PostItem';
 
 interface Post {
   id: number;
@@ -140,137 +134,14 @@ export default function PostFeed() {
         ))}
       </div>
 
-      {/* Posts Feed - Exact TT PostCard Layout */}
-      {posts.map((post: Post, index: number) => (
-        <div key={post.id} className="card select-none animate-fade-up" id="scrolling">
-          <div className="pr-5">
-            {/* Exact TT Post Header */}
-            <div className="flex justify-between">
-              <div className="text-black flex items-center gap-4">
-                <img
-                  src={post.user.profileImage || '/images/user-placeholder.jpeg'}
-                  alt=""
-                  loading="lazy"
-                  className="w-10 h-10 object-cover rounded-full"
-                />
-                <div>
-                  <div className="text-sm font-semibold">
-                    {post.user.name}
-                  </div>
-                  <div className="text-xs text-gray-text-color">
-                    {formatDistanceToNow(new Date(post.createdAt))} ago
-                  </div>
-                </div>
-                <div>
-                  {post.user.tangoRoles?.slice(0, 2).map((role) => (
-                    <span
-                      key={role}
-                      className="tags text-sm"
-                    >
-                      {role}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center gap-4 cursor-pointer">
-                <div className="text-btn-color text-sm font-bold">
-                  See Friendship
-                </div>
-                <div>
-                  <MoreVertical className="h-4 w-4 text-gray-400" />
-                </div>
-              </div>
-            </div>
-
-            {/* Exact TT Post Content */}
-            <div>
-              <div className="text-gray-text-color text-base font-semibold py-5">
-                {post.content}
-              </div>
-
-              {/* Exact TT Media Layout */}
-              {(post.imageUrl || post.videoUrl) && (
-                <div className="flex flex-col md:flex-row items-center gap-3 flex-wrap lg:gap-0">
-                  {post.imageUrl && (
-                    <div className="cursor-pointer">
-                      <img
-                        className="object-cover w-72 md:w-[15rem] h-[180px] mb-3 pr-2 rounded-xl"
-                        loading="lazy"
-                        src={post.imageUrl}
-                        alt="Post media"
-                      />
-                    </div>
-                  )}
-                  {post.videoUrl && (
-                    <div>
-                      <video
-                        className="object-cover w-72 md:w-[15.5rem] h-[180px] mb-3 pr-2 rounded-xl"
-                        controls
-                      >
-                        <source src={post.videoUrl} />
-                      </video>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <hr />
-            <br />
-
-            {/* Exact TT Post Actions */}
-            <div className="flex items-center justify-around md:justify-between text-light-gray-color flex-wrap md:gap-0">
-              <div
-                className="flex items-center gap-2 cursor-pointer w-[100px] justify-start sm:justify-center"
-                onClick={() => handleLikePost(post.id)}
-              >
-                <div>
-                  <Heart 
-                    className={`h-5 w-5 ${post.isLiked ? 'fill-[#EB2560] text-[#EB2560]' : 'text-[#94A3B8]'}`}
-                  />
-                </div>
-                <div className={`${post.isLiked ? 'text-heart-color' : ''} flex gap-1`}>
-                  {post.likes || 0}{" "}
-                  <span className="hidden md:block">Likes</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2 cursor-pointer w-[100px] justify-center sm:justify-start">
-                <div>
-                  <MessageCircle className="h-5 w-5" />
-                </div>
-                <div className="flex gap-1">
-                  {post.comments || 0}{" "}
-                  <span className="hidden md:block">Comments</span>
-                </div>
-              </div>
-              
-              <div
-                className="flex items-center gap-2 cursor-pointer w-[100px] justify-end sm:justify-start"
-                onClick={() => handleSharePost(post)}
-              >
-                <div>
-                  <Share2 className="h-5 w-5" />
-                </div>
-                <div className="flex gap-1">
-                  0{" "}
-                  <span className="hidden md:block">Shares</span>
-                </div>
-              </div>
-            </div>
-
-            <br />
-            <hr />
-
-            {/* TT Comment Input */}
-            <div className="my-5 pr-3 input-text flex items-center gap-3 relative">
-              <input
-                placeholder="Write your comment here"
-                className="input-text border-none shadow-none w-full rounded-lg p-3 pl-5 text-base outline-none"
-              />
-            </div>
-          </div>
-        </div>
+      {/* Enhanced Posts Feed */}
+      {posts.map((post: Post) => (
+        <PostItem
+          key={post.id}
+          post={post}
+          onLike={handleLikePost}
+          onShare={handleSharePost}
+        />
       ))}
     </div>
   );
