@@ -324,6 +324,15 @@ Changelog:
   * PDF includes header with "Tango Resume - [User Name]", statistics section, and year-grouped entries
   * Export disabled when no data available with appropriate tooltip messaging
   * Complete PDF export workflow: click button → generate styled HTML → convert to PDF → download file
+- June 29, 2025. Public Resume Sharing System fully implemented:
+  * Added "Copy Public Resume Link" button to ResumePage with clipboard functionality and toast notifications
+  * Created PublicResumePage component at /u/:username/resume route accessible without login
+  * Built comprehensive backend API GET /api/public-resume/:username with user lookup and resume data transformation
+  * Implemented public banner showing "This is the public resume of @username" with user profile information
+  * Added complete error handling for user not found, private resumes, and loading states
+  * Public resume displays user avatar, location, statistics, and year-grouped event roles
+  * Removed export/download buttons from public view for security and proper access control
+  * Complete public sharing workflow: copy link → share → public access without authentication required
 ```
 
 ## User Preferences

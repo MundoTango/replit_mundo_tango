@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, Star, Download, ChevronDown } from 'lucide-react';
+import { Calendar, MapPin, Star, Download, ChevronDown, Link2, User } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -57,6 +57,34 @@ export default function ResumePage() {
     },
     enabled: !!user?.id,
   });
+
+  const handleCopyPublicLink = async () => {
+    if (!user?.username) {
+      toast({
+        title: "Error",
+        description: "Username not available",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const publicUrl = `https://mundotango.life/u/${user.username}/resume`;
+    
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      toast({
+        title: "Link copied!",
+        description: "Public resume link copied to clipboard",
+      });
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+      toast({
+        title: "Failed to copy",
+        description: "Please copy the link manually",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleExport = async () => {
     if (!resumeRef.current || !user || !resumeData?.data?.length) {
@@ -272,6 +300,15 @@ export default function ResumePage() {
         
         {/* Export Controls */}
         <div className="flex items-center space-x-2">
+          {/* Copy Public Link Button */}
+          <Button
+            onClick={handleCopyPublicLink}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm px-3 py-1 rounded flex items-center space-x-1"
+          >
+            <Link2 className="h-3 w-3" />
+            <span>Copy Public Resume Link</span>
+          </Button>
+          
           {/* Format Dropdown */}
           <div className="relative">
             <Button

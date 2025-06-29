@@ -3126,6 +3126,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public Resume API - GET /api/public-resume/:username
+  app.get('/api/public-resume/:username', async (req, res) => {
+    try {
+      const { username } = req.params;
+      console.log('🔍 Getting public resume for username:', username);
+
+      // Get user by username
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(404).json({
+          code: 404,
+          message: 'User not found',
+          data: null
+        });
+      }
+
+      console.log('👤 Found user:', user.id, user.name);
+
+      // Get accepted roles for this user
+      const acceptedRoles = await storage.getUserAcceptedRoles(user.id);
+      console.log('📋 Public resume roles:', acceptedRoles.length);
+
+      // Transform data to match public resume format
+      const resumeEntries = acceptedRoles.map((role: any) => ({
+        event_name: role.eventTitle,
+        event_date: role.eventStartDate,
+        role: role.role,
+        location: role.eventLocation
+      }));
+
+      const publicResumeData = {
+        username: user.username,
+        display_name: user.name,
+        profile_image: user.profileImage,
+        country: user.country,
+        city: user.city,
+        resume: resumeEntries
+      };
+
+      console.log('✅ Public resume data prepared for:', username);
+
+      res.json(publicResumeData);
+    } catch (error) {
+      console.error('❌ Error getting public resume:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to retrieve public resume',
+        data: null
+      });
+    }
+  });
+
   // Initialize Supabase Storage bucket on server start
   initializeStorageBucket();
 

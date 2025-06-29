@@ -23,6 +23,7 @@ import Friends from "@/pages/friends";
 import Groups from "@/pages/groups";
 import Invitations from "@/pages/invitations";
 import ResumePage from "@/pages/ResumePage";
+import PublicResumePage from "@/pages/PublicResumePage";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -86,6 +87,7 @@ function Router() {
       <Route path="/events" component={Events} />
       <Route path="/invitations" component={Invitations} />
       <Route path="/profile/resume" component={ResumePage} />
+      <Route path="/u/:username/resume" component={PublicResumePage} />
       <Route path="/messages" component={Messages} />
       <Route component={NotFound} />
     </Switch>
