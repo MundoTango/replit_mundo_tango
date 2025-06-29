@@ -315,6 +315,15 @@ Changelog:
   * Integrated with existing event_participants table storing pending invitations with invited_by and invited_at tracking
   * Connected role assignments to resume system enabling accepted roles to appear on /profile/resume
   * Complete event role tagging workflow: creation → invitation → acceptance → resume display
+- June 29, 2025. PDF export functionality for ResumePage implemented:
+  * Added jsPDF and html2canvas dependencies for client-side PDF generation
+  * Created "Download PDF" button with blue styling positioned top-right of resume container
+  * Built comprehensive handleExport function generating styled PDF with user name and date
+  * Implemented format dropdown supporting PDF/CSV selection (CSV UI placeholder for future)
+  * Added proper error handling with toast notifications for success/failure states
+  * PDF includes header with "Tango Resume - [User Name]", statistics section, and year-grouped entries
+  * Export disabled when no data available with appropriate tooltip messaging
+  * Complete PDF export workflow: click button → generate styled HTML → convert to PDF → download file
 ```
 
 ## User Preferences
