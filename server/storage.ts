@@ -421,13 +421,59 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getEvents(limit = 20, offset = 0): Promise<Event[]> {
-    return await db
-      .select()
+    const result = await db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        imageUrl: events.imageUrl,
+        eventType: events.eventType,
+        startDate: events.startDate,
+        endDate: events.endDate,
+        location: events.location,
+        city: events.city,
+        country: events.country,
+        price: events.price,
+        maxAttendees: events.maxAttendees,
+        currentAttendees: events.currentAttendees,
+        isPublic: events.isPublic,
+        status: events.status,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        userId: events.userId,
+        userName: users.name,
+        userUsername: users.username,
+        userProfileImage: users.profileImage,
+      })
       .from(events)
+      .leftJoin(users, eq(events.userId, users.id))
       .where(eq(events.status, "active"))
       .orderBy(events.startDate)
       .limit(limit)
       .offset(offset);
+
+    return result.map(event => ({
+      id: event.id,
+      userId: event.userId,
+      title: event.title,
+      description: event.description,
+      imageUrl: event.imageUrl,
+      eventType: event.eventType,
+      startDate: event.startDate || new Date(),
+      endDate: event.endDate,
+      location: event.location,
+      city: event.city,
+      country: event.country,
+      latitude: null,
+      longitude: null,
+      price: event.price,
+      maxAttendees: event.maxAttendees,
+      currentAttendees: event.currentAttendees,
+      isPublic: event.isPublic,
+      status: event.status,
+      createdAt: event.createdAt,
+      updatedAt: event.updatedAt,
+    }));
   }
 
   async getUserEvents(userId: number): Promise<Event[]> {

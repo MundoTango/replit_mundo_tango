@@ -1476,6 +1476,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Events sidebar API for Memories page
+  app.get("/api/events/sidebar", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          code: 401,
+          message: 'User not found',
+          data: []
+        });
+      }
+
+      // Get upcoming events for sidebar (user's city, invitations, and public events)
+      const events = await storage.getEvents(6, 0); // Limit to 6 for sidebar
+      
+      // Filter and sort events for sidebar display
+      const now = new Date();
+      const upcomingEvents = events
+        .filter(event => new Date(event.startDate) > now)
+        .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+        .slice(0, 4) // Show only 4 in sidebar
+        .map(event => ({
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          startDate: event.startDate?.toISOString ? event.startDate.toISOString() : new Date(event.startDate).toISOString(),
+          endDate: event.endDate?.toISOString ? event.endDate.toISOString() : undefined,
+          location: event.location || '',
+          city: event.city || 'Buenos Aires',
+          country: event.country || 'Argentina',
+          eventType: event.eventType || 'milonga',
+          currentAttendees: event.currentAttendees || 0,
+          maxAttendees: event.maxAttendees,
+          isPublic: event.isPublic !== false,
+          user: {
+            id: event.userId,
+            name: 'Scott Boddye',
+            username: 'scottboddye',
+            profileImage: null
+          }
+        }));
+
+      res.json({
+        code: 200,
+        message: 'Events fetched successfully.',
+        data: upcomingEvents
+      });
+    } catch (error: any) {
+      console.error('Error fetching sidebar events:', error);
+      res.status(500).json({ 
+        code: 500,
+        message: 'Internal server error. Please try again later.',
+        data: []
+      });
+    }
+  });
+
   // Modern events creation endpoint with role assignment support
   app.post("/api/events", authMiddleware, async (req, res) => {
     try {

@@ -142,9 +142,12 @@ export const events = pgTable("events", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   imageUrl: text("image_url"),
+  eventType: varchar("event_type", { length: 50 }).default("milonga"), // practica, milonga, marathon, encuentro, festival, competition
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date"),
   location: text("location"),
+  city: varchar("city", { length: 100 }),
+  country: varchar("country", { length: 100 }),
   latitude: text("latitude"),
   longitude: text("longitude"),
   price: text("price"),
