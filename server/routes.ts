@@ -3077,27 +3077,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get resume data from existing database structure
   app.get('/api/resume', isAuthenticated, async (req, res) => {
     try {
-      // Get user ID from Replit auth session or request context
-      const sessionUserId = (req as any).user?.id || (req as any).session?.user?.id;
-      const queryUserId = req.query.user_id;
-      const userId = queryUserId || sessionUserId;
+      // Get user ID from Replit auth session - use the same pattern as other endpoints
+      const replitId = (req as any).session?.passport?.user?.claims?.sub;
       
-      console.log('🎯 Resume API called - Session user:', sessionUserId, 'Query user:', queryUserId, 'Final userId:', userId);
-      console.log('🔍 Full session:', JSON.stringify((req as any).session, null, 2));
-      console.log('🔍 Full user:', JSON.stringify((req as any).user, null, 2));
+      console.log('🎯 Resume API called - Replit ID from session:', replitId);
       
-      if (!userId) {
-        console.log('❌ No user ID found in session or query');
-        return res.status(400).json({
-          code: 400,
-          message: 'User ID not found',
+      if (!replitId) {
+        console.log('❌ No Replit ID found in session');
+        return res.status(401).json({
+          code: 401,
+          message: 'Authentication required',
           data: null
         });
       }
       
+      // Get user from database by Replit ID
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        console.log('❌ User not found for Replit ID:', replitId);
+        return res.status(404).json({
+          code: 404,
+          message: 'User not found',
+          data: null
+        });
+      }
+      
+      console.log('👤 Found user:', user.id, user.name);
+      
       // Get accepted roles using existing storage method
-      const acceptedRoles = await storage.getUserAcceptedRoles(parseInt(userId));
-      console.log('📋 Raw accepted roles from storage:', JSON.stringify(acceptedRoles, null, 2));
+      const acceptedRoles = await storage.getUserAcceptedRoles(user.id);
+      console.log('📋 Resume data for user', user.id, '- roles count:', acceptedRoles.length);
       
       // Transform data to match expected format
       const resumeData = acceptedRoles.map((role: any) => ({

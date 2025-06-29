@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, Star, Download, ChevronDown, Link2, User } from 'lucide-react';
+import { Calendar, MapPin, Star, Download, ChevronDown, Link2, User, AlertCircle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -253,8 +253,21 @@ export default function ResumePage() {
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600">Error loading resume data</p>
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="text-center py-12">
+          <AlertCircle className="h-16 w-16 mx-auto mb-4 text-red-300" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load resume</h3>
+          <p className="text-red-600 mb-4">
+            {error.message.includes('401') || error.message.includes('Authentication')
+              ? 'You must be logged in to view your resume.'
+              : 'Error loading resume data. Please try again later.'}
+          </p>
+          <p className="text-sm text-gray-500">
+            {error.message.includes('401') || error.message.includes('Authentication')
+              ? 'Please log in and try again.'
+              : `Details: ${error.message}`}
+          </p>
+        </div>
       </div>
     );
   }
