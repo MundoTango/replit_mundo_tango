@@ -15,7 +15,8 @@ import {
   Users,
   Heart,
   Video,
-  Info
+  Info,
+  Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import RoleBadge from '@/components/RoleBadge';

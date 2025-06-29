@@ -2965,9 +2965,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/resume', isAuthenticated, async (req, res) => {
     try {
       const userId = req.query.user_id || (req as any).user.id;
+      console.log('🎯 Resume API called for user ID:', userId);
       
       // Get accepted roles using existing storage method
       const acceptedRoles = await storage.getUserAcceptedRoles(parseInt(userId));
+      console.log('📋 Raw accepted roles from storage:', JSON.stringify(acceptedRoles, null, 2));
       
       // Transform data to match expected format
       const resumeData = acceptedRoles.map((role: any) => ({
@@ -2979,13 +2981,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         accepted_at: role.respondedAt
       }));
 
+      console.log('✅ Transformed resume data:', JSON.stringify(resumeData, null, 2));
+
       res.json({
         code: 200,
         message: 'Resume data retrieved successfully',
         data: resumeData
       });
     } catch (error) {
-      console.error('Error getting resume data:', error);
+      console.error('❌ Error getting resume data:', error);
       res.status(500).json({
         code: 500,
         message: 'Failed to retrieve resume',

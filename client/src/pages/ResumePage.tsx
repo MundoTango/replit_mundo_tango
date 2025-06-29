@@ -25,7 +25,28 @@ export default function ResumePage() {
 
   const { data: resumeData, isLoading, error } = useQuery({
     queryKey: ['/api/resume', user?.id],
-    queryFn: () => apiRequest(`/api/resume?user_id=${user?.id}`),
+    queryFn: async () => {
+      console.log('🎯 Fetching resume data for user:', user?.id);
+      const response = await fetch('/api/resume', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('📡 Resume API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Resume API error:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log('📋 Resume data received:', data);
+      return data;
+    },
     enabled: !!user?.id,
   });
 
