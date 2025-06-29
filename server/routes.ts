@@ -2964,12 +2964,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get resume data from existing database structure
   app.get('/api/resume', isAuthenticated, async (req, res) => {
     try {
-      // Get user ID from authenticated session
-      const sessionUserId = (req as any).user?.id;
+      // Get user ID from Replit auth session or request context
+      const sessionUserId = (req as any).user?.id || (req as any).session?.user?.id;
       const queryUserId = req.query.user_id;
       const userId = queryUserId || sessionUserId;
       
       console.log('🎯 Resume API called - Session user:', sessionUserId, 'Query user:', queryUserId, 'Final userId:', userId);
+      console.log('🔍 Full session:', JSON.stringify((req as any).session, null, 2));
+      console.log('🔍 Full user:', JSON.stringify((req as any).user, null, 2));
       
       if (!userId) {
         console.log('❌ No user ID found in session or query');
