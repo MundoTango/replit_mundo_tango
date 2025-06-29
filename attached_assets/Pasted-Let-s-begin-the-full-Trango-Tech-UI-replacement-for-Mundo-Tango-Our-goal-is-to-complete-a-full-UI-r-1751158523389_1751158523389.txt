@@ -1,0 +1,21 @@
+Let's begin the full Trango Tech UI replacement for Mundo Tango. Our goal is to complete a full UI refresh across the platform, replacing all legacy TT components and styling with the updated Mundo Tango wireframe and design system.
+
+Start by running this checklist and implementing each part in sequence:
+
+✅ 1. Replace the old sidebar navigation (TrangoTechSidebar) with the new layout: use updated icons, positioning, and font styles. Ensure mobile responsiveness.
+✅ 2. Refactor the header layout to match the new Mundo Tango branding (gradient background, profile circle with initials or photo, friend/message buttons).
+✅ 3. Update the event creation form to include: title, description, location, datetime pickers, max attendees, tags, media uploader, visibility toggles, and **role assignment** (DJ, teacher, host, performer, etc.).
+✅ 4. Implement the Profile Page full redesign: banner, badges (dancer, traveler, etc.), friend status, timeline/media tabs, and new sidebar with dancing stats.
+✅ 5. Complete the **ResumePage** layout using year-grouped role history cards and role filters, PDF export, and public sharing.
+✅ 6. Create the **PublicResumePage** view at `/u/:username/resume`, accessible without login. Include banner, public notice, and hide any export buttons.
+✅ 7. Add consistent Tailwind styling across all pages using soft shadows, `rounded-2xl`, `p-4`, muted text colors, and badge/button utilities.
+✅ 8. Refactor all buttons, inputs, tabs, and cards using the new design tokens (fonts, spacing, colors, borders).
+✅ 9. Replace all placeholder or Trango Tech icons with the new icon set (Lucide or equivalent).
+✅ 10. Add the new Timeline Feed layout and placeholder (empty state text, sample post card).
+✅ 11. Update the Groups page with new layout: banner, group description, member list, join button, and group events module.
+✅ 12. Replace all modal designs (e.g., for Create Event, Edit Profile) with new modal style: centered, `rounded-2xl`, clean header/footer separation.
+✅ 13. Implement toast notifications using the new system design (confirmation, error, action feedback).
+✅ 14. Review all routing and make sure each updated page is accessible from its correct route and has proper transitions.
+✅ 15. Clean up and remove unused TT components, icons, styles, and folders from the codebase.
+
+Let’s start with the sidebar and header layout, then proceed down the checklist. Ask before skipping any item.
