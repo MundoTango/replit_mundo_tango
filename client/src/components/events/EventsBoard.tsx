@@ -32,7 +32,7 @@ interface Event {
     username: string;
     profileImage?: string;
   };
-  userStatus?: 'going' | 'interested' | null;
+  userStatus?: 'going' | 'interested' | 'invited' | null;
 }
 
 const eventTypes: EventType[] = [
@@ -162,8 +162,18 @@ export default function EventsBoard() {
                       {typeInfo.name}
                     </Badge>
                     {event.userStatus && (
-                      <Badge className="bg-green-100 text-green-700 border-0 text-xs font-bold px-2 py-1 rounded-lg">
-                        {event.userStatus === 'going' ? 'Going' : 'Interested'}
+                      <Badge className={`border-0 text-xs font-bold px-2 py-1 rounded-lg ${
+                        event.userStatus === 'going' 
+                          ? 'bg-green-100 text-green-700' 
+                          : event.userStatus === 'interested'
+                          ? 'bg-blue-100 text-blue-700'
+                          : event.userStatus === 'invited'
+                          ? 'bg-purple-100 text-purple-700'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {event.userStatus === 'going' && '✓ Going'}
+                        {event.userStatus === 'interested' && '★ Interested'}
+                        {event.userStatus === 'invited' && '✉ Invited'}
                       </Badge>
                     )}
                   </div>
@@ -198,7 +208,7 @@ export default function EventsBoard() {
               {/* Organizer */}
               <div className="flex items-center gap-2 mt-4 pt-3 border-t border-blue-100/50">
                 <div className="w-6 h-6 rounded-full bg-gradient-to-br from-coral-200 to-pink-200 flex items-center justify-center">
-                  {event.user.profileImage ? (
+                  {event.user?.profileImage ? (
                     <img
                       src={event.user.profileImage}
                       alt={event.user.name}
@@ -206,12 +216,12 @@ export default function EventsBoard() {
                     />
                   ) : (
                     <span className="text-coral-600 text-xs font-bold">
-                      {event.user.name.charAt(0)}
+                      {event.user?.name?.charAt(0) || 'U'}
                     </span>
                   )}
                 </div>
                 <span className="text-blue-600/70 text-sm font-medium">
-                  by {event.user.name}
+                  by {event.user?.name || 'Unknown Organizer'}
                 </span>
               </div>
             </div>

@@ -142,19 +142,42 @@ export const events = pgTable("events", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   imageUrl: text("image_url"),
-  eventType: varchar("event_type", { length: 50 }).default("milonga"), // practica, milonga, marathon, encuentro, festival, competition
+  eventType: varchar("event_type", { length: 50 }).default("milonga"), // practica, milonga, marathon, encuentro, festival, competition, workshop, clase, social
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date"),
   location: text("location"),
+  venue: varchar("venue", { length: 255 }),
+  address: text("address"),
   city: varchar("city", { length: 100 }),
   country: varchar("country", { length: 100 }),
   latitude: text("latitude"),
   longitude: text("longitude"),
   price: text("price"),
+  currency: varchar("currency", { length: 10 }).default("USD"),
+  ticketUrl: text("ticket_url"),
   maxAttendees: integer("max_attendees"),
   currentAttendees: integer("current_attendees").default(0),
   isPublic: boolean("is_public").default(true),
-  status: varchar("status", { length: 20 }).default("active"),
+  requiresApproval: boolean("requires_approval").default(false),
+  ageRestriction: integer("age_restriction"),
+  dressCode: varchar("dress_code", { length: 100 }),
+  musicStyle: varchar("music_style", { length: 100 }),
+  level: varchar("level", { length: 50 }), // beginner, intermediate, advanced, all_levels
+  specialGuests: text("special_guests"),
+  contactEmail: varchar("contact_email", { length: 255 }),
+  contactPhone: varchar("contact_phone", { length: 50 }),
+  websiteUrl: text("website_url"),
+  facebookUrl: text("facebook_url"),
+  instagramUrl: text("instagram_url"),
+  cancellationPolicy: text("cancellation_policy"),
+  refundPolicy: text("refund_policy"),
+  accessibilityInfo: text("accessibility_info"),
+  parkingInfo: text("parking_info"),
+  tags: text("tags").array(),
+  isRecurring: boolean("is_recurring").default(false),
+  recurringPattern: varchar("recurring_pattern", { length: 50 }), // weekly, monthly, none
+  seriesId: integer("series_id"), // For recurring events
+  status: varchar("status", { length: 20 }).default("active"), // active, cancelled, postponed, completed
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -164,7 +187,45 @@ export const eventRsvps = pgTable("event_rsvps", {
   id: serial("id").primaryKey(),
   eventId: integer("event_id").references(() => events.id).notNull(),
   userId: integer("user_id").references(() => users.id).notNull(),
-  status: varchar("status", { length: 20 }).notNull(), // going, interested, not_going
+  status: varchar("status", { length: 20 }).notNull(), // going, interested, maybe, not_going
+  notes: text("notes"),
+  notificationPreferences: text("notification_preferences").array(), // reminders, updates, cancellations
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Event Invitations table
+export const eventInvitations = pgTable("event_invitations", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").references(() => events.id).notNull(),
+  inviterId: integer("inviter_id").references(() => users.id).notNull(),
+  inviteeId: integer("invitee_id").references(() => users.id).notNull(),
+  status: varchar("status", { length: 20 }).default("pending"), // pending, accepted, declined
+  message: text("message"),
+  sentAt: timestamp("sent_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+});
+
+// User followed cities table
+export const userFollowedCities = pgTable("user_followed_cities", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  city: varchar("city", { length: 100 }).notNull(),
+  country: varchar("country", { length: 100 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Event series table for recurring events
+export const eventSeries = pgTable("event_series", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  pattern: varchar("pattern", { length: 50 }).notNull(), // weekly, monthly, custom
+  venue: varchar("venue", { length: 255 }),
+  city: varchar("city", { length: 100 }),
+  country: varchar("country", { length: 100 }),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -654,3 +715,11 @@ export const insertEventParticipantSchema = createInsertSchema(eventParticipants
 
 export type EventParticipant = typeof eventParticipants.$inferSelect;
 export type InsertEventParticipant = z.infer<typeof insertEventParticipantSchema>;
+
+// Additional event-related types
+export type EventInvitation = typeof eventInvitations.$inferSelect;
+export type InsertEventInvitation = typeof eventInvitations.$inferInsert;
+export type UserFollowedCity = typeof userFollowedCities.$inferSelect;
+export type InsertUserFollowedCity = typeof userFollowedCities.$inferInsert;
+export type EventSeries = typeof eventSeries.$inferSelect;
+export type InsertEventSeries = typeof eventSeries.$inferInsert;

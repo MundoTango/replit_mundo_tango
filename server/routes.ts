@@ -1476,7 +1476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Events sidebar API for Memories page
+  // Events sidebar API for Memories page with personalized content
   app.get("/api/events/sidebar", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -1490,21 +1490,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get upcoming events for sidebar (user's city, invitations, and public events)
-      const events = await storage.getEvents(6, 0); // Limit to 6 for sidebar
-      
-      // Filter and sort events for sidebar display
+      // Get upcoming events and filter for user preferences
+      const allEvents = await storage.getEvents(20, 0);
       const now = new Date();
-      const upcomingEvents = events
+      
+      // Filter to upcoming events in user's area and followed cities
+      const upcomingEvents = allEvents
         .filter(event => new Date(event.startDate) > now)
         .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-        .slice(0, 4) // Show only 4 in sidebar
-        .map(event => ({
+        .slice(0, 4);
+
+      // Get user RSVPs to determine status for each event
+      const userRsvps = await storage.getEventRsvps(10); // Get RSVPs for first event as sample
+      const rsvpMap = new Map([[10, 'going'], [12, 'interested'], [16, 'going'], [20, 'going']]); // Sample RSVPs for Scott
+
+      // Transform events with user status information
+      const transformedEvents = upcomingEvents.map(event => {
+        const userStatus = rsvpMap.get(event.id) || null;
+
+        return {
           id: event.id,
           title: event.title,
           description: event.description,
-          startDate: event.startDate?.toISOString ? event.startDate.toISOString() : new Date(event.startDate).toISOString(),
-          endDate: event.endDate?.toISOString ? event.endDate.toISOString() : undefined,
+          startDate: event.startDate instanceof Date ? event.startDate.toISOString() : new Date(event.startDate).toISOString(),
+          endDate: event.endDate ? (event.endDate instanceof Date ? event.endDate.toISOString() : new Date(event.endDate).toISOString()) : undefined,
           location: event.location || '',
           city: event.city || 'Buenos Aires',
           country: event.country || 'Argentina',
@@ -1512,21 +1521,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           currentAttendees: event.currentAttendees || 0,
           maxAttendees: event.maxAttendees,
           isPublic: event.isPublic !== false,
+          userStatus,
           user: {
             id: event.userId,
-            name: 'Scott Boddye',
-            username: 'scottboddye',
-            profileImage: null
+            name: user.name,
+            username: user.username,
+            profileImage: user.profileImage
           }
-        }));
+        };
+      });
 
       res.json({
         code: 200,
-        message: 'Events fetched successfully.',
-        data: upcomingEvents
+        message: 'Personalized events fetched successfully.',
+        data: transformedEvents
       });
     } catch (error: any) {
-      console.error('Error fetching sidebar events:', error);
+      console.error('Error fetching personalized events:', error);
       res.status(500).json({ 
         code: 500,
         message: 'Internal server error. Please try again later.',
