@@ -215,6 +215,33 @@ export default function PostDetailModal({
     return colors[role.toLowerCase()] || 'bg-gray-100 text-gray-700';
   };
 
+  // Helper function to render text with @mentions as clickable links
+  const renderWithMentions = (text: string) => {
+    const mentionRegex = /@([\w\d_]+)/g;
+    const parts = text.split(mentionRegex);
+    
+    return parts.map((part, index) => {
+      // If this part matches a username (odd indexes after split)
+      if (index % 2 === 1) {
+        return (
+          <a
+            key={index}
+            href={`/u/${part}`}
+            className="text-blue-500 hover:underline font-medium"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = `/u/${part}`;
+            }}
+          >
+            @{part}
+          </a>
+        );
+      }
+      // Regular text part
+      return part;
+    });
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -395,7 +422,7 @@ export default function PostDetailModal({
                             </span>
                           </div>
                           <p className="text-sm text-gray-700 leading-relaxed">
-                            {comment.content}
+                            {renderWithMentions(comment.content)}
                           </p>
                         </div>
                       </div>
