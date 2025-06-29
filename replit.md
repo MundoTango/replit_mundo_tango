@@ -369,6 +369,14 @@ Changelog:
   * Integrated PostComposer with saveReusedMediaToMemory function automatically saving metadata to memory_media table
   * Built comprehensive error handling with graceful degradation and detailed console logging
   * Complete media reuse system eliminates redundant uploads while preserving contextual metadata for each usage
+- June 29, 2025. Tag-based post filtering system for Moments feed implemented:
+  * Created comprehensive tag filtering UI with search input, add button, and removable tag chips
+  * Enhanced PostFeed component with tag state management and real-time filtering capabilities
+  * Implemented complex backend JOIN queries filtering posts through memory_media and media_tags tables
+  * Updated storage interface and routes to support filterTags parameter with array handling
+  * Added GROUP BY and HAVING clauses ensuring posts match all specified tags using COUNT(DISTINCT)
+  * Integrated React Query cache invalidation for real-time filter updates without page refresh
+  * Complete tag filtering system enables precise content discovery based on media metadata
 ```
 
 ## User Preferences
