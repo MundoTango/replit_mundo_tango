@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Heart } from 'lucide-react';
+import { Heart, Search, X, Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import PostItem from './PostItem';
@@ -32,13 +32,18 @@ export default function PostFeed() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [filterBy, setFilterBy] = useState<'all' | 'following' | 'nearby'>('all');
+  const [filterTags, setFilterTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
 
   // Fetch posts
   const { data: posts, isLoading } = useQuery({
-    queryKey: ['/api/posts/feed', filterBy],
+    queryKey: ['/api/posts/feed', filterBy, filterTags],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filterBy !== 'all') params.append('filter', filterBy);
+      if (filterTags.length > 0) {
+        filterTags.forEach(tag => params.append('tags', tag));
+      }
       
       const response = await fetch(`/api/posts/feed?${params}`, {
         credentials: 'include'
@@ -47,6 +52,26 @@ export default function PostFeed() {
       return result.data || [];
     }
   });
+
+  // Tag filtering functions
+  const addTag = (tag: string) => {
+    const trimmedTag = tag.trim().toLowerCase();
+    if (trimmedTag && !filterTags.includes(trimmedTag)) {
+      setFilterTags([...filterTags, trimmedTag]);
+      setTagInput('');
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setFilterTags(filterTags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleTagInputKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag(tagInput);
+    }
+  };
 
   // Like post mutation
   const likePostMutation = useMutation({
@@ -117,6 +142,56 @@ export default function PostFeed() {
 
   return (
     <div className="space-y-6">
+      {/* Tag Filter Section */}
+      <div className="card">
+        <div className="flex items-center gap-3 mb-3">
+          <Tag className="h-5 w-5 text-gray-500" />
+          <h3 className="font-medium text-gray-900">Filter by Media Tags</h3>
+        </div>
+        
+        {/* Tag Input */}
+        <div className="flex gap-2 mb-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyPress={handleTagInputKeyPress}
+              placeholder="Enter tag name and press Enter..."
+              className="input-text pl-10 w-full"
+            />
+          </div>
+          <button
+            onClick={() => addTag(tagInput)}
+            disabled={!tagInput.trim()}
+            className="btn-color btn-color:disabled"
+          >
+            Add
+          </button>
+        </div>
+
+        {/* Active Filter Tags */}
+        {filterTags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {filterTags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+              >
+                #{tag}
+                <button
+                  onClick={() => removeTag(tag)}
+                  className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Filter Tabs - TT Style */}
       <div className="flex items-center gap-2 bg-white p-1 rounded-lg border border-gray-200">
         {(['all', 'following', 'nearby'] as const).map((filter) => (

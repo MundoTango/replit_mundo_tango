@@ -1316,8 +1316,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
+      const filterTags = req.query.tags ? (Array.isArray(req.query.tags) ? req.query.tags : [req.query.tags]) : [];
 
-      const posts = await storage.getFeedPosts(user.id, limit, offset);
+      const posts = await storage.getFeedPosts(user.id, limit, offset, filterTags);
       res.json({ success: true, data: posts });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });

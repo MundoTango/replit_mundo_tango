@@ -70,7 +70,7 @@ export interface IStorage {
   createPost(post: InsertPost): Promise<Post>;
   getPostById(id: number): Promise<Post | undefined>;
   getUserPosts(userId: number, limit?: number, offset?: number): Promise<Post[]>;
-  getFeedPosts(userId: number, limit?: number, offset?: number): Promise<Post[]>;
+  getFeedPosts(userId: number, limit?: number, offset?: number, filterTags?: string[]): Promise<Post[]>;
   likePost(postId: number, userId: number): Promise<void>;
   unlikePost(postId: number, userId: number): Promise<void>;
   commentOnPost(postId: number, userId: number, content: string): Promise<PostComment>;
@@ -213,7 +213,7 @@ export class DatabaseStorage implements IStorage {
       .offset(offset);
   }
 
-  async getFeedPosts(userId: number, limit = 20, offset = 0): Promise<Post[]> {
+  async getFeedPosts(userId: number, limit = 20, offset = 0, filterTags: string[] = []): Promise<Post[]> {
     // Get posts from followed users and own posts
     const followingIds = await db
       .select({ id: follows.followingId })
@@ -222,31 +222,86 @@ export class DatabaseStorage implements IStorage {
 
     const userIds = [userId, ...followingIds.map(f => f.id)];
 
-    // For now, show all public posts to populate the feed
-    const feedPosts = await db
-      .select({
-        id: posts.id,
-        userId: posts.userId,
-        content: posts.content,
-        imageUrl: posts.imageUrl,
-        videoUrl: posts.videoUrl,
-        likesCount: posts.likesCount,
-        commentsCount: posts.commentsCount,
-        sharesCount: posts.sharesCount,
-        hashtags: posts.hashtags,
-        isPublic: posts.isPublic,
-        createdAt: posts.createdAt,
-        updatedAt: posts.updatedAt,
-        userName: users.name,
-        userUsername: users.username,
-        userProfileImage: users.profileImage,
-      })
-      .from(posts)
-      .leftJoin(users, eq(posts.userId, users.id))
-      .where(eq(posts.isPublic, true))
-      .orderBy(desc(posts.createdAt))
-      .limit(limit)
-      .offset(offset);
+    let feedPosts;
+
+    // If tag filtering is enabled, use a different query with JOINs
+    if (filterTags.length > 0) {
+      feedPosts = await db
+        .select({
+          id: posts.id,
+          userId: posts.userId,
+          content: posts.content,
+          imageUrl: posts.imageUrl,
+          videoUrl: posts.videoUrl,
+          likesCount: posts.likesCount,
+          commentsCount: posts.commentsCount,
+          sharesCount: posts.sharesCount,
+          hashtags: posts.hashtags,
+          isPublic: posts.isPublic,
+          createdAt: posts.createdAt,
+          updatedAt: posts.updatedAt,
+          userName: users.name,
+          userUsername: users.username,
+          userProfileImage: users.profileImage,
+        })
+        .from(posts)
+        .leftJoin(users, eq(posts.userId, users.id))
+        .innerJoin(memoryMedia, eq(posts.id, memoryMedia.memoryId))
+        .innerJoin(mediaTags, eq(memoryMedia.mediaId, mediaTags.mediaId))
+        .where(
+          and(
+            eq(posts.isPublic, true),
+            inArray(mediaTags.tag, filterTags)
+          )
+        )
+        .groupBy(
+          posts.id,
+          posts.userId,
+          posts.content,
+          posts.imageUrl,
+          posts.videoUrl,
+          posts.likesCount,
+          posts.commentsCount,
+          posts.sharesCount,
+          posts.hashtags,
+          posts.isPublic,
+          posts.createdAt,
+          posts.updatedAt,
+          users.name,
+          users.username,
+          users.profileImage
+        )
+        .having(sql`COUNT(DISTINCT ${mediaTags.tag}) >= ${filterTags.length}`)
+        .orderBy(desc(posts.createdAt))
+        .limit(limit)
+        .offset(offset);
+    } else {
+      // For all posts without tag filtering
+      feedPosts = await db
+        .select({
+          id: posts.id,
+          userId: posts.userId,
+          content: posts.content,
+          imageUrl: posts.imageUrl,
+          videoUrl: posts.videoUrl,
+          likesCount: posts.likesCount,
+          commentsCount: posts.commentsCount,
+          sharesCount: posts.sharesCount,
+          hashtags: posts.hashtags,
+          isPublic: posts.isPublic,
+          createdAt: posts.createdAt,
+          updatedAt: posts.updatedAt,
+          userName: users.name,
+          userUsername: users.username,
+          userProfileImage: users.profileImage,
+        })
+        .from(posts)
+        .leftJoin(users, eq(posts.userId, users.id))
+        .where(eq(posts.isPublic, true))
+        .orderBy(desc(posts.createdAt))
+        .limit(limit)
+        .offset(offset);
+    }
 
     // Transform to include user object
     return feedPosts.map(post => ({
