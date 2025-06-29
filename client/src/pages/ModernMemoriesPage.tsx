@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../contexts/auth-context';
+import { useAuthContext } from '../../auth/useAuthContext';
 import ModernMemoriesHeader from '@/components/modern/ModernMemoriesHeader';
 import ModernPostComposer from '@/components/modern/ModernPostComposer';
 import ModernPostCard from '@/components/modern/ModernPostCard';
@@ -30,8 +30,8 @@ interface Post {
   };
 }
 
-export default function MomentsPage() {
-  const { user } = useAuth();
+export default function ModernMemoriesPage() {
+  const { user } = useAuthContext();
   const queryClient = useQueryClient();
   const [showComposer, setShowComposer] = useState(false);
   const [activeTags, setActiveTags] = useState<string[]>([]);
