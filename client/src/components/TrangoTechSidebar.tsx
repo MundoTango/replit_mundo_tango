@@ -12,7 +12,8 @@ import {
   BookOpen,
   BarChart3,
   Sparkles,
-  MapPin
+  MapPin,
+  Shield
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -62,6 +63,18 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       link: "/invitations",
     },
   ];
+
+  // Add admin route for super admins
+  const adminRoute = {
+    icon: <Shield className="w-5 h-5" />,
+    title: "Admin Portal",
+    link: "/admin",
+  };
+
+  // Combine routes with conditional admin access
+  const allRoutes = user?.roles?.includes('super_admin') 
+    ? [...sidebarRoutes, adminRoute] 
+    : sidebarRoutes;
 
   // Mundo Tango Global Statistics
   const globalStats = [
@@ -185,7 +198,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           <div className="px-4 mb-6">
             <div className="text-xs uppercase font-semibold text-gray-500 tracking-wide mb-3">Menu</div>
             <div className="space-y-1">
-              {sidebarRoutes.map(({ icon, title, link }, index) => (
+              {allRoutes.map(({ icon, title, link }, index) => (
                 <div
                   key={index}
                   onClick={() => handleLinkClick(link)}

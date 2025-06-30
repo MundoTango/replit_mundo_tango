@@ -11,6 +11,7 @@ interface User {
   isOnboardingComplete?: boolean;
   codeOfConductAccepted?: boolean;
   tangoRoles?: string[];
+  roles?: string[];
 }
 
 export function useAuth() {

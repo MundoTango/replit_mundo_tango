@@ -26,6 +26,7 @@ import ResumePage from "@/pages/ResumePage";
 import PublicResumePage from "@/pages/PublicResumePage";
 import { NotionHomePage } from "@/pages/NotionHomePage";
 import { NotionEntryPage } from "@/pages/NotionEntryPage";
+import AdminPage from "@/pages/admin";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -93,6 +94,7 @@ function Router() {
       <Route path="/messages" component={Messages} />
       <Route path="/stories" component={NotionHomePage} />
       <Route path="/stories/:slug" component={NotionEntryPage} />
+      <Route path="/admin" component={AdminPage} />
       <Route component={NotFound} />
     </Switch>
   );

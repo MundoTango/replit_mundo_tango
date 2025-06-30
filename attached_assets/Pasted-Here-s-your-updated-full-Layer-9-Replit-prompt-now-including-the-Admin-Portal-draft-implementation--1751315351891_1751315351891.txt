@@ -1,0 +1,83 @@
+Here’s your updated full Layer 9 Replit prompt, now including the Admin Portal draft implementation and QA test coverage triggers:
+
+⸻
+
+🧠 Replit Prompt: Layer 9 – System-Wide QA, Visual Sync, and Admin Portal for Mundo Tango
+
+You are building and validating Mundo Tango, a memory-centric, consent-aware, socially intelligent platform. The Layer 9 system combines full-stack architecture with consent, tagging, emotional design, and role-based access.
+
+You’ve already implemented:
+	•	✅ Replit Auth + Supabase RLS
+	•	✅ Memory creation, consent approval, @mention, filters
+	•	✅ Moments Page with full design system
+
+Now run a full system-wide QA, visual unification, and build the Admin Portal with proper RBAC and automated test coverage.
+
+⸻
+
+✅ Primary Objectives
+
+1. 🔍 Run System-Wide QA + Design Unification
+	•	Validate every feature end-to-end (memory flow, consent, mentions)
+	•	Apply Moments page styling across all pages:
+	•	Memory views
+	•	Role dashboards
+	•	Consent UI
+	•	Profile/event/group pages
+	•	Fix visual or functional inconsistencies
+
+⸻
+
+2. 🏛️ Draft Replit-Ready Implementation for the Admin Portal
+
+Item	Implementation
+Route	/admin
+Entry Point	Add “Admin” nav item (visible to super_admin)
+Auth	Auto-verify via Supabase RLS + CASL (role = super_admin)
+UI Components	
+
+	•	UserRoleTable.tsx – View/edit user roles
+	•	ConsentReviewBoard.tsx – Review pending/denied items
+	•	AuditTrailViewer.tsx – Consent logs, edits
+	•	SystemStatsPanel.tsx – Metrics, growth loops
+| Data Sources |
+	•	users, roles, memories, consent_events, audit_logs
+| Design | Use Moments theme: indigo/coral accents, glowing borders, cards, MUI + Tailwind hybrid |
+| Security | All endpoints protected by CASL + Supabase policies |
+
+⸻
+
+3. 🧪 Define Test Cases and Trigger Coverage Runs
+
+Set up test coverage to validate:
+	•	Memory creation (w/mentions, tags, location)
+	•	Consent flow (pending → approved → surfacing)
+	•	Mention parsing + rendering
+	•	Role switching
+	•	Admin role access
+	•	Filter queries (emotion, date, event)
+	•	Unauthorized access prevention (RBAC)
+
+📁 Add tests in tests/:
+	•	memory_flow.test.tsx
+	•	consent_flow.test.tsx
+	•	mentions.test.tsx
+	•	admin_access.test.tsx
+
+🧰 Tools:
+	•	jest, react-testing-library, supabase-js, cypress (optional)
+	•	Add Supabase role mocks if needed
+
+⸻
+
+📦 Additional Deliverables
+	•	client/src/pages/admin.tsx + subcomponents
+	•	/admin/roles, /admin/consent, /admin/audit
+	•	Supabase SQL: role policies, RLS for admin-only data
+	•	Admin entry point button
+	•	ADMIN_PORTAL_IMPLEMENTATION.md summary
+	•	Full screenshots + response logs
+
+⸻
+
+Would you like the Admin Portal built now as a Replit-ready module, or prefer to start with the test definitions and assertions first?
