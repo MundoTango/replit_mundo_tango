@@ -49,7 +49,7 @@ import {
   type CreatorExperience,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, sql, count, like, inArray } from "drizzle-orm";
+import { eq, desc, and, or, sql, count, like, inArray, gte, lt, lte, ilike } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 export interface IStorage {
@@ -92,13 +92,13 @@ export interface IStorage {
   getEventRsvps(eventId: number): Promise<EventRsvp[]>;
   
   // Personalized event queries
-  getPersonalizedEvents(userId: number, limit?: number): Promise<{
-    going: Event[];
-    interested: Event[];
-    invited: Event[];
-    inUserCity: Event[];
-    inFollowedCities: Event[];
-  }>;
+  getPersonalizedEvents(userId: number, options?: {
+    filter?: string;
+    timeframe?: string;
+    searchQuery?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Event[]>;
   getUserFollowedCities(userId: number): Promise<UserFollowedCity[]>;
   addFollowedCity(userId: number, city: string, country: string): Promise<UserFollowedCity>;
   removeFollowedCity(userId: number, cityId: number): Promise<void>;
@@ -1193,6 +1193,113 @@ export class DatabaseStorage implements IStorage {
       .where(eq(mediaAssets.id, mediaId))
       .limit(1);
     return asset || undefined;
+  }
+
+  async getPersonalizedEvents(userId: number, options?: {
+    filter?: string;
+    timeframe?: string;
+    searchQuery?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Event[]> {
+    const { filter = 'all', timeframe = 'upcoming', searchQuery = '', limit = 20, offset = 0 } = options || {};
+    
+    let query = db
+      .select({
+        id: events.id,
+        userId: events.userId,
+        title: events.title,
+        description: events.description,
+        imageUrl: events.imageUrl,
+        eventType: events.eventType,
+        startDate: events.startDate,
+        endDate: events.endDate,
+        location: events.location,
+        city: events.city,
+        country: events.country,
+        venue: events.venue,
+        address: events.address,
+        maxAttendees: events.maxAttendees,
+        currentAttendees: events.currentAttendees,
+        isPublic: events.isPublic,
+        status: events.status,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        organizerName: users.name,
+        organizerUsername: users.username,
+        organizerProfileImage: users.profileImage,
+        userStatus: eventRsvps.status
+      })
+      .from(events)
+      .leftJoin(users, eq(events.userId, users.id))
+      .leftJoin(eventRsvps, and(
+        eq(eventRsvps.eventId, events.id),
+        eq(eventRsvps.userId, userId)
+      ));
+
+    // Apply filters
+    const conditions = [];
+    
+    // Timeframe filtering
+    if (timeframe === 'upcoming') {
+      conditions.push(gte(events.startDate, new Date()));
+    } else if (timeframe === 'past') {
+      conditions.push(lt(events.startDate, new Date()));
+    } else if (timeframe === 'this_week') {
+      const now = new Date();
+      const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      conditions.push(and(
+        gte(events.startDate, now),
+        lte(events.startDate, weekEnd)
+      ));
+    }
+
+    // User-specific filtering
+    if (filter === 'my') {
+      conditions.push(eq(events.userId, userId));
+    } else if (filter === 'attending') {
+      conditions.push(eq(eventRsvps.status, 'going'));
+    } else if (filter === 'nearby') {
+      // For nearby, we'll get user's city and filter by that
+      const user = await this.getUser(userId);
+      if (user?.city && user?.country) {
+        conditions.push(and(
+          eq(events.city, user.city),
+          eq(events.country, user.country)
+        ));
+      }
+    }
+
+    // Search query filtering
+    if (searchQuery) {
+      conditions.push(
+        or(
+          ilike(events.title, `%${searchQuery}%`),
+          ilike(events.description, `%${searchQuery}%`),
+          ilike(events.location, `%${searchQuery}%`)
+        )
+      );
+    }
+
+    // Apply public visibility unless user is viewing their own events
+    if (filter !== 'my') {
+      conditions.push(eq(events.isPublic, true));
+    }
+
+    // Apply active status
+    conditions.push(eq(events.status, 'active'));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    // Apply ordering, limit, and offset
+    const results = await query
+      .orderBy(desc(events.startDate))
+      .limit(limit)
+      .offset(offset);
+
+    return results;
   }
 }
 

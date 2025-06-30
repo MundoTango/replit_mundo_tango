@@ -1465,15 +1465,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/events", authMiddleware, async (req, res) => {
+  app.get("/api/events", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
+      const filter = req.query.filter as string || 'all';
+      const timeframe = req.query.timeframe as string || 'upcoming';
+      const searchQuery = req.query.q as string || '';
 
-      const events = await storage.getEvents(limit, offset);
-      res.json({ success: true, data: events });
+      // Fetch events with organizer information
+      const allEvents = await storage.getEvents(limit, offset);
+      
+      // Get organizer details for each event
+      const eventsWithOrganizers = await Promise.all(
+        allEvents.map(async (event) => {
+          const organizer = await storage.getUser(event.userId);
+          return {
+            ...event,
+            organizerName: organizer?.name || 'Unknown Organizer',
+            organizerUsername: organizer?.username || 'unknown',
+            organizerProfileImage: organizer?.profileImage || null,
+            userStatus: null
+          };
+        })
+      );
+      
+      res.json({ 
+        code: 200, 
+        message: "Events retrieved successfully", 
+        data: eventsWithOrganizers 
+      });
     } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
+      console.error('Error fetching events:', error);
+      res.status(500).json({ code: 500, message: error.message });
     }
   });
 
@@ -1548,7 +1579,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Modern events creation endpoint with role assignment support
-  app.post("/api/events", authMiddleware, async (req, res) => {
+  app.post("/api/events", isAuthenticated, async (req: any, res) => {
     try {
       const validatedData = insertEventSchema.parse({
         userId: req.user!.id,

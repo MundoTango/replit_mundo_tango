@@ -91,8 +91,17 @@ export default function EventsPage() {
       if (activeTab !== 'upcoming') params.append('timeframe', activeTab);
       
       const response = await fetch(`/api/events?${params}`, {
-        credentials: 'include'
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const result = await response.json();
       return result.data || [];
     }
