@@ -1,5 +1,7 @@
 import { Express } from "express";
 import { createServer, type Server } from "http";
+import * as path from 'path';
+import * as fs from 'fs';
 import { setupVite, serveStatic, log } from "./vite";
 import { authMiddleware } from "./middleware/auth";
 import { setupUpload } from "./middleware/upload";
@@ -1003,6 +1005,177 @@ export async function registerRoutes(app: Express): Promise<Server> {
         code: 500,
         message: 'Internal server error. Please try again later.',
         data: {}
+      });
+    }
+  });
+
+  // Enhanced post creation endpoint with rich text, mentions, hashtags, and multimedia
+  app.post('/api/posts/enhanced', isAuthenticated, upload.array('media', 10), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      const { 
+        content, 
+        richContent, 
+        visibility = 'public', 
+        location = '', 
+        socialEmbeds = '[]',
+        replyToPostId 
+      } = req.body;
+
+      // Validate content
+      if (!content?.trim() && (!req.files || req.files.length === 0) && socialEmbeds === '[]') {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Post must contain text, media, or social embeds'
+        });
+      }
+
+      // Parse social embeds
+      let parsedSocialEmbeds = [];
+      try {
+        parsedSocialEmbeds = JSON.parse(socialEmbeds);
+      } catch (e) {
+        // Ignore invalid JSON
+      }
+
+      // Extract mentions and hashtags from content
+      const mentions = extractMentions(content);
+      const hashtags = extractHashtags(content);
+
+      // Process uploaded media files
+      const mediaUrls = [];
+      if (req.files && req.files.length > 0) {
+        for (const file of req.files) {
+          // Save file and get URL (simplified for now)
+          const filename = `${Date.now()}-${file.originalname}`;
+          const filepath = path.join(__dirname, '../uploads', filename);
+          await fs.promises.writeFile(filepath, file.buffer);
+          mediaUrls.push(`/uploads/${filename}`);
+        }
+      }
+
+      // Create the enhanced post
+      const post = await storage.createEnhancedPost({
+        userId: user.id,
+        content: content.trim(),
+        richContent: richContent || content,
+        plainText: content.replace(/<[^>]*>/g, '').trim(),
+        location: location || null,
+        visibility: visibility === 'public',
+        mediaUrls,
+        socialEmbeds: parsedSocialEmbeds,
+        mentions,
+        hashtags,
+        replyToPostId: replyToPostId ? parseInt(replyToPostId) : null
+      });
+
+      // Send notifications for mentions
+      if (mentions.length > 0) {
+        await sendMentionNotifications(mentions, post, user);
+      }
+
+      res.json({
+        success: true,
+        message: 'Post created successfully',
+        data: post
+      });
+    } catch (error: any) {
+      console.error('Error creating enhanced post:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to create post. Please try again.'
+      });
+    }
+  });
+
+  // Helper functions for content processing
+  function extractMentions(content: string): string[] {
+    const mentionRegex = /@\[\[([^\]]+)\]\]/g;
+    const mentions = [];
+    let match;
+    while ((match = mentionRegex.exec(content)) !== null) {
+      mentions.push(match[1]);
+    }
+    return mentions;
+  }
+
+  function extractHashtags(content: string): string[] {
+    const hashtagRegex = /#(\w+)/g;
+    const hashtags = [];
+    let match;
+    while ((match = hashtagRegex.exec(content)) !== null) {
+      hashtags.push(match[1]);
+    }
+    return hashtags;
+  }
+
+  async function sendMentionNotifications(mentions: string[], post: any, mentioner: any) {
+    // Implementation for sending notifications to mentioned users
+    // This would integrate with the notification system
+    console.log(`Sending mention notifications for post ${post.id} to:`, mentions);
+  }
+
+  // Enhanced user search for mentions
+  app.get('/api/users/search', isAuthenticated, async (req, res) => {
+    try {
+      const query = req.query.q as string || '';
+      const limit = parseInt(req.query.limit as string) || 20;
+
+      const users = await storage.searchUsers(query, limit);
+      
+      // Format for mention component
+      const formattedUsers = users.map(user => ({
+        id: user.id,
+        username: user.username || user.name,
+        name: user.name,
+        profileImage: user.profileImage,
+        display: user.username || user.name
+      }));
+
+      res.json({
+        success: true,
+        data: formattedUsers
+      });
+    } catch (error: any) {
+      console.error('Error searching users:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to search users'
+      });
+    }
+  });
+
+  // Trending hashtags endpoint
+  app.get('/api/hashtags/trending', async (req, res) => {
+    try {
+      // This would typically query a hashtags table or analyze recent posts
+      const trendingHashtags = [
+        'tango', 'milonga', 'argentino', 'buenosaires', 'dance',
+        'passion', 'music', 'festival', 'practica', 'embrace',
+        'connection', 'improvisation', 'elegance', 'culture', 'love'
+      ];
+
+      res.json({
+        success: true,
+        data: trendingHashtags.map(tag => ({
+          name: tag,
+          count: Math.floor(Math.random() * 1000) + 100 // Mock count for now
+        }))
+      });
+    } catch (error: any) {
+      console.error('Error fetching trending hashtags:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch trending hashtags'
       });
     }
   });

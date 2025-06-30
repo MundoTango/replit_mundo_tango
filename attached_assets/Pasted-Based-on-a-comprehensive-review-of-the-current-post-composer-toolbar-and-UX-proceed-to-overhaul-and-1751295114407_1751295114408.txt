@@ -1,0 +1,50 @@
+Based on a comprehensive review of the current post composer toolbar and UX, proceed to overhaul and enhance the post creation experience on Mundo Tango as follows:
+
+Key Objectives:
+	•	Deliver a modern, user-friendly, and intuitive post composer that supports rich text, inline mentions, hashtags, emoji, multimedia, and social sharing.
+	•	Align UX flows with industry standards as seen in Twitter, Instagram, LinkedIn, and Discord.
+	•	Replace flawed current implementations with seamless integrations that enhance engagement and content richness.
+
+Tasks:
+	1.	Emoji Integration:
+	•	Replace current static emoji grid with a dynamic emoji picker.
+	•	Use emoji-picker-react or a similar library supporting:
+	•	Extensive emoji set with categories (people, nature, food, activities, etc.)
+	•	Search/filter functionality
+	•	Skin tone options and recently used emojis
+	•	Ensure emojis insert inline at cursor position inside the rich text editor (React Quill).
+	•	Allow multiple emoji selections without picker closing after each insertion.
+	2.	Mentions (@) Implementation:
+	•	Remove the current separate input field approach for mentions.
+	•	Implement inline mention detection using libraries like react-mentions or @draft-js-plugins/mention.
+	•	Enable real-time autocomplete dropdown with user search and avatar previews.
+	•	Style mentions distinctly inline with blue highlight.
+	•	Mentions should be clickable, linking to user profiles.
+	3.	Hashtags (#) Implementation:
+	•	Remove the separate hashtag input UI.
+	•	Implement inline hashtag detection and styling using libraries like react-hashtag.
+	•	Provide trending hashtag suggestions as users type.
+	•	Style hashtags distinctly and make them clickable for hashtag feed navigation.
+	4.	Rich Text Editor Integration:
+	•	Ensure all toolbar actions integrate cleanly with the React Quill editor instance.
+	•	Avoid any manipulation of plain text input fields outside the rich text editor.
+	•	Support standard formatting (bold, italics, lists, links) as baseline.
+	5.	Additional Enhancements:
+	•	Integrate multimedia embedding (images, videos, social media URLs) directly into the post content.
+	•	Support drag and drop uploads and preview thumbnails.
+	•	Implement inline validation and feedback for mentions and hashtags.
+	6.	Testing & Documentation:
+	•	Develop a comprehensive testing checklist and user flow documentation for all post composer features.
+	•	Include cases for emoji insertion, mentions autocomplete, hashtag detection, multimedia uploads, and posting workflow.
+	•	Ensure accessibility compliance (keyboard navigation, screen reader support).
+	7.	Performance & UX Optimizations:
+	•	Optimize rendering and event handling for smooth typing and interaction.
+	•	Use debounced queries for autocomplete to reduce backend load.
+	•	Provide graceful fallbacks for unsupported browsers or features.
+
+Deliverables:
+	•	Fully functional, visually polished post composer component (EnhancedPostComposer.tsx) integrated into the Memories page.
+	•	Updated backend API endpoints supporting rich text, mentions, hashtags, media upload, and notifications.
+	•	Complete test cases and user flow documentation in markdown or your preferred format.
+
+Please use the existing TT files and open source references as a design and functional baseline. Suggest any additional UX or technical improvements you identify during implementation.

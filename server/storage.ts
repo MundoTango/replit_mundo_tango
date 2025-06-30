@@ -226,6 +226,49 @@ export class DatabaseStorage implements IStorage {
     return newPost;
   }
 
+  // Enhanced post creation with rich content, mentions, hashtags, and multimedia
+  async createEnhancedPost(data: {
+    userId: number;
+    content: string;
+    richContent: string;
+    plainText: string;
+    location?: string | null;
+    visibility: boolean;
+    mediaUrls: string[];
+    socialEmbeds: any[];
+    mentions: string[];
+    hashtags: string[];
+    replyToPostId?: number | null;
+  }): Promise<Post> {
+    const postData: InsertPost = {
+      userId: data.userId,
+      content: data.content,
+      richContent: data.richContent,
+      plainText: data.plainText,
+      location: data.location,
+      isPublic: data.visibility,
+      imageUrl: data.mediaUrls.length > 0 ? data.mediaUrls[0] : null,
+      videoUrl: data.mediaUrls.find(url => url.includes('.mp4') || url.includes('.mov')) || null,
+      hashtags: data.hashtags,
+      mediaEmbeds: data.socialEmbeds,
+      mentions: data.mentions,
+      parentPostId: data.replyToPostId,
+      likesCount: 0,
+      commentsCount: 0,
+      sharesCount: 0,
+      isEdited: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const [newPost] = await db
+      .insert(posts)
+      .values(postData)
+      .returning();
+    
+    return newPost;
+  }
+
   async getPostById(id: number): Promise<Post | undefined> {
     const [post] = await db.select().from(posts).where(eq(posts.id, id));
     return post || undefined;
