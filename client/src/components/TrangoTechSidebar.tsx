@@ -9,6 +9,7 @@ import {
   Network,
   X,
   Mail,
+  BookOpen,
   BarChart3,
   Sparkles,
   MapPin
@@ -49,6 +50,11 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       icon: <Calendar className="w-5 h-5" />,
       title: "Events",
       link: "/events",
+    },
+    {
+      icon: <BookOpen className="w-5 h-5" />,
+      title: "Tango Stories",
+      link: "/stories",
     },
     {
       icon: <Mail className="w-5 h-5" />,

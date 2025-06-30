@@ -17,6 +17,7 @@ import { authService, UserRole } from "./services/authService";
 import { enhancedRoleService, AllRoles } from "./services/enhancedRoleService";
 import { requireRole, requireAdmin, ensureUserProfile, auditRoleAction } from "./middleware/roleAuth";
 import { supabase } from "./supabaseClient";
+import { getNotionEntries, getNotionEntryBySlug, getNotionFilterOptions } from "./notion.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
@@ -2737,6 +2738,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
         code: 500,
         message: 'Internal server error',
         data: null
+      });
+    }
+  });
+
+  // === NOTION INTEGRATION ROUTES ===
+  
+  // Get all Notion entries with optional filtering
+  app.get('/api/notion/entries', async (req, res) => {
+    try {
+      const { visibility, type, tags, emotionalTone } = req.query;
+      
+      const filters: any = {};
+      
+      if (visibility && typeof visibility === 'string') {
+        filters.visibility = visibility;
+      }
+      
+      if (type && typeof type === 'string') {
+        filters.type = type;
+      }
+      
+      if (emotionalTone && typeof emotionalTone === 'string') {
+        filters.emotionalTone = emotionalTone;
+      }
+      
+      if (tags && typeof tags === 'string') {
+        filters.tags = tags.split(',').map(tag => tag.trim());
+      }
+
+      const entries = await getNotionEntries(filters);
+      
+      res.json({
+        success: true,
+        data: entries
+      });
+    } catch (error) {
+      console.error('Error fetching Notion entries:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch entries from Notion'
+      });
+    }
+  });
+
+  // Get single Notion entry by slug
+  app.get('/api/notion/entries/:slug', async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const entry = await getNotionEntryBySlug(slug);
+      
+      if (!entry) {
+        return res.status(404).json({
+          success: false,
+          message: 'Entry not found'
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: entry
+      });
+    } catch (error) {
+      console.error('Error fetching Notion entry by slug:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch entry from Notion'
+      });
+    }
+  });
+
+  // Get filter options (types, tags, emotional tones)
+  app.get('/api/notion/filters', async (req, res) => {
+    try {
+      const options = await getNotionFilterOptions();
+      
+      res.json({
+        success: true,
+        data: options
+      });
+    } catch (error) {
+      console.error('Error fetching filter options:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch filter options'
       });
     }
   });

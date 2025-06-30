@@ -24,6 +24,8 @@ import Groups from "@/pages/groups";
 import Invitations from "@/pages/invitations";
 import ResumePage from "@/pages/ResumePage";
 import PublicResumePage from "@/pages/PublicResumePage";
+import { NotionHomePage } from "@/pages/NotionHomePage";
+import { NotionEntryPage } from "@/pages/NotionEntryPage";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -89,6 +91,8 @@ function Router() {
       <Route path="/profile/resume" component={ResumePage} />
       <Route path="/u/:username/resume" component={PublicResumePage} />
       <Route path="/messages" component={Messages} />
+      <Route path="/stories" component={NotionHomePage} />
+      <Route path="/stories/:slug" component={NotionEntryPage} />
       <Route component={NotFound} />
     </Switch>
   );
