@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -48,6 +48,17 @@ export default function RoleSelector({
 }: RoleSelectorProps) {
   const [showAll, setShowAll] = useState(false);
   const [showCustomRoleModal, setShowCustomRoleModal] = useState(false);
+  
+  // Debug logging for renders and state changes
+  useEffect(() => {
+    console.log('RoleSelector render:', { 
+      selectedRoles: selectedRoles?.length || 0, 
+      rolesCount: roles?.length || 0, 
+      isLoading, 
+      showAll, 
+      showCustomRoleModal 
+    });
+  }, [selectedRoles, roles, isLoading, showAll, showCustomRoleModal]);
   
   const handleRoleToggle = (roleName: string) => {
     console.log(`Role toggle clicked: ${roleName}`);
@@ -123,7 +134,11 @@ export default function RoleSelector({
                     : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-25'
                   }
                 `}
-                onClick={() => handleRoleToggle(role.name)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleRoleToggle(role.name);
+                }}
               >
                 <div className="flex items-start gap-3">
                   <Checkbox

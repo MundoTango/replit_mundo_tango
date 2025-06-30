@@ -1,0 +1,81 @@
+Role & Expertise:
+You are a Full-Stack React Debugging & Integration Specialist with expertise in React state management, controlled forms (React Hook Form), event handling, and complex UI workflows. Your goal is to restore the full “RoleSelector” component with all features (custom role requests, icons, modals) while ensuring no infinite re-renders or UI blocking issues occur, and verify that all registration fields function properly during onboarding.
+
+⸻
+
+Current Status:
+	•	“SimpleRoleSelector” debug component used temporarily to isolate infinite re-render issue.
+	•	User can now click roles without blank screens in the simple version.
+	•	Need to restore full “RoleSelector” with all functionality and UI polish.
+	•	Must preserve fixes that eliminated redundant event handlers and prevent double event triggering.
+
+⸻
+
+Next Steps:
+	1.	Frontend/UI
+
+	•	Replace the “SimpleRoleSelector” with the full “RoleSelector” component in the onboarding page.
+	•	Audit and remove any redundant event handlers (especially in handleRoleToggle, checkbox components, and container divs) to avoid double triggers.
+	•	Ensure preventDefault() and stopPropagation() are correctly used where needed.
+	•	Verify the custom role request modal is functional and doesn’t cause re-renders.
+	•	Add debug logging around key state changes and UI renders to monitor performance.
+	•	Thoroughly test all other registration form fields (text inputs, selects, checkboxes, date pickers, etc.) in the onboarding flow to confirm proper data capture, validation, and submission alongside role selection.
+
+	2.	Backend/API
+
+	•	Confirm /api/roles/community is stable and returns all roles promptly.
+	•	Verify role assignment API calls complete without errors during onboarding role selection and full form submission.
+	•	Validate that backend receives and saves all registration field data correctly.
+
+	3.	Middleware/Services
+
+	•	Ensure no middleware or interceptors interfere with role-related API calls or session data during onboarding.
+
+	4.	Database
+
+	•	Confirm all role data, including custom role requests, is saved correctly when selected or submitted.
+	•	Confirm other user profile and registration data fields are stored correctly in user and user_profile tables.
+
+	5.	Security & Compliance
+
+	•	Verify that no security rules block role retrieval or assignment during onboarding.
+	•	Ensure data access permissions correctly protect user data.
+
+	6.	Testing & Validation
+
+	•	Run existing unit and integration tests for RoleSelector and onboarding form.
+	•	Create or update tests simulating full user flow with the restored RoleSelector and full registration data.
+	•	Monitor tests for regressions related to event handling, state loops, or form validation.
+
+	7.	Documentation & Collaboration
+
+	•	Document any changes made to event handling, state logic, and registration validation in RoleSelector and onboarding components.
+	•	Communicate to frontend and QA teams about restoring full RoleSelector with fix applied and registration form validation status.
+
+	8.	Customer/User Testing
+
+	•	Request testers to verify role selection, including the “Other” custom role workflow, works flawlessly with no UI freezes or blank screens.
+	•	Verify all registration fields work as expected with proper validation and saving.
+	•	Collect feedback and error reports to catch subtle issues.
+
+⸻
+
+Explicit Validation Instructions:
+	•	Replace SimpleRoleSelector import and usage with RoleSelector in client/src/pages/onboarding.tsx.
+	•	Review client/src/components/onboarding/RoleSelector.tsx for event handlers and state management logic; refactor if needed.
+	•	Wrap RoleSelector in ErrorBoundary to catch and log any rendering errors.
+	•	Test role selection UI in devtools, enabling React Profiler to identify re-render patterns.
+	•	Execute npx jest tests/frontend/components/RoleSelector.test.tsx --verbose and E2E tests covering onboarding flow including all registration fields.
+
+⸻
+
+References:
+	•	Onboarding page: client/src/pages/onboarding.tsx
+	•	RoleSelector component: client/src/components/onboarding/RoleSelector.tsx
+	•	Debugging components: client/src/components/debugging/ErrorBoundary.tsx, client/src/components/debugging/SimpleRoleSelector.tsx
+	•	Backend API: server/routes.ts, server/storage.ts
+	•	Tests: tests/frontend/components/RoleSelector.test.tsx, tests/e2e/onboarding.cy.js
+
+⸻
+
+Please confirm when the full RoleSelector is restored with the infinite re-render fix intact, the onboarding role selection is fully functional with all UI features and custom role support, and all other registration form fields work correctly. Provide logs, screenshots, or test outputs. Ready to assist with further fixes or feature work next.

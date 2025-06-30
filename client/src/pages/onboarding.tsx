@@ -296,7 +296,7 @@ export default function Onboarding() {
                           console.error('Error Info:', errorInfo);
                         }}
                       >
-                        <SimpleRoleSelector
+                        <RoleSelector
                           roles={communityRoles || []}
                           selectedRoles={field.value || []}
                           onRoleChange={(roles) => {
