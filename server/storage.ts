@@ -178,6 +178,14 @@ export interface IStorage {
   getUserTrustCircles(userId: number): Promise<any[]>;
   createMemory(memoryData: any): Promise<any>;
   logMemoryAudit(auditData: any): Promise<void>;
+
+  // Layer 9: Consent Approval System Methods
+  getPendingConsentMemories(userId: number): Promise<any[]>;
+  createConsentEvent(memoryId: string, userId: number, action: string, reason?: string, metadata?: any): Promise<any>;
+  updateMemoryConsentStatus(memoryId: string): Promise<any>;
+  getUserMemoriesWithFilters(userId: number, filters: any): Promise<any[]>;
+  getMemoryById(memoryId: string): Promise<any>;
+  checkAllConsentDecisions(memoryId: string): Promise<{ approved: number[], denied: number[], pending: number[] }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1142,6 +1150,261 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error logging memory audit:', error);
       // Don't throw error for audit logging to avoid breaking main functionality
+    }
+  }
+
+  // Layer 9: Consent Approval System Implementation
+  async getPendingConsentMemories(userId: number): Promise<any[]> {
+    try {
+      const results = await db
+        .select({
+          id: sql<string>`m.id`,
+          title: sql<string>`m.title`,
+          content: sql<string>`m.content`,
+          emotionTags: sql<string[]>`m.emotion_tags`,
+          trustLevel: sql<string>`CASE 
+            WHEN m.trust_circle_level = 1 THEN 'basic'
+            WHEN m.trust_circle_level = 2 THEN 'close'
+            WHEN m.trust_circle_level = 3 THEN 'intimate'
+            WHEN m.trust_circle_level = 4 THEN 'sacred'
+            ELSE 'basic'
+          END`,
+          createdAt: sql<string>`m.created_at::text`,
+          eventId: sql<string>`m.event_id`,
+          eventTitle: sql<string>`e.title`,
+          location: sql<string>`m.location::text`,
+          creatorId: sql<number>`u.id`,
+          creatorName: sql<string>`u.name`,
+          creatorUsername: sql<string>`u.username`,
+          creatorProfileImage: sql<string>`u.profile_image`,
+          coTags: sql<number[]>`m.co_tagged_users`,
+          previewText: sql<string>`SUBSTRING(m.content, 1, 200)`
+        })
+        .from(sql`memories m`)
+        .leftJoin(sql`events e`, sql`e.id = m.event_id`)
+        .leftJoin(sql`users u`, sql`u.id = m.user_id`)
+        .where(sql`${userId} = ANY(m.co_tagged_users) AND (m.consent_status = 'pending' OR m.consent_status IS NULL)`)
+        .orderBy(sql`m.created_at DESC`);
+
+      return results.map(result => ({
+        id: result.id,
+        title: result.title,
+        content: result.content,
+        emotionTags: result.emotionTags || [],
+        trustLevel: result.trustLevel,
+        createdAt: result.createdAt,
+        eventId: result.eventId,
+        eventTitle: result.eventTitle,
+        location: result.location,
+        creator: {
+          id: result.creatorId,
+          name: result.creatorName,
+          username: result.creatorUsername,
+          profileImage: result.creatorProfileImage
+        },
+        coTags: result.coTags || [],
+        previewText: result.previewText
+      }));
+    } catch (error) {
+      console.error('Error fetching pending consent memories:', error);
+      return [];
+    }
+  }
+
+  async createConsentEvent(memoryId: string, userId: number, action: string, reason?: string, metadata?: any): Promise<any> {
+    try {
+      const consentEvent = await db
+        .insert(sql`consent_events`)
+        .values({
+          id: sql`gen_random_uuid()::text`,
+          memory_id: memoryId,
+          user_id: userId,
+          action,
+          reason: reason || null,
+          metadata: JSON.stringify(metadata || {}),
+          ip_address: metadata?.ip_address || null,
+          user_agent: metadata?.user_agent || null
+        })
+        .returning({
+          id: sql<string>`id`,
+          memory_id: sql<string>`memory_id`,
+          user_id: sql<number>`user_id`,
+          action: sql<string>`action`,
+          timestamp: sql<string>`timestamp::text`
+        });
+
+      return consentEvent[0];
+    } catch (error) {
+      console.error('Error creating consent event:', error);
+      throw error;
+    }
+  }
+
+  async updateMemoryConsentStatus(memoryId: string): Promise<any> {
+    try {
+      // Get all consent decisions for this memory
+      const decisions = await this.checkAllConsentDecisions(memoryId);
+      
+      let newStatus = 'pending';
+      if (decisions.denied.length > 0) {
+        newStatus = 'denied';
+      } else if (decisions.pending.length === 0 && decisions.approved.length > 0) {
+        newStatus = 'granted';
+      } else if (decisions.approved.length > 0 && decisions.pending.length > 0) {
+        newStatus = 'partial';
+      }
+
+      // Update memory consent status
+      const updatedMemory = await db
+        .update(sql`memories`)
+        .set({
+          consent_status: newStatus,
+          approved_consents: JSON.stringify(decisions.approved),
+          denied_consents: JSON.stringify(decisions.denied),
+          pending_consents: JSON.stringify(decisions.pending)
+        })
+        .where(sql`id = ${memoryId}`)
+        .returning({
+          id: sql<string>`id`,
+          consent_status: sql<string>`consent_status`
+        });
+
+      return updatedMemory[0];
+    } catch (error) {
+      console.error('Error updating memory consent status:', error);
+      throw error;
+    }
+  }
+
+  async checkAllConsentDecisions(memoryId: string): Promise<{ approved: number[], denied: number[], pending: number[] }> {
+    try {
+      // Get the memory and its co-tagged users
+      const memoryResult = await db
+        .select({
+          coTags: sql<number[]>`co_tagged_users`
+        })
+        .from(sql`memories`)
+        .where(sql`id = ${memoryId}`)
+        .limit(1);
+
+      if (!memoryResult[0]) {
+        return { approved: [], denied: [], pending: [] };
+      }
+
+      const coTaggedUsers = memoryResult[0].coTags || [];
+      
+      // Get all consent events for this memory
+      const consentEvents = await db
+        .select({
+          user_id: sql<number>`user_id`,
+          action: sql<string>`action`,
+          timestamp: sql<string>`timestamp::text`
+        })
+        .from(sql`consent_events`)
+        .where(sql`memory_id = ${memoryId}`)
+        .orderBy(sql`timestamp DESC`);
+
+      // Track latest decision for each user
+      const userDecisions: { [key: number]: string } = {};
+      consentEvents.forEach(event => {
+        if (!userDecisions[event.user_id]) {
+          userDecisions[event.user_id] = event.action;
+        }
+      });
+
+      // Categorize users by their consent status
+      const approved: number[] = [];
+      const denied: number[] = [];
+      const pending: number[] = [];
+
+      coTaggedUsers.forEach(userId => {
+        const decision = userDecisions[userId];
+        if (decision === 'approve') {
+          approved.push(userId);
+        } else if (decision === 'deny') {
+          denied.push(userId);
+        } else {
+          pending.push(userId);
+        }
+      });
+
+      return { approved, denied, pending };
+    } catch (error) {
+      console.error('Error checking consent decisions:', error);
+      return { approved: [], denied: [], pending: [] };
+    }
+  }
+
+  async getUserMemoriesWithFilters(userId: number, filters: any): Promise<any[]> {
+    try {
+      let whereConditions = [`m.user_id = ${userId}`];
+      
+      // Add emotion tags filter
+      if (filters.emotions && filters.emotions.length > 0) {
+        whereConditions.push(`m.emotion_tags && ARRAY[${filters.emotions.map((e: string) => `'${e}'`).join(',')}]::TEXT[]`);
+      }
+      
+      // Add date range filter
+      if (filters.dateRange && filters.dateRange.start && filters.dateRange.end) {
+        whereConditions.push(`m.created_at BETWEEN '${filters.dateRange.start}' AND '${filters.dateRange.end}'`);
+      }
+      
+      // Add event filter
+      if (filters.event) {
+        whereConditions.push(`m.event_id = ${filters.event}`);
+      }
+
+      const whereClause = whereConditions.join(' AND ');
+
+      const results = await db
+        .select({
+          id: sql<string>`m.id`,
+          title: sql<string>`m.title`,
+          content: sql<string>`m.content`,
+          emotionTags: sql<string[]>`m.emotion_tags`,
+          trustLevel: sql<number>`m.trust_circle_level`,
+          createdAt: sql<string>`m.created_at::text`,
+          eventId: sql<string>`m.event_id`,
+          eventTitle: sql<string>`e.title`,
+          location: sql<string>`m.location::text`,
+          consentStatus: sql<string>`m.consent_status`
+        })
+        .from(sql`memories m`)
+        .leftJoin(sql`events e`, sql`e.id = m.event_id`)
+        .where(sql.raw(whereClause))
+        .orderBy(sql`m.created_at DESC`);
+
+      return results;
+    } catch (error) {
+      console.error('Error fetching user memories with filters:', error);
+      return [];
+    }
+  }
+
+  async getMemoryById(memoryId: string): Promise<any> {
+    try {
+      const result = await db
+        .select({
+          id: sql<string>`m.id`,
+          title: sql<string>`m.title`,
+          content: sql<string>`m.content`,
+          emotionTags: sql<string[]>`m.emotion_tags`,
+          trustLevel: sql<number>`m.trust_circle_level`,
+          createdAt: sql<string>`m.created_at::text`,
+          eventId: sql<string>`m.event_id`,
+          location: sql<string>`m.location::text`,
+          coTags: sql<number[]>`m.co_tagged_users`,
+          consentStatus: sql<string>`m.consent_status`,
+          userId: sql<number>`m.user_id`
+        })
+        .from(sql`memories m`)
+        .where(sql`m.id = ${memoryId}`)
+        .limit(1);
+
+      return result[0] || null;
+    } catch (error) {
+      console.error('Error fetching memory by ID:', error);
+      return null;
     }
   }
 }

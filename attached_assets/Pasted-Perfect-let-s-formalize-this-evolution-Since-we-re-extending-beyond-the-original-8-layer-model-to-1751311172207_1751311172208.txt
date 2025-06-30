@@ -1,0 +1,122 @@
+Perfect — let’s formalize this evolution. Since we’re extending beyond the original 8-layer model to include user-driven visibility control and real-time filtering interfaces, it makes sense to introduce:
+
+⸻
+
+🧠 Replit Prompt: Layer 9 — Consent Approval UI + Memory Viewer Filters
+
+(Part of the 9-Layer Secure Memory System for Mundo Tango)
+
+📘 Context
+
+You’re building an advanced memory and consent system that spans:
+	1.	Frontend role-based interaction
+	2.	Backend logic and session enforcement
+	3.	OAuth mapping (Replit → Supabase)
+	4.	RBAC/ABAC security
+	5.	Emotional metadata with trust layers
+	6.	Consent-aware creation logic
+	7.	Admin dashboards and logging
+	8.	Explainability + traceable actions
+	9.	✅ Now: User-facing filtering and approval
+
+⸻
+
+🧩 Layer 9 Objectives
+
+Enable end-users to:
+	•	✅ Approve or deny memories they were tagged in
+	•	✅ Filter their visible memories by emotional tone, date, and event
+
+This layer completes the loop of memory lifecycle: from creation → consent → surfacing.
+
+⸻
+
+🔧 Feature 1: Consent Approval UI
+
+✅ Component: PendingConsentMemories.tsx
+	•	Route: /memories/pending-consent
+	•	Shows all memories where:
+	•	consent_status = 'pending'
+	•	co_tags includes the logged-in user.id
+
+💬 Per-Memory Display:
+	•	Memory preview (title, emotion tags, creator name, date)
+	•	✅ Approve button → PATCH /api/memories/:id/consent { action: 'approve' }
+	•	❌ Deny button → { action: 'deny' }
+
+🔐 Auth
+	•	Require Replit OAuth
+	•	Validate that user.id ∈ co_tags[]
+
+🧾 Supabase: Add consent_events table
+
+CREATE TABLE consent_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  memory_id UUID REFERENCES memories(id),
+  user_id UUID REFERENCES users(id),
+  action TEXT CHECK (action IN ('approve', 'deny')),
+  timestamp TIMESTAMPTZ DEFAULT now()
+);
+
+🎯 Logic:
+	•	If all co_tags approve → update memories.consent_status = 'granted'
+	•	If any deny → update memories.consent_status = 'denied'
+
+⸻
+
+🔧 Feature 2: Memory Viewer Filter Bar
+
+✅ Update: MemoryDashboard.tsx
+
+Add filter chips above the memory list:
+	•	🎭 Emotion Tags (multi-select)
+	•	📆 Date Range (calendar picker)
+	•	🎪 Event (dropdown)
+
+🧠 State Hook:
+
+const [filters, setFilters] = useState({
+  emotions: [],
+  dateRange: null,
+  event: null,
+});
+
+🔎 Modify fetchMemoriesByRole:
+	•	Accept optional filters in request
+	•	Query Supabase:
+	•	emotion_tags @> ARRAY['joyful']::TEXT[]
+	•	date BETWEEN start AND end
+	•	event_id = selected_event_id
+
+⸻
+
+✅ Layer 9 Deliverables
+	•	Component: PendingConsentMemories.tsx
+	•	API Route: PATCH /api/memories/:id/consent
+	•	Supabase Table: consent_events
+	•	UI: Filter bar in MemoryDashboard.tsx
+	•	Docs: Update replit.md with screenshots + schema
+
+⸻
+
+🧪 Test Scenarios
+
+Scenario	Outcome
+A is tagged in B’s memory	Appears in A’s /pending-consent
+A clicks Approve	Consent granted, memory becomes visible
+A clicks Deny	Memory hidden for all, status = denied
+C views memories	Can filter by “Joyful” + “Naples Festival”
+Role = DJ	Filters emotional tags scoped to crowd-related emotions
+
+
+⸻
+
+🚀 Ready to Generate:
+
+Would you like me to now:
+	•	✳️ Build PendingConsentMemories.tsx component?
+	•	🟪 Generate Supabase SQL for consent_events?
+	•	🔶 Add the full FilterBar component?
+	•	🧾 Write the PATCH /api/memories/:id/consent route?
+
+Just name the piece you want first and I’ll drop the full code.

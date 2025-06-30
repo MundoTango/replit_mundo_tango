@@ -54,6 +54,26 @@ CREATE TABLE IF NOT EXISTS trust_circles (
     UNIQUE(user_id, trusted_user_id)
 );
 
+-- Layer 9: Consent Events for Memory Approval Workflow
+CREATE TABLE IF NOT EXISTS consent_events (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    memory_id TEXT NOT NULL REFERENCES memories(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    action TEXT NOT NULL CHECK (action IN ('approve', 'deny')),
+    reason TEXT,
+    metadata JSONB DEFAULT '{}',
+    ip_address INET,
+    user_agent TEXT,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enhanced memories table with consent status tracking
+ALTER TABLE memories ADD COLUMN IF NOT EXISTS consent_status TEXT DEFAULT 'pending' CHECK (consent_status IN ('pending', 'granted', 'denied', 'partial'));
+ALTER TABLE memories ADD COLUMN IF NOT EXISTS pending_consents INTEGER[] DEFAULT '{}';
+ALTER TABLE memories ADD COLUMN IF NOT EXISTS approved_consents INTEGER[] DEFAULT '{}';
+ALTER TABLE memories ADD COLUMN IF NOT EXISTS denied_consents INTEGER[] DEFAULT '{}';
+
 -- Enhanced custom role requests with memory permissions
 ALTER TABLE custom_role_requests ADD COLUMN IF NOT EXISTS memory_permissions JSONB DEFAULT '{}';
 ALTER TABLE custom_role_requests ADD COLUMN IF NOT EXISTS emotional_access_requested TEXT[] DEFAULT '{}';

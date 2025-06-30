@@ -4452,6 +4452,216 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Layer 9: Consent Approval System API Endpoints
+
+  // Get pending consent memories for a user
+  app.get('/api/memories/pending-consent', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const pendingMemories = await storage.getPendingConsentMemories(userId);
+      
+      await storage.logMemoryAudit({
+        user_id: userId,
+        action_type: 'view',
+        result: 'allowed',
+        metadata: {
+          endpoint: '/api/memories/pending-consent',
+          memories_count: pendingMemories.length
+        },
+        ip_address: req.ip,
+        user_agent: req.get('User-Agent')
+      });
+
+      res.json({
+        success: true,
+        data: pendingMemories,
+        count: pendingMemories.length
+      });
+    } catch (error) {
+      console.error('Error fetching pending consent memories:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch pending consent memories',
+        data: []
+      });
+    }
+  });
+
+  // Handle consent decision (approve/deny)
+  app.patch('/api/memories/:id/consent', isAuthenticated, async (req, res) => {
+    try {
+      const memoryId = req.params.id;
+      const { action, reason, userId: targetUserId } = req.body;
+      const actingUserId = req.user!.id;
+
+      // Validate action
+      if (!['approve', 'deny'].includes(action)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid action. Must be "approve" or "deny"'
+        });
+      }
+
+      // Get the memory to verify the user is tagged in it
+      const memory = await storage.getMemoryById(memoryId);
+      if (!memory) {
+        return res.status(404).json({
+          success: false,
+          message: 'Memory not found'
+        });
+      }
+
+      // Verify user is tagged in the memory
+      if (!memory.coTags.includes(actingUserId)) {
+        return res.status(403).json({
+          success: false,
+          message: 'You are not authorized to provide consent for this memory'
+        });
+      }
+
+      // Create consent event
+      const consentEvent = await storage.createConsentEvent(
+        memoryId,
+        actingUserId,
+        action,
+        reason,
+        {
+          ip_address: req.ip,
+          user_agent: req.get('User-Agent'),
+          target_user_id: targetUserId
+        }
+      );
+
+      // Update memory consent status based on all decisions
+      const updatedMemory = await storage.updateMemoryConsentStatus(memoryId);
+
+      // Log the consent action
+      await storage.logMemoryAudit({
+        user_id: actingUserId,
+        memory_id: memoryId,
+        action_type: action === 'approve' ? 'consent_grant' : 'consent_revoke',
+        result: 'allowed',
+        metadata: {
+          consent_event_id: consentEvent.id,
+          new_consent_status: updatedMemory.consent_status,
+          reason: reason || null
+        },
+        ip_address: req.ip,
+        user_agent: req.get('User-Agent')
+      });
+
+      res.json({
+        success: true,
+        message: `Memory ${action}d successfully`,
+        data: {
+          consentEvent,
+          updatedStatus: updatedMemory.consent_status
+        }
+      });
+    } catch (error) {
+      console.error('Error processing consent decision:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to process consent decision'
+      });
+    }
+  });
+
+  // Get user memories with filters (Layer 9 filtering)
+  app.get('/api/memories/user-memories', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const filters = {
+        emotions: req.query.emotions ? (req.query.emotions as string).split(',') : [],
+        dateRange: req.query.dateStart && req.query.dateEnd ? {
+          start: req.query.dateStart,
+          end: req.query.dateEnd
+        } : null,
+        event: req.query.event ? parseInt(req.query.event as string) : null
+      };
+
+      const memories = await storage.getUserMemoriesWithFilters(userId, filters);
+      
+      await storage.logMemoryAudit({
+        user_id: userId,
+        action_type: 'view',
+        result: 'allowed',
+        metadata: {
+          endpoint: '/api/memories/user-memories',
+          filters: filters,
+          memories_count: memories.length
+        },
+        ip_address: req.ip,
+        user_agent: req.get('User-Agent')
+      });
+
+      res.json({
+        success: true,
+        data: memories,
+        filters: filters,
+        count: memories.length
+      });
+    } catch (error) {
+      console.error('Error fetching user memories with filters:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch user memories',
+        data: []
+      });
+    }
+  });
+
+  // Get memory by ID (for detailed view)
+  app.get('/api/memories/:id', isAuthenticated, async (req, res) => {
+    try {
+      const memoryId = req.params.id;
+      const userId = req.user!.id;
+      
+      const memory = await storage.getMemoryById(memoryId);
+      if (!memory) {
+        return res.status(404).json({
+          success: false,
+          message: 'Memory not found'
+        });
+      }
+
+      // Check if user has permission to view this memory
+      const canView = memory.userId === userId || 
+                     memory.coTags.includes(userId) ||
+                     memory.consentStatus === 'granted';
+
+      if (!canView) {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have permission to view this memory'
+        });
+      }
+
+      await storage.logMemoryAudit({
+        user_id: userId,
+        memory_id: memoryId,
+        action_type: 'view',
+        result: 'allowed',
+        metadata: {
+          endpoint: '/api/memories/:id'
+        },
+        ip_address: req.ip,
+        user_agent: req.get('User-Agent')
+      });
+
+      res.json({
+        success: true,
+        data: memory
+      });
+    } catch (error) {
+      console.error('Error fetching memory:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch memory'
+      });
+    }
+  });
+
   // Initialize Supabase Storage bucket on server start
   initializeStorageBucket();
 
