@@ -1,0 +1,50 @@
+Prompt for Replit:
+
+We’ve made great progress with the new ModernPostCreator component for Mundo Tango, but several issues remain to fully stabilize the user post functionality:
+	1.	User Mentions:
+
+	•	The mention autocomplete triggered by “@” does not currently suggest or fill with real test users. Ensure the autocomplete is fully integrated with the live test user dataset so mentions work seamlessly.
+	•	Verify that the mention styling and insertion occur inline within the rich text editor.
+
+	2.	Emoji Picker:
+
+	•	Emojis show correctly but do not insert properly into the editor content. Fix this so emoji selections insert at the correct cursor position in the rich text editor.
+
+	3.	Rich Text Editor (WYSIWYG):
+
+	•	The previous WYSIWYG editor seems missing or replaced by a plain text input. Ensure the rich text editor (React Quill or equivalent) is fully implemented and operational.
+	•	Confirm all formatting options (bold, italic, lists, links, etc.) work as expected.
+
+	4.	Media Upload:
+
+	•	Media upload should work smoothly via drag-drop or button click, with live preview thumbnails before submission. Test and fix any bugs here.
+
+	5.	Post Submission:
+
+	•	Posts are currently failing to create due to a database schema mismatch that you have addressed by adding columns (rich_content, mentions, media_embeds, visibility, etc.).
+	•	Verify that the entire post creation flow works end-to-end, including server-side API processing, database writes, and UI updates after submission.
+
+	6.	Test User Profiles:
+
+	•	Ensure the live autocomplete and mention system uses the actual test users created earlier (minimum 5 test users with varying roles). These users must be properly loaded and accessible for mentions and tagging.
+
+	7.	Additional UI Elements:
+
+	•	Clarify the purpose and functionality of the “Embed” option in the post composer toolbar and ensure it is implemented or temporarily removed if incomplete.
+	•	Confirm the location picker integrates with Google Maps API or placeholder for now.
+
+	8.	Testing Checklist & User Flow Documentation:
+
+	•	Create a detailed testing checklist or user flow document covering the entire post creation process, including:
+	•	Opening composer modal
+	•	Typing text with mentions and hashtags
+	•	Selecting emojis and inserting inline
+	•	Uploading media with preview
+	•	Adding location via picker
+	•	Setting visibility (Public/Friends/Private)
+	•	Submitting the post and verifying it appears on the feed
+	•	Provide documentation to help QA validate each feature systematically.
+
+⸻
+
+Please fix all issues systematically, test thoroughly, and confirm that the ModernPostCreator delivers a seamless, modern social post experience consistent with top platforms. Provide screenshots or screen recordings showing the successful mention autocomplete, emoji insertion, rich text formatting, media upload, and post submission with test user profiles.
