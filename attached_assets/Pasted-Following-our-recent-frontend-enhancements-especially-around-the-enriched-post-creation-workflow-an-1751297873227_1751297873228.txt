@@ -1,0 +1,43 @@
+Following our recent frontend enhancements, especially around the enriched post creation workflow and Google Maps location integration, please perform a comprehensive audit and update of the Supabase backend to fully support these new features. Specifically, please address the following:
+
+1. Database Schema Validation and Migration
+	•	Confirm that all new columns and tables required by the enhanced post system are correctly defined and migrated, including but not limited to:
+	•	posts table additions: location (text/json), mentions (text array), visibility (varchar), rich_content (json/text), media_embeds, hashtags, is_edited
+	•	New tables for comments, reactions, notifications, and post reports
+	•	Fix any schema drift or migration issues by pushing updates or applying direct SQL alterations as needed.
+	•	Backfill or normalize any existing location or mention data to comply with the new schema structure.
+
+2. Row-Level Security (RLS) Policies
+	•	Review and update RLS policies to cover new schema elements and tables:
+	•	Allow users to create, read, update, and delete posts with rich content and location data securely.
+	•	Secure comments, reactions, notifications, and moderation/reporting features with proper access controls.
+	•	Ensure policies do not over-restrict functionality or expose private data.
+	•	Implement automated RLS policy tests in the CI/CD pipeline to ensure ongoing compliance.
+
+3. Query Optimization and Indexing
+	•	Analyze query execution plans for all new and existing post-related queries, especially those involving location filtering, mention and hashtag searches, and comment retrieval.
+	•	Create or update database indexes to improve performance of:
+	•	Location-based queries (e.g., searching/filtering posts and events by user proximity)
+	•	Mentions and hashtags filtering
+	•	Pagination and sorting of posts and comments
+	•	Suggest caching strategies or materialized views if relevant for expensive or frequent queries.
+
+4. API and Backend Integration
+	•	Verify and update API endpoints (/api/posts/enhanced, /api/events, comment and notification endpoints) to fully support the enhanced post data model and location features.
+	•	Ensure seamless, secure read/write operations to Supabase that align with frontend expectations.
+
+5. Logging, Monitoring, and Alerts
+	•	Enable and configure logging for all critical Supabase database operations related to post creation, updates, location queries, and comment interactions.
+	•	Set up monitoring dashboards (e.g., pgAdmin, Supabase monitoring, Grafana) to visualize query performance and detect anomalies.
+	•	Configure automated alerts for slow queries, failed authorization attempts, or potential security policy violations.
+
+Deliverables
+	•	A detailed report documenting:
+	•	Current schema state, migrations applied, and any pending issues
+	•	RLS policy status, gaps, and recommended improvements
+	•	Indexing and query optimization changes made
+	•	Logs and monitoring setup details
+	•	Any blockers or further dependencies to resolve
+	•	Confirmation that the backend fully supports all new frontend features, including rich posts, mentions, emojis, media uploads, and location selection.
+
+Please coordinate with the frontend team for any clarifications needed around API contracts or feature expectations. Your thorough attention to securing and optimizing the Supabase backend is critical for the smooth rollout of these key features.

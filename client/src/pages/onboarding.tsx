@@ -14,6 +14,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { LocationPicker } from "@/components/onboarding/LocationPicker";
+import { GoogleMapsLocationPicker } from "@/components/onboarding/GoogleMapsLocationPicker";
 import RoleSelector from "@/components/onboarding/RoleSelector";
 import { Heart, Sparkles, Globe, Users, Music, Calendar, ArrowLeft, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -456,7 +457,7 @@ export default function Onboarding() {
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-indigo-700 transition-colors">Where are you exploring Tango the most?</FormLabel>
                     <FormControl>
-                      <LocationPicker
+                      <GoogleMapsLocationPicker
                         value={field.value}
                         onChange={field.onChange}
                         className="border-gray-200 focus:border-indigo-500 rounded-lg hover:border-indigo-300 transition-all duration-200 focus:shadow-lg focus:shadow-indigo-100"

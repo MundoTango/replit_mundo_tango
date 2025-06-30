@@ -50,7 +50,9 @@ export default function GoogleMapsAutocomplete({
     const initializeGoogleMaps = async () => {
       try {
         const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+        console.log('Google Maps API Key check:', apiKey ? 'Available' : 'Missing');
         if (!apiKey) {
+          console.error('Google Maps API key not found in environment variables');
           throw new Error('Google Maps API key not configured');
         }
         

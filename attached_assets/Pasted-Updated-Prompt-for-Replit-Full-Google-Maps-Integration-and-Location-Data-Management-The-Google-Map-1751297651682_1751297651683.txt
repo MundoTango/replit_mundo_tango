@@ -1,0 +1,39 @@
+Updated Prompt for Replit: Full Google Maps Integration and Location Data Management
+
+The Google Maps Platform integration across Mundo Tango is now functional and tested on core components including ModernPostCreator, Events page, and onboarding forms. This includes:
+	•	Real-time autocomplete with precise coordinate capture and standardized address formatting.
+	•	Map previews with draggable markers for event venue selection.
+	•	Rich text post creation with mentions, emojis, media upload, and Google Maps location tagging.
+	•	Comprehensive testing documentation created and passed.
+
+Please proceed with the following next steps:
+	1.	Complete rollout of Google Maps Places Autocomplete integration to all remaining location inputs throughout the platform, referencing the TT design and logic files to ensure no fields or flows are missed (e.g., user profiles, registration, event editing, post editing).
+	2.	Audit and standardize location data handling:
+	•	Ensure all location inputs use the reusable GoogleMapsAutocomplete component or variants specialized per context.
+	•	Validate all stored location data contains full structured details (address, lat/lng, city, state, postal code, country).
+	•	Update any legacy location inputs to this system.
+	3.	Manage API keys securely:
+	•	Confirm the Google Maps API keys are correctly stored as Replit secrets.
+	•	Update environment variables and frontend/backend configuration accordingly.
+	4.	Create or update documentation:
+	•	Provide developer instructions for adding new location inputs with Google Maps integration.
+	•	Document API key management and any limits/quota monitoring advice.
+	5.	Assist in identifying UX or functionality gaps based on TT files, ensuring the Google Maps integration meets all use cases and expected flows.
+	6.	Test all location inputs thoroughly to ensure autocomplete suggestions, map previews, selection, and storage all work smoothly without errors or UX issues.
+
+⸻
+
+Additional Questions / Info Needed:
+	•	Confirm if any location inputs should restrict autocomplete results to certain place types (cities only, addresses, establishments, etc.).
+	•	Provide TT design and logic files paths/URLs relevant to location input UX.
+	•	Confirm preferred schema details for location storage.
+	•	Provide any current known edge cases or limitations in the Google Maps integration.
+
+⸻
+
+Tech Debt Updates:
+	•	Full audit and rollout of Google Maps integration across all location inputs.
+	•	Standardize and store structured location data with lat/lng and address components.
+	•	Maintain secure and consistent API key management in Replit secrets.
+	•	Create developer and maintenance documentation for location integration.
+	•	Test and resolve any UX or technical issues discovered during rollout.
