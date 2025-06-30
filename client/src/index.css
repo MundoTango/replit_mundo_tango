@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Brand Color Definitions */
+:root {
+  --color-indigo-50: rgb(238 242 255);
+  --color-indigo-100: rgb(224 231 255);
+  --color-indigo-200: rgb(199 210 254);
+  --color-indigo-500: rgb(99 102 241);
+  --color-indigo-600: rgb(79 70 229);
+  --color-blue-gray-50: rgb(248 250 252);
+  --color-blue-gray-100: rgb(241 245 249);
+  --color-blue-gray-200: rgb(226 232 240);
+  --color-blue-gray-600: rgb(71 85 105);
+  --color-coral-50: rgb(255 247 237);
+  --color-coral-100: rgb(255 237 213);
+  --color-coral-200: rgb(254 215 170);
+  --color-coral-400: rgb(251 146 60);
+  --color-coral-500: rgb(249 115 22);
+  --color-cream-50: rgb(254 252 232);
+  --color-cream-100: rgb(254 249 195);
+}
+
 /* React Quill Enhanced Styling */
 .quill-editor .ql-toolbar {
   border: none !important;
