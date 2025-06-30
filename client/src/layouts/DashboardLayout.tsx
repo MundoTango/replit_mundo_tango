@@ -310,14 +310,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Modern Mundo Tango Sidebar */}
         <TrangoTechSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
-        {/* Main Content - Modern Layout */}
+        {/* Main Content - Optimized Layout */}
         <main className={cn(
-          "flex-1 transition-all duration-300 bg-gray-50",
+          "flex-1 transition-all duration-300 bg-gray-50 min-h-screen",
           sidebarOpen ? "lg:ml-64" : "lg:ml-0"
         )}>
-          <div className="p-6">
-            {children}
-          </div>
+          {children}
         </main>
       </div>
     </div>

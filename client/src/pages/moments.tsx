@@ -8,11 +8,11 @@ export default function MomentsPage() {
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-teal-50/30 backdrop-blur-md">
-        {/* Wide container with optimal spacing */}
-        <div className="max-w-[1600px] mx-auto px-2 md:px-4 lg:px-6 py-6 sm:py-8 lg:py-12">
-          {/* Header section with improved spacing */}
-          <div className="mb-8 sm:mb-12 lg:mb-16">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black bg-gradient-to-r from-blue-600 via-teal-500 to-cyan-500 bg-clip-text text-transparent mb-4 lg:mb-6 leading-relaxed">
+        {/* Optimized container - full width utilization */}
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          {/* Header section */}
+          <div className="mb-6 sm:mb-8 lg:mb-10">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black bg-gradient-to-r from-blue-600 via-teal-500 to-cyan-500 bg-clip-text text-transparent mb-3 lg:mb-4 leading-relaxed">
               Memories
             </h1>
             <p className="text-lg sm:text-xl lg:text-2xl text-slate-700 font-medium leading-relaxed">
@@ -20,19 +20,19 @@ export default function MomentsPage() {
             </p>
           </div>
           
-          {/* Grid layout with proper width distribution */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 xl:gap-10">
-            {/* Main content - Posts (70% width = 8.5/12 columns) */}
-            <div className="lg:col-span-8 xl:col-span-8">
-              <div className="w-full max-w-none space-y-8 lg:space-y-12">
+          {/* Optimized grid layout - 70/30 split with better spacing */}
+          <div className="grid grid-cols-1 xl:grid-cols-10 gap-4 lg:gap-6">
+            {/* Main content area - 70% width (7/10 columns) */}
+            <div className="xl:col-span-7">
+              <div className="w-full space-y-6 lg:space-y-8">
                 <TrangoTechPostComposer />
                 <PostFeed />
               </div>
             </div>
             
-            {/* Right sidebar - Events (30% width = 3.5/12 columns) */}
-            <div className="lg:col-span-4 xl:col-span-4">
-              <div className="sticky top-6 lg:top-8 w-full">
+            {/* Events sidebar - 30% width (3/10 columns) */}
+            <div className="xl:col-span-3">
+              <div className="sticky top-20 w-full">
                 <EventsBoard />
               </div>
             </div>

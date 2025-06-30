@@ -123,7 +123,7 @@ export default function EventsBoard() {
   }
 
   return (
-    <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-6 lg:p-8 hover:shadow-2xl transition-all duration-200 ease-in-out space-y-6 w-full min-w-[350px]">
+    <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4 lg:p-6 hover:shadow-2xl transition-all duration-200 ease-in-out space-y-4 w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
