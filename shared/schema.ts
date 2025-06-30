@@ -108,6 +108,9 @@ export const posts = pgTable("posts", {
   mentions: text("mentions").array().default([]), // @mentions
   hashtags: text("hashtags").array().default([]),
   location: text("location"),
+  coordinates: jsonb("coordinates"), // GPS coordinates from Google Maps
+  placeId: text("place_id"), // Google Maps Place ID
+  formattedAddress: text("formatted_address"), // Standardized address
   visibility: varchar("visibility", { length: 20 }).default("public"), // public, friends, private
   likesCount: integer("likes_count").default(0),
   commentsCount: integer("comments_count").default(0),

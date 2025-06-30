@@ -14,7 +14,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { LocationPicker } from "@/components/onboarding/LocationPicker";
-import { GoogleMapsLocationPicker } from "@/components/onboarding/GoogleMapsLocationPicker";
+import GoogleMapsLocationPicker from "@/components/onboarding/GoogleMapsLocationPicker";
 import RoleSelector from "@/components/onboarding/RoleSelector";
 import { Heart, Sparkles, Globe, Users, Music, Calendar, ArrowLeft, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
