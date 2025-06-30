@@ -17,6 +17,8 @@ import {
   mediaUsage,
   friends,
   memoryMedia,
+  roles,
+  userRoles,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -56,6 +58,14 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User>;
   updateUserApiToken(id: number, token: string): Promise<void>;
+  
+  // Role operations
+  getAllRoles(): Promise<any[]>;
+  getCommunityRoles(): Promise<any[]>;
+  getUserRoles(userId: number): Promise<any[]>;
+  assignRoleToUser(userId: number, roleName: string, assignedBy?: number): Promise<any>;
+  removeRoleFromUser(userId: number, roleName: string): Promise<void>;
+  userHasRole(userId: number, roleName: string): Promise<boolean>;
   
   // Posts operations
   createPost(post: InsertPost): Promise<Post>;
@@ -192,6 +202,86 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set({ apiToken: token, updatedAt: new Date() })
       .where(eq(users.id, id));
+  }
+
+  // Role operations implementation
+  async getAllRoles(): Promise<any[]> {
+    return await db.select().from(roles).orderBy(asc(roles.name));
+  }
+
+  async getCommunityRoles(): Promise<any[]> {
+    return await db
+      .select()
+      .from(roles)
+      .where(eq(roles.isPlatformRole, false))
+      .orderBy(asc(roles.name));
+  }
+
+  async getUserRoles(userId: number): Promise<any[]> {
+    return await db
+      .select({
+        roleName: userRoles.roleName,
+        description: roles.description,
+        assignedAt: userRoles.assignedAt,
+        isPlatformRole: roles.isPlatformRole
+      })
+      .from(userRoles)
+      .leftJoin(roles, eq(userRoles.roleName, roles.name))
+      .where(eq(userRoles.userId, userId))
+      .orderBy(asc(userRoles.assignedAt));
+  }
+
+  async assignRoleToUser(userId: number, roleName: string, assignedBy?: number): Promise<any> {
+    // Check if role exists
+    const roleExists = await db
+      .select()
+      .from(roles)
+      .where(eq(roles.name, roleName))
+      .limit(1);
+    
+    if (roleExists.length === 0) {
+      throw new Error(`Role '${roleName}' does not exist`);
+    }
+
+    // Insert role assignment with conflict handling
+    const [assignment] = await db
+      .insert(userRoles)
+      .values({
+        userId,
+        roleName,
+        assignedBy: assignedBy || null,
+        assignedAt: new Date()
+      })
+      .onConflictDoNothing()
+      .returning();
+
+    return assignment;
+  }
+
+  async removeRoleFromUser(userId: number, roleName: string): Promise<void> {
+    await db
+      .delete(userRoles)
+      .where(
+        and(
+          eq(userRoles.userId, userId),
+          eq(userRoles.roleName, roleName)
+        )
+      );
+  }
+
+  async userHasRole(userId: number, roleName: string): Promise<boolean> {
+    const result = await db
+      .select()
+      .from(userRoles)
+      .where(
+        and(
+          eq(userRoles.userId, userId),
+          eq(userRoles.roleName, roleName)
+        )
+      )
+      .limit(1);
+
+    return result.length > 0;
   }
 
   async createPost(post: InsertPost): Promise<Post> {
