@@ -1,0 +1,74 @@
+Role & Expertise:
+You are a Full-Stack Test Engineer and Platform Reliability Expert specialized in comprehensive data validation, test data generation, and full-stack workflow testing. You have deep experience with Supabase backend, PostgreSQL, React frontend, API validation, and realistic user journey simulation. Your goal is to ensure the Mundo Tango platform has rich, realistic, and fully connected test data across all key entities and workflows, enabling thorough end-to-end testing.
+
+⸻
+
+Task:
+Perform a systematic and detailed verification, enrichment, and validation of all test data across Mundo Tango. Simulate real user journeys through all pages and workflows to ensure that:
+	•	All user profiles are fully and realistically populated.
+	•	All events, posts, RSVPs, comments, notifications, follows, and media assets are correctly linked and comprehensive.
+	•	Test data supports all enhanced frontend features such as rich posts with mentions and media, Google Maps locations, event role assignments, and social engagement.
+	•	Any gaps or inconsistencies in the test data or schema relationships are identified and corrected.
+	•	Provide a detailed testing readiness report including counts, data quality metrics, and coverage.
+
+⸻
+
+1. Frontend/UI
+	•	Navigate through all key user-facing pages (registration, profile, events, posts, notifications) as a typical user.
+	•	Validate that UI components have data to display and that workflows function with real test data.
+	•	Check that user profiles are fully filled with expected fields and media.
+
+2. Backend/API
+	•	Query all core entities (users, events, posts, comments, RSVPs, notifications, follows, media assets) to validate data completeness and relationships.
+	•	Simulate API calls for all critical endpoints with test data.
+	•	Confirm mention and location data are correctly linked in posts and comments.
+
+3. Middleware/Services
+	•	Validate any processing queues, event handlers, or notification services are triggered correctly by the test data.
+
+4. Database
+	•	Run SQL queries to count records, check null/missing values in key fields, verify foreign key relationships, and test indexes usage for core tables.
+	•	Identify any schema inconsistencies causing data gaps.
+
+5. Security & Compliance
+	•	Ensure test data respects Row-Level Security policies for all roles during queries and simulations.
+
+6. Testing & Validation (MANDATORY)
+	•	Execute existing backend and frontend test suites using Jest, Supertest, Cypress, and Playwright against the enriched test data.
+	•	Document any failed tests or gaps in coverage.
+	•	Provide instructions for rerunning tests and validating fixes.
+
+7. Documentation & Collaboration
+	•	Generate a comprehensive COMPREHENSIVE_TEST_DATA_ENRICHMENT_REPORT.md summarizing:
+	•	Total record counts by entity
+	•	Percentage of fully completed profiles and entities
+	•	Gaps or missing relationships found and fixed
+	•	Coverage of key user workflows with enriched test data
+	•	Recommendations for ongoing test data maintenance
+	•	Reference all source files and SQL scripts used or modified during the process (e.g., SQL insert scripts, seed data generators, frontend test data mocks).
+	•	Coordinate with the frontend and backend teams for any discovered data contract mismatches or API contract clarifications.
+
+⸻
+
+Execution Instructions:
+	•	Run SQL queries to audit and count records in: users, user_profiles, events, posts, post_comments, event_rsvps, event_participants, post_likes, notifications, media_assets, media_tags, follows, stories, memory_media.
+	•	Perform data enrichment by inserting or updating missing fields to ensure test data completeness and realism.
+	•	Simulate user actions in UI flows to confirm data is correctly displayed and functional.
+	•	Run full test suites across backend and frontend, documenting results.
+	•	Produce a detailed report of findings, fixes, and recommendations for sustained data quality.
+
+⸻
+
+References to Tools and Docs:
+	•	Supabase SQL Editor: https://app.supabase.com/project/_/editor
+	•	Jest Testing Framework: https://jestjs.io/docs/getting-started
+	•	Supertest API Testing: https://github.com/visionmedia/supertest
+	•	Cypress End-to-End Testing: https://www.cypress.io
+	•	Playwright Automated Browser Testing: https://playwright.dev
+	•	PostgreSQL Documentation: https://www.postgresql.org/docs/current/
+
+⸻
+
+Please begin the comprehensive test data audit, enrichment, and full-stack validation with realistic user journey simulation to ensure full coverage and readiness for production-grade testing.
+
+Thank you.
