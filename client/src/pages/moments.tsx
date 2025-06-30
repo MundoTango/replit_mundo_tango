@@ -9,8 +9,8 @@ export default function MomentsPage() {
     <DashboardLayout>
       {/* Clean, minimal layout with no unnecessary containers */}
       <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-teal-50/30">
-        {/* Single container with precise width control */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Single container with minimal padding for maximum content width */}
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
           {/* Compact header */}
           <div className="mb-8">
             <h1 className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-blue-600 via-teal-500 to-cyan-500 bg-clip-text text-transparent mb-3">
@@ -21,18 +21,18 @@ export default function MomentsPage() {
             </p>
           </div>
           
-          {/* Clean flexbox layout - 70/30 split */}
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Main content area - 70% width on large screens */}
-            <div className="flex-1 lg:w-0 lg:flex-[0_0_70%] max-w-none">
-              <div className="space-y-6">
+          {/* Optimized flexbox layout - 78/22 split */}
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Main content area - 78% width on large screens */}
+            <div className="flex-1 lg:w-0 lg:flex-[0_0_78%] max-w-none">
+              <div className="space-y-4 pr-2">
                 <TrangoTechPostComposer />
                 <PostFeed />
               </div>
             </div>
             
-            {/* Events sidebar - 30% width on large screens */}
-            <div className="lg:w-0 lg:flex-[0_0_30%] lg:min-w-0">
+            {/* Events sidebar - 22% width on large screens */}
+            <div className="lg:w-0 lg:flex-[0_0_22%] lg:min-w-0">
               <div className="sticky top-24">
                 <EventsBoard />
               </div>

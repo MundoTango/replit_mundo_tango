@@ -123,106 +123,103 @@ export default function EventsBoard() {
   }
 
   return (
-    <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4 hover:shadow-xl transition-all duration-200 space-y-4 w-full">
-      {/* Header */}
+    <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-3 hover:shadow-xl transition-all duration-200 space-y-3 w-full">
+      {/* Compact Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="bg-gradient-to-br from-coral-400 to-pink-500 p-3 rounded-2xl shadow-xl">
-            <Calendar className="h-6 w-6 text-white" />
+        <div className="flex items-center gap-2">
+          <div className="bg-gradient-to-br from-coral-400 to-pink-500 p-2 rounded-xl shadow-lg">
+            <Calendar className="h-4 w-4 text-white" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-indigo-700">
+            <h3 className="text-lg font-bold text-indigo-700">
               Upcoming Events
             </h3>
-            <p className="text-slate-700 font-medium text-base leading-relaxed">In your area & invitations</p>
+            <p className="text-slate-600 font-medium text-sm">In your area & invitations</p>
           </div>
         </div>
-        <div className="bg-gradient-to-br from-coral-100 to-pink-100 p-2 rounded-2xl">
-          <Sparkles className="h-5 w-5 text-coral-600" />
+        <div className="bg-gradient-to-br from-coral-100 to-pink-100 p-1.5 rounded-xl">
+          <Sparkles className="h-4 w-4 text-coral-600" />
         </div>
       </div>
 
-      {/* Events List with enhanced spacing */}
-      <div className="space-y-6 lg:space-y-8 mb-8">
+      {/* Compact Events List */}
+      <div className="space-y-3 mb-4">
         {events?.slice(0, 4).map((event: Event) => {
           const typeInfo = getEventTypeInfo(event.eventType || '');
           return (
             <div
               key={event.id}
-              className="group bg-gradient-to-br from-blue-50/30 to-teal-50/30 p-6 lg:p-8 rounded-2xl border-2 border-blue-100/50 
-                       hover:border-coral-300 hover:shadow-xl hover:bg-white/70 transition-all duration-300 cursor-pointer
-                       transform hover:-translate-y-1 border-b border-gray-200/30 shadow-md"
+              className="group bg-gradient-to-br from-blue-50/30 to-teal-50/30 p-3 rounded-xl border border-blue-100/50 
+                       hover:border-coral-300 hover:shadow-lg hover:bg-white/70 transition-all duration-300 cursor-pointer
+                       transform hover:-translate-y-0.5 shadow-sm"
               onClick={() => handleEventClick(event.id)}
             >
-              {/* Event Header */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge className={`${typeInfo.bgColor} ${typeInfo.color} border-0 text-xs font-bold px-3 py-1 rounded-xl`}>
-                      {typeInfo.name}
+              {/* Compact Event Header */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-1 flex-wrap">
+                  <Badge className={`${typeInfo.bgColor} ${typeInfo.color} border-0 text-xs font-bold px-2 py-0.5 rounded-lg`}>
+                    {typeInfo.name}
+                  </Badge>
+                  {event.userStatus && (
+                    <Badge className={`border-0 text-xs font-bold px-1.5 py-0.5 rounded ${
+                      event.userStatus === 'going' 
+                        ? 'bg-green-100 text-green-700' 
+                        : event.userStatus === 'interested'
+                        ? 'bg-blue-100 text-blue-700'
+                        : event.userStatus === 'invited'
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {event.userStatus === 'going' && '✓'}
+                      {event.userStatus === 'interested' && '★'}
+                      {event.userStatus === 'invited' && '✉'}
                     </Badge>
-                    {event.userStatus && (
-                      <Badge className={`border-0 text-xs font-bold px-2 py-1 rounded-lg ${
-                        event.userStatus === 'going' 
-                          ? 'bg-green-100 text-green-700' 
-                          : event.userStatus === 'interested'
-                          ? 'bg-blue-100 text-blue-700'
-                          : event.userStatus === 'invited'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'bg-gray-100 text-gray-700'
-                      }`}>
-                        {event.userStatus === 'going' && '✓ Going'}
-                        {event.userStatus === 'interested' && '★ Interested'}
-                        {event.userStatus === 'invited' && '✉ Invited'}
-                      </Badge>
-                    )}
-                  </div>
-                  <h4 className="font-bold text-blue-900 text-xl group-hover:text-coral-600 transition-colors line-clamp-1">
-                    {event.title}
-                  </h4>
-                </div>
-                <ChevronRight className="h-5 w-5 text-blue-400 group-hover:text-coral-500 transition-colors" />
-              </div>
-
-              {/* Event Details with enhanced spacing */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-blue-600/80 text-base font-medium">
-                  <Clock className="h-5 w-5" />
-                  <span>{formatEventDate(event.startDate)} • {formatEventTime(event.startDate)}</span>
-                </div>
-                
-                <div className="flex items-center gap-3 text-blue-600/80 text-base font-medium">
-                  <MapPin className="h-5 w-5" />
-                  <span className="truncate">{event.city}, {event.country}</span>
-                </div>
-                
-                <div className="flex items-center gap-3 text-blue-600/80 text-base font-medium">
-                  <Users className="h-5 w-5" />
-                  <span>
-                    {event.currentAttendees} attending
-                    {event.maxAttendees && ` / ${event.maxAttendees} max`}
-                  </span>
-                </div>
-              </div>
-
-              {/* Organizer */}
-              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-blue-100/50">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-coral-200 to-pink-200 flex items-center justify-center">
-                  {event.user?.profileImage ? (
-                    <img
-                      src={event.user.profileImage}
-                      alt={event.user.name}
-                      className="w-6 h-6 rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-coral-600 text-xs font-bold">
-                      {event.user?.name?.charAt(0) || 'U'}
-                    </span>
                   )}
                 </div>
-                <span className="text-blue-600/70 text-sm font-medium">
-                  by {event.user?.name || 'Unknown Organizer'}
-                </span>
+                <h4 className="font-bold text-blue-900 text-sm group-hover:text-coral-600 transition-colors line-clamp-2">
+                    {event.title}
+                  </h4>
+
+                {/* Compact Event Details */}
+                <div className="space-y-1 text-xs text-blue-600/80">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    <span>{formatEventDate(event.startDate)} • {formatEventTime(event.startDate)}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    <span className="truncate">{event.city}, {event.country}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />
+                    <span>
+                      {event.currentAttendees} attending
+                      {event.maxAttendees && ` / ${event.maxAttendees} max`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Compact Organizer */}
+                <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-blue-100/50">
+                  <div className="w-4 h-4 rounded-full bg-gradient-to-br from-coral-200 to-pink-200 flex items-center justify-center">
+                    {event.user?.profileImage ? (
+                      <img
+                        src={event.user.profileImage}
+                        alt={event.user.name}
+                        className="w-4 h-4 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-coral-600 text-xs font-bold">
+                        {event.user?.name?.charAt(0) || 'U'}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-blue-600/70 text-xs font-medium">
+                    by {event.user?.name || 'Unknown Organizer'}
+                  </span>
+                </div>
               </div>
             </div>
           );
@@ -251,17 +248,17 @@ export default function EventsBoard() {
         )}
       </div>
 
-      {/* View All Button */}
+      {/* Compact View All Button */}
       {events && events.length > 0 && (
-        <div className="border-t-2 border-blue-100/50 pt-6">
+        <div className="border-t border-blue-100/50 pt-3">
           <Button
             onClick={handleViewAllEvents}
             className="w-full bg-gradient-to-r from-teal-400 to-cyan-500 hover:from-teal-500 hover:to-cyan-600 
-                     text-white font-bold py-4 rounded-2xl shadow-xl hover:shadow-teal-500/30 
-                     transform hover:-translate-y-1 transition-all duration-300"
+                     text-white font-bold py-2 text-sm rounded-xl shadow-lg hover:shadow-teal-500/30 
+                     transform hover:-translate-y-0.5 transition-all duration-300"
           >
             View All Events
-            <ChevronRight className="ml-2 h-5 w-5" />
+            <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
         </div>
       )}
