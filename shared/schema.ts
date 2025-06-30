@@ -190,7 +190,11 @@ export const eventRsvps = pgTable("event_rsvps", {
   status: varchar("status", { length: 20 }).notNull(), // going, interested, maybe, not_going
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  unique().on(table.eventId, table.userId),
+  index("idx_event_rsvps_event_id").on(table.eventId),
+  index("idx_event_rsvps_user_id").on(table.userId),
+]);
 
 // Event Invitations table
 export const eventInvitations = pgTable("event_invitations", {
