@@ -4805,6 +4805,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // City Group Automation - Auto-assign users to city groups
+  app.post('/api/user/city-group', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { city, country, force = false } = req.body;
+
+      // Import automation utilities
+      const { 
+        slugify, 
+        generateCityGroupName, 
+        generateCityGroupDescription, 
+        isValidCityName, 
+        logGroupAutomation 
+      } = await import('../utils/cityGroupAutomation.js');
+
+      // Validate city input
+      if (!city || !isValidCityName(city)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Valid city name is required',
+          data: null
+        });
+      }
+
+      // Generate group slug and check if group exists
+      const groupSlug = slugify(city);
+      let cityGroup = await storage.getGroupBySlug(groupSlug);
+
+      // Create group if it doesn't exist
+      if (!cityGroup) {
+        const groupName = generateCityGroupName(city, country);
+        const groupDescription = generateCityGroupDescription(city, country);
+
+        cityGroup = await storage.createGroup({
+          name: groupName,
+          slug: groupSlug,
+          type: 'city',
+          emoji: '🏙️',
+          description: groupDescription,
+          city: city,
+          country: country || null,
+          isPrivate: false,
+          createdBy: userId
+        });
+
+        logGroupAutomation('Group Created', {
+          groupId: cityGroup.id,
+          city,
+          country,
+          createdBy: userId
+        });
+      }
+
+      // Check if user is already in the group
+      const isUserInGroup = await storage.checkUserInGroup(cityGroup.id, userId);
+      
+      if (isUserInGroup && !force) {
+        return res.status(200).json({
+          success: true,
+          message: 'User already in city group',
+          data: {
+            group: cityGroup,
+            action: 'already_member',
+            isNewGroup: false
+          }
+        });
+      }
+
+      // Add user to group
+      const groupMember = await storage.addUserToGroup(cityGroup.id, userId, 'member');
+
+      logGroupAutomation('User Added to Group', {
+        groupId: cityGroup.id,
+        userId,
+        city,
+        country,
+        isNewGroup: !cityGroup.createdAt
+      });
+
+      // Return success response
+      res.status(200).json({
+        success: true,
+        message: `Successfully joined ${cityGroup.name}`,
+        data: {
+          group: cityGroup,
+          membership: groupMember,
+          action: force ? 'force_joined' : 'joined',
+          isNewGroup: !cityGroup.createdAt
+        }
+      });
+
+    } catch (error) {
+      console.error('City group automation error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to process city group assignment',
+        data: null
+      });
+    }
+  });
+
+  // Get user's city groups
+  app.get('/api/user/groups', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const groups = await storage.getUserGroups(userId);
+
+      res.status(200).json({
+        success: true,
+        message: 'User groups retrieved successfully',
+        data: groups
+      });
+
+    } catch (error) {
+      console.error('Error getting user groups:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve user groups',
+        data: []
+      });
+    }
+  });
+
   // Initialize Supabase Storage bucket on server start
   initializeStorageBucket();
 

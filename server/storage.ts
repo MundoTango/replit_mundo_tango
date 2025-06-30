@@ -20,6 +20,8 @@ import {
   roles,
   userRoles,
   customRoleRequests,
+  groups,
+  groupMembers,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -48,6 +50,10 @@ import {
   type InsertMemoryMedia,
   type Story,
   type CustomRoleRequest,
+  type Group,
+  type InsertGroup,
+  type GroupMember,
+  type InsertGroupMember,
   type InsertCustomRoleRequest,
   type UpdateCustomRoleRequest
 } from '../shared/schema';
@@ -186,6 +192,16 @@ export interface IStorage {
   getUserMemoriesWithFilters(userId: number, filters: any): Promise<any[]>;
   getMemoryById(memoryId: string): Promise<any>;
   checkAllConsentDecisions(memoryId: string): Promise<{ approved: number[], denied: number[], pending: number[] }>;
+
+  // City Group Automation Methods
+  createGroup(group: InsertGroup): Promise<Group>;
+  getGroupBySlug(slug: string): Promise<Group | undefined>;
+  getGroupsByCity(city: string): Promise<Group[]>;
+  addUserToGroup(groupId: number, userId: number, role?: string): Promise<GroupMember>;
+  removeUserFromGroup(groupId: number, userId: number): Promise<void>;
+  updateGroupMemberCount(groupId: number): Promise<void>;
+  getUserGroups(userId: number): Promise<Group[]>;
+  checkUserInGroup(groupId: number, userId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1406,6 +1422,99 @@ export class DatabaseStorage implements IStorage {
       console.error('Error fetching memory by ID:', error);
       return null;
     }
+  }
+
+  // City Group Automation Implementation
+  async createGroup(group: InsertGroup): Promise<Group> {
+    const result = await db.insert(groups).values(group).returning();
+    return result[0];
+  }
+
+  async getGroupBySlug(slug: string): Promise<Group | undefined> {
+    const result = await db.select().from(groups).where(eq(groups.slug, slug)).limit(1);
+    return result[0];
+  }
+
+  async getGroupsByCity(city: string): Promise<Group[]> {
+    return await db.select().from(groups).where(and(eq(groups.city, city), eq(groups.type, 'city')));
+  }
+
+  async addUserToGroup(groupId: number, userId: number, role: string = 'member'): Promise<GroupMember> {
+    // Check if user is already in group
+    const existing = await db.select().from(groupMembers)
+      .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, userId)))
+      .limit(1);
+    
+    if (existing.length > 0) {
+      return existing[0];
+    }
+
+    // Add user to group
+    const result = await db.insert(groupMembers).values({
+      groupId,
+      userId,
+      role,
+      status: 'active'
+    }).returning();
+
+    // Update member count
+    await this.updateGroupMemberCount(groupId);
+    
+    return result[0];
+  }
+
+  async removeUserFromGroup(groupId: number, userId: number): Promise<void> {
+    await db.delete(groupMembers)
+      .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, userId)));
+    
+    // Update member count
+    await this.updateGroupMemberCount(groupId);
+  }
+
+  async updateGroupMemberCount(groupId: number): Promise<void> {
+    const count = await db.select({ count: sql<number>`count(*)` })
+      .from(groupMembers)
+      .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.status, 'active')));
+    
+    await db.update(groups)
+      .set({ memberCount: count[0].count })
+      .where(eq(groups.id, groupId));
+  }
+
+  async getUserGroups(userId: number): Promise<Group[]> {
+    const result = await db.select({
+      id: groups.id,
+      name: groups.name,
+      slug: groups.slug,
+      type: groups.type,
+      emoji: groups.emoji,
+      imageUrl: groups.imageUrl,
+      description: groups.description,
+      isPrivate: groups.isPrivate,
+      city: groups.city,
+      country: groups.country,
+      memberCount: groups.memberCount,
+      createdBy: groups.createdBy,
+      createdAt: groups.createdAt,
+      updatedAt: groups.updatedAt,
+    })
+    .from(groups)
+    .innerJoin(groupMembers, eq(groups.id, groupMembers.groupId))
+    .where(and(eq(groupMembers.userId, userId), eq(groupMembers.status, 'active')));
+    
+    return result;
+  }
+
+  async checkUserInGroup(groupId: number, userId: number): Promise<boolean> {
+    const result = await db.select().from(groupMembers)
+      .where(and(
+        eq(groupMembers.groupId, groupId), 
+        eq(groupMembers.userId, userId),
+        eq(groupMembers.status, 'active')
+      ))
+      .limit(1);
+    
+    return result.length > 0;
   }
 }
 

@@ -1,0 +1,85 @@
+Perfect — I’ll wait for your response later on the Layer 9 system-wide prompt.
+
+For now, here’s how we’ll move forward with automating user assignment to their city-based group, using logic from the TT files and aligning with Layer 9 standards:
+
+⸻
+
+🧠 Replit Prompt: Automate City Group Assignment on User Signup
+
+You are building an automation system for Mundo Tango that connects each new user to a city-based community group based on where they live or dance the most.
+
+⸻
+
+🎯 Objective
+
+Automatically assign users to their city group on signup or profile update. If the group doesn’t exist yet, create it dynamically using design and logic derived from the TT files.
+
+⸻
+
+✅ Functional Requirements
+
+1. 📍 Determine User’s City
+	•	Source: users.city_dance_primary field (entered at signup)
+	•	Fallbacks: Geolocation (IP), manual override in profile
+
+2. 👥 Check if City Group Exists
+	•	Table: groups
+	•	Match where type = 'city' and slug = slugify(city_name)
+
+3. 🏙️ Create Group if Missing
+	•	Fields:
+	•	name: e.g., “Naples Tango”
+	•	slug: naples-tango
+	•	type: 'city'
+	•	emoji: 🏙️
+	•	image_url: (auto-generated using TT brand style)
+	•	description: “The tango scene in Naples. Dancers, events, and memories.”
+
+4. ➕ Add User to Group
+	•	Link user to group_members table
+	•	Role: 'member' or 'local'
+
+5. 🔄 Update Profile
+	•	Auto-link the user’s profile with the group
+	•	Add group badge to their dashboard (like a Facebook city group)
+
+⸻
+
+⚙️ Tech Stack Details
+	•	Backend: Supabase function or API route /api/user/city-group
+	•	Automation Trigger: Supabase on_insert + on_update webhook OR N8N flow
+	•	Database:
+	•	users
+	•	groups
+	•	group_members
+	•	Graphics: Pull from TT files:
+	•	Banner/cover styling
+	•	Group emoji and default image templates
+	•	Group page layout (header → members → memories)
+
+⸻
+
+🧪 Test Cases
+
+Case	Input	Expected
+New user in Naples	city_dance_primary = "Naples"	Group “Naples Tango” is created, user added
+Group exists	“Berlin” group exists	User added, no duplicate created
+Missing city	Empty or null	No assignment, user prompted
+User edits city later	Profile change	Group re-assigned if city differs
+
+
+⸻
+
+✨ Optional Enhancements
+	•	Detect region (e.g., “Southern Italy”) for future nesting
+	•	Trigger welcome message in group or notification
+	•	Add suggested memories or people from same city
+
+⸻
+
+Would you like this automation built first in:
+	1.	✅ Supabase SQL + serverless function, or
+	2.	🔄 N8N flow (auto-triggered webhook), or
+	3.	🧪 Replit route with logs + dashboard view?
+
+Let me know when you’re back on desktop — I’ll queue this for Layer 9 build with visuals once you’re ready.

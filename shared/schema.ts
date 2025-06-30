@@ -591,6 +591,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   mediaAssets: many(mediaAssets),
   friendships: many(friends, { relationName: "user_friendships" }),
   friendOf: many(friends, { relationName: "friend_of" }),
+  groupMemberships: many(groupMembers),
+  createdGroups: many(groups),
 }));
 
 export const mediaAssetsRelations = relations(mediaAssets, ({ one, many }) => ({
@@ -760,6 +762,46 @@ export const notifications = pgTable("notifications", {
   index("idx_notifications_created").on(table.createdAt),
 ]);
 
+// Groups table for city-based and community groups
+export const groups = pgTable("groups", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 255 }).unique().notNull(),
+  type: varchar("type", { length: 50 }).notNull().default("city"), // city, community, interest, etc.
+  emoji: varchar("emoji", { length: 10 }).default("🏙️"),
+  imageUrl: text("image_url"),
+  description: text("description"),
+  isPrivate: boolean("is_private").default(false),
+  city: varchar("city", { length: 100 }),
+  country: varchar("country", { length: 100 }),
+  memberCount: integer("member_count").default(0),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_groups_type").on(table.type),
+  index("idx_groups_city").on(table.city),
+  index("idx_groups_slug").on(table.slug),
+  index("idx_groups_created_at").on(table.createdAt),
+]);
+
+// Group Members table for user-group relationships
+export const groupMembers = pgTable("group_members", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id").references(() => groups.id, { onDelete: "cascade" }).notNull(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  role: varchar("role", { length: 50 }).default("member"), // member, admin, moderator
+  joinedAt: timestamp("joined_at").defaultNow(),
+  invitedBy: integer("invited_by").references(() => users.id),
+  status: varchar("status", { length: 20 }).default("active"), // active, pending, banned
+}, (table) => [
+  unique().on(table.groupId, table.userId),
+  index("idx_group_members_user").on(table.userId),
+  index("idx_group_members_group").on(table.groupId),
+  index("idx_group_members_role").on(table.role),
+  index("idx_group_members_status").on(table.status),
+]);
+
 // Reaction schema for post and comment reactions  
 export const insertReactionSchema = createInsertSchema(reactions).omit({
   id: true,
@@ -799,22 +841,39 @@ export const insertCustomRoleRequestSchema = createInsertSchema(customRoleReques
   id: true,
   createdAt: true,
   updatedAt: true,
-  approvedAt: true,
-  rejectedAt: true,
-}).extend({
-  roleName: z.string().min(2).max(50),
-  roleDescription: z.string().min(10).max(500),
 });
 
-export const updateCustomRoleRequestSchema = z.object({
-  status: z.enum(['pending', 'approved', 'rejected']),
-  adminNotes: z.string().optional(),
-  approvedBy: z.number().optional(),
-  rejectedBy: z.number().optional(),
+// Group schemas
+export const insertGroupSchema = createInsertSchema(groups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  memberCount: true,
 });
 
-// Types
+export const insertGroupMemberSchema = createInsertSchema(groupMembers).omit({
+  id: true,
+  joinedAt: true,
+});
+
+// Group relations
+export const groupsRelations = relations(groups, ({ one, many }) => ({
+  creator: one(users, { fields: [groups.createdBy], references: [users.id] }),
+  members: many(groupMembers),
+}));
+
+export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
+  group: one(groups, { fields: [groupMembers.groupId], references: [groups.id] }),
+  user: one(users, { fields: [groupMembers.userId], references: [users.id] }),
+  inviter: one(users, { fields: [groupMembers.invitedBy], references: [users.id] }),
+}));
+
+// Type definitions
 export type User = typeof users.$inferSelect;
+export type Group = typeof groups.$inferSelect;
+export type GroupMember = typeof groupMembers.$inferSelect;
+export type InsertGroup = z.infer<typeof insertGroupSchema>;
+export type InsertGroupMember = z.infer<typeof insertGroupMemberSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = typeof users.$inferInsert;
 export type Post = typeof posts.$inferSelect;
