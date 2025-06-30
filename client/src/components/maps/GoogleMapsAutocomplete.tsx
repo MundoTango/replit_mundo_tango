@@ -49,8 +49,13 @@ export default function GoogleMapsAutocomplete({
   useEffect(() => {
     const initializeGoogleMaps = async () => {
       try {
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+        if (!apiKey) {
+          throw new Error('Google Maps API key not configured');
+        }
+        
         const loader = new Loader({
-          apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '',
+          apiKey,
           version: 'weekly',
           libraries: ['places', 'geometry']
         });
