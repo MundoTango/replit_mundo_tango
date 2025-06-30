@@ -6,6 +6,11 @@ interface User {
   username: string;
   email: string;
   profileImage?: string;
+  // Additional fields for onboarding and role management
+  formStatus?: number;
+  isOnboardingComplete?: boolean;
+  codeOfConductAccepted?: boolean;
+  tangoRoles?: string[];
 }
 
 export function useAuth() {
@@ -25,9 +30,16 @@ export function useAuth() {
     retry: false
   });
 
+  const logout = () => {
+    localStorage.removeItem('auth_token');
+    // Force query invalidation to clear user data
+    window.location.reload();
+  };
+
   return {
     user,
     isAuthenticated: !!user,
-    isLoading
+    isLoading,
+    logout
   };
 }

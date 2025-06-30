@@ -1,0 +1,99 @@
+We need to enhance the location functionality in the Mundo Tango post creation workflow and across all location inputs (posts, events, user profiles, onboarding, etc.) to support not only city-level locations but also specific labeled places such as businesses, restaurants, bars, and landmarks (e.g., “El Beso” in Buenos Aires). This will provide richer, more precise location data and improve user experience.
+
+Scope: Full-stack implementation covering frontend, backend, middleware, database, security, testing, and documentation.
+
+⸻
+
+1. Frontend/UI Enhancements
+	•	Update the Google Maps Autocomplete component(s) to integrate Google Places Autocomplete with support for establishment types (businesses, restaurants, bars, points of interest).
+	•	Restrict autocomplete suggestions to relevant countries/regions as appropriate.
+	•	Enable users to search and select specific places, with selection populating location fields with full place details (name, address, coordinates, place_id).
+	•	Display selected place information visually, such as marker on map or formatted address.
+	•	Update all location input fields in posts, events, user profiles, onboarding forms to use this enhanced autocomplete.
+	•	Handle loading, error, and validation states gracefully.
+
+2. Backend/API
+	•	Update API endpoints handling post creation, event creation, and profile updates to accept and store enriched place data including:
+	•	Place name
+	•	Formatted address
+	•	Latitude/longitude
+	•	Google Places place_id
+	•	Implement business logic to validate and normalize place data.
+	•	Support querying/filtering posts and events by exact place or nearby radius using geographic coordinates.
+
+3. Middleware/Services
+	•	If applicable, add middleware to sanitize, cache, or enrich place data.
+	•	Consider using background jobs or queues if additional place data enrichment is needed.
+
+4. Database
+	•	Update database schema for posts, events, and profiles to store:
+	•	Place name (text)
+	•	Formatted address (text)
+	•	Coordinates (latitude/longitude, numeric types)
+	•	Place ID (string)
+	•	Migrate and backfill existing data as needed.
+	•	Optimize queries for location filtering and radius searches (use PostGIS or equivalent extensions if available).
+	•	Update Row-Level Security (RLS) policies to allow secure access to new location fields.
+
+5. Security & Compliance
+	•	Ensure place data input is validated to prevent injection or malformed data.
+	•	Confirm RLS policies prevent unauthorized data access.
+	•	Follow privacy best practices regarding location data storage and sharing.
+
+6. Testing & Validation — MANDATORY
+	•	Write frontend unit and integration tests for updated location input components using Jest and React Testing Library.
+	•	Write backend API tests with Supertest or Postman/Newman for new place data handling.
+	•	Create database tests for schema updates and geographic queries using pg-mem or TestContainers.
+	•	Add end-to-end tests using Cypress or Playwright to verify the full location selection and post/event creation flow.
+	•	Perform load and performance testing on location-based queries (using k6 or JMeter).
+	•	Integrate all tests into CI/CD pipelines with coverage and monitoring.
+	•	Provide a testing checklist or user flow validation document for QA teams.
+
+7. Documentation
+	•	Document updated frontend components, backend API contracts, and database schema changes.
+	•	Include setup instructions for Google Places API integration and required API keys.
+	•	Provide usage examples and troubleshooting tips for the location features.
+	•	Include rollback plans for database migrations.
+
+⸻
+
+External References for Implementation
+	•	Google Places API documentation for place types and autocomplete:
+https://developers.google.com/maps/documentation/places/web-service/place-types
+	•	Google Places Autocomplete guide:
+https://developers.google.com/maps/documentation/javascript/places-autocomplete
+	•	Sample Places Autocomplete integration:
+https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete
+	•	PostGIS for geospatial queries (if used):
+https://postgis.net/docs/manual-3.1/
+	•	React Google Maps JavaScript API wrapper (example):
+https://github.com/googlemaps/react-wrapper
+	•	Testing tools:
+	•	Jest: https://jestjs.io/docs/getting-started
+	•	React Testing Library: https://testing-library.com/docs/react-testing-library/intro
+	•	Supertest: https://github.com/visionmedia/supertest
+	•	Cypress: https://www.cypress.io/
+	•	Playwright: https://playwright.dev/
+	•	pg-mem: https://github.com/oguimbal/pg-mem
+	•	k6: https://k6.io/docs/
+	•	Postman: https://www.postman.com/
+	•	Newman: https://github.com/postmanlabs/newman
+
+⸻
+
+Summary of Deliverables
+	•	Enhanced reusable Google Maps Autocomplete component supporting establishments and place details.
+	•	Updated frontend forms (posts, events, profiles, onboarding) integrating the enhanced location picker.
+	•	Backend API endpoints accepting and validating enriched place data.
+	•	Database schema updates supporting detailed place storage and geospatial queries.
+	•	Security policies updated accordingly.
+	•	Comprehensive testing across all layers with documented validation.
+	•	Complete documentation including API usage, environment setup, and rollback instructions.
+
+⸻
+
+Next Steps
+	•	Coordinate with frontend and backend teams for API contracts.
+	•	Request Google Places API key with necessary permissions and restrict as per best practices.
+	•	Prioritize implementation starting with the Post creation workflow location input.
+	•	Setup monitoring for location-related features post-deployment.

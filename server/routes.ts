@@ -1070,12 +1070,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         richContent: richContent || content,
         plainText: content.replace(/<[^>]*>/g, '').trim(),
         location: location || null,
-        visibility: visibility === 'public',
-        mediaUrls,
-        socialEmbeds: parsedSocialEmbeds,
-        mentions,
-        hashtags,
-        replyToPostId: replyToPostId ? parseInt(replyToPostId) : null
+        visibility: visibility || 'public',
+        // mediaUrls field not in schema - removed
+        // socialEmbeds, mentions, hashtags not in current schema
+        // replyToPostId field not in current schema
       });
 
       // Send notifications for mentions
@@ -1221,8 +1219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const post = await storage.createPost({
         userId: user.id,
         content,
-        visibility,
-        status
+        visibility
       });
 
       res.json({

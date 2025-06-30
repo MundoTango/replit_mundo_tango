@@ -1,0 +1,56 @@
+Going forward, for every feature development or bug fix, please ensure the work covers all relevant layers of the stack and includes thorough implementation, testing, and validation. Specifically, include the following scope in every prompt:
+	1.	Frontend/UI
+
+	•	Develop or update React components with complete UX design and responsive styling
+	•	Implement all user interactions, input validation, and accessibility features
+	•	Integrate third-party libraries and APIs (e.g., Google Maps, emoji pickers)
+	•	Manage state, error handling, and loading states
+
+	2.	Backend/API
+
+	•	Design and implement or update REST or GraphQL endpoints
+	•	Add or refine business logic to handle new data or workflows
+	•	Ensure security via authentication, authorization, and input sanitization
+	•	Support rich media handling, data validation, and error reporting
+
+	3.	Middleware/Services
+
+	•	Implement any required middleware for logging, rate limiting, or data transformation
+	•	Integrate third-party services or queues as needed
+
+	4.	Database
+
+	•	Design or update schema including tables, columns, indexes, constraints
+	•	Handle migrations or direct schema updates with rollback capability
+	•	Implement and test Row Level Security (RLS) policies aligned with roles and permissions
+	•	Optimize queries, add indexes, and consider caching or materialized views
+
+	5.	Security & Compliance
+
+	•	Validate authentication and authorization flows
+	•	Enforce RLS and data privacy rules
+	•	Add input validation and prevent common vulnerabilities
+	•	Audit logging and monitoring setup
+
+	6.	Testing & Validation
+
+	•	Write unit tests for frontend components and backend logic
+	•	Create integration and API tests (e.g., with Jest, Supertest)
+	•	Develop end-to-end user scenario tests (e.g., Cypress, Playwright)
+	•	Perform database tests with in-memory or containerized DB (e.g., pg-mem, TestContainers)
+	•	Add load/performance tests where relevant (e.g., k6, JMeter)
+	•	Automate tests in CI/CD pipeline with coverage reporting and alerts
+
+	7.	Documentation
+
+	•	Update or create docs for API endpoints, schema, workflows
+	•	Provide clear instructions for setup, testing, and deployment
+	•	Include user flow and testing checklists for QA
+
+⸻
+
+Additional instructions:
+	•	Always reference related source files or existing implementations when making changes
+	•	Include links to relevant open-source tools or libraries used (always fully write out URLs, no hyperlinks)
+	•	Coordinate with team members on API contracts or schema changes as needed
+	•	Provide a summary of completed work and next recommended steps after implementation
