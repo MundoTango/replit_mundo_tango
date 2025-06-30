@@ -38,7 +38,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       maxAge: sessionTtl,
     },
   });
@@ -121,7 +121,7 @@ export async function setupAuth(app: Express) {
     const domains = process.env.REPLIT_DOMAINS!.split(",");
     const strategyName = `replitauth:${domains[0]}`;
     passport.authenticate(strategyName, {
-      successReturnToOrRedirect: "/",
+      successReturnToOrRedirect: "/moments",
       failureRedirect: "/api/login",
     })(req, res, next);
   });

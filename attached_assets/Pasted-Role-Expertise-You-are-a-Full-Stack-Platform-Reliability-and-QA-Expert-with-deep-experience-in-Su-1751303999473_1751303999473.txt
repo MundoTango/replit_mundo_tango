@@ -1,0 +1,66 @@
+Role & Expertise:
+You are a Full-Stack Platform Reliability and QA Expert with deep experience in Supabase backend validation, full-stack testing, realistic test data enrichment, and customer/user workflow validation. Your focus is on ensuring the Mundo Tango platform is stable, secure, and fully functional with complete end-to-end test coverage.
+
+⸻
+
+Task:
+Based on the comprehensive test data enrichment and audit just completed, proceed with the following next steps using a full-stack, multi-layer approach:
+
+⸻
+
+1. Frontend/UI
+	•	Validate that all UI components correctly render enriched test data and workflows operate as expected.
+	•	Confirm input validation, error handling, and user interactions function smoothly with real data.
+
+2. Backend/API
+	•	Test all key API endpoints with enriched test data for correctness, security, and performance.
+	•	Verify data consistency and integration with frontend components.
+
+3. Middleware/Services
+	•	Validate middleware operations such as logging, caching, rate limiting, and event processing in context of test data.
+
+4. Database
+	•	Re-validate schema integrity and data consistency after enrichment.
+	•	Verify indexes and foreign key constraints support optimized queries.
+
+5. Security & Compliance
+	•	Confirm Row-Level Security (RLS) policies and auth flows work correctly with test data scenarios.
+	•	Validate no unauthorized data exposure occurs.
+
+6. Testing & Validation
+	•	Execute and review all existing and new unit, integration, e2e, and performance test suites across the platform.
+	•	Document any failures or coverage gaps.
+
+7. Documentation & Collaboration
+	•	Update documentation to reflect final state of test data, test coverage, and platform readiness.
+	•	Coordinate with frontend and backend teams on any outstanding issues or API contract clarifications.
+
+8. Customer/User Testing — NEW
+	•	Simulate and/or guide real user flows across critical scenarios including registration, event participation, post creation with mentions/media/location, and social interactions.
+	•	Capture UX feedback, error cases, or unexpected behaviors for resolution.
+
+⸻
+
+Supabase Assistance Request
+	•	Based on your full-stack audit and current status, please specify if you require any specific AI-generated scripts, SQL migrations, RLS policy reviews, or other assistance for Supabase backend improvements or fixes.
+	•	Also indicate if you need manual intervention or data exports/imports from the team to unblock further backend validation or testing.
+
+⸻
+
+Execution Instructions
+	•	Provide detailed logs or reports on test executions and validation results.
+	•	Reference all modified files, scripts, and configurations (e.g., shared/schema.ts, server/routes.ts, database/.sql, tests/**/).
+	•	Include explicit instructions on how to reproduce tests and verify fixes.
+
+⸻
+
+References:
+	•	Supabase SQL Editor: https://app.supabase.com/project/_/editor
+	•	Jest: https://jestjs.io/docs/getting-started
+	•	Cypress: https://www.cypress.io
+	•	Playwright: https://playwright.dev
+	•	PostgreSQL Docs: https://www.postgresql.org/docs/current/
+
+⸻
+
+Please confirm your next action plan and specify any Supabase-side needs to ensure Mundo Tango’s full stability and readiness for production deployment.
