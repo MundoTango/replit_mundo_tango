@@ -143,9 +143,9 @@ export default function PostFeed() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12 lg:space-y-16">
       {/* Tag Filter Section with indigo gradient */}
-      <div className="bg-gradient-to-r from-indigo-200 to-blue-100 rounded-lg p-4 md:p-6 shadow-inner mb-8">
+      <div className="bg-gradient-to-r from-indigo-200 to-blue-100 rounded-lg p-8 md:p-10 shadow-inner mb-12">
         <div className="flex items-center gap-3 mb-6">
           <div className="bg-indigo-600 p-3 rounded-full shadow-lg">
             <Tag className="h-6 w-6 text-white" />
@@ -229,7 +229,7 @@ export default function PostFeed() {
       </div>
 
       {/* Enhanced Posts Feed with improved spacing */}
-      <div className="space-y-8 lg:space-y-10">
+      <div className="space-y-12 lg:space-y-16">
         {posts.map((post: Post) => (
           <div key={post.id} className="transform transition-all duration-300 hover:scale-[1.01]">
             <PostItem

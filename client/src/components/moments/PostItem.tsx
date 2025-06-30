@@ -60,8 +60,8 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
   };
 
   return (
-    <div className="bg-white bg-opacity-95 rounded-2xl shadow-md border border-gray-100 p-6 md:p-8 hover:scale-[1.02] hover:shadow-xl transition-all duration-200 ease-in-out focus-visible:outline-offset-2">
-      <div className="space-y-6 leading-relaxed">
+    <div className="bg-white bg-opacity-95 rounded-2xl shadow-md border border-gray-100 p-8 md:p-10 lg:p-12 hover:scale-[1.02] hover:shadow-xl transition-all duration-200 ease-in-out focus-visible:outline-offset-2">
+      <div className="space-y-8 leading-relaxed">
         {/* Post Header - Enhanced Author Display */}
         <div className="flex items-center space-x-4 rounded-t-xl border-b border-gray-200 pb-3 mb-4">
           <div className="flex items-center gap-3">
@@ -82,14 +82,14 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
 
             {/* Author Info */}
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-semibold text-gray-900 hover:text-[#8E142E] cursor-pointer transition-colors">
+              <div className="flex items-center gap-3 mb-2">
+                <h4 className="font-semibold text-lg text-gray-900 hover:text-[#8E142E] cursor-pointer transition-colors">
                   {post.user.name}
                 </h4>
-                <span className="text-gray-500 text-sm">@{post.user.username}</span>
+                <span className="text-gray-500 text-base">@{post.user.username}</span>
               </div>
               
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center gap-2 text-base text-gray-500">
                 <span>{formatDistanceToNow(new Date(post.createdAt))} ago</span>
                 
                 {/* Location Tag */}
@@ -135,16 +135,16 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
         </div>
 
         {/* Post Content - Enhanced Visual Hierarchy */}
-        <div className="mb-4">
-          <p className="text-gray-900 text-base leading-relaxed font-medium">
+        <div className="mb-6">
+          <p className="text-gray-900 text-lg leading-relaxed font-medium mb-4">
             {renderWithMentions(post.content)}
           </p>
 
           {/* Hashtags */}
           {post.hashtags && post.hashtags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
+            <div className="flex flex-wrap gap-2 mt-4">
               {post.hashtags.map((hashtag, index) => (
-                <span key={index} className="text-blue-600 hover:text-blue-700 cursor-pointer text-sm">
+                <span key={index} className="text-blue-600 hover:text-blue-700 cursor-pointer text-base font-medium">
                   #{hashtag}
                 </span>
               ))}

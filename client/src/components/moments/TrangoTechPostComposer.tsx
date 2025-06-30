@@ -94,7 +94,7 @@ export default function TrangoTechPostComposer() {
       </div>
 
       {/* Post Composer with coral-pink gradient */}
-      <div className="bg-gradient-to-r from-coral-400 to-pink-500 rounded-3xl p-6 md:p-8 text-white shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out">
+      <div className="bg-gradient-to-r from-coral-400 to-pink-500 rounded-3xl p-8 md:p-10 lg:p-12 text-white shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out">
         <div className="flex justify-between items-start mb-6">
           <div className="text-white flex items-center gap-4 cursor-pointer">
             <div className="relative">

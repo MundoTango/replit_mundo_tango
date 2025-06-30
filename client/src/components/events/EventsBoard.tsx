@@ -123,7 +123,7 @@ export default function EventsBoard() {
   }
 
   return (
-    <div className="bg-white bg-opacity-90 rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-200 ease-in-out space-y-8">
+    <div className="bg-white bg-opacity-90 rounded-xl shadow-lg p-8 lg:p-10 hover:shadow-2xl transition-all duration-200 ease-in-out space-y-10">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -131,10 +131,10 @@ export default function EventsBoard() {
             <Calendar className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-indigo-700">
+            <h3 className="text-xl font-bold text-indigo-700">
               Upcoming Events
             </h3>
-            <p className="text-slate-700 font-medium text-sm leading-relaxed">In your area & invitations</p>
+            <p className="text-slate-700 font-medium text-base leading-relaxed">In your area & invitations</p>
           </div>
         </div>
         <div className="bg-gradient-to-br from-coral-100 to-pink-100 p-2 rounded-2xl">
@@ -142,16 +142,16 @@ export default function EventsBoard() {
         </div>
       </div>
 
-      {/* Events List */}
-      <div className="space-y-4 mb-6">
+      {/* Events List with enhanced spacing */}
+      <div className="space-y-6 lg:space-y-8 mb-8">
         {events?.slice(0, 4).map((event: Event) => {
           const typeInfo = getEventTypeInfo(event.eventType || '');
           return (
             <div
               key={event.id}
-              className="group bg-gradient-to-br from-blue-50/30 to-teal-50/30 p-5 rounded-2xl border-2 border-blue-100/50 
+              className="group bg-gradient-to-br from-blue-50/30 to-teal-50/30 p-6 lg:p-8 rounded-2xl border-2 border-blue-100/50 
                        hover:border-coral-300 hover:shadow-xl hover:bg-white/70 transition-all duration-300 cursor-pointer
-                       transform hover:-translate-y-1"
+                       transform hover:-translate-y-1 border-b border-gray-200/30 shadow-md"
               onClick={() => handleEventClick(event.id)}
             >
               {/* Event Header */}
@@ -177,27 +177,27 @@ export default function EventsBoard() {
                       </Badge>
                     )}
                   </div>
-                  <h4 className="font-bold text-blue-900 text-lg group-hover:text-coral-600 transition-colors line-clamp-1">
+                  <h4 className="font-bold text-blue-900 text-xl group-hover:text-coral-600 transition-colors line-clamp-1">
                     {event.title}
                   </h4>
                 </div>
                 <ChevronRight className="h-5 w-5 text-blue-400 group-hover:text-coral-500 transition-colors" />
               </div>
 
-              {/* Event Details */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-blue-600/80 text-sm font-medium">
-                  <Clock className="h-4 w-4" />
+              {/* Event Details with enhanced spacing */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-blue-600/80 text-base font-medium">
+                  <Clock className="h-5 w-5" />
                   <span>{formatEventDate(event.startDate)} • {formatEventTime(event.startDate)}</span>
                 </div>
                 
-                <div className="flex items-center gap-2 text-blue-600/80 text-sm font-medium">
-                  <MapPin className="h-4 w-4" />
+                <div className="flex items-center gap-3 text-blue-600/80 text-base font-medium">
+                  <MapPin className="h-5 w-5" />
                   <span className="truncate">{event.city}, {event.country}</span>
                 </div>
                 
-                <div className="flex items-center gap-2 text-blue-600/80 text-sm font-medium">
-                  <Users className="h-4 w-4" />
+                <div className="flex items-center gap-3 text-blue-600/80 text-base font-medium">
+                  <Users className="h-5 w-5" />
                   <span>
                     {event.currentAttendees} attending
                     {event.maxAttendees && ` / ${event.maxAttendees} max`}
