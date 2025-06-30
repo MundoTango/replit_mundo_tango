@@ -120,7 +120,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       <div
         className={`fixed inset-y-0 left-0 transform ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out bg-white w-64 text-gray-800 z-20 border-r border-gray-200 overflow-y-auto shadow-lg`}
+        } transition-transform duration-300 ease-in-out bg-white w-64 text-gray-800 z-40 border-r border-gray-200 overflow-y-auto shadow-lg`}
       >
         {/* Gradient Header Bar */}
         <div className="h-16 flex justify-between items-center px-4 bg-gradient-to-r from-pink-500 to-blue-500">

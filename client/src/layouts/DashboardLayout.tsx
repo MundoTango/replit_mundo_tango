@@ -306,16 +306,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </header>
 
-      <div className="flex">
-        {/* Modern Mundo Tango Sidebar */}
+      <div className="relative flex min-h-screen">
+        {/* Fixed Sidebar - No layout impact */}
         <TrangoTechSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
-        {/* Main Content - Optimized Layout */}
-        <main className={cn(
-          "flex-1 transition-all duration-300 bg-gray-50 min-h-screen",
-          sidebarOpen ? "lg:ml-64" : "lg:ml-0"
-        )}>
-          {children}
+        {/* Main Content Area - Full width with sidebar offset */}
+        <main className="flex-1 bg-gray-50 transition-all duration-300">
+          <div className={cn(
+            "transition-all duration-300",
+            sidebarOpen ? "lg:pl-64" : "lg:pl-0"
+          )}>
+            {children}
+          </div>
         </main>
       </div>
     </div>

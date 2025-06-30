@@ -110,13 +110,6 @@ export default function TrangoTechPostComposer() {
 
   return (
     <div className="w-full">
-      {/* Modern Header - New Feeds */}
-      <div className="flex justify-between items-center my-8">
-        <div className="text-3xl font-black bg-gradient-to-r from-blue-600 via-teal-500 to-cyan-500 bg-clip-text text-transparent">
-          Memories
-        </div>
-      </div>
-
       {/* TrangoTech Post Composer */}
       <div className="bg-gradient-to-br from-coral-100 to-coral-200/50 rounded-xl p-6 mb-8 shadow-lg border border-coral-200/30">
         <div className="flex items-center gap-4">
@@ -182,85 +175,84 @@ export default function TrangoTechPostComposer() {
 
       {/* TrangoTech Modal - Expanded Composer */}
       {showExpandedComposer && (
-        <div className="fixed inset-0 z-[100]">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div 
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowExpandedComposer(false)}
           />
-          <div className="relative z-[101] flex items-center justify-center min-h-full p-4">
-            <div 
-              className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={user?.profileImage || '/images/user-placeholder.jpeg'}
-                      alt=""
-                      className="w-10 h-10 object-cover rounded-full"
-                    />
-                    <div>
-                      <div className="font-semibold">{user?.name}</div>
-                      <div className="text-sm text-gray-500 flex items-center gap-1">
-                        {getVisibilityIcon()}
-                        <span className="capitalize">{newPost.visibility}</span>
-                      </div>
+          <div 
+            className="relative bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={user?.profileImage || '/images/user-placeholder.jpeg'}
+                    alt=""
+                    className="w-10 h-10 object-cover rounded-full"
+                  />
+                  <div>
+                    <div className="font-semibold">{user?.name}</div>
+                    <div className="text-sm text-gray-500 flex items-center gap-1">
+                      {getVisibilityIcon()}
+                      <span className="capitalize">{newPost.visibility}</span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setShowExpandedComposer(false)}
-                    className="p-2 hover:bg-gray-100 rounded-full"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
+                </div>
+                <button
+                  onClick={() => setShowExpandedComposer(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <textarea
+                  placeholder="What's happening in your tango world?"
+                  value={newPost.content}
+                  onChange={(e) => setNewPost(prev => ({ ...prev, content: e.target.value }))}
+                  className="w-full min-h-[120px] p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                
+                {/* Location Input */}
+                <div className="flex items-center gap-2 p-3 border rounded-lg">
+                  <MapPin className="h-4 w-4 text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Add location..."
+                    value={newPost.location}
+                    onChange={(e) => setNewPost(prev => ({ ...prev, location: e.target.value }))}
+                    className="flex-1 outline-none"
+                  />
                 </div>
                 
-                <div className="space-y-4">
-                  <textarea
-                    placeholder="What's happening in your tango world?"
-                    value={newPost.content}
-                    onChange={(e) => setNewPost(prev => ({ ...prev, content: e.target.value }))}
-                    className="w-full min-h-[120px] p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  
-                  {/* Location Input */}
-                  <div className="flex items-center gap-2 p-3 border rounded-lg">
-                    <MapPin className="h-4 w-4 text-gray-500" />
-                    <input
-                      type="text"
-                      placeholder="Add location..."
-                      value={newPost.location}
-                      onChange={(e) => setNewPost(prev => ({ ...prev, location: e.target.value }))}
-                      className="flex-1 outline-none"
-                    />
+                {/* Media Upload */}
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <label className="flex items-center gap-2 px-4 py-2 bg-white/80 hover:bg-pink-50 border border-pink-200 rounded-lg cursor-pointer transition-colors">
+                      <ImageIcon className="h-4 w-4 text-pink-600" />
+                      <span className="text-sm text-pink-700">Photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    
+                    <label className="flex items-center gap-2 px-4 py-2 bg-white/80 hover:bg-blue-50 border border-blue-200 rounded-lg cursor-pointer transition-colors">
+                      <Video className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm text-blue-700">Video</span>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={handleVideoUpload}
+                        className="hidden"
+                      />
+                    </label>
                   </div>
-                  
-                  {/* Media Upload */}
-                  <div className="space-y-3">
-                    <div className="flex gap-3">
-                      <label className="flex items-center gap-2 px-4 py-2 bg-white/80 hover:bg-pink-50 border border-pink-200 rounded-lg cursor-pointer transition-colors">
-                        <ImageIcon className="h-4 w-4 text-pink-600" />
-                        <span className="text-sm text-pink-700">Photo</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                        />
-                      </label>
-                      
-                      <label className="flex items-center gap-2 px-4 py-2 bg-white/80 hover:bg-blue-50 border border-blue-200 rounded-lg cursor-pointer transition-colors">
-                        <Video className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm text-blue-700">Video</span>
-                        <input
-                          type="file"
-                          accept="video/*"
-                          onChange={handleVideoUpload}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
                     
                     {/* Preview uploaded media */}
                     {newPost.imageUrl && (
@@ -335,7 +327,6 @@ export default function TrangoTechPostComposer() {
                         {createPostMutation.isPending ? 'Posting...' : 'Post'}
                       </button>
                     </div>
-                  </div>
                 </div>
               </div>
             </div>
