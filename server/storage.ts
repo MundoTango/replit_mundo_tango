@@ -44,9 +44,19 @@ import {
   type Follow,
   type PostLike,
   type PostComment,
+  type InsertComment,
+  type Reaction,
+  type InsertReaction,
+  type PostReport,
+  type InsertPostReport,
+  type Notification,
+  type InsertNotification,
   type Story,
   type DanceExperience,
   type CreatorExperience,
+  reactions,
+  postReports,
+  notifications,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, count, like, inArray, gte, lt, lte, ilike } from "drizzle-orm";
@@ -1300,6 +1310,74 @@ export class DatabaseStorage implements IStorage {
       .offset(offset);
 
     return results;
+  }
+
+  // Enhanced post comments methods
+  async createComment(data: InsertComment): Promise<PostComment> {
+    const [comment] = await db.insert(postComments).values(data).returning();
+    return comment;
+  }
+
+  async getCommentsByPostId(postId: number): Promise<PostComment[]> {
+    return await db.select().from(postComments)
+      .where(eq(postComments.postId, postId))
+      .orderBy(postComments.createdAt);
+  }
+
+  // Reactions methods
+  async createReaction(data: InsertReaction): Promise<Reaction> {
+    // First check if reaction already exists, if so update it
+    const existing = await db.select().from(reactions)
+      .where(and(
+        eq(reactions.userId, data.userId),
+        data.postId ? eq(reactions.postId, data.postId) : sql`post_id IS NULL`,
+        data.commentId ? eq(reactions.commentId, data.commentId) : sql`comment_id IS NULL`
+      ));
+
+    if (existing.length > 0) {
+      const [updated] = await db.update(reactions)
+        .set({ type: data.type })
+        .where(eq(reactions.id, existing[0].id))
+        .returning();
+      return updated;
+    }
+
+    const [reaction] = await db.insert(reactions).values(data).returning();
+    return reaction;
+  }
+
+  async removeReaction(userId: number, postId: number, type: string): Promise<void> {
+    await db.delete(reactions)
+      .where(and(
+        eq(reactions.userId, userId),
+        eq(reactions.postId, postId),
+        eq(reactions.type, type)
+      ));
+  }
+
+  // Reports methods
+  async createReport(data: InsertPostReport): Promise<PostReport> {
+    const [report] = await db.insert(postReports).values(data).returning();
+    return report;
+  }
+
+  // Notifications methods
+  async createNotification(data: InsertNotification): Promise<Notification> {
+    const [notification] = await db.insert(notifications).values(data).returning();
+    return notification;
+  }
+
+  async getNotificationsByUserId(userId: number): Promise<Notification[]> {
+    return await db.select().from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt))
+      .limit(50);
+  }
+
+  async markNotificationAsRead(notificationId: number, userId: number): Promise<void> {
+    await db.update(notifications)
+      .set({ isRead: true })
+      .where(and(eq(notifications.id, notificationId), eq(notifications.userId, userId)));
   }
 }
 

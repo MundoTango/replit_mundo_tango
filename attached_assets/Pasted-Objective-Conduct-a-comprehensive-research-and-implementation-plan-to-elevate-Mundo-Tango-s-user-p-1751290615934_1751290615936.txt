@@ -1,0 +1,41 @@
+Objective:
+
+Conduct a comprehensive research and implementation plan to elevate Mundo Tango’s user post functionality with rich text editing, multimedia embedding, interactive comments, moderation tools, real-time notifications, social sharing, and improved UI/UX design.
+
+⸻
+
+Tasks:
+	1.	Research Existing Assets:
+	•	Deeply analyze the current Trango Tech (TT) files related to user posts.
+	•	Investigate open-source repositories or libraries that can enhance post creation, display, interaction, and moderation.
+	2.	Feature Modules to Explore & Implement:
+	•	Rich Text Editing:
+Integrate a WYSIWYG editor like react-quill (https://github.com/zenoamaro/react-quill) or draft-js (https://draftjs.org/) to allow users to format text (bold, italics, lists, links).
+	•	Multimedia Embedding:
+Implement embedding of social media content (Instagram, Twitter, YouTube) via URL using react-social-media-embed (https://github.com/kozilyoz/react-social-media-embed).
+	•	Interactive Comments System:
+Add features such as nested replies, mentions, likes, and GIF support using comment systems like Replyke (https://github.com/replyke/replyke).
+	•	Post Moderation Tools:
+Incorporate moderation capabilities from Chirpy (https://github.com/chirpy-dev/chirpy) or Cusdis (https://cusdis.com/) to manage inappropriate content.
+	•	Real-Time Notifications:
+Use @novu/react (https://docs.novu.co/react/getting-started) for in-app notifications on new comments, likes, or mentions.
+	•	Social Sharing:
+Add share buttons using react-share (https://github.com/nygardk/react-share) for platforms like Facebook, Twitter, and LinkedIn.
+	•	UI/UX Improvements:
+Apply design systems such as Social+ UI Kit (https://socialplus.io/ui-kit) or Tango UI Kit (if available) to ensure cohesive and modern design.
+	3.	Integration Strategy:
+	•	Update Post Composer to include rich text editing and multimedia embedding.
+	•	Update Post Feed to display embedded content and interactive comments.
+	•	Update backend APIs to support rich text, media URLs, mentions, likes, and moderation.
+	•	Ensure mobile responsiveness and accessibility.
+	4.	Deliverables:
+	•	Research report summarizing tools and recommendations.
+	•	Phased implementation plan with technical design and timelines.
+	•	Working prototypes of enhanced post features.
+	•	Updated documentation and integration notes.
+
+⸻
+
+Request:
+
+Please confirm what access or context you need from Supabase or other teams. Identify potential blockers or risks early to ensure smooth progress.

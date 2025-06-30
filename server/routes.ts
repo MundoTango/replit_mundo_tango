@@ -3573,6 +3573,226 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced Post Comments API
+  app.post('/api/posts/:postId/comments', isAuthenticated, async (req, res) => {
+    try {
+      const { postId } = req.params;
+      const { content, parentId, mentions, gifUrl, imageUrl } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ 
+          code: 0, 
+          message: "Authentication required",
+          data: null 
+        });
+      }
+
+      const comment = await storage.createComment({
+        userId,
+        postId: parseInt(postId),
+        parentId: parentId ? parseInt(parentId) : null,
+        content
+      });
+
+      return res.json({
+        code: 1,
+        message: "Comment created successfully",
+        data: comment
+      });
+    } catch (error) {
+      console.error('Error creating comment:', error);
+      return res.status(500).json({
+        code: 0,
+        message: "Failed to create comment",
+        data: null
+      });
+    }
+  });
+
+  app.get('/api/posts/:postId/comments', async (req, res) => {
+    try {
+      const { postId } = req.params;
+      const comments = await storage.getCommentsByPostId(parseInt(postId));
+      
+      return res.json({
+        code: 1,
+        message: "Comments retrieved successfully",
+        data: comments
+      });
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      return res.status(500).json({
+        code: 0,
+        message: "Failed to fetch comments",
+        data: null
+      });
+    }
+  });
+
+  // Post and Comment Reactions API
+  app.post('/api/posts/:postId/reactions', isAuthenticated, async (req, res) => {
+    try {
+      const { postId } = req.params;
+      const { type } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ 
+          code: 0, 
+          message: "Authentication required",
+          data: null 
+        });
+      }
+
+      const reaction = await storage.createReaction({
+        userId,
+        postId: parseInt(postId),
+        type
+      });
+
+      return res.json({
+        code: 1,
+        message: "Reaction added successfully",
+        data: reaction
+      });
+    } catch (error) {
+      console.error('Error creating reaction:', error);
+      return res.status(500).json({
+        code: 0,
+        message: "Failed to add reaction",
+        data: null
+      });
+    }
+  });
+
+  app.delete('/api/posts/:postId/reactions/:type', isAuthenticated, async (req, res) => {
+    try {
+      const { postId, type } = req.params;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ 
+          code: 0, 
+          message: "Authentication required",
+          data: null 
+        });
+      }
+
+      await storage.removeReaction(userId, parseInt(postId), type);
+
+      return res.json({
+        code: 1,
+        message: "Reaction removed successfully",
+        data: {}
+      });
+    } catch (error) {
+      console.error('Error removing reaction:', error);
+      return res.status(500).json({
+        code: 0,
+        message: "Failed to remove reaction",
+        data: null
+      });
+    }
+  });
+
+  // Content Moderation API
+  app.post('/api/posts/:postId/report', isAuthenticated, async (req, res) => {
+    try {
+      const { postId } = req.params;
+      const { reason, description } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ 
+          code: 0, 
+          message: "Authentication required",
+          data: null 
+        });
+      }
+
+      const report = await storage.createReport({
+        postId: parseInt(postId),
+        reporterId: userId,
+        reason,
+        description: description || null
+      });
+
+      return res.json({
+        code: 1,
+        message: "Report submitted successfully",
+        data: report
+      });
+    } catch (error) {
+      console.error('Error creating report:', error);
+      return res.status(500).json({
+        code: 0,
+        message: "Failed to submit report",
+        data: null
+      });
+    }
+  });
+
+  // Notifications API
+  app.get('/api/notifications', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ 
+          code: 0, 
+          message: "Authentication required",
+          data: null 
+        });
+      }
+
+      const notifications = await storage.getNotificationsByUserId(userId);
+      
+      return res.json({
+        code: 1,
+        message: "Notifications retrieved successfully",
+        data: notifications
+      });
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      return res.status(500).json({
+        code: 0,
+        message: "Failed to fetch notifications",
+        data: null
+      });
+    }
+  });
+
+  app.patch('/api/notifications/:id/read', isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ 
+          code: 0, 
+          message: "Authentication required",
+          data: null 
+        });
+      }
+
+      await storage.markNotificationAsRead(parseInt(id), userId);
+
+      return res.json({
+        code: 1,
+        message: "Notification marked as read",
+        data: {}
+      });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      return res.status(500).json({
+        code: 0,
+        message: "Failed to mark notification as read",
+        data: null
+      });
+    }
+  });
+
   // Initialize Supabase Storage bucket on server start
   initializeStorageBucket();
 

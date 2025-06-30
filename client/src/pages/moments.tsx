@@ -1,6 +1,6 @@
 import React from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import TrangoTechPostComposer from '@/components/moments/TrangoTechPostComposer';
+import EnhancedPostComposer from '@/components/moments/EnhancedPostComposer';
 import PostFeed from '@/components/moments/PostFeed';
 import EventsBoard from '@/components/events/EventsBoard';
 
@@ -26,7 +26,7 @@ export default function MomentsPage() {
             {/* Main content area - 69% width on large screens */}
             <div className="flex-1 lg:w-0 lg:flex-[0_0_69%] max-w-none">
               <div className="space-y-4 pr-2">
-                <TrangoTechPostComposer />
+                <EnhancedPostComposer />
                 <PostFeed />
               </div>
             </div>

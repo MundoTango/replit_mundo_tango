@@ -95,22 +95,31 @@ export const userRoles = pgTable("user_roles", {
   index("idx_user_roles_role_name").on(table.roleName),
 ]);
 
-// Posts table
+// Enhanced Posts table with rich text and multimedia support
 export const posts = pgTable("posts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
   content: text("content").notNull(),
+  richContent: jsonb("rich_content"), // Rich text editor content
+  plainText: text("plain_text"), // Extracted plain text for search
   imageUrl: text("image_url"),
   videoUrl: text("video_url"),
+  mediaEmbeds: jsonb("media_embeds").default([]), // Social media embeds
+  mentions: text("mentions").array().default([]), // @mentions
+  hashtags: text("hashtags").array().default([]),
+  location: text("location"),
+  visibility: varchar("visibility", { length: 20 }).default("public"), // public, friends, private
   likesCount: integer("likes_count").default(0),
   commentsCount: integer("comments_count").default(0),
   sharesCount: integer("shares_count").default(0),
-  hashtags: text("hashtags").array(),
   isPublic: boolean("is_public").default(true),
+  isEdited: boolean("is_edited").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("idx_posts_user_created").on(table.userId, table.createdAt),
+  index("idx_posts_visibility").on(table.visibility),
+  index("idx_posts_hashtags").on(table.hashtags),
 ]);
 
 // Activities/Categories table
@@ -331,6 +340,12 @@ export const postComments = pgTable("post_comments", {
   userId: integer("user_id").references(() => users.id).notNull(),
   content: text("content").notNull(),
   parentId: integer("parent_id"),
+  mentions: text("mentions").array().default([]),
+  gifUrl: text("gif_url"),
+  imageUrl: text("image_url"),
+  likes: integer("likes").default(0),
+  dislikes: integer("dislikes").default(0),
+  isEdited: boolean("is_edited").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -602,6 +617,8 @@ export const insertPostSchema = createInsertSchema(posts).omit({
   sharesCount: true,
 });
 
+
+
 export const insertEventSchema = createInsertSchema(events).omit({
   id: true,
   createdAt: true,
@@ -647,6 +664,86 @@ export const insertMemoryMediaSchema = createInsertSchema(memoryMedia).omit({
   createdAt: true,
 });
 
+// Enhanced comment schema for rich commenting system
+export const insertCommentSchema = createInsertSchema(postComments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Post and Comment Reactions table for enhanced engagement
+export const reactions = pgTable("reactions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  postId: integer("post_id").references(() => posts.id),
+  commentId: integer("comment_id").references(() => postComments.id),
+  type: varchar("type", { length: 20 }).notNull(), // like, dislike, love, laugh, angry, sad
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_reactions_user").on(table.userId),
+  index("idx_reactions_post").on(table.postId),
+  index("idx_reactions_comment").on(table.commentId),
+  unique().on(table.userId, table.postId, table.type),
+  unique().on(table.userId, table.commentId, table.type),
+]);
+
+// Post Reports table for moderation system
+export const postReports = pgTable("post_reports", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").references(() => posts.id),
+  commentId: integer("comment_id").references(() => postComments.id),
+  reporterId: integer("reporter_id").references(() => users.id).notNull(),
+  reason: varchar("reason", { length: 100 }).notNull(),
+  description: text("description"),
+  status: varchar("status", { length: 20 }).default("pending"), // pending, reviewed, resolved, dismissed
+  moderatorId: integer("moderator_id").references(() => users.id),
+  moderatorNotes: text("moderator_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_reports_post").on(table.postId),
+  index("idx_reports_comment").on(table.commentId),
+  index("idx_reports_status").on(table.status),
+  index("idx_reports_created").on(table.createdAt),
+]);
+
+// Notifications table for real-time updates
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // comment, like, mention, follow, event_invite
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  data: jsonb("data").default({}), // Additional data for the notification
+  isRead: boolean("is_read").default(false),
+  actionUrl: text("action_url"), // URL to navigate when clicked
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_notifications_user").on(table.userId),
+  index("idx_notifications_unread").on(table.userId, table.isRead),
+  index("idx_notifications_type").on(table.type),
+  index("idx_notifications_created").on(table.createdAt),
+]);
+
+// Reaction schema for post and comment reactions  
+export const insertReactionSchema = createInsertSchema(reactions).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Report schema for content moderation
+export const insertReportSchema = createInsertSchema(postReports).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Notification schema for real-time alerts
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
   id: true,
   createdAt: true,
@@ -687,6 +784,13 @@ export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type EventRsvp = typeof eventRsvps.$inferSelect;
 export type PostLike = typeof postLikes.$inferSelect;
 export type PostComment = typeof postComments.$inferSelect;
+export type InsertComment = z.infer<typeof insertCommentSchema>;
+export type Reaction = typeof reactions.$inferSelect;
+export type InsertReaction = z.infer<typeof insertReactionSchema>;
+export type PostReport = typeof postReports.$inferSelect;
+export type InsertPostReport = z.infer<typeof insertReportSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Follow = typeof follows.$inferSelect;
 export type Story = typeof stories.$inferSelect;
 export type StoryView = typeof storyViews.$inferSelect;
