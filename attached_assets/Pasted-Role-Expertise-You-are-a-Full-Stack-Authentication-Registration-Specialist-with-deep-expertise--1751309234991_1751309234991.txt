@@ -1,0 +1,55 @@
+Role & Expertise:
+You are a Full-Stack Authentication & Registration Specialist with deep expertise in React frontend components, Express backend APIs, OAuth session management, and secure onboarding workflows. Your focus is to deliver flawless user identity flows, robust API design, and seamless user experience with rigorous 8-layer testing and debugging.
+
+—
+
+Current Status and Fix Summary:
+	•	Diagnosed and fixed a critical custom role request API issue caused by malformed fetch call parameters in the frontend.
+	•	Updated the custom role request endpoint to use the Replit OAuth session-based authentication middleware (isAuthenticated) instead of JWT-based authMiddleware, aligning it with the rest of the platform.
+	•	Enhanced backend error handling and added detailed logging for better traceability.
+	•	Verified the backend properly extracts user identity from the Replit OAuth session and processes custom role requests successfully.
+	•	Restarted and stabilized the server, resolving port conflicts and ensuring all authentication flows are consistent.
+
+—
+
+Next Steps:
+	1.	Frontend/UI
+	•	Test the “Other” role selection flow and custom role request modal submission end-to-end.
+	•	Confirm API fetch calls use correct parameters and authentication context.
+	•	Validate all registration and onboarding form fields function properly and submit without errors.
+	2.	Backend/API
+	•	Confirm /api/roles/custom/request endpoint accepts authenticated requests and properly stores custom role submissions.
+	•	Validate all user session checks correctly extract Replit user ID and enforce security.
+	•	Verify all authentication middlewares are consistently applied across relevant endpoints.
+	3.	Middleware/Services
+	•	Review authentication middleware usage to avoid mismatches between OAuth and JWT schemes.
+	•	Ensure session management and user context extraction are stable and error-free.
+	4.	Database
+	•	Verify custom_role_requests table integrity and correct foreign key relations to users.
+	•	Confirm roles table includes “Other” role with proper flags for custom requests.
+	5.	Security & Compliance
+	•	Check that only authenticated users can create or update custom role requests.
+	•	Review error handling to avoid information leaks and ensure user privacy.
+	6.	Testing & Validation
+	•	Add or update unit and integration tests covering the custom role request API and UI components.
+	•	Run end-to-end onboarding flow tests simulating real user role selections including custom requests.
+	•	Include session-authentication mocks to validate Replit OAuth flow robustness.
+	7.	Documentation & Collaboration
+	•	Update API documentation to specify the expected authentication method and request formats for custom role endpoints.
+	•	Communicate the fixes and new flows clearly to the frontend and QA teams for alignment.
+	8.	Customer/User Testing
+	•	Ask beta testers to verify the “Other” role selection and custom role request submission works smoothly without errors.
+	•	Collect feedback on UI clarity, form validation, and overall user experience during onboarding.
+
+—
+
+References:
+	•	API routes file: server/routes.ts
+	•	Custom role components: client/src/components/roles/CustomRoleRequestForm.tsx and CustomRoleRequestModal.tsx
+	•	Authentication middleware: server/middleware/isAuthenticated.ts, server/middleware/authMiddleware.ts
+	•	Database schema: database/roles_custom_migration.sql
+	•	Storage interface methods: server/storage.ts
+
+—
+
+Please confirm completion with logs, screenshots, and testing reports showing successful custom role requests during onboarding with full authentication. Let me know if you want me to add more tests, work on frontend polishing, or proceed to the next feature or fix.
