@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Camera, Video, MapPin, Globe, Users, Lock, X, 
@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 interface EnhancedPostCreatorProps {
   onPostCreated?: () => void;
@@ -40,7 +42,7 @@ export default function EnhancedPostCreator({
   
   const [showExpandedComposer, setShowExpandedComposer] = useState(false);
   const [content, setContent] = useState(initialContent);
-  const [richContent, setRichContent] = useState('');
+  const [richContent, setRichContent] = useState(initialContent);
   const [mediaEmbeds, setMediaEmbeds] = useState<MediaEmbed[]>([]);
   const [mentions, setMentions] = useState<Mention[]>([]);
   const [location, setLocation] = useState('');
@@ -49,39 +51,47 @@ export default function EnhancedPostCreator({
   const [showMentionPicker, setShowMentionPicker] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Rich text formatting functions
-  const formatText = useCallback((format: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    
-    let formattedText = selectedText;
-    switch (format) {
-      case 'bold':
-        formattedText = `**${selectedText}**`;
-        break;
-      case 'italic':
-        formattedText = `*${selectedText}*`;
-        break;
-      case 'link':
-        const url = prompt('Enter URL:');
-        if (url) formattedText = `[${selectedText || 'Link'}](${url})`;
-        break;
-      case 'list':
-        formattedText = `\n• ${selectedText}\n`;
-        break;
-      case 'quote':
-        formattedText = `> ${selectedText}`;
-        break;
+  // Quill modules for rich text editing
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        ['bold', 'italic', 'underline', 'strike'],
+        ['blockquote', 'code-block'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        [{ 'direction': 'rtl' }],
+        [{ 'size': ['small', false, 'large', 'huge'] }],
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'font': [] }],
+        [{ 'align': [] }],
+        ['link'],
+        ['clean']
+      ]
+    },
+    clipboard: {
+      matchVisual: false,
     }
+  }), []);
 
-    const newContent = content.substring(0, start) + formattedText + content.substring(end);
-    setContent(newContent);
-    setRichContent(newContent);
-  }, [content]);
+  const formats = [
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'color', 'background',
+    'align', 'script', 'code-block'
+  ];
+
+  // Handle rich text content changes
+  const handleContentChange = useCallback((value: string) => {
+    setRichContent(value);
+    // Extract plain text for mentions and validation
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = value;
+    const plainText = tempDiv.textContent || tempDiv.innerText || '';
+    setContent(plainText);
+  }, []);
 
   // Social media embed detection
   const detectSocialMedia = useCallback((url: string): MediaEmbed | null => {
@@ -226,11 +236,29 @@ export default function EnhancedPostCreator({
     setVisibility('public');
   };
 
+  // Convert rich content to plain text for validation
+  const getPlainTextLength = () => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = richContent;
+    return (tempDiv.textContent || tempDiv.innerText || '').length;
+  };
+
   const handleSubmit = () => {
-    if (!content.trim() && mediaEmbeds.length === 0) {
+    const plainTextLength = getPlainTextLength();
+    
+    if (plainTextLength === 0 && mediaEmbeds.length === 0) {
       toast({
         title: "Empty post",
         description: "Please add some content or media to your post.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (plainTextLength > 2000) {
+      toast({
+        title: "Post too long",
+        description: "Please keep your post under 2000 characters.",
         variant: "destructive"
       });
       return;
@@ -323,23 +351,27 @@ export default function EnhancedPostCreator({
             </div>
           </div>
 
-          {/* Rich text toolbar */}
+          {/* Rich Text Editor */}
+          <div className="mb-4">
+            <ReactQuill
+              theme="snow"
+              value={richContent}
+              onChange={handleContentChange}
+              modules={modules}
+              formats={formats}
+              placeholder="What's happening in your tango world? Use the toolbar to format your text..."
+              style={{
+                minHeight: '180px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '12px',
+                overflow: 'hidden'
+              }}
+              className="quill-editor"
+            />
+          </div>
+
+          {/* Additional Actions */}
           <div className="flex items-center space-x-2 mb-4 p-3 bg-gray-50 rounded-lg">
-            <button onClick={() => formatText('bold')} className="p-2 hover:bg-gray-200 rounded text-gray-600">
-              <Bold className="w-4 h-4" />
-            </button>
-            <button onClick={() => formatText('italic')} className="p-2 hover:bg-gray-200 rounded text-gray-600">
-              <Italic className="w-4 h-4" />
-            </button>
-            <button onClick={() => formatText('list')} className="p-2 hover:bg-gray-200 rounded text-gray-600">
-              <List className="w-4 h-4" />
-            </button>
-            <button onClick={() => formatText('quote')} className="p-2 hover:bg-gray-200 rounded text-gray-600">
-              <Quote className="w-4 h-4" />
-            </button>
-            <button onClick={() => formatText('link')} className="p-2 hover:bg-gray-200 rounded text-gray-600">
-              <Link className="w-4 h-4" />
-            </button>
             <div className="w-px h-6 bg-gray-300"></div>
             <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 hover:bg-gray-200 rounded text-gray-600">
               <Smile className="w-4 h-4" />
@@ -351,19 +383,6 @@ export default function EnhancedPostCreator({
               <Hash className="w-4 h-4" />
             </button>
           </div>
-
-          {/* Content textarea */}
-          <textarea
-            ref={textareaRef}
-            value={content}
-            onChange={(e) => {
-              setContent(e.target.value);
-              setRichContent(e.target.value);
-            }}
-            onPaste={handlePaste}
-            placeholder="What's happening in your tango world?"
-            className="w-full min-h-[120px] p-4 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-          />
 
           {/* Mentions display */}
           {mentions.length > 0 && (
