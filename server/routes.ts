@@ -4662,6 +4662,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mention search endpoint for autocomplete
+  app.get('/api/search/mentions', isAuthenticated, async (req, res) => {
+    try {
+      const { q } = req.query;
+      const query = q as string;
+      
+      if (!query || query.length < 2) {
+        return res.json({ users: [], events: [], groups: [] });
+      }
+      
+      // Search users
+      const users = await db
+        .select({
+          id: schema.users.id,
+          name: schema.users.name,
+          username: schema.users.username,
+          profileImage: schema.users.profileImage
+        })
+        .from(schema.users)
+        .where(
+          or(
+            ilike(schema.users.name, `%${query}%`),
+            ilike(schema.users.username, `%${query}%`)
+          )
+        )
+        .limit(5);
+      
+      // Search events
+      const events = await db
+        .select({
+          id: schema.events.id,
+          title: schema.events.title,
+          status: schema.events.status
+        })
+        .from(schema.events)
+        .where(ilike(schema.events.title, `%${query}%`))
+        .limit(5);
+      
+      // Groups - for now return empty array (can be implemented later)
+      const groups: any[] = [];
+      
+      res.json({
+        users,
+        events,
+        groups
+      });
+    } catch (error) {
+      console.error('Mention search error:', error);
+      res.status(500).json({ error: 'Failed to search mentions' });
+    }
+  });
+
+  // Memory creation with mentions support
+  app.post('/api/memory/create-with-mentions', isAuthenticated, async (req, res) => {
+    try {
+      const { title, content, emotionTags, trustLevel, location, eventId } = req.body;
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+      
+      // Extract mentions from content
+      const mentionRegex = /@\[([^\]]+)\]\(type:(\w+),id:([^)]+)\)/g;
+      const extractedMentions: any[] = [];
+      let match;
+      
+      while ((match = mentionRegex.exec(content)) !== null) {
+        extractedMentions.push({
+          display: match[1],
+          type: match[2],
+          id: match[3]
+        });
+      }
+      
+      // Create memory data
+      const memoryData = {
+        user_id: userId,
+        title,
+        content,
+        emotion_tags: emotionTags || [],
+        emotion_visibility: 'public',
+        trust_circle_level: trustLevel === 'sacred' ? 5 : trustLevel === 'intimate' ? 4 : 1,
+        location: location || null,
+        co_tagged_users: extractedMentions
+          .filter(m => m.type === 'user')
+          .map(m => parseInt(m.id))
+          .filter(id => !isNaN(id)),
+        consent_required: extractedMentions.some(m => m.type === 'user')
+      };
+      
+      // Insert memory
+      const [memory] = await db
+        .insert(memoriesTable)
+        .values(memoryData)
+        .returning();
+      
+      // Send notifications to mentioned users
+      const mentionedUserIds = extractedMentions
+        .filter(m => m.type === 'user')
+        .map(m => parseInt(m.id))
+        .filter(id => !isNaN(id) && id !== userId);
+      
+      if (mentionedUserIds.length > 0) {
+        const notifications = mentionedUserIds.map(mentionedUserId => ({
+          user_id: mentionedUserId,
+          type: 'memory_mention' as const,
+          title: 'You were mentioned in a memory',
+          message: `${req.user.name || req.user.username} mentioned you in "${title}"`,
+          data: {
+            memoryId: memory.id,
+            creatorName: req.user.name || req.user.username,
+            memoryTitle: title
+          }
+        }));
+        
+        await db.insert(notificationsTable).values(notifications);
+      }
+      
+      // Log memory creation
+      await storage.logMemoryAudit({
+        user_id: userId,
+        memory_id: memory.id,
+        action_type: 'create',
+        result: 'allowed',
+        metadata: { 
+          mentions_count: extractedMentions.length,
+          mentioned_users: mentionedUserIds.length
+        }
+      });
+      
+      res.json({
+        success: true,
+        data: memory,
+        mentionsProcessed: extractedMentions.length,
+        notificationsSent: mentionedUserIds.length
+      });
+    } catch (error) {
+      console.error('Memory creation with mentions error:', error);
+      res.status(500).json({ error: 'Failed to create memory with mentions' });
+    }
+  });
+
   // Initialize Supabase Storage bucket on server start
   initializeStorageBucket();
 

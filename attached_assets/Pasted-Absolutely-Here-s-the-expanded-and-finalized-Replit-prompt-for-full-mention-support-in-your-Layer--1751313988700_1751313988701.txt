@@ -1,0 +1,154 @@
+Absolutely. Here’s the expanded and finalized Replit prompt for full @mention support in your Layer 9 system — now including the editor component, regex parsing, and notification system scaffolding.
+
+⸻
+
+🧠 Replit Prompt: Full @Mention System in Memory Creation (Layer 9 Extension)
+
+You are extending the Mundo Tango memory system to support rich @mention functionality across users, events, and groups. Mentions should autocomplete, store metadata, render as links, and optionally trigger notifications or consent logic.
+
+⸻
+
+🎯 Goals
+	•	Let users @mention other users, events, and groups
+	•	Render mentions as rich links in viewers
+	•	Store structured metadata for mentions
+	•	Enable optional consent/notification logic
+	•	Integrate with existing Supabase + Replit stack
+
+⸻
+
+🧩 Implementation Breakdown
+
+✅ 1. <MentionsInput /> Editor Component
+
+Install:
+
+npm install react-mentions
+
+Use in MemoryCreationForm.tsx:
+
+import { MentionsInput, Mention } from 'react-mentions';
+
+<MentionsInput
+  value={content}
+  onChange={(e) => setContent(e.target.value)}
+  className="mentions"
+>
+  <Mention
+    trigger="@"
+    data={fetchMentionData}
+    markup="@[__display__](type:__type__,id:__id__)"
+    renderSuggestion={(entry) => (
+      <div className="px-2 py-1 hover:bg-gray-100">{entry.display}</div>
+    )}
+  />
+</MentionsInput>
+
+You’ll need:
+	•	fetchMentionData(query) — a function that hits /api/search?query=xyz&type=user|event|group
+	•	Styling: add .mentions class to style the input
+
+⸻
+
+✅ 2. Regex + Parser for Extracting Mentions
+
+Create a parser on the backend:
+
+const mentionRegex = /@\[([^\]]+)\]\(type:(\w+),id:(\w+)\)/g;
+
+function extractMentions(text: string) {
+  const mentions = [];
+  let match;
+  while ((match = mentionRegex.exec(text)) !== null) {
+    mentions.push({ display: match[1], type: match[2], id: match[3] });
+  }
+  return mentions;
+}
+
+Use this to populate the mentions column when saving a memory.
+
+⸻
+
+✅ 3. Supabase Schema Update
+
+ALTER TABLE memories ADD COLUMN mentions JSONB DEFAULT '[]';
+
+Mention format:
+
+[
+  { "type": "user", "id": 3, "display": "Scott" },
+  { "type": "event", "id": "event_001", "display": "Naples Festival" }
+]
+
+
+⸻
+
+✅ 4. Supabase Trigger + Webhook Ideas
+
+Optional: Create a trigger that fires on insert into memories if the mentions array includes users:
+
+Supabase Trigger (Postgres Function)
+
+CREATE OR REPLACE FUNCTION notify_mentions()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Iterate through mentions and enqueue notification
+  PERFORM pg_notify('mention_notifications', row_to_json(NEW)::text);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_mentions_notification
+AFTER INSERT ON memories
+FOR EACH ROW
+WHEN (jsonb_array_length(NEW.mentions) > 0)
+EXECUTE FUNCTION notify_mentions();
+
+Then subscribe from an N8N listener or webhook endpoint.
+
+⸻
+
+✅ 5. Viewer Component: Render Mentions as Links
+
+Use react-markdown with a custom renderer:
+
+<ReactMarkdown
+  components={{
+    a: ({ href, children }) => {
+      const match = /type:(\w+),id:(\w+)/.exec(href || '');
+      if (!match) return <span>{children}</span>;
+      const [_, type, id] = match;
+      return <Link to={`/${type}/${id}`}>{children}</Link>;
+    },
+  }}
+>
+  {memory.content}
+</ReactMarkdown>
+
+
+⸻
+
+🧪 Testing
+	•	Create a memory mentioning a user and event
+	•	Ensure the mentions field is populated in Supabase
+	•	Approve tagged users → memory becomes visible
+	•	Clickable mention links route to profiles or event pages
+	•	(Optional) Trigger sends webhook on insert
+
+⸻
+
+🧾 Deliverables
+	•	MentionsInput fully functional in memory editor
+	•	Regex extractor on backend
+	•	mentions column in memories table
+	•	Optional Supabase trigger or N8N webhook
+	•	Custom renderer for mention links in viewer
+
+⸻
+
+Let me know when you’re ready and I can generate:
+	•	🧪 Unit tests for mention parsing
+	•	🧩 Reusable mention utils module
+	•	🔔 Real notification flow with Supabase Edge Functions or N8N
+
+Ready to ship this next?
