@@ -46,7 +46,6 @@ export default function RoleSelector({
   onRoleChange, 
   isLoading = false 
 }: RoleSelectorProps) {
-  const [showAll, setShowAll] = useState(false);
   const [showCustomRoleModal, setShowCustomRoleModal] = useState(false);
   
   // Memoize the selected roles set for efficient lookups
@@ -61,10 +60,9 @@ export default function RoleSelector({
       selectedRolesCount: selectedRoles.length, 
       rolesCount, 
       isLoading, 
-      showAll, 
       showCustomRoleModal 
     });
-  }, [selectedRoles.length, rolesCount, isLoading, showAll, showCustomRoleModal]);
+  }, [selectedRoles.length, rolesCount, isLoading, showCustomRoleModal]);
   
   // Memoized role toggle handler to prevent recreation on every render
   const handleRoleToggle = useCallback((roleName: string) => {
@@ -148,10 +146,10 @@ export default function RoleSelector({
     });
   }, [selectedRolesSet, handleRoleToggle]);
 
-  // Memoize displayed roles to prevent re-computation on every render
+  // Display all roles upfront without hiding any
   const displayedRoles = useMemo(() => {
-    return showAll ? roles : roles.slice(0, 8);
-  }, [roles, showAll]);
+    return roles;
+  }, [roles]);
 
   if (isLoading) {
     return (
@@ -190,17 +188,7 @@ export default function RoleSelector({
             ))}
           </div>
 
-          {roles.length > 8 && (
-            <div className="text-center pt-3">
-              <button
-                type="button"
-                onClick={() => setShowAll(!showAll)}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-              >
-                {showAll ? 'Show less' : `Show ${roles.length - 8} more roles`}
-              </button>
-            </div>
-          )}
+
 
           {selectedRoles.length > 0 && (
             <div className="pt-4 border-t border-gray-100">

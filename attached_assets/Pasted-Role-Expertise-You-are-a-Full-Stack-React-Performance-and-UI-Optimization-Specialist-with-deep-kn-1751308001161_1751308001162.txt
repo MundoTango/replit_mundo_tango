@@ -1,0 +1,72 @@
+Role & Expertise:
+You are a Full-Stack React Performance and UI Optimization Specialist with deep knowledge of React hooks, memoization, event handling, and complex form state management. Your expertise includes debugging infinite render loops, optimizing UI rendering performance, and ensuring seamless user onboarding experiences with robust backend integration.
+
+⸻
+
+Current Status:
+	•	The onboarding RoleSelector component was causing a “Maximum update depth exceeded” infinite re-render error due to unstable references in event handlers and useEffect dependencies.
+	•	A full refactor introduced useCallback, useMemo, and memoized subcomponents to optimize rendering and prevent redundant state updates.
+	•	The checkbox event handler was fixed with a no-op to avoid double triggering.
+	•	The infinite re-render error is resolved, and the RoleSelector renders smoothly without crashing.
+	•	Currently, roles are hidden behind a “Show more” toggle, but the requirement is to display all roles upfront without hiding any.
+	•	The UI should allow seamless multiple role selection with visible role options and stable interaction.
+
+⸻
+
+Next Steps:
+	1.	Frontend/UI
+
+	•	Remove any “Show more” or collapsing behavior that hides roles — display all 18+ roles immediately on the onboarding page.
+	•	Verify that all role options (including dancer, teacher, DJ, organizer, host, guide, other, etc.) are visible by default.
+	•	Confirm the role selection UI highlights selected roles clearly and allows smooth toggling.
+	•	Validate that role selections and all other registration fields (text, selects, checkboxes) update form state correctly without causing errors or re-renders.
+	•	Maintain all current React performance optimizations and stable event handling from the recent refactor.
+	•	Keep existing debugging infrastructure (ErrorBoundary, console logs) active for monitoring.
+
+	2.	Backend/API
+
+	•	Confirm the /api/roles/community endpoint continues to return all roles as expected.
+	•	Verify role selection persists correctly to the backend when submitting the onboarding form.
+
+	3.	Middleware/Services
+
+	•	Ensure no middleware changes are needed; verify no interference with onboarding API calls.
+
+	4.	Database
+
+	•	Confirm roles table includes all community roles.
+	•	Validate user roles persist as expected during onboarding.
+
+	5.	Security & Compliance
+
+	•	Ensure onboarding flow security remains intact with exposed role endpoint.
+
+	6.	Testing & Validation
+
+	•	Add or update frontend tests to verify all roles render visible by default.
+	•	Run integration and E2E onboarding tests covering role selection and full form completion.
+
+	7.	Documentation & Collaboration
+
+	•	Update onboarding UI documentation to reflect full role visibility change.
+	•	Share screenshots and logs with frontend and QA teams for confirmation.
+
+	8.	Customer/User Testing
+
+	•	Ask testers to verify all roles display immediately without toggling.
+	•	Confirm no UI or interaction bugs during role selection and registration.
+
+⸻
+
+Explicit Instructions:
+	•	Edit client/src/components/onboarding/RoleSelector.tsx to remove any “Show more” or similar logic hiding roles.
+	•	Confirm all role data is loaded and mapped to visible UI components upfront.
+	•	Maintain existing useMemo, useCallback, and memoized RoleItem optimizations.
+	•	Verify full onboarding form (client/src/pages/onboarding.tsx) correctly handles all role selections and other fields without causing re-renders or crashes.
+	•	Run frontend tests with npx jest tests/frontend/components/RoleSelector.test.tsx --verbose and full onboarding E2E tests.
+	•	Provide screenshots showing all roles visible, selected roles highlighted, and successful form submission.
+	•	Deliver console logs and profiling info showing no infinite renders or performance issues.
+
+⸻
+
+Please confirm when all roles display upfront without hiding, role selection works flawlessly, and full registration form fields function correctly without UI issues. Include screenshots, logs, and test results.

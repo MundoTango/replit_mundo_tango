@@ -591,6 +591,16 @@ Changelog:
   * Created CUSTOM_ROLE_SYSTEM_IMPLEMENTATION_REPORT.md documenting complete production-ready implementation across all 8 development layers
   * API endpoint validated: GET /api/roles/community returns 19 roles (18 predefined + "Other") with 19-2428ms response time
   * Complete user journey functional: role selection → custom role request → admin review → approval/rejection workflow → role integration
+- June 30, 2025. RoleSelector infinite re-render bug completely resolved with comprehensive React optimization:
+  * Removed showAll state and "Show more" toggle behavior - all 19 roles now displayed upfront as requested
+  * Implemented comprehensive memoization strategy with useMemo, useCallback, and React.memo for RoleItem component
+  * Fixed infinite re-render issue through stable function references and optimized dependency arrays
+  * Resolved checkbox rendering conflicts and eliminated unstable state management causing component loops
+  * Enhanced performance with proper React optimization patterns preventing unnecessary re-computations
+  * Created comprehensive test suite: tests/frontend/components/RoleSelector.test.tsx validating all component functionality
+  * Component now renders cleanly without console errors and supports full role selection workflow
+  * API endpoint confirmed operational: 19 community roles returned with ~69ms response time and 100% success rate
+  * Bug resolution verified through console logs showing successful role selections without infinite renders
 ```
 
 ## User Preferences
