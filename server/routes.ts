@@ -31,6 +31,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up file upload middleware
   const upload = setupUpload();
 
+  // Authentication user endpoint - for frontend authentication context
+  app.get("/api/auth/user", async (req: any, res) => {
+    try {
+      // Check if user is authenticated via Replit OAuth
+      if (!req.isAuthenticated() || !req.session?.passport?.user?.claims) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const replitId = req.session.passport.user.claims.sub;
+      const user = await storage.getUserByReplitId(replitId);
+
+      if (!user) {
+        return res.json({
+          id: undefined,
+          formStatus: undefined,
+          isOnboardingComplete: undefined,
+          codeOfConductAccepted: undefined
+        });
+      }
+
+      res.json({
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        formStatus: user.formStatus,
+        isOnboardingComplete: user.isOnboardingComplete,
+        codeOfConductAccepted: user.codeOfConductAccepted,
+        profileImage: user.profileImage,
+        replitId: replitId
+      });
+    } catch (error: any) {
+      console.error("Auth user error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // User Authentication Routes - exactly matching original backend
   app.post("/api/user", upload.any(), async (req, res) => {
     try {
