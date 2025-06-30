@@ -1501,8 +1501,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .slice(0, 4);
 
       // Get user RSVPs to determine status for each event
-      const userRsvps = await storage.getEventRsvps(10); // Get RSVPs for first event as sample
-      const rsvpMap = new Map([[10, 'going'], [12, 'interested'], [16, 'going'], [20, 'going']]); // Sample RSVPs for Scott
+      const userRsvps = await storage.getUserEventRsvps(user.id);
+      const rsvpMap = new Map(userRsvps.map(rsvp => [rsvp.eventId, rsvp.status]));
 
       // Transform events with user status information
       const transformedEvents = upcomingEvents.map(event => {

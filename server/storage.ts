@@ -66,6 +66,12 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateOnboardingStatus(id: number, formStatus: number, isComplete: boolean): Promise<User>;
   
+  // Event RSVP operations
+  getUserEventRsvps(userId: number): Promise<EventRsvp[]>;
+  getUserFollowedCities(userId: number): Promise<{ id: number; city: string; country: string; userId: number }[]>;
+  addFollowedCity(userId: number, city: string, country: string): Promise<{ id: number; city: string; country: string; userId: number }>;
+  removeFollowedCity(userId: number, cityId: number): Promise<void>;
+  
   // Posts operations
   createPost(post: InsertPost): Promise<Post>;
   getPostById(id: number): Promise<Post | undefined>;
@@ -516,216 +522,40 @@ export class DatabaseStorage implements IStorage {
       .where(eq(eventRsvps.eventId, eventId));
   }
 
-  async getPersonalizedEvents(userId: number, limit = 10): Promise<{
-    going: Event[];
-    interested: Event[];
-    invited: Event[];
-    inUserCity: Event[];
-    inFollowedCities: Event[];
-  }> {
-    const now = new Date();
-    
-    // Get user's city
-    const user = await this.getUser(userId);
-    const userCity = user?.city || 'Buenos Aires';
-    const userCountry = user?.country || 'Argentina';
-
-    // Get events user is going to
-    const goingEvents = await db
-      .select({
-        id: events.id,
-        title: events.title,
-        description: events.description,
-        eventType: events.eventType,
-        startDate: events.startDate,
-        endDate: events.endDate,
-        location: events.location,
-        city: events.city,
-        country: events.country,
-        currentAttendees: events.currentAttendees,
-        maxAttendees: events.maxAttendees,
-        isPublic: events.isPublic,
-        status: events.status,
-        userId: events.userId,
-        venue: events.venue,
-        price: events.price,
-      })
-      .from(events)
-      .innerJoin(eventRsvps, eq(events.id, eventRsvps.eventId))
-      .where(and(
-        eq(eventRsvps.userId, userId),
-        eq(eventRsvps.status, 'going'),
-        gte(events.startDate, now)
-      ))
-      .orderBy(events.startDate)
-      .limit(limit);
-
-    // Get events user is interested in
-    const interestedEvents = await db
-      .select({
-        id: events.id,
-        title: events.title,
-        description: events.description,
-        eventType: events.eventType,
-        startDate: events.startDate,
-        endDate: events.endDate,
-        location: events.location,
-        city: events.city,
-        country: events.country,
-        currentAttendees: events.currentAttendees,
-        maxAttendees: events.maxAttendees,
-        isPublic: events.isPublic,
-        status: events.status,
-        userId: events.userId,
-        venue: events.venue,
-        price: events.price,
-      })
-      .from(events)
-      .innerJoin(eventRsvps, eq(events.id, eventRsvps.eventId))
-      .where(and(
-        eq(eventRsvps.userId, userId),
-        eq(eventRsvps.status, 'interested'),
-        gte(events.startDate, now)
-      ))
-      .orderBy(events.startDate)
-      .limit(limit);
-
-    // Get events user is invited to
-    const invitedEvents = await db
-      .select({
-        id: events.id,
-        title: events.title,
-        description: events.description,
-        eventType: events.eventType,
-        startDate: events.startDate,
-        endDate: events.endDate,
-        location: events.location,
-        city: events.city,
-        country: events.country,
-        currentAttendees: events.currentAttendees,
-        maxAttendees: events.maxAttendees,
-        isPublic: events.isPublic,
-        status: events.status,
-        userId: events.userId,
-        venue: events.venue,
-        price: events.price,
-      })
-      .from(events)
-      .innerJoin(sql`event_invitations`, eq(events.id, sql`event_invitations.event_id`))
-      .where(and(
-        eq(sql`event_invitations.invitee_id`, userId),
-        eq(sql`event_invitations.status`, 'pending'),
-        gte(events.startDate, now)
-      ))
-      .orderBy(events.startDate)
-      .limit(limit);
-
-    // Get events in user's city
-    const userCityEvents = await db
-      .select({
-        id: events.id,
-        title: events.title,
-        description: events.description,
-        eventType: events.eventType,
-        startDate: events.startDate,
-        endDate: events.endDate,
-        location: events.location,
-        city: events.city,
-        country: events.country,
-        currentAttendees: events.currentAttendees,
-        maxAttendees: events.maxAttendees,
-        isPublic: events.isPublic,
-        status: events.status,
-        userId: events.userId,
-        venue: events.venue,
-        price: events.price,
-      })
-      .from(events)
-      .where(and(
-        eq(events.city, userCity),
-        eq(events.country, userCountry),
-        eq(events.isPublic, true),
-        gte(events.startDate, now)
-      ))
-      .orderBy(events.startDate)
-      .limit(limit);
-
-    // Get events in followed cities
-    const followedCitiesEvents = await db
-      .select({
-        id: events.id,
-        title: events.title,
-        description: events.description,
-        eventType: events.eventType,
-        startDate: events.startDate,
-        endDate: events.endDate,
-        location: events.location,
-        city: events.city,
-        country: events.country,
-        currentAttendees: events.currentAttendees,
-        maxAttendees: events.maxAttendees,
-        isPublic: events.isPublic,
-        status: events.status,
-        userId: events.userId,
-        venue: events.venue,
-        price: events.price,
-      })
-      .from(events)
-      .innerJoin(sql`user_followed_cities`, and(
-        eq(events.city, sql`user_followed_cities.city`),
-        eq(events.country, sql`user_followed_cities.country`)
-      ))
-      .where(and(
-        eq(sql`user_followed_cities.user_id`, userId),
-        eq(events.isPublic, true),
-        gte(events.startDate, now),
-        not(and(eq(events.city, userCity), eq(events.country, userCountry)))
-      ))
-      .orderBy(events.startDate)
-      .limit(limit);
-
-    // Transform to Event type
-    const transformEvent = (event: any): Event => ({
-      ...event,
-      startDate: event.startDate || new Date(),
-      endDate: event.endDate,
-      latitude: null,
-      longitude: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    return {
-      going: goingEvents.map(transformEvent),
-      interested: interestedEvents.map(transformEvent),
-      invited: invitedEvents.map(transformEvent),
-      inUserCity: userCityEvents.map(transformEvent),
-      inFollowedCities: followedCitiesEvents.map(transformEvent),
-    };
-  }
-
-  async getUserFollowedCities(userId: number): Promise<UserFollowedCity[]> {
+  async getUserEventRsvps(userId: number): Promise<EventRsvp[]> {
     return await db
       .select()
-      .from(sql`user_followed_cities`)
-      .where(eq(sql`user_followed_cities.user_id`, userId));
+      .from(eventRsvps)
+      .where(eq(eventRsvps.userId, userId));
   }
 
-  async addFollowedCity(userId: number, city: string, country: string): Promise<UserFollowedCity> {
+  async getUserFollowedCities(userId: number): Promise<{ id: number; city: string; country: string; userId: number }[]> {
+    const results = await db
+      .select({
+        id: sql<number>`id`,
+        city: sql<string>`city`,
+        country: sql<string>`country`,
+        userId: sql<number>`user_id`
+      })
+      .from(sql`user_followed_cities`)
+      .where(sql`user_id = ${userId}`);
+    return results;
+  }
+
+  async addFollowedCity(userId: number, city: string, country: string): Promise<{ id: number; city: string; country: string; userId: number }> {
     const [result] = await db
-      .insert(sql`user_followed_cities`)
-      .values({ userId, city, country })
-      .returning();
-    return result;
+      .execute(sql`INSERT INTO user_followed_cities (user_id, city, country, created_at) VALUES (${userId}, ${city}, ${country}, NOW()) RETURNING id, user_id, city, country`);
+    return {
+      id: result.id as number,
+      userId: result.user_id as number,
+      city: result.city as string,
+      country: result.country as string
+    };
   }
 
   async removeFollowedCity(userId: number, cityId: number): Promise<void> {
     await db
-      .delete(sql`user_followed_cities`)
-      .where(and(
-        eq(sql`user_followed_cities.id`, cityId),
-        eq(sql`user_followed_cities.user_id`, userId)
-      ));
+      .execute(sql`DELETE FROM user_followed_cities WHERE id = ${cityId} AND user_id = ${userId}`);
   }
 
   // Follow operations
