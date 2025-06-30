@@ -289,7 +289,7 @@ export class DatabaseStorage implements IStorage {
           users.username,
           users.profileImage
         )
-        .having(sql`COUNT(DISTINCT ${mediaTags.tag}) >= ${filterTags.length}`)
+        .having(sql`COUNT(DISTINCT ${mediaTags.tag}) = ${filterTags.length}`)
         .orderBy(desc(posts.createdAt))
         .limit(limit)
         .offset(offset);
