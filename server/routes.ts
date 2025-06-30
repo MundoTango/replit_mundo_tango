@@ -25,7 +25,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
   await setupAuth(app);
 
-  // Apply security middleware to all authenticated routes
+  // Public endpoints (accessible during onboarding) - MUST come before setUserContext middleware
+  
+  // Get community roles for registration - accessible during onboarding
+  app.get('/api/roles/community', async (req, res) => {
+    try {
+      console.log('Fetching community roles for onboarding...');
+      
+      const communityRoles = await db
+        .select({
+          name: roles.name,
+          description: roles.description
+        })
+        .from(roles)
+        .where(eq(roles.isPlatformRole, false))
+        .orderBy(roles.name);
+
+      console.log(`Found ${communityRoles.length} community roles`);
+
+      res.json({
+        code: 200,
+        message: 'Community roles retrieved successfully',
+        data: { roles: communityRoles }
+      });
+    } catch (error) {
+      console.error('Error getting community roles:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to retrieve community roles',
+        data: null
+      });
+    }
+  });
+
+  // Apply security middleware to all authenticated routes (after public endpoints)
   app.use('/api', setUserContext);
 
   // Set up file upload middleware
@@ -3447,33 +3480,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         code: 500,
         message: 'Internal server error',
-        data: null
-      });
-    }
-  });
-
-  // Get community roles for registration
-  app.get('/api/roles/community', async (req, res) => {
-    try {
-      const communityRoles = await db
-        .select({
-          name: roles.name,
-          description: roles.description
-        })
-        .from(roles)
-        .where(eq(roles.isPlatformRole, false))
-        .orderBy(roles.name);
-
-      res.json({
-        code: 200,
-        message: 'Community roles retrieved successfully',
-        data: { roles: communityRoles }
-      });
-    } catch (error) {
-      console.error('Error getting community roles:', error);
-      res.status(500).json({
-        code: 500,
-        message: 'Failed to retrieve community roles',
         data: null
       });
     }
