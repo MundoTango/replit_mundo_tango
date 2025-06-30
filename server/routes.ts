@@ -4024,14 +4024,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Custom Role Request endpoints
-  app.post('/api/roles/custom/request', authMiddleware, async (req, res) => {
+  app.post('/api/roles/custom/request', isAuthenticated, async (req: any, res) => {
     try {
+      console.log("Custom role request - authentication debug:", {
+        isAuthenticated: req.isAuthenticated(),
+        sessionExists: !!req.session,
+        passportUser: req.session?.passport?.user,
+        userClaims: req.session?.passport?.user?.claims,
+        reqUser: req.user
+      });
+
+      const userId = req.session?.passport?.user?.claims?.sub || req.user?.claims?.sub;
+      console.log("Extracted userId for custom role request:", userId);
+      
+      if (!userId) {
+        return res.status(401).json({ 
+          code: 0,
+          message: "Authentication required",
+          data: null 
+        });
+      }
+
+      const user = await storage.getUserByReplitId(userId);
+      console.log("Found user in database for custom role:", !!user, user?.id);
+
+      if (!user) {
+        return res.status(404).json({ 
+          code: 0,
+          message: "User not found",
+          data: null 
+        });
+      }
+
       const validatedData = insertCustomRoleRequestSchema.parse(req.body);
+      console.log("Validated custom role request data:", validatedData);
       
       const request = await storage.createCustomRoleRequest({
         ...validatedData,
-        submittedBy: req.user!.id,
+        submittedBy: user.id,
       });
+
+      console.log("Custom role request created successfully:", request);
 
       return res.json({
         code: 200,

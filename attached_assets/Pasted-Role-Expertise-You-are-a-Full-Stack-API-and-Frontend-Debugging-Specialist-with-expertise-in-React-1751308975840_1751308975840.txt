@@ -1,0 +1,77 @@
+Role & Expertise:
+You are a Full-Stack API and Frontend Debugging Specialist with expertise in React form workflows, backend API design, session/authentication flows, and database schema alignment. Your goal is to diagnose and fix critical user onboarding errors and ensure all role management features (including custom “Other” roles) work flawlessly in the full-stack environment.
+
+⸻
+
+Current Status:
+	•	RoleSelector works without infinite re-renders and all roles (including “Other”) display correctly.
+	•	Clicking “Complete Profile” triggers a “Setup Error” due to a backend API failure at /api/onboarding.
+	•	Backend authentication is failing due to missing replit_id column and inconsistent user lookup.
+	•	Existing users lack replit_id, causing session/auth mismatch errors.
+	•	Storage layer methods for user upsert and lookup don’t fully handle replit_id.
+	•	Frontend submission and backend processing of roles (especially custom roles) may have validation or schema mismatches.
+
+⸻
+
+Next Steps — Systematic 8-Layer Approach:
+	1.	Frontend/UI
+
+	•	Verify onboarding form submission logic includes roles and custom role requests properly.
+	•	Add enhanced logging for API calls on submission errors.
+	•	Ensure user can edit profile to update roles and other registration info.
+
+	2.	Backend/API
+
+	•	Fix /api/onboarding endpoint to properly extract user from session using replit_id.
+	•	Update storage methods (upsertUser, getUserByReplitId) to use replit_id consistently.
+	•	Handle custom “Other” role submissions and link to custom_role_requests table.
+	•	Add robust error handling and detailed logging for onboarding API.
+
+	3.	Middleware/Services
+
+	•	Confirm authentication middleware extracts and passes replit_id correctly.
+	•	Ensure session is established and valid for all onboarding requests.
+
+	4.	Database
+
+	•	Add replit_id column to users table with UNIQUE constraint if missing.
+	•	Update existing users with generated replit_id values for compatibility.
+	•	Verify roles, user_roles, and custom_role_requests tables exist and schema is correct.
+
+	5.	Security & Compliance
+
+	•	Confirm Row-Level Security policies allow authenticated users to update their profiles and submit custom roles.
+	•	Ensure no unauthorized access to role management endpoints.
+
+	6.	Testing & Validation
+
+	•	Create or update unit and integration tests for onboarding API and role management (including custom roles).
+	•	Validate session-based authentication flows in tests.
+	•	Run end-to-end user signup tests covering role selection, profile completion, and custom role request submission.
+
+	7.	Documentation & Collaboration
+
+	•	Update backend API documentation for onboarding and roles endpoints reflecting replit_id usage.
+	•	Document frontend form requirements and error handling.
+	•	Share debugging findings and fixes with frontend and QA teams.
+
+	8.	Customer/User Testing
+
+	•	Conduct full onboarding user journey tests on staging: signup, role selection, “Other” role request, profile completion.
+	•	Confirm no errors occur on “Complete Profile” submission.
+	•	Collect feedback on role selection UI and custom role request usability.
+
+⸻
+
+Explicit Instructions:
+	•	Check and fix shared/schema.ts and Supabase for presence and correct use of replit_id column.
+	•	Update server/storage.ts user methods to use replit_id for identification.
+	•	Fix /api/onboarding in server/routes.ts to use correct user context.
+	•	Log all errors on onboarding API failures and surface meaningful messages.
+	•	Confirm custom_role_requests integration from RoleSelector and frontend form data.
+	•	Run tests after each fix and capture logs/screenshots.
+	•	Ensure user profile editing page allows updating roles and custom role info.
+
+⸻
+
+Please confirm once the backend user authentication and onboarding submission flow work without errors and the “Other” role can be requested and processed. Include logs and test results. Would you like me to prepare the next frontend integration or validation prompt next?

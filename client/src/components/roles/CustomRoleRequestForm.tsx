@@ -24,10 +24,7 @@ export function CustomRoleRequestForm({ onSuccess, onCancel }: CustomRoleRequest
 
   const submitMutation = useMutation({
     mutationFn: async (data: { roleName: string; roleDescription: string }) => {
-      return await apiRequest('/api/roles/custom/request', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      return await apiRequest('POST', '/api/roles/custom/request', data);
     },
     onSuccess: () => {
       setSubmitSuccess(true);
