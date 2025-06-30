@@ -128,13 +128,7 @@ export default function RoleSelector({
                 <div className="flex items-start gap-3">
                   <Checkbox
                     checked={selectedRoles.includes(role.name)}
-                    onCheckedChange={(checked) => {
-                      // Only handle the checkbox change if it's different from current state
-                      const isCurrentlySelected = selectedRoles.includes(role.name);
-                      if (checked !== isCurrentlySelected) {
-                        handleRoleToggle(role.name);
-                      }
-                    }}
+                    onCheckedChange={() => {}} // No-op to prevent double handling
                     className="mt-1 pointer-events-none"
                   />
                   <div className="flex-1 min-w-0">

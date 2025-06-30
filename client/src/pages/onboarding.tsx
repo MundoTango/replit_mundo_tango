@@ -16,6 +16,8 @@ import { useLocation } from "wouter";
 import { LocationPicker } from "@/components/onboarding/LocationPicker";
 import GoogleMapsLocationPicker from "@/components/onboarding/GoogleMapsLocationPicker";
 import RoleSelector from "@/components/onboarding/RoleSelector";
+import SimpleRoleSelector from "@/components/debugging/SimpleRoleSelector";
+import ErrorBoundary from "@/components/debugging/ErrorBoundary";
 import { Heart, Sparkles, Globe, Users, Music, Calendar, ArrowLeft, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
@@ -287,15 +289,23 @@ export default function Onboarding() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <RoleSelector
-                        roles={communityRoles || []}
-                        selectedRoles={field.value || []}
-                        onRoleChange={(roles) => {
-                          console.log('Role change from onboarding:', roles);
-                          field.onChange(roles);
+                      <ErrorBoundary 
+                        name="RoleSelector"
+                        onError={(error, errorInfo) => {
+                          console.error('RoleSelector Error Boundary caught:', error);
+                          console.error('Error Info:', errorInfo);
                         }}
-                        isLoading={rolesLoading}
-                      />
+                      >
+                        <SimpleRoleSelector
+                          roles={communityRoles || []}
+                          selectedRoles={field.value || []}
+                          onRoleChange={(roles) => {
+                            console.log('Role change from onboarding:', roles);
+                            field.onChange(roles);
+                          }}
+                          isLoading={rolesLoading}
+                        />
+                      </ErrorBoundary>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

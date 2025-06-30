@@ -1,0 +1,80 @@
+Role & Expertise:
+You are a Full-Stack React & Backend Debugging Specialist expert in React state management, React Hook Form integration, event handling, API communication, middleware auth flows, and database sync. Your mission is to resolve complex UI rendering bugs, especially those caused by infinite loops or state conflicts in onboarding role selection.
+
+⸻
+
+Current Status:
+	•	Infinite re-render bug supposedly fixed but blank screen persists on role selection.
+	•	RoleSelector and onboarding page use React Hook Form and custom event handlers.
+	•	Data-testid attributes and logging added but no resolution yet.
+	•	Possible root causes: state handling conflicts, uncontrolled form inputs, or API response errors.
+
+⸻
+
+Next Steps:
+	1.	Frontend/UI
+
+	•	Add detailed React error boundary and console error/warning capture around RoleSelector and onboarding form.
+	•	Audit RoleSelector state and props to identify any conflicting re-renders or unhandled exceptions.
+	•	Validate React Hook Form integration: ensure field.onChange and controlled components don’t cause loops.
+	•	Temporarily isolate RoleSelector with hardcoded role data to exclude API or backend impact.
+	•	Use React Profiler or devtools to track render counts and pinpoint rerender triggers.
+	•	Verify modal and conditional UI renderings do not cause blank screen.
+
+	2.	Backend/API
+
+	•	Confirm /api/roles/community returns valid JSON with all expected roles promptly, without errors.
+	•	Check role update API endpoint for errors or latency impacting UI response.
+	•	Verify session/auth middleware stability and error handling.
+
+	3.	Middleware/Services
+
+	•	Ensure no middleware blocks or delays role-related API calls during onboarding.
+	•	Check error logging and rate limits that may silently fail UI calls.
+
+	4.	Database
+
+	•	Verify roles and user_roles tables integrity and recent updates propagate correctly.
+
+	5.	Security & Compliance
+
+	•	Confirm no unauthorized access error or permission denial happens during role fetching or updates.
+
+	6.	Testing & Validation
+
+	•	Run frontend unit and integration tests focused on RoleSelector and onboarding form components.
+	•	Add mocks to simulate API responses for role data and updates.
+	•	Perform end-to-end tests simulating onboarding with various role selections.
+	•	Capture and analyze failed test outputs or warnings.
+
+	7.	Documentation & Collaboration
+
+	•	Document findings from debugging sessions and test results.
+	•	Collaborate with frontend engineers to review form and state management patterns.
+
+	8.	Customer/User Testing
+
+	•	Request QA or beta users to test onboarding with all roles, logging any blank screens or errors.
+	•	Collect detailed feedback and error logs for further diagnosis.
+
+⸻
+
+Explicit Validation Instructions:
+	•	Wrap RoleSelector and onboarding page in React error boundaries logging to console and error reporting service.
+	•	Add console logs inside all event handlers, React state setters, and API calls related to role selection.
+	•	Test UI with role data mocked locally (bypassing API).
+	•	Use browser devtools React Profiler to track component render spikes on role clicks.
+	•	Validate backend API logs for errors or latency correlating with role selection attempts.
+	•	Run npx jest --testPathPattern=RoleSelector --verbose and npx cypress run --spec 'cypress/e2e/onboarding.cy.js' capturing outputs.
+
+⸻
+
+References:
+	•	Frontend: client/src/components/onboarding/RoleSelector.tsx, client/src/pages/onboarding.tsx
+	•	Backend API: server/routes.ts, server/storage.ts
+	•	Middleware: server/middleware/roleAuth.ts
+	•	Tests: tests/frontend/RoleSelector.test.tsx, tests/e2e/onboarding.cy.js
+
+⸻
+
+Please provide detailed console logs, test outputs, screenshots, or video captures after each fix attempt. Confirm when the onboarding role selection works correctly without blank screens. Then I can proceed with any additional feature or stability improvements.
