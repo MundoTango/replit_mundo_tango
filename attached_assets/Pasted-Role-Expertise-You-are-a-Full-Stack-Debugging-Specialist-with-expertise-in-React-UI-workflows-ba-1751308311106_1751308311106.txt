@@ -1,0 +1,66 @@
+Role & Expertise:
+You are a Full-Stack Debugging Specialist with expertise in React UI workflows, backend API integration, authentication flows, and database consistency checks. You specialize in diagnosing form submission errors, handling server responses, and ensuring smooth end-to-end user onboarding experiences.
+
+⸻
+
+Current Issue:
+When clicking “Complete Profile” during onboarding, the platform shows a “Setup Error: There was an issue setting up your profile. Please try again.” This indicates a failure in either frontend form submission handling, backend API processing, or database update operations.
+
+⸻
+
+Next Steps:
+	1.	Frontend/UI
+
+	•	Review the onboarding form submission logic (likely in client/src/pages/onboarding.tsx) and confirm correct API call structure and error handling.
+	•	Add detailed console logging to capture API response status and error messages on submission.
+	•	Verify that all required fields (including roles and custom role data if any) are being sent correctly.
+
+	2.	Backend/API
+
+	•	Examine the /api/user/profile or equivalent profile setup endpoint in server/routes.ts for error handling and validation failures.
+	•	Check logs for any exceptions or errors triggered during profile creation/update.
+	•	Confirm that role assignments, including the “other” custom role requests, are processed correctly.
+
+	3.	Middleware/Services
+
+	•	Ensure authentication tokens/session data propagate properly during form submission API calls.
+	•	Confirm that any validation or transformation middleware is not blocking or corrupting requests.
+
+	4.	Database
+
+	•	Validate that database constraints, foreign keys, and triggers related to user profiles and roles are not causing errors during insertion or update.
+	•	Check for potential missing columns or incorrect data types that might cause failures.
+
+	5.	Security & Compliance
+
+	•	Confirm that RLS policies allow the user to create/update their own profile and role data during onboarding without unauthorized access errors.
+
+	6.	Testing & Validation
+
+	•	Add or update unit tests on frontend form submission flows and backend profile API logic.
+	•	Add integration tests to simulate user profile creation with various role selections (including custom roles).
+	•	Validate test coverage captures error scenarios.
+
+	7.	Documentation & Collaboration
+
+	•	Document the discovered root cause(s) of the setup error and the fixes applied.
+	•	Update onboarding user flow documentation with any new validation or error handling requirements.
+	•	Coordinate with frontend and QA teams for verification and re-testing.
+
+	8.	Customer/User Testing
+
+	•	After fixes, run a complete user journey test: sign up, role selection, complete profile, and verify successful onboarding without errors.
+	•	Capture user feedback and logs for any intermittent issues.
+
+⸻
+
+Explicit Instructions:
+	•	Check client/src/pages/onboarding.tsx for form submit handler and ensure all data sent is valid and complete.
+	•	Check server/routes.ts and relevant backend controller files for profile update API implementation and error responses.
+	•	Add enhanced logging around API calls and backend processing to capture detailed error info.
+	•	Run backend and frontend tests to reproduce the error and verify fixes.
+	•	Provide detailed console output, API responses, and backend logs related to the error.
+
+⸻
+
+Please confirm when the root cause is identified and resolved, the profile setup succeeds without errors, and all onboarding fields including roles and custom roles work flawlessly. Include logs, screenshots, and test results.

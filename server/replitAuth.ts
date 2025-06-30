@@ -58,7 +58,7 @@ async function upsertUser(
   claims: any,
 ) {
   await storage.upsertUser({
-    id: claims["sub"],
+    replitId: claims["sub"],
     name: `${claims["first_name"] || ''} ${claims["last_name"] || ''}`.trim() || 'User',
     username: claims["email"]?.split('@')[0] || `user_${Date.now()}`,
     email: claims["email"] || '',

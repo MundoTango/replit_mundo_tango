@@ -36,6 +36,7 @@ export const users = pgTable("users", {
   deviceType: varchar("device_type", { length: 20 }),
   deviceToken: text("device_token"),
   apiToken: text("api_token"),
+  replitId: varchar("replit_id", { length: 255 }).unique(),
   // New onboarding fields for redesigned registration
   nickname: varchar("nickname", { length: 100 }),
   languages: text("languages").array(),

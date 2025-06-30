@@ -2048,8 +2048,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Onboarding endpoint with role assignment
   app.post('/api/onboarding', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Debug logging for authentication
+      console.log("Onboarding request auth debug:", {
+        isAuthenticated: req.isAuthenticated(),
+        sessionExists: !!req.session,
+        passportUser: req.session?.passport?.user,
+        userClaims: req.session?.passport?.user?.claims,
+        reqUser: req.user
+      });
+
+      const userId = req.session?.passport?.user?.claims?.sub || req.user?.claims?.sub;
+      console.log("Extracted userId for onboarding:", userId);
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
       const user = await storage.getUserByReplitId(userId);
+      console.log("Found user in database:", !!user, user?.id);
 
       if (!user) {
         return res.status(404).json({ message: "User not found" });

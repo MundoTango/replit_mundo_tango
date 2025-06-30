@@ -628,8 +628,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByReplitId(id: string): Promise<User | undefined> {
-    // Use email as fallback since replitId column doesn't exist
-    const result = await db.select().from(users).where(eq(users.email, id)).limit(1);
+    const result = await db.select().from(users).where(eq(users.replitId, id)).limit(1);
     return result[0];
   }
 
@@ -641,11 +640,12 @@ export class DatabaseStorage implements IStorage {
         password: userData.password || 'temp_password' // Required field
       })
       .onConflictDoUpdate({
-        target: users.email,
+        target: users.replitId,
         set: {
           name: userData.name,
           username: userData.username,
           profileImage: userData.profileImage,
+          email: userData.email,
           updatedAt: sql`NOW()`
         }
       })
