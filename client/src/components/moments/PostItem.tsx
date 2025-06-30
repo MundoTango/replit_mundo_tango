@@ -60,8 +60,8 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
   };
 
   return (
-    <div className="card hover:shadow-lg transition-all duration-200">
-      <div className="px-4 py-3">
+    <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl border-2 border-blue-100/50 hover:shadow-2xl hover:shadow-blue-200/20 transition-all duration-300 transform hover:-translate-y-1">
+      <div className="p-6 lg:p-8 space-y-6">
         {/* Post Header - Enhanced Author Display */}
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center gap-3">

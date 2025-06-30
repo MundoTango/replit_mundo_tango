@@ -227,15 +227,18 @@ export default function PostFeed() {
         </div>
       </div>
 
-      {/* Enhanced Posts Feed */}
-      {posts.map((post: Post) => (
-        <PostItem
-          key={post.id}
-          post={post}
-          onLike={handleLikePost}
-          onShare={handleSharePost}
-        />
-      ))}
+      {/* Enhanced Posts Feed with improved spacing */}
+      <div className="space-y-8 lg:space-y-10">
+        {posts.map((post: Post) => (
+          <div key={post.id} className="transform transition-all duration-300 hover:scale-[1.01]">
+            <PostItem
+              post={post}
+              onLike={handleLikePost}
+              onShare={handleSharePost}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

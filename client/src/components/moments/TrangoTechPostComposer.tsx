@@ -94,7 +94,7 @@ export default function TrangoTechPostComposer() {
       </div>
 
       {/* Modern Card - What's on your mind */}
-      <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-blue-100/50 p-8 mb-8 
+      <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-blue-100/50 p-6 lg:p-8 mb-6 lg:mb-8 
                       hover:shadow-coral-500/10 transition-all duration-300 transform hover:-translate-y-1">
         <div className="flex justify-between items-start mb-6">
           <div className="text-blue-900 flex items-center gap-4 cursor-pointer">
