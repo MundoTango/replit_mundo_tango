@@ -8,8 +8,8 @@ export default function MomentsPage() {
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-teal-50/30 backdrop-blur-md">
-        {/* Refined container with enhanced spacing */}
-        <div className="max-w-8xl mx-auto px-6 md:px-12 py-6 sm:py-8 lg:py-12">
+        {/* Optimized container for better width distribution */}
+        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-6 sm:py-8 lg:py-12">
           {/* Header section with improved spacing */}
           <div className="mb-8 sm:mb-12 lg:mb-16">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black bg-gradient-to-r from-blue-600 via-teal-500 to-cyan-500 bg-clip-text text-transparent mb-4 lg:mb-6 leading-relaxed">
@@ -20,24 +20,20 @@ export default function MomentsPage() {
             </p>
           </div>
           
-          {/* Enhanced grid layout with wider column distribution */}
-          <div className="grid grid-cols-12 gap-x-8 lg:gap-x-12 xl:gap-x-16 gap-y-16">
-            {/* Main content - Posts with significantly wider container */}
-            <div className="col-span-12 lg:col-span-8 xl:col-span-8">
-              <div className="max-w-[1200px] mx-auto lg:mx-0 px-4 lg:px-0">
-                <div className="space-y-16 lg:space-y-20">
-                  <TrangoTechPostComposer />
-                  <PostFeed />
-                </div>
+          {/* Optimized flex layout for 65-70% / 30-35% distribution */}
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 xl:gap-12">
+            {/* Main content - Posts (65-70% width) */}
+            <div className="flex-1 lg:w-[68%] lg:max-w-none">
+              <div className="space-y-12 lg:space-y-16">
+                <TrangoTechPostComposer />
+                <PostFeed />
               </div>
             </div>
             
-            {/* Right sidebar - Events with increased width */}
-            <div className="col-span-12 lg:col-span-4 xl:col-span-4">
-              <div className="sticky top-6 lg:top-8 px-4 lg:px-0">
-                <div className="space-y-12">
-                  <EventsBoard />
-                </div>
+            {/* Right sidebar - Events (30-35% width) */}
+            <div className="lg:w-[32%] lg:min-w-[320px] lg:max-w-[400px]">
+              <div className="sticky top-6 lg:top-8">
+                <EventsBoard />
               </div>
             </div>
           </div>

@@ -38,7 +38,14 @@ export default function TrangoTechPostComposer() {
         description: "Your tango moment has been posted successfully.",
       });
       setShowExpandedComposer(false);
-      setNewPost({ content: '', tags: '', location: '', visibility: 'Public' });
+      setNewPost({ 
+        content: '', 
+        tags: '', 
+        location: '', 
+        visibility: 'Public',
+        imageUrl: '',
+        videoUrl: ''
+      });
       queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
     },
     onError: () => {
@@ -182,7 +189,7 @@ export default function TrangoTechPostComposer() {
       {/* TrangoTech Modal - Expanded Composer */}
       {showExpandedComposer && (
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowExpandedComposer(false);
@@ -190,7 +197,7 @@ export default function TrangoTechPostComposer() {
           }}
         >
           <div 
-            className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative z-51"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6">
