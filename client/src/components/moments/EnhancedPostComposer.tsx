@@ -16,16 +16,7 @@ import {
   FacebookEmbed 
 } from 'react-social-media-embed';
 // import { Mention, MentionsInput } from 'react-mentions';
-import { AuthContext } from '../../contexts/auth-context';
-import { useContext } from 'react';
-
-const useAuthContext = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuthContext must be used within an AuthProvider');
-  }
-  return context;
-};
+import { useAuth } from '@/hooks/useAuth';
 
 interface EnhancedPostComposerProps {
   onPostCreated?: () => void;
@@ -51,7 +42,7 @@ export default function EnhancedPostComposer({
   initialContent = '',
   replyToPostId 
 }: EnhancedPostComposerProps) {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const quillRef = useRef<ReactQuill>(null);
   
