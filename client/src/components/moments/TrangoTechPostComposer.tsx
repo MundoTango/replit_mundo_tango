@@ -22,7 +22,9 @@ export default function TrangoTechPostComposer() {
     content: '', 
     tags: '', 
     location: '',
-    visibility: 'Public' as 'Public' | 'Friend' | 'Private'
+    visibility: 'Public' as 'Public' | 'Friend' | 'Private',
+    imageUrl: '',
+    videoUrl: ''
   });
 
   // Create post mutation
@@ -65,6 +67,8 @@ export default function TrangoTechPostComposer() {
       hashtags,
       location: newPost.location || null,
       isPublic: newPost.visibility === 'Public',
+      imageUrl: newPost.imageUrl || null,
+      videoUrl: newPost.videoUrl || null,
     });
   };
 
@@ -177,8 +181,18 @@ export default function TrangoTechPostComposer() {
 
       {/* TrangoTech Modal - Expanded Composer */}
       {showExpandedComposer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowExpandedComposer(false);
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -226,6 +240,61 @@ export default function TrangoTechPostComposer() {
                   onChange={(e) => setNewPost(prev => ({ ...prev, location: e.target.value }))}
                   className="w-full p-3 border border-gray-200 rounded-lg focus:border-[#8E142E] focus:outline-none"
                 />
+                
+                {/* Media Upload Section */}
+                <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 hover:border-[#8E142E] transition-colors">
+                  <div className="flex items-center justify-center gap-4">
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            const url = event.target?.result as string;
+                            if (file.type.startsWith('image/')) {
+                              setNewPost(prev => ({ ...prev, imageUrl: url }));
+                            } else if (file.type.startsWith('video/')) {
+                              setNewPost(prev => ({ ...prev, videoUrl: url }));
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                      id="media-upload"
+                    />
+                    <label
+                      htmlFor="media-upload"
+                      className="flex items-center gap-2 px-4 py-2 bg-[#8E142E] text-white rounded-lg cursor-pointer hover:bg-[#7A1128] transition-colors"
+                    >
+                      <Camera className="h-4 w-4" />
+                      Upload Media
+                    </label>
+                    {(newPost.imageUrl || newPost.videoUrl) && (
+                      <button
+                        onClick={() => setNewPost(prev => ({ ...prev, imageUrl: '', videoUrl: '' }))}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                        Remove Media
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Media Preview */}
+                  {newPost.imageUrl && (
+                    <div className="mt-4">
+                      <img src={newPost.imageUrl} alt="Upload preview" className="max-w-full h-40 object-cover rounded-lg" />
+                    </div>
+                  )}
+                  {newPost.videoUrl && (
+                    <div className="mt-4">
+                      <video src={newPost.videoUrl} controls className="max-w-full h-40 rounded-lg" />
+                    </div>
+                  )}
+                </div>
                 
                 <div className="flex items-center justify-between pt-3 border-t">
                   <div className="flex items-center gap-2">

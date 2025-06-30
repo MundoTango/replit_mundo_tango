@@ -20,11 +20,11 @@ export default function MomentsPage() {
             </p>
           </div>
           
-          {/* Enhanced grid layout with optimized horizontal distribution */}
-          <div className="grid grid-cols-12 gap-x-12 lg:gap-x-16 xl:gap-x-20 gap-y-16">
-            {/* Main content - Posts with expanded container */}
-            <div className="col-span-12 lg:col-span-7 xl:col-span-7">
-              <div className="max-w-[1000px] mx-auto lg:mx-0 px-4 lg:px-0">
+          {/* Enhanced grid layout with wider column distribution */}
+          <div className="grid grid-cols-12 gap-x-8 lg:gap-x-12 xl:gap-x-16 gap-y-16">
+            {/* Main content - Posts with significantly wider container */}
+            <div className="col-span-12 lg:col-span-8 xl:col-span-8">
+              <div className="max-w-[1200px] mx-auto lg:mx-0 px-4 lg:px-0">
                 <div className="space-y-16 lg:space-y-20">
                   <TrangoTechPostComposer />
                   <PostFeed />
@@ -32,8 +32,8 @@ export default function MomentsPage() {
               </div>
             </div>
             
-            {/* Right sidebar - Events with enhanced width */}
-            <div className="col-span-12 lg:col-span-5 xl:col-span-5">
+            {/* Right sidebar - Events with increased width */}
+            <div className="col-span-12 lg:col-span-4 xl:col-span-4">
               <div className="sticky top-6 lg:top-8 px-4 lg:px-0">
                 <div className="space-y-12">
                   <EventsBoard />
