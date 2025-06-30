@@ -21,18 +21,18 @@ export default function MomentsPage() {
             </p>
           </div>
           
-          {/* Optimized flexbox layout - 78/22 split */}
+          {/* Optimized flexbox layout - 69/31 split */}
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* Main content area - 78% width on large screens */}
-            <div className="flex-1 lg:w-0 lg:flex-[0_0_78%] max-w-none">
+            {/* Main content area - 69% width on large screens */}
+            <div className="flex-1 lg:w-0 lg:flex-[0_0_69%] max-w-none">
               <div className="space-y-4 pr-2">
                 <TrangoTechPostComposer />
                 <PostFeed />
               </div>
             </div>
             
-            {/* Events sidebar - 22% width on large screens */}
-            <div className="lg:w-0 lg:flex-[0_0_22%] lg:min-w-0">
+            {/* Events sidebar - 31% width on large screens (40% increase from 22%) */}
+            <div className="lg:w-0 lg:flex-[0_0_31%] lg:min-w-0">
               <div className="sticky top-24">
                 <EventsBoard />
               </div>

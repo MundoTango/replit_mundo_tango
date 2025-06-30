@@ -123,7 +123,7 @@ export default function EventsBoard() {
   }
 
   return (
-    <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-3 hover:shadow-xl transition-all duration-200 space-y-3 w-full">
+    <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4 hover:shadow-xl transition-all duration-200 space-y-4 w-full">
       {/* Compact Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -131,10 +131,10 @@ export default function EventsBoard() {
             <Calendar className="h-4 w-4 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-indigo-700">
+            <h3 className="text-xl font-bold text-indigo-700">
               Upcoming Events
             </h3>
-            <p className="text-slate-600 font-medium text-sm">In your area & invitations</p>
+            <p className="text-slate-600 font-medium text-base">In your area & invitations</p>
           </div>
         </div>
         <div className="bg-gradient-to-br from-coral-100 to-pink-100 p-1.5 rounded-xl">
@@ -149,7 +149,7 @@ export default function EventsBoard() {
           return (
             <div
               key={event.id}
-              className="group bg-gradient-to-br from-blue-50/30 to-teal-50/30 p-3 rounded-xl border border-blue-100/50 
+              className="group bg-gradient-to-br from-blue-50/30 to-teal-50/30 p-4 rounded-xl border border-blue-100/50 
                        hover:border-coral-300 hover:shadow-lg hover:bg-white/70 transition-all duration-300 cursor-pointer
                        transform hover:-translate-y-0.5 shadow-sm"
               onClick={() => handleEventClick(event.id)}
@@ -176,24 +176,24 @@ export default function EventsBoard() {
                     </Badge>
                   )}
                 </div>
-                <h4 className="font-bold text-blue-900 text-sm group-hover:text-coral-600 transition-colors line-clamp-2">
+                <h4 className="font-bold text-blue-900 text-base group-hover:text-coral-600 transition-colors line-clamp-2">
                     {event.title}
                   </h4>
 
-                {/* Compact Event Details */}
-                <div className="space-y-1 text-xs text-blue-600/80">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
+                {/* Enhanced Event Details */}
+                <div className="space-y-2 text-sm text-blue-600/80">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
                     <span>{formatEventDate(event.startDate)} • {formatEventTime(event.startDate)}</span>
                   </div>
                   
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
                     <span className="truncate">{event.city}, {event.country}</span>
                   </div>
                   
-                  <div className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
                     <span>
                       {event.currentAttendees} attending
                       {event.maxAttendees && ` / ${event.maxAttendees} max`}
@@ -201,14 +201,14 @@ export default function EventsBoard() {
                   </div>
                 </div>
 
-                {/* Compact Organizer */}
-                <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-blue-100/50">
-                  <div className="w-4 h-4 rounded-full bg-gradient-to-br from-coral-200 to-pink-200 flex items-center justify-center">
+                {/* Enhanced Organizer */}
+                <div className="flex items-center gap-2 mt-3 pt-2 border-t border-blue-100/50">
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-coral-200 to-pink-200 flex items-center justify-center">
                     {event.user?.profileImage ? (
                       <img
                         src={event.user.profileImage}
                         alt={event.user.name}
-                        className="w-4 h-4 rounded-full object-cover"
+                        className="w-5 h-5 rounded-full object-cover"
                       />
                     ) : (
                       <span className="text-coral-600 text-xs font-bold">
@@ -216,7 +216,7 @@ export default function EventsBoard() {
                       </span>
                     )}
                   </div>
-                  <span className="text-blue-600/70 text-xs font-medium">
+                  <span className="text-blue-600/70 text-sm font-medium">
                     by {event.user?.name || 'Unknown Organizer'}
                   </span>
                 </div>
