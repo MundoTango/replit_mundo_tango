@@ -1,0 +1,81 @@
+🛠 You Are:
+
+A full-stack Replit developer building a memory-driven platform for Mundo Tango. You’ve already implemented:
+	•	✅ OAuth via Replit
+	•	✅ Supabase backend with RBAC/ABAC
+	•	✅ Consent-based tagging + memory visibility
+	•	✅ A working memory dashboard component
+
+⸻
+
+🎯 Objective:
+
+Create a complete, secure, and consent-aware flow for + Create New Memory, which lets users:
+	1.	Tag a moment with emotional + visual metadata
+	2.	Add media (photo, video)
+	3.	Request consent from co-tagged users
+	4.	Save to the Supabase memories table
+	5.	Trigger a consent request if others are tagged
+
+⸻
+
+🔧 Scope Breakdown
+
+✅ FRONTEND: MemoryCreationForm.tsx
+	•	Inputs:
+	•	title (text)
+	•	emotion_tags (multi-select chip input)
+	•	location (Google Maps autocomplete or manual)
+	•	date (calendar picker)
+	•	media_file (optional)
+	•	co_tags (select users by username/email)
+	•	visibility_tier (public, mutual, private)
+	•	Consent logic:
+	•	Show ⚠️ if tagging users who haven’t pre-approved
+	•	Display: “Consent will be requested for [X] before memory is visible to them.”
+
+✅ FRONTEND HOOK: Open Modal from Button
+
+In MemoryDashboard.tsx, replace:
+<button ...>+ Create New Memory</button>
+with:
+<button onClick={() => setShowCreateModal(true)} ...>
+  + Create New Memory
+</button>
+<CreateMemoryModal open={showCreateModal} onClose={() => setShowCreateModal(false)} />
+✅ BACKEND: POST /api/memories
+	•	Validates:
+	•	user_id from session
+	•	All co-tagged users exist
+	•	Saves memory with consent_status: 'pending' if co_tags exist
+	•	Triggers email or in-app consent request (via N8N or Supabase trigger)
+
+⸻
+
+✅ DATABASE (Supabase):
+
+Ensure memories table includes:
+title TEXT,
+emotion_tags TEXT[],
+location TEXT,
+date DATE,
+media_url TEXT,
+created_by UUID REFERENCES users(id),
+co_tags UUID[],
+consent_status TEXT CHECK (consent_status IN ('pending', 'granted', 'denied')),
+visibility_tier TEXT CHECK (visibility_tier IN ('public', 'friends', 'private'))
+✅ Add This to replit.md:# Create New Memory Flow
+
+Users can now post memories tagged with:
+- Emotions
+- Roles
+- Places
+- Media (optional)
+- Visibility Tier
+- Consent-aware co-tagging
+
+Co-tagging triggers consent checks. All memory surfacing respects trust level and ABAC/RLS logic.
+🧪 Test Cases
+	•	✅ Create memory with no co-tags → should auto-publish
+	•	✅ Tag 2 users without prior consent → show warning + mark consent_status: 'pending'
+	•	✅ Consent approved (via webhook) → set consent_status: 'granted'

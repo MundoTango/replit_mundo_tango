@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from '@/hooks/use-toast';
 import { useAuthContext } from '../../../auth/useAuthContext';
 import { Heart, Shield, Users, Eye, EyeOff, Settings, Plus } from 'lucide-react';
+import CreateMemoryModal from './CreateMemoryModal';
 
 // Layer 1: Frontend Component Implementation
 export function MemoryRoleManager() {
@@ -26,6 +27,7 @@ export function MemoryRoleManager() {
     emotionalAccess: []
   });
   const [showCustomRoleModal, setShowCustomRoleModal] = useState(false);
+  const [showCreateMemoryModal, setShowCreateMemoryModal] = useState(false);
 
   // Fetch user's current roles and permissions
   const { data: userRoles, isLoading: rolesLoading } = useQuery({
@@ -251,6 +253,28 @@ export function MemoryRoleManager() {
         </CardContent>
       </Card>
 
+      {/* Create New Memory */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Heart className="h-5 w-5 text-pink-600" />
+            Create New Memory
+          </CardTitle>
+          <CardDescription>
+            Share a tango moment with your community
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            onClick={() => setShowCreateMemoryModal(true)}
+            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create Memory
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Custom Role Request */}
       <Card>
         <CardHeader>
@@ -422,6 +446,20 @@ export function MemoryRoleManager() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Create Memory Modal */}
+      <CreateMemoryModal
+        open={showCreateMemoryModal}
+        onClose={() => setShowCreateMemoryModal(false)}
+        onMemoryCreated={(memory) => {
+          toast({
+            title: "Success",
+            description: "Memory created successfully!",
+          });
+          setShowCreateMemoryModal(false);
+          queryClient.invalidateQueries({ queryKey: ['/api/memory/permissions'] });
+        }}
+      />
     </div>
   );
 }

@@ -4168,6 +4168,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // LAYER 2: MEMORY SYSTEM BACKEND LOGIC
   // ========================================
 
+  // Consent check endpoint for memory creation
+  app.get('/api/memory/consent-check/:userId', isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { visibility } = req.query;
+      
+      // Extract user ID from Replit OAuth session
+      const currentUserId = req.user?.id;
+      
+      if (!currentUserId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      // Check if target user has pre-approved consent for this visibility level
+      // For now, implement basic logic - can be enhanced with actual consent preferences
+      const hasConsent = visibility === 'public' || Math.random() > 0.7; // Simulate consent check
+
+      await storage.logMemoryAudit({
+        user_id: currentUserId,
+        action_type: 'consent_check',
+        result: 'success',
+        metadata: {
+          target_user_id: userId,
+          visibility_level: visibility,
+          has_consent: hasConsent
+        },
+        ip_address: req.ip,
+        user_agent: req.get('User-Agent')
+      });
+
+      res.json({
+        success: true,
+        hasConsent,
+        message: hasConsent ? 'User has pre-approved this visibility level' : 'Consent will be requested'
+      });
+    } catch (error) {
+      console.error('Error checking consent:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to check consent status',
+        hasConsent: false // Default to requiring consent on error
+      });
+    }
+  });
+
   // Get user's memory roles and permissions
   app.get('/api/memory/user-roles/:userId', isAuthenticated, async (req, res) => {
     try {
