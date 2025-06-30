@@ -180,7 +180,7 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 p-6" data-testid="onboarding-container">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
@@ -290,7 +290,10 @@ export default function Onboarding() {
                       <RoleSelector
                         roles={communityRoles || []}
                         selectedRoles={field.value || []}
-                        onRoleChange={field.onChange}
+                        onRoleChange={(roles) => {
+                          console.log('Role change from onboarding:', roles);
+                          field.onChange(roles);
+                        }}
                         isLoading={rolesLoading}
                       />
                     </FormControl>

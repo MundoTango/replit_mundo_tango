@@ -50,15 +50,25 @@ export default function RoleSelector({
   const [showCustomRoleModal, setShowCustomRoleModal] = useState(false);
   
   const handleRoleToggle = (roleName: string) => {
+    console.log(`Role toggle clicked: ${roleName}`);
+    
     if (roleName === 'other') {
       setShowCustomRoleModal(true);
       return;
     }
     
-    if (selectedRoles.includes(roleName)) {
-      onRoleChange(selectedRoles.filter(role => role !== roleName));
-    } else {
-      onRoleChange([...selectedRoles, roleName]);
+    try {
+      if (selectedRoles.includes(roleName)) {
+        const newRoles = selectedRoles.filter(role => role !== roleName);
+        console.log('Removing role, new roles:', newRoles);
+        onRoleChange(newRoles);
+      } else {
+        const newRoles = [...selectedRoles, roleName];
+        console.log('Adding role, new roles:', newRoles);
+        onRoleChange(newRoles);
+      }
+    } catch (error) {
+      console.error('Error in handleRoleToggle:', error);
     }
   };
 
@@ -105,6 +115,7 @@ export default function RoleSelector({
             {displayedRoles.map((role) => (
               <div
                 key={role.name}
+                data-role={role.name}
                 className={`
                   relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
                   ${selectedRoles.includes(role.name)
@@ -117,8 +128,14 @@ export default function RoleSelector({
                 <div className="flex items-start gap-3">
                   <Checkbox
                     checked={selectedRoles.includes(role.name)}
-                    onCheckedChange={() => handleRoleToggle(role.name)}
-                    className="mt-1"
+                    onCheckedChange={(checked) => {
+                      // Only handle the checkbox change if it's different from current state
+                      const isCurrentlySelected = selectedRoles.includes(role.name);
+                      if (checked !== isCurrentlySelected) {
+                        handleRoleToggle(role.name);
+                      }
+                    }}
+                    className="mt-1 pointer-events-none"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">

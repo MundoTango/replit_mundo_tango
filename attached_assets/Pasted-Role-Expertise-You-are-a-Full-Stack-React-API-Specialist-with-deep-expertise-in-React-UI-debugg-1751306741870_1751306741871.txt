@@ -1,0 +1,74 @@
+Role & Expertise:
+You are a Full-Stack React & API Specialist with deep expertise in React UI debugging, state management, API integration, middleware behavior, backend data validation, database schema alignment, security policy enforcement, and end-to-end testing. Your focus is ensuring smooth, bug-free user onboarding flows with complex role selection and custom role request handling.
+
+⸻
+
+Current Status:
+	•	Custom role system implemented with “Other” role and admin approval workflow.
+	•	19 community roles available via /api/roles/community endpoint.
+	•	RoleSelector component integrated with custom role modal and real-time validation.
+	•	Infinite re-render issue fixed, but clicking on a role currently causes a blank screen.
+
+⸻
+
+Objective:
+Diagnose and resolve the blank screen issue triggered by role selection during onboarding. Then execute a comprehensive user journey simulation covering all role selections (including “Other”), custom role submission, and profile update flows.
+
+⸻
+
+Next Steps by Layer:
+	1.	Frontend/UI
+	•	Debug RoleSelector component to identify why screen goes blank after role click.
+	•	Check state updates, conditional rendering, error boundaries, and API response handling.
+	•	Validate modal popup integration for “Other” role requests.
+	•	Test entire onboarding role selection UI for edge cases and error states.
+	2.	Backend/API
+	•	Review /api/roles/community and related APIs for consistent, timely responses and error messages.
+	•	Confirm API supports role updates, custom role submissions, and user role persistence.
+	•	Validate error handling paths for malformed or unexpected input.
+	3.	Middleware/Services
+	•	Verify request validation middleware isn’t blocking valid requests or causing crashes.
+	•	Check auth/session middleware for correct user context during onboarding role calls.
+	4.	Database
+	•	Confirm roles and custom_role_requests tables have correct data and constraints.
+	•	Validate user_roles table updates correctly with new selections.
+	•	Check RLS policies don’t prevent data visibility needed for onboarding.
+	5.	Security & Compliance
+	•	Ensure no unauthorized data leaks during role queries or custom role submission.
+	•	Confirm all inputs are sanitized and validated before DB writes.
+	6.	Testing & Validation
+	•	Run and extend frontend tests to cover role selection and custom role modals.
+	•	Add backend integration tests simulating onboarding role submission flows.
+	•	Add end-to-end tests that replicate user onboarding including “Other” role creation and approval.
+	•	Document manual testing steps for QA.
+	7.	Documentation & Collaboration
+	•	Update onboarding and role API documentation with recent bugfixes and UI flow notes.
+	•	Notify frontend and QA teams of fixes and new test cases.
+	•	Provide detailed bug report and resolution summary for this issue.
+	8.	Customer/User Testing
+	•	Simulate full onboarding journey including role selection for all roles.
+	•	Test “Other” role workflow with custom name/description submission.
+	•	Validate profile editing to update roles post-onboarding.
+	•	Capture user feedback or error logs during these flows.
+
+⸻
+
+References & Files:
+	•	Frontend: client/src/components/onboarding/RoleSelector.tsx, client/src/components/roles/CustomRoleRequestModal.tsx
+	•	Backend API: server/routes.ts, server/storage.ts
+	•	Database Schema: shared/schema.ts, database/roles_custom_migration.sql
+	•	Tests: tests/frontend/onboarding.test.ts, tests/backend/custom-roles-api.test.ts
+
+⸻
+
+Explicit Validation Instructions:
+	•	Locate exact cause of blank screen in browser console and React error boundaries.
+	•	Fix React state or rendering logic causing the blank screen.
+	•	Ensure API calls return expected JSON and handle errors gracefully.
+	•	Execute user flow test for all roles including “Other” with modal submission and admin review trigger.
+	•	Run complete test suites (unit, integration, e2e) and provide coverage results.
+	•	Capture screenshots or video showing successful onboarding role selection and custom role request.
+
+⸻
+
+Please confirm once the issue is fixed with relevant logs/screenshots and whether you want me to proceed with any further feature work, testing expansions, or deployment prep.
