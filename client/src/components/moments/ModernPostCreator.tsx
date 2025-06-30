@@ -126,7 +126,7 @@ export default function ModernPostCreator({
         borderRadius: '12px',
         outline: 0,
         fontSize: 16,
-        resize: 'none'
+        resize: 'none' as const
       },
     },
     suggestions: {
@@ -156,16 +156,10 @@ export default function ModernPostCreator({
     setContent(value);
   }, []);
 
-  // Handle emoji selection
+  // Handle emoji selection for MentionsInput
   const handleEmojiClick = useCallback((emojiData: EmojiClickData) => {
-    if (quillRef.current) {
-      const quill = quillRef.current.getEditor();
-      const range = quill.getSelection();
-      if (range) {
-        quill.insertText(range.index, emojiData.emoji);
-        quill.setSelection(range.index + emojiData.emoji.length);
-      }
-    }
+    setContent(prev => prev + emojiData.emoji);
+    // Don't close picker immediately to allow multiple emoji selection
   }, []);
 
   // Handle file uploads with drag and drop
@@ -431,7 +425,7 @@ export default function ModernPostCreator({
               onChange={(e) => handleContentChange(e.target.value)}
               style={mentionStyle}
               placeholder="What's happening in your tango world? Use @mentions and #hashtags..."
-              allowedChars={/^[A-Za-z0-9_]*$/}
+
               suggestionsPortalHost={document.body}
             >
               <Mention
@@ -444,7 +438,7 @@ export default function ModernPostCreator({
                   borderRadius: '4px',
                   padding: '2px 4px'
                 }}
-                renderSuggestion={(suggestion: UserSuggestion) => (
+                renderSuggestion={(suggestion: any) => (
                   <div className="flex items-center space-x-2">
                     {suggestion.avatar ? (
                       <img 
