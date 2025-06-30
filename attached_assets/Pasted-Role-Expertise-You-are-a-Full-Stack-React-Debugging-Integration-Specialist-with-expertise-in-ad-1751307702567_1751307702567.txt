@@ -1,0 +1,71 @@
+Role & Expertise:
+You are a Full-Stack React Debugging & Integration Specialist with expertise in advanced React state management, controlled forms, event handling, and complex UI workflows. Your focus is on eliminating infinite re-render loops, ensuring smooth user experience, and integrating complex form components with backend APIs.
+
+⸻
+
+Current Status:
+	•	The onboarding flow currently uses a simplified RoleSelector that avoids infinite re-renders, but the full RoleSelector with all features causes a maximum update depth exceeded error.
+	•	Logs pinpoint the issue in the checkbox and role toggle event handling, likely due to redundant or conflicting state updates.
+	•	The infinite re-render causes a blank screen after role selection, blocking the onboarding flow.
+	•	Other registration fields (text inputs, selects, etc.) also need full validation to ensure no regressions or related issues.
+
+⸻
+
+Next Steps:
+	1.	Frontend/UI
+
+	•	Fully restore the original RoleSelector component in the onboarding page, replacing the SimpleRoleSelector fallback.
+	•	Thoroughly audit and refactor handleRoleToggle, checkbox event handlers, and container div click events to remove redundant triggers and prevent infinite loops.
+	•	Ensure use of event.preventDefault() and stopPropagation() where needed.
+	•	Wrap the RoleSelector in an ErrorBoundary for improved debugging and graceful fallback.
+	•	Add comprehensive console logs and React Profiler markers to track state updates and renders during role selection.
+	•	Test all other onboarding form fields to verify correct capture, validation, and submission alongside role selections without causing UI issues.
+	•	Add or improve test-ids and data attributes to support reliable E2E tests.
+
+	2.	Backend/API
+
+	•	Confirm stable responses from /api/roles/community and role assignment endpoints during onboarding.
+	•	Validate that role selection updates are properly saved in the backend.
+
+	3.	Middleware/Services
+
+	•	Review middleware flow to ensure no interference with onboarding API calls or sessions.
+
+	4.	Database
+
+	•	Confirm user roles and custom roles are correctly persisted during onboarding updates.
+
+	5.	Security & Compliance
+
+	•	Ensure no unauthorized access or data leaks during role selection and registration.
+
+	6.	Testing & Validation
+
+	•	Run and update existing frontend unit and integration tests covering RoleSelector and onboarding forms.
+	•	Create or extend E2E tests that simulate full onboarding with role selections and full form data.
+
+	7.	Documentation & Collaboration
+
+	•	Document all changes made to RoleSelector event handling and onboarding validation.
+	•	Share logs, profiling data, and screenshots with frontend and QA teams.
+	•	Update onboarding user flow docs as needed.
+
+	8.	Customer/User Testing
+
+	•	Request testers to verify smooth role selection and full registration form completion without blank screens or freezes.
+	•	Collect any user feedback or error reports.
+
+⸻
+
+Explicit Instructions:
+	•	Replace all imports and usage of SimpleRoleSelector with the full RoleSelector in client/src/pages/onboarding.tsx.
+	•	Refactor event handlers in client/src/components/onboarding/RoleSelector.tsx to prevent redundant state changes.
+	•	Use React useEffect and useCallback hooks properly to optimize rendering and state updates.
+	•	Wrap RoleSelector in ErrorBoundary (client/src/components/debugging/ErrorBoundary.tsx).
+	•	Add console logs in critical functions: role toggling, form submit handlers.
+	•	Run npx jest tests/frontend/components/RoleSelector.test.tsx --verbose and full E2E onboarding tests.
+	•	Provide test coverage reports and screenshots.
+
+⸻
+
+Please confirm when the full RoleSelector component is restored without infinite re-render errors, the role selection UI works smoothly, and all other registration fields function properly during onboarding. Provide detailed logs, profiling info, screenshots, and test outputs.

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -49,18 +49,25 @@ export default function RoleSelector({
   const [showAll, setShowAll] = useState(false);
   const [showCustomRoleModal, setShowCustomRoleModal] = useState(false);
   
-  // Debug logging for renders and state changes
+  // Memoize the selected roles set for efficient lookups
+  const selectedRolesSet = useMemo(() => new Set(selectedRoles), [selectedRoles]);
+  
+  // Memoize the roles count to prevent unnecessary re-renders
+  const rolesCount = useMemo(() => roles?.length || 0, [roles?.length]);
+  
+  // Debug logging with stable dependencies
   useEffect(() => {
     console.log('RoleSelector render:', { 
-      selectedRoles: selectedRoles?.length || 0, 
-      rolesCount: roles?.length || 0, 
+      selectedRolesCount: selectedRoles.length, 
+      rolesCount, 
       isLoading, 
       showAll, 
       showCustomRoleModal 
     });
-  }, [selectedRoles, roles, isLoading, showAll, showCustomRoleModal]);
+  }, [selectedRoles.length, rolesCount, isLoading, showAll, showCustomRoleModal]);
   
-  const handleRoleToggle = (roleName: string) => {
+  // Memoized role toggle handler to prevent recreation on every render
+  const handleRoleToggle = useCallback((roleName: string) => {
     console.log(`Role toggle clicked: ${roleName}`);
     
     if (roleName === 'other') {
@@ -69,7 +76,7 @@ export default function RoleSelector({
     }
     
     try {
-      if (selectedRoles.includes(roleName)) {
+      if (selectedRolesSet.has(roleName)) {
         const newRoles = selectedRoles.filter(role => role !== roleName);
         console.log('Removing role, new roles:', newRoles);
         onRoleChange(newRoles);
@@ -81,15 +88,70 @@ export default function RoleSelector({
     } catch (error) {
       console.error('Error in handleRoleToggle:', error);
     }
-  };
+  }, [selectedRoles, selectedRolesSet, onRoleChange]);
 
-  const handleCustomRoleSuccess = () => {
-    // For now, we'll just close the modal and show a success state
-    // In future iterations, this could refresh the role list or show a confirmation
+  // Memoized custom role success handler
+  const handleCustomRoleSuccess = useCallback(() => {
     setShowCustomRoleModal(false);
-  };
+  }, []);
 
-  const displayedRoles = showAll ? roles : roles.slice(0, 8);
+  // Memoized role item component to prevent unnecessary re-renders
+  const RoleItem = useMemo(() => {
+    return React.memo(({ role }: { role: CommunityRole }) => {
+      const isSelected = selectedRolesSet.has(role.name);
+      
+      return (
+        <div
+          key={role.name}
+          data-role={role.name}
+          className={`
+            relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
+            ${isSelected
+              ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+              : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-25'
+            }
+          `}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleRoleToggle(role.name);
+          }}
+        >
+          <div className="flex items-start gap-3">
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={() => {}} // No-op to prevent double handling
+              className="mt-1 pointer-events-none"
+            />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">{roleIcons[role.name] || "🎯"}</span>
+                <h3 className="font-medium text-gray-900 capitalize">
+                  {role.name.replace(/_/g, ' ')}
+                </h3>
+              </div>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                {role.description}
+              </p>
+            </div>
+          </div>
+          
+          {isSelected && (
+            <div className="absolute top-2 right-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                <div className="w-1 h-1 bg-white rounded-full"></div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    });
+  }, [selectedRolesSet, handleRoleToggle]);
+
+  // Memoize displayed roles to prevent re-computation on every render
+  const displayedRoles = useMemo(() => {
+    return showAll ? roles : roles.slice(0, 8);
+  }, [roles, showAll]);
 
   if (isLoading) {
     return (
@@ -124,49 +186,7 @@ export default function RoleSelector({
         <div className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {displayedRoles.map((role) => (
-              <div
-                key={role.name}
-                data-role={role.name}
-                className={`
-                  relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
-                  ${selectedRoles.includes(role.name)
-                    ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                    : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-25'
-                  }
-                `}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleRoleToggle(role.name);
-                }}
-              >
-                <div className="flex items-start gap-3">
-                  <Checkbox
-                    checked={selectedRoles.includes(role.name)}
-                    onCheckedChange={() => {}} // No-op to prevent double handling
-                    className="mt-1 pointer-events-none"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-lg">{roleIcons[role.name] || "🎯"}</span>
-                      <h3 className="font-medium text-gray-900 capitalize">
-                        {role.name.replace(/_/g, ' ')}
-                      </h3>
-                    </div>
-                    <p className="text-xs text-gray-600 leading-relaxed">
-                      {role.description}
-                    </p>
-                  </div>
-                </div>
-                
-                {selectedRoles.includes(role.name) && (
-                  <div className="absolute top-2 right-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
-                      <div className="w-1 h-1 bg-white rounded-full"></div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <RoleItem key={role.name} role={role} />
             ))}
           </div>
 
