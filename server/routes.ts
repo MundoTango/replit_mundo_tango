@@ -6,7 +6,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { authMiddleware } from "./middleware/auth";
 import { setupUpload } from "./middleware/upload";
 import { storage } from "./storage";
-import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema, roles, userProfiles, userRoles } from "../shared/schema";
+import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema, insertCustomRoleRequestSchema, roles, userProfiles, userRoles } from "../shared/schema";
 import { z } from "zod";
 import { SocketService } from "./services/socketService";
 import { WebSocketServer } from "ws";
@@ -4002,6 +4002,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({
         code: 0,
         message: "Failed to mark notification as read",
+        data: null
+      });
+    }
+  });
+
+  // Custom Role Request endpoints
+  app.post('/api/roles/custom/request', authMiddleware, async (req, res) => {
+    try {
+      const validatedData = insertCustomRoleRequestSchema.parse(req.body);
+      
+      const request = await storage.createCustomRoleRequest({
+        ...validatedData,
+        submittedBy: req.user!.id,
+      });
+
+      return res.json({
+        code: 200,
+        message: "Custom role request submitted successfully",
+        data: { request }
+      });
+    } catch (error) {
+      console.error('Error creating custom role request:', error);
+      return res.status(500).json({
+        code: 0,
+        message: "Failed to create custom role request",
+        data: null
+      });
+    }
+  });
+
+  app.get('/api/roles/custom/my-requests', authMiddleware, async (req, res) => {
+    try {
+      const requests = await storage.getUserCustomRoleRequests(req.user!.id);
+      
+      return res.json({
+        code: 200,
+        message: "User custom role requests retrieved",
+        data: { requests }
+      });
+    } catch (error) {
+      console.error('Error fetching user custom role requests:', error);
+      return res.status(500).json({
+        code: 0,
+        message: "Failed to fetch custom role requests",
+        data: null
+      });
+    }
+  });
+
+  // Admin endpoints for managing custom role requests
+  app.get('/api/admin/roles/custom/requests', authMiddleware, requireRole({ roles: ['admin', 'super_admin'] }), async (req, res) => {
+    try {
+      const requests = await storage.getAllCustomRoleRequests();
+      
+      return res.json({
+        code: 200,
+        message: "All custom role requests retrieved",
+        data: { requests }
+      });
+    } catch (error) {
+      console.error('Error fetching all custom role requests:', error);
+      return res.status(500).json({
+        code: 0,
+        message: "Failed to fetch custom role requests",
+        data: null
+      });
+    }
+  });
+
+  app.put('/api/admin/roles/custom/approve/:id', authMiddleware, requireRole({ roles: ['admin', 'super_admin'] }), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { adminNotes } = req.body;
+      
+      const updatedRequest = await storage.approveCustomRoleRequest(id, req.user!.id, adminNotes);
+      
+      return res.json({
+        code: 200,
+        message: "Custom role request approved successfully",
+        data: { request: updatedRequest }
+      });
+    } catch (error) {
+      console.error('Error approving custom role request:', error);
+      return res.status(500).json({
+        code: 0,
+        message: "Failed to approve custom role request",
+        data: null
+      });
+    }
+  });
+
+  app.put('/api/admin/roles/custom/reject/:id', authMiddleware, requireRole({ roles: ['admin', 'super_admin'] }), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { adminNotes } = req.body;
+      
+      const updatedRequest = await storage.rejectCustomRoleRequest(id, req.user!.id, adminNotes);
+      
+      return res.json({
+        code: 200,
+        message: "Custom role request rejected",
+        data: { request: updatedRequest }
+      });
+    } catch (error) {
+      console.error('Error rejecting custom role request:', error);
+      return res.status(500).json({
+        code: 0,
+        message: "Failed to reject custom role request",
         data: null
       });
     }

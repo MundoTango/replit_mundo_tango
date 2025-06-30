@@ -19,6 +19,7 @@ import {
   memoryMedia,
   roles,
   userRoles,
+  customRoleRequests,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -45,7 +46,10 @@ import {
   type InsertFriend,
   type MemoryMedia,
   type InsertMemoryMedia,
-  type Story
+  type Story,
+  type CustomRoleRequest,
+  type InsertCustomRoleRequest,
+  type UpdateCustomRoleRequest
 } from '../shared/schema';
 import { db } from './db';
 import { eq, desc, asc, sql, and, or, gte, lte, count, ilike, inArray } from 'drizzle-orm';
@@ -282,6 +286,116 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     return result.length > 0;
+  }
+
+  // Custom Role Request methods
+  async createCustomRoleRequest(request: any): Promise<any> {
+    const [newRequest] = await db
+      .insert(customRoleRequests)
+      .values(request)
+      .returning();
+    return newRequest;
+  }
+
+  async getUserCustomRoleRequests(userId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(customRoleRequests)
+      .where(eq(customRoleRequests.submittedBy, userId))
+      .orderBy(desc(customRoleRequests.createdAt));
+  }
+
+  async getAllCustomRoleRequests(): Promise<any[]> {
+    return await db
+      .select({
+        id: customRoleRequests.id,
+        roleName: customRoleRequests.roleName,
+        roleDescription: customRoleRequests.roleDescription,
+        submittedBy: customRoleRequests.submittedBy,
+        status: customRoleRequests.status,
+        adminNotes: customRoleRequests.adminNotes,
+        createdAt: customRoleRequests.createdAt,
+        updatedAt: customRoleRequests.updatedAt,
+        submitterName: users.name,
+        submitterEmail: users.email,
+      })
+      .from(customRoleRequests)
+      .leftJoin(users, eq(customRoleRequests.submittedBy, users.id))
+      .orderBy(desc(customRoleRequests.createdAt));
+  }
+
+  async updateCustomRoleRequest(id: string, updates: any): Promise<any> {
+    const [updatedRequest] = await db
+      .update(customRoleRequests)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(customRoleRequests.id, id))
+      .returning();
+    return updatedRequest;
+  }
+
+  async approveCustomRoleRequest(id: string, approvedBy: number, adminNotes?: string): Promise<any> {
+    const request = await db
+      .select()
+      .from(customRoleRequests)
+      .where(eq(customRoleRequests.id, id))
+      .limit(1);
+
+    if (request.length === 0) {
+      throw new Error('Custom role request not found');
+    }
+
+    // Update request status
+    const [updatedRequest] = await db
+      .update(customRoleRequests)
+      .set({
+        status: 'approved',
+        approvedBy,
+        approvedAt: new Date(),
+        adminNotes,
+        updatedAt: new Date(),
+      })
+      .where(eq(customRoleRequests.id, id))
+      .returning();
+
+    // Create the custom role
+    const roleName = request[0].roleName.toLowerCase().replace(/\s+/g, '_');
+    await db
+      .insert(roles)
+      .values({
+        name: roleName,
+        description: request[0].roleDescription,
+        isPlatformRole: false,
+        isCustom: true,
+        isApproved: true,
+        submittedBy: request[0].submittedBy,
+        approvedBy,
+        approvedAt: new Date(),
+        submittedAt: request[0].createdAt,
+      })
+      .onConflictDoNothing();
+
+    // Assign the role to the requesting user
+    await this.assignRoleToUser(request[0].submittedBy, roleName, approvedBy);
+
+    return updatedRequest;
+  }
+
+  async rejectCustomRoleRequest(id: string, rejectedBy: number, adminNotes?: string): Promise<any> {
+    const [updatedRequest] = await db
+      .update(customRoleRequests)
+      .set({
+        status: 'rejected',
+        rejectedBy,
+        rejectedAt: new Date(),
+        adminNotes,
+        updatedAt: new Date(),
+      })
+      .where(eq(customRoleRequests.id, id))
+      .returning();
+    return updatedRequest;
   }
 
   async createPost(post: InsertPost): Promise<Post> {

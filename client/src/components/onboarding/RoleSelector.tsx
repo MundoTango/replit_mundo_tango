@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Users, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Users, Info, Plus } from 'lucide-react';
+import { CustomRoleRequestModal } from '../roles/CustomRoleRequestModal';
 
 interface CommunityRole {
   name: string;
@@ -34,7 +36,8 @@ const roleIcons: Record<string, string> = {
   vendor: "🛒",
   wellness_provider: "💆",
   tango_school: "🏫",
-  tango_hotel: "🏨"
+  tango_hotel: "🏨",
+  other: "➕"
 };
 
 export default function RoleSelector({ 
@@ -44,13 +47,25 @@ export default function RoleSelector({
   isLoading = false 
 }: RoleSelectorProps) {
   const [showAll, setShowAll] = useState(false);
+  const [showCustomRoleModal, setShowCustomRoleModal] = useState(false);
   
   const handleRoleToggle = (roleName: string) => {
+    if (roleName === 'other') {
+      setShowCustomRoleModal(true);
+      return;
+    }
+    
     if (selectedRoles.includes(roleName)) {
       onRoleChange(selectedRoles.filter(role => role !== roleName));
     } else {
       onRoleChange([...selectedRoles, roleName]);
     }
+  };
+
+  const handleCustomRoleSuccess = () => {
+    // For now, we'll just close the modal and show a success state
+    // In future iterations, this could refresh the role list or show a confirmation
+    setShowCustomRoleModal(false);
   };
 
   const displayedRoles = showAll ? roles : roles.slice(0, 8);
@@ -102,7 +117,7 @@ export default function RoleSelector({
                 <div className="flex items-start gap-3">
                   <Checkbox
                     checked={selectedRoles.includes(role.name)}
-                    onChange={() => handleRoleToggle(role.name)}
+                    onCheckedChange={() => handleRoleToggle(role.name)}
                     className="mt-1"
                   />
                   <div className="flex-1 min-w-0">
@@ -169,6 +184,13 @@ export default function RoleSelector({
           </div>
         </div>
       </CardContent>
+
+      {/* Custom Role Request Modal */}
+      <CustomRoleRequestModal
+        open={showCustomRoleModal}
+        onOpenChange={setShowCustomRoleModal}
+        onSuccess={handleCustomRoleSuccess}
+      />
     </Card>
   );
 }

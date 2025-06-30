@@ -60,8 +60,37 @@ export const roles = pgTable("roles", {
   name: text("name").unique().notNull(),
   description: text("description").notNull(),
   isPlatformRole: boolean("is_platform_role").default(false),
+  // Custom role fields
+  isCustom: boolean("is_custom").default(false),
+  customName: text("custom_name"),
+  customDescription: text("custom_description"),
+  isApproved: boolean("is_approved").default(false),
+  submittedBy: integer("submitted_by").references(() => users.id),
+  approvedBy: integer("approved_by").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Custom Role Requests table for admin approval workflow
+export const customRoleRequests = pgTable("custom_role_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  roleName: text("role_name").notNull(),
+  roleDescription: text("role_description").notNull(),
+  submittedBy: integer("submitted_by").references(() => users.id).notNull(),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  adminNotes: text("admin_notes"),
+  approvedBy: integer("approved_by").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  rejectedBy: integer("rejected_by").references(() => users.id),
+  rejectedAt: timestamp("rejected_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_custom_role_requests_status").on(table.status),
+  index("idx_custom_role_requests_submitted_by").on(table.submittedBy),
+  index("idx_custom_role_requests_created_at").on(table.createdAt),
+]);
 
 // User Profiles table for role-based authentication (enhanced)
 export const userProfiles = pgTable("user_profiles", {
@@ -765,6 +794,24 @@ export const insertUserRoleSchema = createInsertSchema(userRoles).omit({
   assignedAt: true,
 });
 
+export const insertCustomRoleRequestSchema = createInsertSchema(customRoleRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  approvedAt: true,
+  rejectedAt: true,
+}).extend({
+  roleName: z.string().min(2).max(50),
+  roleDescription: z.string().min(10).max(500),
+});
+
+export const updateCustomRoleRequestSchema = z.object({
+  status: z.enum(['pending', 'approved', 'rejected']),
+  adminNotes: z.string().optional(),
+  approvedBy: z.number().optional(),
+  rejectedBy: z.number().optional(),
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -834,3 +881,8 @@ export type UserFollowedCity = typeof userFollowedCities.$inferSelect;
 export type InsertUserFollowedCity = typeof userFollowedCities.$inferInsert;
 export type EventSeries = typeof eventSeries.$inferSelect;
 export type InsertEventSeries = typeof eventSeries.$inferInsert;
+
+// Custom role types
+export type CustomRoleRequest = typeof customRoleRequests.$inferSelect;
+export type InsertCustomRoleRequest = z.infer<typeof insertCustomRoleRequestSchema>;
+export type UpdateCustomRoleRequest = z.infer<typeof updateCustomRoleRequestSchema>;

@@ -1,0 +1,85 @@
+Role & Expertise:
+You are a Full-Stack Backend and Frontend Specialist expert in Supabase/PostgreSQL schema design, API development with Express, React UI integration, authentication and authorization workflows, middleware architecture, testing frameworks, and secure onboarding systems. Your focus is on delivering robust, user-centric role management features including dynamic role creation by users, admin review workflows, and full profile editing capabilities.
+
+⸻
+
+Current Status:
+	•	Supabase backend roles and user_roles tables now exist with 18 community roles including “host” and “guide”.
+	•	API endpoint /api/roles/community is fixed and returns all roles correctly.
+	•	Role-related methods implemented in storage interface.
+	•	Testing framework and migration scripts completed.
+
+⸻
+
+New Requirements to Implement:
+	•	Add an “Other” role option allowing users to input a custom role name and description during onboarding.
+	•	Implement backend logic and database support to store these custom roles in a pending state awaiting Super Admin approval before becoming active.
+	•	Enable users to edit their profile post-onboarding, including updating their selected roles and providing details for “Other” roles.
+	•	Provide admin interface or API to review, approve, or reject custom roles submitted by users.
+	•	Ensure seamless integration between frontend role selection UI, backend API, and Supabase schema including necessary validations and permissions.
+
+⸻
+
+Next Steps by Layer:
+	1.	Frontend/UI
+	•	Update onboarding flow UI to include “Other” role input fields with name and description.
+	•	Add profile editing page/section allowing users to update roles and custom role details.
+	•	Validate and handle input for custom roles dynamically.
+	•	Show pending status for custom roles awaiting admin approval.
+	2.	Backend/API
+	•	Extend roles and user_roles schema to track custom roles and approval status.
+	•	Implement API endpoints for submitting, updating, and retrieving custom roles.
+	•	Create admin APIs for reviewing and approving/rejecting custom roles.
+	•	Add validation and error handling for custom role submissions.
+	3.	Middleware/Services
+	•	Ensure authentication and authorization flow supports user and admin actions on custom roles.
+	•	Add logging and audit trails for role creation and approval actions.
+	4.	Database
+	•	Update Supabase schema for roles table with fields: is_custom (boolean), custom_name, custom_description, is_approved (boolean), approved_by (user id), approved_at (timestamp).
+	•	Update user_roles to reference custom roles properly.
+	•	Add necessary indexes and constraints.
+	•	Implement RLS policies ensuring only admins can approve roles and users can manage their own roles.
+	5.	Security & Compliance
+	•	Validate RLS policies for new custom role fields and admin approval workflows.
+	•	Ensure no unauthorized access to approval APIs or sensitive data.
+	6.	Testing & Validation
+	•	Write/extend unit tests for custom role creation, update, approval, and profile editing workflows.
+	•	Add integration tests covering API endpoints and database transactions.
+	•	Add end-to-end tests simulating onboarding with custom role creation and admin approval.
+	•	Include tests verifying RLS policy enforcement.
+	•	Document test procedures for manual QA.
+	7.	Documentation & Collaboration
+	•	Update API docs with new endpoints and role approval workflows.
+	•	Update database schema documentation and migration notes.
+	•	Provide instructions for frontend usage and admin review processes.
+	•	Communicate changes to frontend and QA teams for alignment.
+	8.	Customer/User Testing
+	•	Prepare QA scripts to verify onboarding role selection with custom role inputs.
+	•	Validate profile editing including custom role updates.
+	•	Confirm admin review and approval processes operate correctly.
+	•	Collect and address user feedback on role creation experience.
+
+⸻
+
+References & Files:
+	•	Schema and migration scripts: database/roles_custom_migration.sql
+	•	API routes: server/routes.ts
+	•	Backend storage methods: server/storage.ts
+	•	Frontend components: client/src/pages/onboarding.tsx, client/src/components/onboarding/RoleSelector.tsx, client/src/pages/profile/EditProfile.tsx (or equivalent)
+	•	Middleware/auth config: server/middleware/auth.ts
+	•	Test files: tests/backend/roles-api.test.ts, tests/frontend/onboarding.test.ts
+
+⸻
+
+Explicit Validation Instructions:
+	•	Deploy updated schema with new fields and constraints.
+	•	Insert initial seed data for roles including “other” role with no approval yet.
+	•	Verify API endpoints accept and store custom roles with pending approval status.
+	•	Confirm admin APIs allow approving/rejecting roles and update status accordingly.
+	•	Perform full onboarding and profile edit flows with custom roles.
+	•	Run all tests and ensure no regressions.
+	•	Provide logs, screenshots, and test results.
+
+⸻
+
+Please confirm completion or report blockers promptly. Ready to generate all required SQL, API, frontend code, tests, and docs as next step.
