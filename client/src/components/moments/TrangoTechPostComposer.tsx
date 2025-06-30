@@ -93,11 +93,10 @@ export default function TrangoTechPostComposer() {
         </div>
       </div>
 
-      {/* Modern Card - What's on your mind */}
-      <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-blue-100/50 p-6 lg:p-8 mb-6 lg:mb-8 
-                      hover:shadow-coral-500/10 transition-all duration-300 transform hover:-translate-y-1">
+      {/* Post Composer with coral-pink gradient */}
+      <div className="bg-gradient-to-r from-coral-400 to-pink-500 rounded-3xl p-6 md:p-8 text-white shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out">
         <div className="flex justify-between items-start mb-6">
-          <div className="text-blue-900 flex items-center gap-4 cursor-pointer">
+          <div className="text-white flex items-center gap-4 cursor-pointer">
             <div className="relative">
               <img
                 src={user?.profileImage || '/api/placeholder/56/56'}
@@ -109,8 +108,8 @@ export default function TrangoTechPostComposer() {
                             rounded-full border-2 border-white shadow-lg"></div>
             </div>
             <div>
-              <div className="text-lg font-bold text-blue-900">{user?.name}</div>
-              <div className="text-sm text-blue-600 font-medium">
+              <div className="text-lg font-bold text-white">{user?.name}</div>
+              <div className="text-sm text-white/80 font-medium">
                 @{user?.username}
               </div>
             </div>
@@ -131,34 +130,34 @@ export default function TrangoTechPostComposer() {
             type="text"
             placeholder="What's on your mind?"
             onClick={() => setShowExpandedComposer(true)}
-            className="w-full px-6 py-5 bg-gradient-to-br from-blue-50/30 to-teal-50/30 border-2 border-blue-200/50 
-                     rounded-2xl focus:outline-none text-blue-900 placeholder-blue-400/80 font-medium text-lg
-                     cursor-pointer hover:border-coral-300 transition-all duration-300"
+            className="w-full px-6 py-4 bg-white bg-opacity-90 border border-coral-300 
+                     rounded-xl focus:outline-none text-coral-800 placeholder-coral-600 font-medium text-lg
+                     cursor-pointer hover:bg-opacity-95 transition-all duration-200 ease-in-out shadow-md"
             readOnly
           />
         </div>
 
-        <div className="border-t-2 border-blue-100/50 pt-6">
+        <div className="border-t border-white border-opacity-50 pt-6">
           <div className="flex w-full justify-between items-center flex-wrap gap-4">
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <button
                 type="button"
-                className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-teal-50 text-teal-600 
-                         hover:bg-teal-100 hover:text-teal-700 font-bold transition-all duration-300 
-                         transform hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer"
+                className="flex items-center gap-2 px-4 py-3 rounded-full bg-white bg-opacity-90 text-teal-600 
+                         hover:bg-opacity-100 hover:text-teal-700 font-medium transition-all duration-200 
+                         transform hover:scale-105 shadow-md hover:shadow-lg cursor-pointer"
                 onClick={() => setShowExpandedComposer(true)}
               >
-                <MapPin className="h-5 w-5" />
+                <MapPin className="h-4 w-4" />
                 Location
               </button>
               <button
                 type="button"
-                className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-coral-50 text-coral-600 
-                         hover:bg-coral-100 hover:text-coral-700 font-bold transition-all duration-300 
-                         transform hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer"
+                className="flex items-center gap-2 px-4 py-3 rounded-full bg-white bg-opacity-90 text-pink-600 
+                         hover:bg-opacity-100 hover:text-pink-700 font-medium transition-all duration-200 
+                         transform hover:scale-105 shadow-md hover:shadow-lg cursor-pointer"
                 onClick={() => setShowExpandedComposer(true)}
               >
-                <Camera className="h-5 w-5" />
+                <Camera className="h-4 w-4" />
                 Image/Video
               </button>
             </div>

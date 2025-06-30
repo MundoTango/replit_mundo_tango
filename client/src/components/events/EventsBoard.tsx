@@ -123,18 +123,18 @@ export default function EventsBoard() {
   }
 
   return (
-    <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-blue-100/50 p-6 lg:p-8 space-y-6 lg:space-y-8">
+    <div className="bg-white bg-opacity-90 rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-200 ease-in-out space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="bg-gradient-to-br from-coral-400 to-pink-500 p-3 rounded-2xl shadow-xl">
             <Calendar className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+            <h3 className="text-lg font-semibold text-indigo-700">
               Upcoming Events
             </h3>
-            <p className="text-blue-600/70 font-medium text-sm">In your area & invitations</p>
+            <p className="text-slate-700 font-medium text-sm leading-relaxed">In your area & invitations</p>
           </div>
         </div>
         <div className="bg-gradient-to-br from-coral-100 to-pink-100 p-2 rounded-2xl">

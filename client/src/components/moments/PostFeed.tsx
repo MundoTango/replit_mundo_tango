@@ -144,63 +144,64 @@ export default function PostFeed() {
 
   return (
     <div className="space-y-6">
-      {/* Modern Tag Filter Section */}
-      <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-blue-100/50 p-8 mb-8">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="bg-gradient-to-br from-teal-400 to-cyan-500 p-3 rounded-2xl shadow-xl">
+      {/* Tag Filter Section with indigo gradient */}
+      <div className="bg-gradient-to-r from-indigo-200 to-blue-100 rounded-lg p-4 md:p-6 shadow-inner mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="bg-indigo-600 p-3 rounded-full shadow-lg">
             <Tag className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+            <h3 className="text-lg font-semibold text-indigo-700">
               Filter by Media Tags
             </h3>
-            <p className="text-blue-600/70 font-medium">Discover memories by content type</p>
+            <p className="text-indigo-600 font-medium">Discover memories by content type</p>
           </div>
         </div>
         
-        {/* Modern Tag Input */}
-        <div className="flex gap-4 mb-6">
+        {/* Tag Input with rounded full styling */}
+        <div className="flex space-x-3 mb-6">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-400" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-indigo-500" />
             <input
               type="text"
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyPress={handleTagInputKeyPress}
               placeholder="Enter tag name and press Enter..."
-              className="w-full pl-12 pr-4 py-4 bg-gradient-to-br from-blue-50/50 to-teal-50/50 border-2 border-blue-200/50 
-                       rounded-2xl focus:outline-none focus:border-coral-300 text-blue-900 placeholder-blue-400/80 
-                       font-medium text-lg transition-all duration-300"
+              className="w-full pl-12 pr-4 py-3 bg-white border border-indigo-300 rounded-full 
+                       text-indigo-900 placeholder-indigo-400 focus:outline-none focus:ring-2 
+                       focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 ease-in-out
+                       focus-visible:outline-offset-2"
             />
           </div>
           <button
             onClick={() => addTag(tagInput)}
             disabled={!tagInput.trim()}
             className="bg-gradient-to-r from-teal-400 to-cyan-500 hover:from-teal-500 hover:to-cyan-600 
-                     disabled:from-gray-300 disabled:to-gray-400 px-8 py-4 rounded-2xl text-lg font-bold 
-                     text-white shadow-xl hover:shadow-teal-500/30 transform hover:-translate-y-1 
-                     transition-all duration-300 disabled:transform-none disabled:hover:shadow-none"
+                     disabled:from-gray-300 disabled:to-gray-400 px-6 py-3 rounded-full text-sm font-bold 
+                     text-white shadow-lg hover:shadow-xl transform hover:scale-105
+                     transition-all duration-200 ease-in-out disabled:transform-none disabled:hover:shadow-none"
           >
             Add
           </button>
         </div>
 
-        {/* Modern Active Filter Tags */}
+        {/* Active Filter Tags with indigo styling */}
         {filterTags.length > 0 && (
           <div className="flex flex-wrap gap-3">
             {filterTags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-br from-coral-100 to-pink-100 
-                         text-coral-700 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transform 
-                         hover:scale-105 transition-all duration-200"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-full 
+                         font-medium text-sm shadow-lg hover:bg-indigo-700 transform hover:scale-105
+                         transition-all duration-200 ease-in-out"
               >
                 #{tag}
                 <button
                   onClick={() => removeTag(tag)}
-                  className="hover:bg-coral-200 rounded-xl p-1 transition-colors"
+                  className="hover:bg-indigo-800 rounded-full p-1 transition-colors duration-200"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3 w-3" />
                 </button>
               </span>
             ))}

@@ -1,0 +1,36 @@
+I want to refine the layout and spacing on the Memories page to achieve a cleaner, modern, and more visually balanced design. Please apply the following Tailwind CSS improvements and component-level tweaks:
+	1.	Container & Grid Layout:
+	•	Use max-w-8xl, px-6 md:px-12, and mx-auto for the main container.
+	•	Implement a 12-column grid with grid grid-cols-12 gap-x-10 gap-y-8.
+	2.	Sidebar:
+	•	Sidebar spans 3 columns on smaller screens and 4 on large (col-span-3 lg:col-span-4).
+	•	Add vertical spacing with space-y-8.
+	•	Style sidebar cards with bg-white bg-opacity-90 rounded-xl shadow-lg p-6 and smooth hover:shadow-2xl effects.
+	•	Use text-lg font-semibold text-indigo-700 for sidebar headings.
+	3.	Post Feed Area:
+	•	Main feed spans col-span-9 lg:col-span-8 with vertical spacing space-y-10.
+	•	Post cards styled as bg-white bg-opacity-95 rounded-2xl shadow-md border border-gray-100 p-6 md:p-8.
+	•	Add subtle hover scale and shadow with hover:scale-[1.02] hover:shadow-xl.
+	•	Post header uses flex items-center space-x-4 rounded-t-xl border-b border-gray-200 pb-3.
+	4.	Post Composer:
+	•	Apply coral-pink gradient background bg-gradient-to-r from-coral-400 to-pink-500.
+	•	Use rounded-3xl p-6 md:p-8 text-white placeholder-white placeholder-opacity-70.
+	•	Buttons styled with gradient teal-cyan backgrounds, rounded full, shadow, and hover scale effects.
+	5.	Tag Filter Section:
+	•	Background gradient from indigo-200 to blue-100 with rounded-lg p-4 md:p-6 shadow-inner space-x-3.
+	•	Input styled with rounded full borders, focus ring, and indigo text colors.
+	•	Tag chips with indigo background, white text, rounded full, font medium, and hover effects.
+	6.	Events Board Sidebar:
+	•	White translucent background, rounded corners, shadow, padding, and vertical spacing.
+	•	Event cards with subtle border and hover background color changes.
+	•	Event type badges with pink background and text, rounded full and small font size.
+	7.	Additional Visual Tweaks:
+	•	Add backdrop-blur-md on main content container.
+	•	Use softer text colors like text-slate-700.
+	•	Add consistent vertical line height with leading-relaxed or leading-loose.
+	•	Implement accessible focus outlines with focus-visible:outline-offset-2.
+	•	Smooth transitions with ease-in-out and duration-200.
+
+Please implement these CSS and component updates to enhance the Memories page UI. Let me know if you want me to prioritize which components to update first or if you want a full code update with all these changes applied.
+
+⸻

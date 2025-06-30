@@ -60,10 +60,10 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
   };
 
   return (
-    <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl border-2 border-blue-100/50 hover:shadow-2xl hover:shadow-blue-200/20 transition-all duration-300 transform hover:-translate-y-1">
-      <div className="p-6 lg:p-8 space-y-6">
+    <div className="bg-white bg-opacity-95 rounded-2xl shadow-md border border-gray-100 p-6 md:p-8 hover:scale-[1.02] hover:shadow-xl transition-all duration-200 ease-in-out focus-visible:outline-offset-2">
+      <div className="space-y-6 leading-relaxed">
         {/* Post Header - Enhanced Author Display */}
-        <div className="flex justify-between items-start mb-4">
+        <div className="flex items-center space-x-4 rounded-t-xl border-b border-gray-200 pb-3 mb-4">
           <div className="flex items-center gap-3">
             {/* Avatar with Gradient Fallback */}
             <div className="relative">
