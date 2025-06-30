@@ -1,0 +1,51 @@
+We’ve made strong progress fixing TypeScript errors across all layers, but 47 remain. Continuing from the current stable baseline, please:
+	1.	TypeScript Error Resolution (All Layers)
+	•	Thoroughly analyze and fix remaining TypeScript errors in:
+	•	Frontend React components (types, props, hooks)
+	•	Backend routes, API logic, and service layers
+	•	Database schema typings and storage interface methods
+	•	Middleware and integration code
+	•	Ensure all type imports and exports are consistent and correctly resolved
+	•	Address any namespace or module declaration issues (e.g., Google Maps types)
+	•	Maintain backward compatibility and avoid regressions
+	2.	User Onboarding Features & Auth Improvements
+	•	Complete implementation of any pending onboarding flows or profile enhancements
+	•	Finalize authentication context improvements (e.g., logout method)
+	•	Validate and fix any auth-related TypeScript and runtime issues
+	3.	Google Maps Integration Refinements
+	•	Confirm all Google Maps typings are fully integrated with no TS warnings
+	•	Assist frontend components with any lingering type or usage errors related to location inputs
+	4.	Full-Stack Consistency & Testing
+	•	Update or add test cases (unit, integration) related to the fixed modules
+	•	Verify frontend/backend contract consistency (API typings, interfaces)
+	•	Document any critical fixes, patterns, or conventions used for TypeScript stability
+	5.	Deployment Readiness & Documentation
+	•	Update deployment or configuration documentation to reflect TypeScript fixes
+	•	Create or update a checklist summarizing the remaining steps before release readiness
+	•	Prepare a detailed report summarizing the fixes and any identified risks or blockers
+	6.	Communication & Coordination
+	•	If blockers or ambiguous type issues arise, flag them clearly for human review
+	•	Suggest actionable next steps or code refactoring to improve maintainability
+
+⸻
+
+Files and Areas to Focus:
+	•	server/storage.ts (including restored and new methods)
+	•	shared/schema.ts (database types and migrations)
+	•	server/routes.ts (backend API logic)
+	•	Frontend React components in client/src/components and pages in client/src/pages
+	•	Authentication context and hooks (e.g., client/src/hooks/useAuth.ts)
+	•	Google Maps typings and integrations (client/src/types/google-maps.d.ts, client/src/components/maps/GoogleMapsAutocomplete.tsx)
+
+⸻
+
+Testing & Validation:
+	•	Ensure all fixes pass existing test suites (Jest, Cypress, Playwright)
+	•	Create or extend unit tests for any new or significantly modified code
+	•	Run end-to-end tests simulating core user flows involving onboarding, post creation, and location selection
+
+⸻
+
+Please produce concise commit-friendly code changes with clear comments explaining TypeScript fixes and improvements. Provide a summary of changes after completion, including any remaining issues.
+
+⸻

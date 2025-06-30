@@ -1256,7 +1256,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: user.id,
         content: content || '',
         visibility,
-        status,
         eventId: event_id ? parseInt(event_id) : undefined
       });
 
@@ -2004,7 +2003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         startedDancingYear: req.body.startedDancingYear,
         isOnboardingComplete: false,
         formStatus: 1,
-        displayName: user.name || user.username, // Set display name
+        name: user.name || user.username // Update name field instead of displayName
       });
 
       // Handle role assignment using the enhanced role system
@@ -2587,9 +2586,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const message = await storage.createChatMessage({
-        roomSlug,
-        userId: user.id,
-        content: content.trim()
+        chatRoomSlug: roomSlug,
+        userSlug: user.username || `user_${user.id}`,
+        messageType: 'text',
+        message: content.trim()
       });
 
       console.log('💬 Chat message created:', message);

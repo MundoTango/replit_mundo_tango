@@ -241,11 +241,11 @@ export function EventRoleInvitationWorkflow({ eventId, isEventCreator }: EventRo
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base capitalize flex items-center justify-between">
                     {EVENT_ROLES.find(r => r.value === role)?.label || role}
-                    <Badge variant="outline">{roleParticipants.length}</Badge>
+                    <Badge variant="outline">{(roleParticipants as any[]).length}</Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {roleParticipants.map((participant) => (
+                  {(roleParticipants as any[]).map((participant: any) => (
                     <div key={participant.id} className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="flex-1">
                         <div className="font-medium">

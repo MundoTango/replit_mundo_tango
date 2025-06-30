@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GoogleMapsAutocomplete } from '@/components/maps/GoogleMapsAutocomplete';
+import GoogleMapsAutocomplete from '@/components/maps/GoogleMapsAutocomplete';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -55,10 +55,7 @@ export default function ProfileLocationEditor({ user, onUpdate, onCancel }: Prof
 
   const updateProfileMutation = useMutation({
     mutationFn: (data: ProfileFormData) =>
-      apiRequest(`/api/user/profile`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      }),
+      apiRequest(`/api/user/profile`, 'PUT', data),
     onSuccess: () => {
       toast({
         title: 'Profile Updated',

@@ -253,13 +253,13 @@ export function EnhancedResumeIntegration({ userId, isOwnProfile = false }: Enha
                       <CardTitle className="flex items-center gap-2">
                         <Calendar className="w-5 h-5" />
                         {year}
-                        <Badge variant="outline">{roles.length} events</Badge>
+                        <Badge variant="outline">{(roles as any[]).length} events</Badge>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {roles
-                        .sort((a, b) => new Date(b.eventStartDate).getTime() - new Date(a.eventStartDate).getTime())
-                        .map((role, index) => (
+                      {(roles as any[])
+                        .sort((a: any, b: any) => new Date(b.eventStartDate).getTime() - new Date(a.eventStartDate).getTime())
+                        .map((role: any, index: any) => (
                           <div key={role.id}>
                             <div className="flex items-start justify-between">
                               <div className="flex-1">

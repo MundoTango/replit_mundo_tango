@@ -3,12 +3,17 @@ declare namespace google {
   namespace maps {
     class Map {
       constructor(mapDiv: Element, opts?: MapOptions);
+      setCenter(latlng: LatLng | LatLngLiteral): void;
+      setZoom(zoom: number): void;
+      addListener(eventName: string, handler: (event?: any) => void): void;
     }
     
     class Marker {
       constructor(opts?: MarkerOptions);
       setMap(map: Map | null): void;
-      setPosition(latlng: LatLng): void;
+      setPosition(latlng: LatLng | LatLngLiteral): void;
+      getPosition(): LatLng | undefined;
+      addListener(eventName: string, handler: () => void): void;
     }
     
     class LatLng {
@@ -17,11 +22,35 @@ declare namespace google {
       lng(): number;
     }
     
+    interface LatLngLiteral {
+      lat: number;
+      lng: number;
+    }
+    
     class InfoWindow {
       constructor(opts?: InfoWindowOptions);
       open(map: Map, anchor?: Marker): void;
       close(): void;
       setContent(content: string): void;
+    }
+    
+    class Geocoder {
+      geocode(request: geocoding.GeocoderRequest, callback: (results: geocoding.GeocoderResult[], status: geocoding.GeocoderStatus) => void): void;
+    }
+    
+    interface MapMouseEvent {
+      latLng: LatLng;
+    }
+    
+    enum MapTypeId {
+      ROADMAP = 'roadmap',
+      SATELLITE = 'satellite',
+      HYBRID = 'hybrid',
+      TERRAIN = 'terrain'
+    }
+    
+    namespace event {
+      function addListener(instance: any, eventName: string, handler: Function): void;
     }
     
     enum ControlPosition {
