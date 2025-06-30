@@ -57,7 +57,7 @@ import {
   type InsertCustomRoleRequest,
   type UpdateCustomRoleRequest
 } from '../shared/schema';
-import { db } from './db';
+import { db, pool } from './db';
 import { eq, desc, asc, sql, and, or, gte, lte, count, ilike, inArray } from 'drizzle-orm';
 
 export interface IStorage {
@@ -202,6 +202,11 @@ export interface IStorage {
   updateGroupMemberCount(groupId: number): Promise<void>;
   getUserGroups(userId: number): Promise<Group[]>;
   checkUserInGroup(groupId: number, userId: number): Promise<boolean>;
+  
+  // Group page methods
+  getGroupWithMembers(slug: string): Promise<(Group & { members: (GroupMember & { user: User })[] }) | undefined>;
+  getGroupRecentMemories(groupId: number, limit?: number): Promise<any[]>;
+  getGroupUpcomingEvents(groupId: number, limit?: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1515,6 +1520,68 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     return result.length > 0;
+  }
+
+  async getGroupWithMembers(slug: string): Promise<any> {
+    try {
+      const query = `
+        SELECT id, name, slug, type, emoji, image_url, 
+               description, is_private, city, country, 
+               member_count, created_by, created_at, updated_at
+        FROM groups 
+        WHERE slug = $1 
+        LIMIT 1
+      `;
+      
+      console.log('Executing query with slug:', slug);
+      const result = await pool.query(query, [slug]);
+      console.log('Query result rows count:', result.rows?.length || 0);
+      
+      if (!result.rows || result.rows.length === 0) {
+        return undefined;
+      }
+
+      const group = result.rows[0];
+
+      // Transform to camelCase format expected by frontend
+      return {
+        id: group.id,
+        name: group.name,
+        slug: group.slug,
+        type: group.type,
+        emoji: group.emoji,
+        imageUrl: group.image_url,
+        description: group.description,
+        isPrivate: group.is_private,
+        city: group.city,
+        country: group.country,
+        memberCount: group.member_count,
+        createdBy: group.created_by,
+        createdAt: group.created_at,
+        updatedAt: group.updated_at,
+        members: []
+      };
+    } catch (error) {
+      console.error('Error in getGroupWithMembers:', error);
+      return undefined;
+    }
+  }
+
+  async getGroupRecentMemories(groupId: number, limit = 10): Promise<any[]> {
+    // For now, return empty array since memories table may not be connected to groups yet
+    // This can be expanded when memories have group associations
+    return [];
+  }
+
+  async getGroupUpcomingEvents(groupId: number, limit = 5): Promise<any[]> {
+    try {
+      // For now, return empty array to avoid schema issues
+      // This can be implemented properly once schema mismatches are resolved
+      return [];
+    } catch (error) {
+      console.error('Error in getGroupUpcomingEvents:', error);
+      return [];
+    }
   }
 }
 

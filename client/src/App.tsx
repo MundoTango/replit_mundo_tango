@@ -21,6 +21,7 @@ import OrganizerDashboard from "@/pages/organizer";
 import TeacherDashboard from "@/pages/teacher";
 import Friends from "@/pages/friends";
 import Groups from "@/pages/groups";
+import GroupPage from "@/pages/group";
 import Invitations from "@/pages/invitations";
 import ResumePage from "@/pages/ResumePage";
 import PublicResumePage from "@/pages/PublicResumePage";
@@ -86,6 +87,7 @@ function Router() {
       <Route path="/teacher" component={TeacherDashboard} />
       <Route path="/friends" component={Friends} />
       <Route path="/groups" component={Groups} />
+      <Route path="/groups/:slug" component={GroupPage} />
       <Route path="/profile" component={Profile} />
       <Route path="/events" component={Events} />
       <Route path="/invitations" component={Invitations} />

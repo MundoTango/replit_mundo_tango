@@ -4917,6 +4917,172 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: 'User groups retrieved successfully',
         data: groups
       });
+    } catch (error) {
+      console.error('Error fetching user groups:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        data: null
+      });
+    }
+  });
+
+  // Get group details with members for group page
+  app.get('/api/groups/:slug', async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const groupWithMembers = await storage.getGroupWithMembers(slug);
+      
+      if (!groupWithMembers) {
+        return res.status(404).json({
+          success: false,
+          message: 'Group not found',
+          data: null
+        });
+      }
+
+      // Get additional data for group page
+      const [recentMemories, upcomingEvents] = await Promise.all([
+        storage.getGroupRecentMemories(groupWithMembers.id, 6),
+        storage.getGroupUpcomingEvents(groupWithMembers.id, 4)
+      ]);
+
+      // Check if current user is a member (if authenticated)
+      let currentUserMembership = null;
+      if (req.user) {
+        const isMember = await storage.checkUserInGroup(groupWithMembers.id, req.user.id);
+        if (isMember) {
+          const memberData = groupWithMembers.members.find(m => m.userId === req.user!.id);
+          currentUserMembership = memberData || null;
+        }
+      }
+
+      res.json({
+        success: true,
+        data: {
+          group: groupWithMembers,
+          recentMemories,
+          upcomingEvents,
+          currentUserMembership,
+          stats: {
+            totalMembers: groupWithMembers.members.length,
+            onlineMembers: 0, // Could be implemented with real-time presence
+            recentlyJoined: groupWithMembers.members.filter(m => {
+              const joinedDate = new Date(m.joinedAt);
+              const weekAgo = new Date();
+              weekAgo.setDate(weekAgo.getDate() - 7);
+              return joinedDate > weekAgo;
+            }).length
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching group details:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        data: null
+      });
+    }
+  });
+
+  // Auto-assign user to city group based on profile location
+  app.post('/api/groups/auto-assign', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      
+      // Get user's city from profile
+      const user = await storage.getUser(userId);
+      if (!user || !user.city) {
+        return res.status(400).json({
+          success: false,
+          message: 'User location not found in profile',
+          data: null
+        });
+      }
+
+      // Use city group automation to join
+      const { 
+        slugify, 
+        generateCityGroupName, 
+        generateCityGroupDescription, 
+        isValidCityName, 
+        logGroupAutomation 
+      } = await import('../utils/cityGroupAutomation.js');
+
+      if (!isValidCityName(user.city)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid city name in user profile',
+          data: null
+        });
+      }
+
+      const groupSlug = slugify(user.city);
+      let cityGroup = await storage.getGroupBySlug(groupSlug);
+
+      // Create group if it doesn't exist
+      if (!cityGroup) {
+        const groupName = generateCityGroupName(user.city, user.country);
+        const groupDescription = generateCityGroupDescription(user.city, user.country);
+
+        cityGroup = await storage.createGroup({
+          name: groupName,
+          slug: groupSlug,
+          type: 'city',
+          emoji: '🏙️',
+          description: groupDescription,
+          city: user.city,
+          country: user.country || null,
+          isPrivate: false,
+          memberCount: 0,
+          createdBy: userId
+        });
+
+        logGroupAutomation('group_created', {
+          groupId: cityGroup.id,
+          city: user.city,
+          country: user.country,
+          createdBy: userId
+        });
+      }
+
+      // Check if user is already a member
+      const isAlreadyMember = await storage.checkUserInGroup(cityGroup.id, userId);
+      
+      if (isAlreadyMember) {
+        return res.json({
+          success: true,
+          message: `Already a member of ${cityGroup.name}`,
+          data: {
+            group: cityGroup,
+            action: 'already_member',
+            isNewGroup: false
+          }
+        });
+      }
+
+      // Add user to group
+      const membership = await storage.addUserToGroup(cityGroup.id, userId, 'member');
+      await storage.updateGroupMemberCount(cityGroup.id);
+
+      logGroupAutomation('user_auto_assigned', {
+        groupId: cityGroup.id,
+        userId: userId,
+        city: user.city,
+        country: user.country
+      });
+
+      res.json({
+        success: true,
+        message: `Successfully joined ${cityGroup.name}`,
+        data: {
+          group: cityGroup,
+          membership,
+          action: 'joined',
+          isNewGroup: !cityGroup.id
+        }
+      });
 
     } catch (error) {
       console.error('Error getting user groups:', error);
