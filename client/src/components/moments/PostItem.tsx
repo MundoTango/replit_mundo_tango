@@ -67,15 +67,15 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
           <div className="flex items-center gap-3">
             {/* Avatar with Gradient Fallback */}
             <div className="relative">
-              {post.user.profileImage ? (
+              {post.user?.profileImage ? (
                 <img
                   src={post.user.profileImage}
-                  alt={post.user.name}
+                  alt={post.user.name || 'User'}
                   className="w-12 h-12 object-cover rounded-full ring-2 ring-gray-100"
                 />
               ) : (
                 <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                  {getAvatarFallback(post.user.name)}
+                  {getAvatarFallback(post.user?.name || 'Anonymous')}
                 </div>
               )}
             </div>
@@ -84,9 +84,9 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h4 className="font-semibold text-lg text-gray-900 hover:text-[#8E142E] cursor-pointer transition-colors">
-                  {post.user.name}
+                  {post.user?.name || 'Anonymous'}
                 </h4>
-                <span className="text-gray-500 text-base">@{post.user.username}</span>
+                <span className="text-gray-500 text-base">@{post.user?.username || 'anonymous'}</span>
               </div>
               
               <div className="flex items-center gap-2 text-base text-gray-500">
@@ -105,7 +105,7 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
               </div>
 
               {/* Role Badges */}
-              {post.user.tangoRoles && post.user.tangoRoles.length > 0 && (
+              {post.user?.tangoRoles && post.user.tangoRoles.length > 0 && (
                 <div className="flex items-center gap-1 mt-2">
                   {post.user.tangoRoles.slice(0, 3).map((role, index) => (
                     <span

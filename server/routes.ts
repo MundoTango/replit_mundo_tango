@@ -2027,23 +2027,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Replit Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUserByReplitId(userId);
-      console.log("Auth user data:", {
-        id: user?.id,
-        formStatus: user?.formStatus,
-        isOnboardingComplete: user?.isOnboardingComplete,
-        codeOfConductAccepted: user?.codeOfConductAccepted
-      });
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Note: /api/auth/user endpoint is defined earlier in the file (line 68) without isAuthenticated middleware
 
   // Onboarding endpoint with role assignment
   app.post('/api/onboarding', isAuthenticated, async (req: any, res) => {
