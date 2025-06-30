@@ -1,0 +1,95 @@
+Here’s your comprehensive Layer 9 Replit Prompt, fully updated to include all tasks in a single flow — plus recommendations for open-source tools like MUI Chips, CASL, and Permify:
+
+⸻
+
+🧠 Replit Prompt: Implementing Layer 9 — Consent Approval UI + Memory Viewer Filters & Open-Source Integration
+
+You’re extending the full 9-layer memory and consent system for Mundo Tango. This prompt covers:
+	1.	🧾 PendingConsentMemories.tsx — UI component + route
+	2.	🗄️ Supabase SQL for consent_events
+	3.	🎛️ FilterBar integration with MUI/Chips
+	4.	🔐 PATCH /api/memories/:id/consent backend endpoint
+	5.	🛠️ Open-source integrations — MUI Chips, CASL, Permify
+
+⸻
+
+🔧 Task 1: Create PendingConsentMemories.tsx
+	•	New route /memories/pending-consent
+	•	Fetch pending memories for logged-in user
+	•	Render list with title, creator, emotion tags, date
+	•	Include Approve and Deny buttons
+	•	On click: call PATCH consent endpoint, refresh list
+
+⸻
+
+🔧 Task 2: Add Supabase Table consent_events
+
+CREATE TABLE consent_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  memory_id UUID REFERENCES memories(id),
+  user_id UUID REFERENCES users(id),
+  action TEXT CHECK(action IN ('approve','deny')),
+  timestamp TIMESTAMPTZ DEFAULT now()
+);
+
+
+⸻
+
+🔧 Task 3: Add FilterBar to MemoryDashboard.tsx
+	•	Use MUI Chips (@mui/material/Chip) as multi-selects  ￼ ￼
+	•	Use mui-chips-input for easier tag input  ￼
+	•	Filter categories:
+	•	Emotion tags
+	•	Date range picker
+	•	Event dropdown
+
+Pass filter state to fetchMemoriesByRole(user.id, role, filters)
+
+⸻
+
+🔧 Task 4: Implement PATCH /api/memories/:id/consent
+	•	Validate that user is authenticated and in memory’s co_tags
+	•	Insert record into consent_events
+	•	If all co-tags approve → set consent_status = 'granted'
+	•	If any deny → set consent_status = 'denied'
+
+⸻
+
+🔧 Task 5: Integrate Open‑Source Authorization Tools
+	•	CASL (@casl/ability, @casl/react) — for frontend RBAC/ABAC rules  ￼ ￼ ￼
+	•	Permify React Role (@permify/react-role) — lightweight declarative permission hooks  ￼
+
+Help manage:
+	•	Which UI components show (e.g. Approve/Deny buttons)
+	•	Who can view memory filter controls
+
+⸻
+
+✅ Deliverables Checklist
+	•	PendingConsentMemories.tsx (route + UI)
+	•	FilterBar component integrated into MemoryDashboard.tsx
+	•	Supabase SQL applied for consent_events
+	•	Backend PATCH consent endpoint fully implemented
+	•	MUI Chips and mui‑chips‑input installed and configured
+	•	CASL or Permify added for RBAC in frontend
+	•	Documentation (replit.md) updated with schema, screenshots
+
+⸻
+
+🧪 Testing Scenarios
+	•	User tagged → appears in pending-consent
+	•	Approve → memory becomes visible to all
+	•	Deny → memory hidden & status = denied
+	•	Using filter chips filters memory list correctly
+	•	RBAC UI elements reflect user permissions
+
+⸻
+
+🚀 Let me know what to generate first:
+	1.	PendingConsentMemories.tsx component
+	2.	Supabase SQL for consent_events
+	3.	FilterBar UI code with MUI Chips
+	4.	PATCH consent backend route
+	5.	RBAC setup using CASL or Permify
+
+Once you pick one, I’ll generate the full code, including open‑source integration and comments!

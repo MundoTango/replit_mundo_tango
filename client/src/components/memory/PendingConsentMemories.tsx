@@ -5,10 +5,22 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Clock, User, MapPin, Heart, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Clock, User, MapPin, Heart, X, CheckCircle, AlertCircle, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/useAuth';
+import { 
+  Chip, 
+  Box, 
+  Typography, 
+  Avatar as MuiAvatar, 
+  Divider, 
+  Tooltip,
+  Paper,
+  Grid
+} from '@mui/material';
+import { Can } from '@casl/react';
+import { useAbility, useCanViewPendingRequests } from '../../lib/casl/abilities';
 
 interface PendingMemory {
   id: string;
@@ -41,11 +53,13 @@ export default function PendingConsentMemories() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [processingMemories, setProcessingMemories] = useState<Set<string>>(new Set());
+  const ability = useAbility();
+  const canViewPending = useCanViewPendingRequests();
 
   // Fetch pending consent memories
   const { data: pendingMemories = [], isLoading, error } = useQuery({
     queryKey: ['/api/memories/pending-consent'],
-    enabled: !!user?.id,
+    enabled: !!user?.id && canViewPending,
   });
 
   // Consent action mutation
@@ -144,17 +158,36 @@ export default function PendingConsentMemories() {
     );
   }
 
+  // Check permissions first
+  if (!canViewPending) {
+    return (
+      <div className="container mx-auto p-6">
+        <Paper elevation={2} sx={{ p: 4, textAlign: 'center', backgroundColor: '#fff7ed' }}>
+          <Shield className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+          <Typography variant="h6" color="textPrimary" gutterBottom>
+            Permission Required
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
+            You don't have permission to view pending consent memories. 
+            This feature is available to users who can approve memory consent requests.
+          </Typography>
+        </Paper>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="container mx-auto p-6">
-        <Card className="border-red-200">
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2 text-red-600">
-              <AlertCircle className="h-5 w-5" />
-              <span>Failed to load pending memories. Please try again.</span>
-            </div>
-          </CardContent>
-        </Card>
+        <Paper elevation={2} sx={{ p: 4, textAlign: 'center', backgroundColor: '#fef2f2' }}>
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <Typography variant="h6" color="error" gutterBottom>
+            Failed to Load Pending Memories
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
+            There was an error loading pending consent memories. Please refresh the page or try again later.
+          </Typography>
+        </Paper>
       </div>
     );
   }
@@ -169,117 +202,252 @@ export default function PendingConsentMemories() {
       </div>
 
       {pendingMemories.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-8">
-              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">All Caught Up!</h3>
-              <p className="text-gray-600">
-                You don't have any memories waiting for your consent.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <Paper elevation={3} sx={{ 
+          p: 6, 
+          textAlign: 'center',
+          background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+          border: '1px solid #b3e5fc'
+        }}>
+          <Box sx={{ mb: 3 }}>
+            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+          </Box>
+          <Typography variant="h4" gutterBottom sx={{ 
+            fontWeight: 600, 
+            color: '#1e293b',
+            mb: 2
+          }}>
+            All Caught Up! 🎉
+          </Typography>
+          <Typography variant="body1" color="textSecondary" sx={{ 
+            maxWidth: '500px', 
+            mx: 'auto',
+            lineHeight: 1.6
+          }}>
+            You don't have any memories waiting for your consent approval. 
+            When someone tags you in a memory, it will appear here for your review.
+          </Typography>
+          <Box sx={{ mt: 4 }}>
+            <Chip 
+              label="No Pending Requests" 
+              color="success" 
+              variant="outlined"
+              sx={{ fontSize: '0.9rem', py: 2 }}
+            />
+          </Box>
+        </Paper>
       ) : (
         <div className="grid gap-6">
           {pendingMemories.map((memory: PendingMemory) => {
             const isProcessing = processingMemories.has(memory.id);
             
             return (
-              <Card key={memory.id} className="border-l-4 border-l-amber-400">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={memory.creator.profileImage} />
-                        <AvatarFallback>
-                          {memory.creator.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle className="text-lg">{memory.title}</CardTitle>
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
-                          <User className="h-4 w-4" />
-                          <span>by {memory.creator.name}</span>
-                          <span>•</span>
-                          <Clock className="h-4 w-4" />
-                          <span>{new Date(memory.createdAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                      Awaiting Consent
-                    </Badge>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
+              <Paper 
+                key={memory.id} 
+                elevation={3}
+                sx={{ 
+                  overflow: 'hidden',
+                  borderLeft: '6px solid #f59e0b',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    elevation: 8,
+                    transform: 'translateY(-2px)'
+                  }
+                }}
+              >
+                {/* Header with gradient */}
+                <Box sx={{ 
+                  background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
+                  p: 3,
+                  borderBottom: '1px solid #e5e7eb'
+                }}>
+                  <Grid container spacing={2} alignItems="center">
+                    <Grid item>
+                      <MuiAvatar 
+                        src={memory.creator.profileImage}
+                        sx={{ width: 56, height: 56 }}
+                      >
+                        {memory.creator.name.split(' ').map(n => n[0]).join('')}
+                      </MuiAvatar>
+                    </Grid>
+                    <Grid item xs>
+                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                        {memory.title}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                        <Chip 
+                          icon={<User size={14} />}
+                          label={`by ${memory.creator.name}`}
+                          size="small"
+                          variant="outlined"
+                        />
+                        <Chip 
+                          icon={<Clock size={14} />}
+                          label={new Date(memory.createdAt).toLocaleDateString()}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </Box>
+                    </Grid>
+                    <Grid item>
+                      <Chip 
+                        label="Awaiting Consent"
+                        color="warning"
+                        variant="outlined"
+                        sx={{ 
+                          fontWeight: 500,
+                          backgroundColor: 'rgba(245, 158, 11, 0.1)'
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                {/* Content */}
+                <Box sx={{ p: 3 }}>
                   {/* Memory Preview */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-gray-700 line-clamp-3">{memory.previewText}</p>
-                  </div>
+                  <Paper 
+                    variant="outlined" 
+                    sx={{ 
+                      p: 3, 
+                      mb: 3, 
+                      backgroundColor: '#f8fafc',
+                      border: '1px solid #e2e8f0'
+                    }}
+                  >
+                    <Typography variant="body1" sx={{ 
+                      lineHeight: 1.6,
+                      color: '#374151'
+                    }}>
+                      {memory.previewText}
+                    </Typography>
+                  </Paper>
 
-                  {/* Metadata */}
-                  <div className="flex flex-wrap gap-2">
-                    {memory.emotionTags.map((emotion) => (
-                      <Badge key={emotion} className={getEmotionColor(emotion)}>
-                        {emotion}
-                      </Badge>
-                    ))}
-                    <Badge className={getTrustLevelColor(memory.trustLevel)}>
-                      {memory.trustLevel} trust
-                    </Badge>
-                  </div>
-
-                  {/* Event & Location */}
-                  {(memory.eventTitle || memory.location) && (
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      {memory.eventTitle && (
-                        <div className="flex items-center space-x-1">
-                          <Heart className="h-4 w-4" />
-                          <span>{memory.eventTitle}</span>
-                        </div>
-                      )}
-                      {memory.location && (
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="h-4 w-4" />
-                          <span>{memory.location}</span>
-                        </div>
-                      )}
-                    </div>
+                  {/* Emotion Tags */}
+                  {memory.emotionTags.length > 0 && (
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1, color: '#6b7280' }}>
+                        Emotion Tags:
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {memory.emotionTags.map((emotion) => (
+                          <Chip 
+                            key={emotion}
+                            label={emotion}
+                            size="small"
+                            sx={{
+                              backgroundColor: '#fce7f3',
+                              color: '#be185d',
+                              fontWeight: 500,
+                              '&:hover': {
+                                backgroundColor: '#fbcfe8'
+                              }
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    </Box>
                   )}
 
-                  <Separator />
+                  {/* Trust Level & Event Info */}
+                  <Box sx={{ mb: 3 }}>
+                    <Grid container spacing={2}>
+                      <Grid item>
+                        <Tooltip title={`This memory requires ${memory.trustLevel} level trust to view`}>
+                          <Chip
+                            label={`${memory.trustLevel} trust`}
+                            size="small"
+                            sx={{
+                              backgroundColor: getTrustLevelColor(memory.trustLevel).includes('gray') ? '#f3f4f6' : 
+                                getTrustLevelColor(memory.trustLevel).includes('blue') ? '#dbeafe' :
+                                getTrustLevelColor(memory.trustLevel).includes('purple') ? '#e9d5ff' : '#fef3c7',
+                              color: getTrustLevelColor(memory.trustLevel).includes('gray') ? '#374151' : 
+                                getTrustLevelColor(memory.trustLevel).includes('blue') ? '#1d4ed8' :
+                                getTrustLevelColor(memory.trustLevel).includes('purple') ? '#7c3aed' : '#92400e',
+                              fontWeight: 500
+                            }}
+                          />
+                        </Tooltip>
+                      </Grid>
+                      {memory.eventTitle && (
+                        <Grid item>
+                          <Chip
+                            icon={<Heart size={14} />}
+                            label={memory.eventTitle}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                          />
+                        </Grid>
+                      )}
+                      {memory.location && (
+                        <Grid item>
+                          <Chip
+                            icon={<MapPin size={14} />}
+                            label={memory.location}
+                            size="small"
+                            color="secondary"
+                            variant="outlined"
+                          />
+                        </Grid>
+                      )}
+                    </Grid>
+                  </Box>
+
+                  <Divider sx={{ my: 3 }} />
 
                   {/* Consent Actions */}
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-600">
-                      Do you consent to sharing this memory with other participants?
-                    </p>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleConsentAction(memory.id, 'deny')}
-                        disabled={isProcessing}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
-                      >
-                        <X className="h-4 w-4 mr-2" />
-                        Deny
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleConsentAction(memory.id, 'approve')}
-                        disabled={isProcessing}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Approve
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  <Paper 
+                    variant="outlined" 
+                    sx={{ 
+                      p: 3, 
+                      backgroundColor: '#fffbeb',
+                      border: '1px solid #fcd34d'
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ mb: 2, color: '#92400e', fontWeight: 500 }}>
+                      🤝 Consent Required: Do you approve sharing this memory with other participants?
+                    </Typography>
+                    <Can I="approve" a="ConsentRequest" this={memory}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                        <Can I="deny" a="ConsentRequest" this={memory}>
+                          <Button
+                            variant="outlined"
+                            size="medium"
+                            onClick={() => handleConsentAction(memory.id, 'deny')}
+                            disabled={isProcessing}
+                            sx={{
+                              color: '#dc2626',
+                              borderColor: '#fca5a5',
+                              '&:hover': {
+                                backgroundColor: '#fef2f2',
+                                borderColor: '#ef4444'
+                              }
+                            }}
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Deny Consent
+                          </Button>
+                        </Can>
+                        <Button
+                          variant="contained"
+                          size="medium"
+                          onClick={() => handleConsentAction(memory.id, 'approve')}
+                          disabled={isProcessing}
+                          sx={{
+                            backgroundColor: '#16a34a',
+                            '&:hover': {
+                              backgroundColor: '#15803d'
+                            }
+                          }}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Approve Consent
+                        </Button>
+                      </Box>
+                    </Can>
+                  </Paper>
+                </Box>
+              </Paper>
             );
           })}
         </div>
