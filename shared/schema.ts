@@ -99,6 +99,7 @@ export const userRoles = pgTable("user_roles", {
 export const posts = pgTable("posts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
+  eventId: integer("event_id").references(() => events.id), // Optional event association
   content: text("content").notNull(),
   richContent: jsonb("rich_content"), // Rich text editor content
   plainText: text("plain_text"), // Extracted plain text for search
@@ -157,6 +158,7 @@ export const events = pgTable("events", {
   eventType: varchar("event_type", { length: 50 }).default("milonga"), // practica, milonga, marathon, encuentro, festival, competition, workshop, clase, social
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date"),
+  date: text("date"), // Legacy date field for backward compatibility
   location: text("location"),
   venue: varchar("venue", { length: 255 }),
   address: text("address"),

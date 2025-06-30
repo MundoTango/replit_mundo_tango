@@ -2586,6 +2586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const message = await storage.createChatMessage({
+        slug: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         chatRoomSlug: roomSlug,
         userSlug: user.username || `user_${user.id}`,
         messageType: 'text',
@@ -2699,8 +2700,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             {
               id: event.id,
               title: event.title,
-              date: event.date.toISOString(),
-              location: event.location
+              date: event.date || event.startDate?.toISOString() || '',
+              location: event.location || ''
             },
             {
               id: organizer.id,
@@ -2805,7 +2806,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: event.id,
           title: event.title,
-          date: event.date.toISOString(),
+          date: event.date || event.startDate?.toISOString() || '',
           location: event.location
         },
         {

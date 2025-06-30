@@ -1,0 +1,66 @@
+Recent frontend features include enhanced post creation with rich text, mentions, media embeds, and Google Maps location integration. The backend needs a full audit, fix, and optimization to support these end-to-end.
+
+⸻
+
+Scope: Full-stack, 7-layer implementation & testing
+
+⸻
+
+1. Frontend/UI
+	•	Coordinate on API contract validation to ensure backend data models fully support frontend needs for posts, comments, events, and location data.
+	•	Provide any required mock data or schema descriptions to frontend team for integration tests.
+
+2. Backend/API
+	•	Audit, fix, and enhance all relevant API endpoints (/api/posts/enhanced, /api/comments, /api/notifications, /api/events, etc.).
+	•	Support enriched post data with location (detailed place info), mentions, hashtags, media embeds, and visibility controls.
+	•	Ensure strong input validation, error handling, and security checks (auth/authz).
+
+3. Middleware/Services
+	•	Add/refine logging, caching, rate limiting, and event processing middleware as needed for performance and security.
+	•	Integrate monitoring and alert pipelines.
+
+4. Database
+	•	Audit production schema vs shared/schema.ts and generate missing migration scripts:
+	•	Update posts table with: location (name, address, coords, place_id), mentions (text[]), visibility (varchar), rich_content (json/text), media_embeds (json), hashtags (text[]), is_edited (boolean).
+	•	Ensure new tables for comments, reactions, notifications, post_reports exist.
+	•	Backfill and normalize data as required.
+	•	Provide migration and rollback SQL scripts.
+	•	Optimize queries and create indexes for location filtering, mentions, hashtags, comments, and pagination.
+	•	Suggest caching/materialized views for frequent heavy queries.
+
+5. Security & Compliance
+	•	Review and implement comprehensive Row-Level Security policies on all relevant tables to enforce role-based access.
+	•	Create automated SQL tests to validate RLS compliance in CI/CD.
+	•	Ensure policies balance usability and data privacy.
+
+6. Testing & Validation (MANDATORY)
+	•	Develop unit, integration, and end-to-end tests covering backend logic, API endpoints, and database operations using tools like Supertest, pg-mem, or TestContainers.
+	•	Provide seed and fixture data sets to support testing.
+	•	Integrate automated RLS policy tests into CI/CD pipelines.
+	•	Document test plans and provide clear instructions for QA teams to validate.
+
+7. Documentation & Collaboration
+	•	Update documentation for:
+	•	Schema changes and migrations
+	•	API contracts and endpoint behaviors
+	•	RLS policies and security guidelines
+	•	Query optimization and indexing strategies
+	•	Testing setup and execution instructions
+	•	Deliver a summary report outlining:
+	•	Completed changes
+	•	Remaining blockers or dependencies
+	•	Coordination notes with frontend/middleware teams
+	•	Reference all updated files explicitly (e.g., shared/schema.ts, server/routes.ts, server/storage.ts, database/*.sql).
+	•	Provide written-out URLs to any open-source tools or libraries used.
+
+⸻
+
+Additional instructions:
+	•	Prioritize fixing remaining critical backend schema issues (e.g., eventId in posts, date in events).
+	•	Produce complete code, SQL migration scripts, test suites, and documentation with detailed comments.
+	•	After each fix, include explicit instructions on running existing and new tests to verify correctness and stability.
+	•	Maintain continuous coordination with frontend and middleware teams to ensure alignment.
+
+⸻
+
+Thank you — looking forward to a robust, secure, and fully supported Supabase backend foundation enabling the new Mundo Tango frontend features.

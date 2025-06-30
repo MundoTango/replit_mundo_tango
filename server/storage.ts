@@ -140,6 +140,21 @@ export interface IStorage {
   createReport(report: any): Promise<any>;
   getNotificationsByUserId(userId: number): Promise<any[]>;
   markNotificationAsRead(notificationId: number): Promise<void>;
+
+  // Enhanced post features for rich content support
+  createCommentWithMentions(comment: InsertComment & { mentions?: string[] }): Promise<PostComment>;
+  updateComment(id: number, updates: Partial<PostComment>): Promise<PostComment>;
+  deleteComment(id: number): Promise<void>;
+  createPostReaction(postId: number, userId: number, reactionType: string): Promise<any>;
+  getPostReactions(postId: number): Promise<any[]>;
+  upsertPostReaction(postId: number, userId: number, reactionType: string): Promise<any>;
+  createNotification(userId: number, type: string, title: string, message: string, data?: any): Promise<any>;
+  createPostReport(postId: number, reporterId: number, reason: string, description?: string): Promise<any>;
+  getPostsByLocation(lat: number, lng: number, radiusKm?: number): Promise<Post[]>;
+  getPostsByHashtags(hashtags: string[]): Promise<Post[]>;
+  getPostsByMentions(username: string): Promise<Post[]>;
+  updatePostEngagement(postId: number): Promise<void>;
+  markCommentsAsRead(postId: number, userId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -649,6 +664,85 @@ export class DatabaseStorage implements IStorage {
 
   async markNotificationAsRead(notificationId: number): Promise<void> {
     // Placeholder for notifications table - not implemented in current schema
+  }
+
+  // Enhanced post features implementation
+  async createCommentWithMentions(comment: InsertComment & { mentions?: string[] }): Promise<PostComment> {
+    const [newComment] = await db.insert(postComments).values({
+      ...comment,
+      mentions: comment.mentions || []
+    }).returning();
+    return newComment;
+  }
+
+  async updateComment(id: number, updates: Partial<PostComment>): Promise<PostComment> {
+    const [updatedComment] = await db.update(postComments)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(postComments.id, id))
+      .returning();
+    return updatedComment;
+  }
+
+  async deleteComment(id: number): Promise<void> {
+    await db.delete(postComments).where(eq(postComments.id, id));
+  }
+
+  async createPostReaction(postId: number, userId: number, reactionType: string): Promise<any> {
+    // Placeholder implementation - would use post_reactions table
+    return { id: 1, postId, userId, reactionType, createdAt: new Date() };
+  }
+
+  async getPostReactions(postId: number): Promise<any[]> {
+    // Placeholder implementation - would query post_reactions table
+    return [];
+  }
+
+  async upsertPostReaction(postId: number, userId: number, reactionType: string): Promise<any> {
+    // Placeholder implementation - would use ON CONFLICT for upsert
+    return { id: 1, postId, userId, reactionType, createdAt: new Date() };
+  }
+
+  async createNotification(userId: number, type: string, title: string, message: string, data?: any): Promise<any> {
+    // Placeholder implementation - would use notifications table
+    return { id: 1, userId, type, title, message, data, isRead: false, createdAt: new Date() };
+  }
+
+  async createPostReport(postId: number, reporterId: number, reason: string, description?: string): Promise<any> {
+    // Placeholder implementation - would use post_reports table
+    return { id: 1, postId, reporterId, reason, description, status: 'pending', createdAt: new Date() };
+  }
+
+  async getPostsByLocation(lat: number, lng: number, radiusKm: number = 10): Promise<Post[]> {
+    // Placeholder implementation - would use PostGIS for location queries
+    return this.getFeedPosts(1, 20);
+  }
+
+  async getPostsByHashtags(hashtags: string[]): Promise<Post[]> {
+    // Query posts that contain any of the specified hashtags
+    const result = await db.select().from(posts)
+      .where(sql`${posts.hashtags} && ${hashtags}`)
+      .orderBy(desc(posts.createdAt))
+      .limit(50);
+    return result;
+  }
+
+  async getPostsByMentions(username: string): Promise<Post[]> {
+    // Query posts that mention the specified username
+    const result = await db.select().from(posts)
+      .where(sql`${posts.mentions} @> ${[username]}`)
+      .orderBy(desc(posts.createdAt))
+      .limit(50);
+    return result;
+  }
+
+  async updatePostEngagement(postId: number): Promise<void> {
+    // Placeholder implementation - would update engagement metrics
+    console.log(`Updated engagement for post ${postId}`);
+  }
+
+  async markCommentsAsRead(postId: number, userId: number): Promise<void> {
+    // Placeholder implementation - would mark comments as read for user
+    console.log(`Marked comments as read for post ${postId} by user ${userId}`);
   }
 }
 

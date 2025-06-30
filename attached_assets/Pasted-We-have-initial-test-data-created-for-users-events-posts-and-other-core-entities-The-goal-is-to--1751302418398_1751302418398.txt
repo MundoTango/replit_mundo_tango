@@ -1,0 +1,80 @@
+We have initial test data created for users, events, posts, and other core entities. The goal is to systematically verify data presence and completeness across every relevant page, workflow, and feature from a customer perspective, then fill any gaps discovered.
+
+⸻
+
+Scope: Full-stack walkthrough and data enrichment
+
+⸻
+
+Objectives:
+	•	Simulate end-to-end user/customer workflows across the platform (registration, onboarding, profile setup, browsing events, posting, commenting, RSVPs, messaging, etc.)
+	•	Verify test data coverage and completeness for all user profiles — ensure all profile fields and metadata are realistically filled out
+	•	Confirm every feature and page displays relevant test data:
+	•	Events page (filters, RSVP states)
+	•	Memories/posts page (rich content, mentions, media)
+	•	User profiles (photos, bios, roles, locations)
+	•	Notifications and invitations
+	•	Search and discovery features
+	•	Identify missing or incomplete data and automatically create or update records to ensure robust test coverage
+	•	Cross-check relational data integrity (e.g., posts linked to existing users/events, RSVPs linked properly, follower/followed relationships consistent)
+	•	Validate form submission flows with test data (e.g., create/edit posts, RSVP to events, update profiles) to confirm backend integration and UI reflection
+	•	Run basic automated tests or assertions to flag data inconsistencies or UI errors during the walkthrough
+	•	Generate a detailed report/log of:
+	•	Data coverage gaps identified
+	•	Records created or updated
+	•	UI or backend errors encountered
+	•	Suggestions for additional test data to enhance coverage
+
+⸻
+
+Instructions:
+	1.	User Journey Simulation:
+	•	Start as a new user and complete registration and onboarding fully.
+	•	Fill out all profile fields with realistic data including photos, location (using Google Maps), roles, and preferences.
+	•	Navigate through each main page: Events, Memories, Profile, Notifications, Search, etc.
+	•	Interact with existing test data: RSVP to events, comment on posts, like/react, follow/unfollow users and cities.
+	•	Create new posts, events, or messages where applicable to verify data creation flows.
+	2.	Data Verification:
+	•	On each page and feature, verify that data displayed matches test data records and appears complete (e.g., no missing images or empty fields).
+	•	Validate that relational data references are correct (e.g., event organizer info matches a real user, posts have valid mentions).
+	•	Check filtering and search functionalities to ensure test data appears under correct conditions.
+	3.	Data Enrichment:
+	•	Where missing or incomplete data is found, generate and insert realistic test records to fill gaps, maintaining consistent formatting and diversity.
+	•	Backfill missing profile details or event metadata as needed.
+	•	Confirm newly added test data immediately reflects in the UI and backend API responses.
+	4.	Error Detection & Logging:
+	•	Capture and log any UI errors, failed API calls, or validation issues encountered during simulation.
+	•	Provide actionable notes on fixes or additional test data required.
+	5.	Reporting:
+	•	Compile a comprehensive test data status report detailing coverage completeness, data gaps filled, and any errors detected.
+	•	Include recommendations for ongoing test data maintenance and automation improvements.
+
+⸻
+
+Deliverables:
+	•	Fully completed user profiles with diverse realistic data for all test users
+	•	Verified and enriched test data sets across events, posts, comments, RSVPs, notifications, and relationships
+	•	Comprehensive test data validation report with detailed findings and improvement suggestions
+	•	Updated seed scripts or API calls used to fill data gaps during walkthroughs
+	•	Logs of UI and backend issues identified during testing
+
+⸻
+
+Files & Modules to Reference:
+	•	User registration, onboarding, and profile components/pages (client/src/pages/onboarding.tsx, client/src/components/profile)
+	•	Events page and event creation components (client/src/pages/events.tsx, client/src/components/events)
+	•	Posts and Memories pages (client/src/pages/moments.tsx, client/src/components/moments)
+	•	API routes and storage layer (server/routes.ts, server/storage.ts)
+	•	Seed data scripts or existing test data sources
+
+⸻
+
+Tools & Methods:
+	•	Use automated browser simulation or scripted API calls to mimic user interactions
+	•	Query backend APIs to cross-validate data integrity and UI representation
+	•	Utilize logging and error capture to detect issues
+	•	Maintain idempotency to avoid duplicate test data creation
+
+⸻
+
+Thank you! Please begin the full test data audit and enrichment cycle, prioritizing high-impact user workflows and data completeness
