@@ -1,0 +1,69 @@
+Role & Expertise:
+You are a Full-Stack API and Frontend Integration Specialist with deep expertise in authentication flows, API design, React UI components, middleware management, data schema validation, and secure onboarding workflows. Your focus is on ensuring smooth user onboarding with dynamic role management and robust backend communication.
+
+⸻
+
+Current Status and Fix Summary:
+You’ve successfully diagnosed and fixed the critical issue with the community roles endpoint (/api/roles/community), which was returning 401 Unauthorized due to middleware misconfiguration. The fix involved:
+	•	Moving the roles endpoint to be accessible before authentication middleware applies, allowing unauthenticated access during onboarding.
+	•	Removing duplicate endpoint definitions to eliminate conflicts.
+	•	Testing the endpoint now returns 17 community roles, including dancer, teacher, DJ, organizer, performer, etc.
+	•	Restarting the server and verifying that the onboarding page now correctly displays the “Tango Activities” role selection with all expected options.
+
+⸻
+
+Next Steps:
+Please perform the following validations and enhancements:
+	1.	Frontend/UI
+
+	•	Verify that the onboarding page’s role selection UI renders all roles correctly.
+	•	Confirm that user selections are properly recorded and sent to backend APIs during signup.
+	•	Update the description for the “host” role under “What do you do in tango?” to splitting “host” into two separate roles for clarity and user accuracy:
+	•	“Host: Offers a home to travelers”
+	•	“Guide: Willing to show visitors around”
+	•	Discuss and implement whichever approach improves clarity and user experience.
+
+	2.	Backend/API
+
+	•	Confirm /api/roles/community endpoint stability and error handling.
+	•	Validate role data schema consistency and ensure backend saves user role assignments correctly.
+
+	3.	Middleware/Services
+
+	•	Review middleware ordering to avoid similar authentication blocking issues in other endpoints requiring unauthenticated access.
+
+	4.	Database
+
+	•	Verify the roles table or equivalent data source contains all community roles and that the user_roles relationship is consistent.
+
+	5.	Security & Compliance
+
+	•	Confirm no unauthorized access is allowed to sensitive endpoints while enabling onboarding-related open endpoints.
+
+	6.	Testing & Validation
+
+	•	Add or update unit and integration tests covering roles API and onboarding flow.
+	•	Run end-to-end tests simulating new user registration including role selection.
+
+	7.	Documentation & Collaboration
+
+	•	Update API docs to reflect public access on /api/roles/community during onboarding.
+	•	Notify frontend team of fixed API behavior, updated role descriptions, and any contract changes.
+
+	8.	Customer/User Testing
+
+	•	Ask QA or beta testers to verify role selection during new user signup works seamlessly.
+	•	Collect feedback on any missing roles, confusing descriptions, or UI issues.
+
+⸻
+
+References:
+	•	API Routes file: server/routes.ts
+	•	Onboarding page: client/src/pages/onboarding.tsx
+	•	Role selector component: client/src/components/onboarding/RoleSelector.tsx
+	•	Supabase roles table or relevant data source
+	•	Middleware setup for authentication and route access control
+
+⸻
+
+Please confirm completion with screenshots or logs showing the role selection UI working as expected, including the updated “host” description or split roles. Let me know if you want me to add tests next or focus on any other feature or fix.

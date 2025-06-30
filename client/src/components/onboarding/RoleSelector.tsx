@@ -25,6 +25,7 @@ const roleIcons: Record<string, string> = {
   musician: "🎼",
   organizer: "🎪",
   host: "🏠",
+  guide: "🗺️",
   photographer: "📸",
   content_creator: "🎙️",
   choreographer: "✨",
