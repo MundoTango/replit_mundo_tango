@@ -1,35 +1,33 @@
-import { useQuery } from "@tanstack/react-query";
-import { User } from "@shared/schema";
+import { useQuery } from '@tanstack/react-query';
 
-interface AuthUser extends Omit<User, 'formStatus' | 'isOnboardingComplete' | 'codeOfConductAccepted'> {
-  formStatus?: number;
-  isOnboardingComplete?: boolean;
-  codeOfConductAccepted?: boolean;
+interface User {
+  id: number;
+  name: string;
+  username: string;
+  email: string;
+  profileImage?: string;
 }
 
 export function useAuth() {
-  const { data: user, isLoading } = useQuery<AuthUser>({
-    queryKey: ["/api/auth/user"],
-    retry: false,
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['/api/auth/user'],
+    queryFn: async (): Promise<User | null> => {
+      try {
+        const response = await fetch('/api/auth/user');
+        if (!response.ok) {
+          return null;
+        }
+        return response.json();
+      } catch (error) {
+        return null;
+      }
+    },
+    retry: false
   });
-
-  const logout = async () => {
-    try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Logout error:', error);
-      window.location.href = '/login';
-    }
-  };
 
   return {
     user,
-    isLoading,
     isAuthenticated: !!user,
-    logout,
+    isLoading
   };
 }
