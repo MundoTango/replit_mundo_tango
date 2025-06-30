@@ -188,8 +188,6 @@ export const eventRsvps = pgTable("event_rsvps", {
   eventId: integer("event_id").references(() => events.id).notNull(),
   userId: integer("user_id").references(() => users.id).notNull(),
   status: varchar("status", { length: 20 }).notNull(), // going, interested, maybe, not_going
-  notes: text("notes"),
-  notificationPreferences: text("notification_preferences").array(), // reminders, updates, cancellations
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
