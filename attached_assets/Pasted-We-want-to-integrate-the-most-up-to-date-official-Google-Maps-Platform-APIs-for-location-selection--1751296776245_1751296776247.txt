@@ -1,0 +1,48 @@
+We want to integrate the most up-to-date, official Google Maps Platform APIs for location selection and autocomplete everywhere in Mundo Tango where users input location data, such as:
+	•	Post creation (location tagging in posts)
+	•	User registration/profile (home city, dance locations)
+	•	Event creation and editing (event venues, cities, countries)
+	•	Any other feature involving city, state, or address input
+
+Requirements:
+	1.	Use the official Google Maps JavaScript API with Places library to enable:
+	•	Autocomplete address/city/state search with suggestions
+	•	Selection of locations with latitude/longitude data
+	•	Map-based location picker with draggable markers where appropriate (e.g., event venues)
+	2.	Ensure seamless integration with existing UI components in these modules:
+	•	client/src/components/moments/EnhancedPostComposer.tsx (post location input)
+	•	client/src/pages/register.tsx or equivalent user registration/profile components
+	•	client/src/pages/events.tsx and client/src/components/events/EventForm.tsx
+	•	Any other location inputs found in TT files or current codebase (please audit and list all relevant files/components)
+	3.	Add Google Maps API keys securely to the Replit secrets environment, ensuring keys are not hardcoded.
+	4.	Use consistent UX patterns for location input:
+	•	Autocomplete dropdown with real-time suggestions as user types
+	•	Ability to select from dropdown and populate location fields (city, state, country, lat/lng)
+	•	Map preview where applicable with draggable marker to fine-tune location
+	5.	Validate and sanitize all location data before saving to the database, storing:
+	•	Standardized city, state, and country names
+	•	Coordinates (latitude, longitude)
+	•	Formatted address string
+	6.	Update backend API endpoints as necessary to support richer location data in create and update workflows.
+	7.	Audit all TT files and current codebase to identify every location-related form or input. Provide a comprehensive list of affected components/modules and confirm the integration coverage.
+
+⸻
+
+Deliverables:
+	•	Updated React components with Google Maps Places Autocomplete and/or Map Picker integrated in all location fields
+	•	Securely stored API keys in Replit environment secrets
+	•	Backend support for enhanced location data (if needed)
+	•	Comprehensive report listing all location input points updated, with before/after screenshots or demos
+	•	Recommendations for any UI/UX improvements to location input workflows based on Google Maps best practices
+
+⸻
+
+Additional notes:
+	•	Use official Google Maps JavaScript API with Places library
+	•	Use environment variables for all API keys
+	•	Adhere to Google Maps usage quotas and billing best practices
+	•	Ensure accessibility and mobile responsiveness of location inputs
+
+⸻
+
+Please confirm understanding and proceed with the integration plan. Let me know if you require access to any additional resources or credentials to complete this task efficiently.

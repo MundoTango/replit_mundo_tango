@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import GoogleMapsAutocomplete from '../maps/GoogleMapsAutocomplete';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { MentionsInput, Mention } from 'react-mentions';
 import { useAuth } from '@/hooks/useAuth';
@@ -421,14 +422,16 @@ export default function ModernPostCreator({ onPostCreated }: ModernPostCreatorPr
           )}
         </div>
 
-        {/* Location Input */}
+        {/* Location Input with Google Maps */}
         <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Add location..."
+          <GoogleMapsAutocomplete
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            placeholder="Add location..."
+            onLocationSelect={(locationData) => {
+              setLocation(locationData.formattedAddress);
+            }}
+            onClear={() => setLocation('')}
+            className="w-full"
           />
         </div>
 

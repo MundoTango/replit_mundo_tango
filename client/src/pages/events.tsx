@@ -37,6 +37,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format, addDays } from 'date-fns';
 import { apiRequest } from '@/lib/queryClient';
 import UploadMedia from '@/components/UploadMedia';
+import GoogleMapsAutocomplete from '@/components/maps/GoogleMapsAutocomplete';
 
 interface Event {
   id: number;
@@ -250,10 +251,15 @@ export default function EventsPage() {
                     />
                   </div>
                   
-                  <Input
-                    placeholder="Location"
+                  <GoogleMapsAutocomplete
                     value={newEvent.location}
-                    onChange={(e) => setNewEvent(prev => ({ ...prev, location: e.target.value }))}
+                    placeholder="Event location (venue, city, address)"
+                    onLocationSelect={(locationData) => {
+                      setNewEvent(prev => ({ ...prev, location: locationData.formattedAddress }));
+                    }}
+                    onClear={() => setNewEvent(prev => ({ ...prev, location: '' }))}
+                    showMap={true}
+                    className="col-span-2"
                   />
                   
                   <Input
