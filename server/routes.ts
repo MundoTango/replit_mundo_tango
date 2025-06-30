@@ -4164,6 +4164,265 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ========================================
+  // LAYER 2: MEMORY SYSTEM BACKEND LOGIC
+  // ========================================
+
+  // Get user's memory roles and permissions
+  app.get('/api/memory/user-roles/:userId', isAuthenticated, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Verify user can access this data (self or admin)
+      if (req.user?.id !== userId && !req.user?.roles?.includes('admin')) {
+        return res.status(403).json({
+          code: 403,
+          message: "Access denied",
+          data: null
+        });
+      }
+
+      const userRoles = await storage.getUserMemoryRoles(userId);
+      const activeRole = await storage.getUserActiveRole(userId);
+      
+      return res.json({
+        code: 200,
+        message: "User memory roles retrieved",
+        data: { 
+          activeRole,
+          availableRoles: userRoles,
+          permissions: activeRole?.permissions || {}
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching user memory roles:', error);
+      return res.status(500).json({
+        code: 500,
+        message: "Failed to fetch user memory roles",
+        data: null
+      });
+    }
+  });
+
+  // Submit custom memory role request
+  app.post('/api/memory/custom-role-request', isAuthenticated, async (req, res) => {
+    try {
+      const { roleName, description, memoryPermissions, emotionalAccess } = req.body;
+      
+      if (!roleName || !description) {
+        return res.status(400).json({
+          code: 400,
+          message: "Role name and description are required",
+          data: null
+        });
+      }
+
+      const requestData = {
+        role_name: roleName,
+        role_description: description,
+        submitted_by: req.user!.id,
+        status: 'pending',
+        memory_permissions: JSON.stringify({
+          requested_permissions: memoryPermissions,
+          emotional_access: emotionalAccess
+        })
+      };
+
+      const request = await storage.createCustomRoleRequest(requestData);
+      
+      // Log the request for audit trail
+      await storage.logMemoryAudit({
+        user_id: req.user!.id,
+        action_type: 'role_request',
+        result: 'pending',
+        metadata: { 
+          role_name: roleName,
+          requested_permissions: memoryPermissions,
+          emotional_access: emotionalAccess
+        }
+      });
+
+      return res.json({
+        code: 200,
+        message: "Custom memory role request submitted successfully",
+        data: { request }
+      });
+    } catch (error) {
+      console.error('Error submitting custom memory role request:', error);
+      return res.status(500).json({
+        code: 500,
+        message: "Failed to submit custom role request",
+        data: null
+      });
+    }
+  });
+
+  // Switch active memory role
+  app.post('/api/memory/switch-role', isAuthenticated, async (req, res) => {
+    try {
+      const { roleId } = req.body;
+      
+      if (!roleId) {
+        return res.status(400).json({
+          code: 400,
+          message: "Role ID is required",
+          data: null
+        });
+      }
+
+      // Verify user has access to this role
+      const userRoles = await storage.getUserRoles(req.user!.id);
+      const hasRole = userRoles.some(ur => ur.role_id === roleId);
+      
+      if (!hasRole) {
+        return res.status(403).json({
+          code: 403,
+          message: "You don't have access to this role",
+          data: null
+        });
+      }
+
+      await storage.setUserActiveRole(req.user!.id, roleId);
+      
+      // Log the role switch
+      await storage.logMemoryAudit({
+        user_id: req.user!.id,
+        action_type: 'role_switch',
+        result: 'allowed',
+        metadata: { new_role_id: roleId }
+      });
+
+      return res.json({
+        code: 200,
+        message: "Active role switched successfully",
+        data: { roleId }
+      });
+    } catch (error) {
+      console.error('Error switching active role:', error);
+      return res.status(500).json({
+        code: 500,
+        message: "Failed to switch active role",
+        data: null
+      });
+    }
+  });
+
+  // Get memory permissions overview
+  app.get('/api/memory/permissions', isAuthenticated, async (req, res) => {
+    try {
+      const permissions = await storage.getMemoryPermissions(req.user!.id);
+      
+      return res.json({
+        code: 200,
+        message: "Memory permissions retrieved",
+        data: permissions
+      });
+    } catch (error) {
+      console.error('Error fetching memory permissions:', error);
+      return res.status(500).json({
+        code: 500,
+        message: "Failed to fetch memory permissions", 
+        data: null
+      });
+    }
+  });
+
+  // Get user's trust circles
+  app.get('/api/memory/trust-circles/:userId', isAuthenticated, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Verify access
+      if (req.user?.id !== userId && !req.user?.roles?.includes('admin')) {
+        return res.status(403).json({
+          code: 403,
+          message: "Access denied",
+          data: null
+        });
+      }
+
+      const trustCircles = await storage.getUserTrustCircles(userId);
+      
+      return res.json({
+        code: 200,
+        message: "Trust circles retrieved",
+        data: trustCircles
+      });
+    } catch (error) {
+      console.error('Error fetching trust circles:', error);
+      return res.status(500).json({
+        code: 500,
+        message: "Failed to fetch trust circles",
+        data: null
+      });
+    }
+  });
+
+  // Create memory with consent controls
+  app.post('/api/memory/create', isAuthenticated, async (req, res) => {
+    try {
+      const { title, content, emotionTags, emotionVisibility, trustCircleLevel, location, mediaUrls, coTaggedUsers } = req.body;
+      
+      if (!title || !content) {
+        return res.status(400).json({
+          code: 400,
+          message: "Title and content are required",
+          data: null
+        });
+      }
+
+      // Check if user has permission to create memories
+      const userRole = await storage.getUserActiveRole(req.user!.id);
+      if (!userRole?.permissions?.can_create_memories) {
+        return res.status(403).json({
+          code: 403,
+          message: "You don't have permission to create memories",
+          data: null
+        });
+      }
+
+      const memoryData = {
+        user_id: req.user!.id,
+        title,
+        content,
+        emotion_tags: emotionTags || [],
+        emotion_visibility: emotionVisibility || 'public',
+        trust_circle_level: trustCircleLevel || 1,
+        location: location || null,
+        media_urls: mediaUrls || [],
+        co_tagged_users: coTaggedUsers || [],
+        consent_required: (coTaggedUsers && coTaggedUsers.length > 0) || emotionVisibility !== 'public'
+      };
+
+      const memory = await storage.createMemory(memoryData);
+      
+      // Log memory creation
+      await storage.logMemoryAudit({
+        user_id: req.user!.id,
+        memory_id: memory.id,
+        action_type: 'create',
+        result: 'allowed',
+        metadata: { 
+          emotion_visibility: emotionVisibility,
+          co_tagged_count: coTaggedUsers?.length || 0
+        }
+      });
+
+      return res.json({
+        code: 200,
+        message: "Memory created successfully",
+        data: { memory }
+      });
+    } catch (error) {
+      console.error('Error creating memory:', error);
+      return res.status(500).json({
+        code: 500,
+        message: "Failed to create memory",
+        data: null
+      });
+    }
+  });
+
   // Initialize Supabase Storage bucket on server start
   initializeStorageBucket();
 

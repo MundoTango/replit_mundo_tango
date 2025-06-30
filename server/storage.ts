@@ -169,6 +169,15 @@ export interface IStorage {
   getPostsByMentions(username: string): Promise<Post[]>;
   updatePostEngagement(postId: number): Promise<void>;
   markCommentsAsRead(postId: number, userId: number): Promise<void>;
+
+  // Layer 2/3: Memory System Backend Methods
+  getUserMemoryRoles(userId: number): Promise<any[]>;
+  getUserActiveRole(userId: number): Promise<any>;
+  setUserActiveRole(userId: number, roleId: string): Promise<void>;
+  getMemoryPermissions(userId: number): Promise<any>;
+  getUserTrustCircles(userId: number): Promise<any[]>;
+  createMemory(memoryData: any): Promise<any>;
+  logMemoryAudit(auditData: any): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -947,6 +956,193 @@ export class DatabaseStorage implements IStorage {
   async markCommentsAsRead(postId: number, userId: number): Promise<void> {
     // Placeholder implementation - would mark comments as read for user
     console.log(`Marked comments as read for post ${postId} by user ${userId}`);
+  }
+
+  // Layer 2/3: Memory System Implementation
+  async getUserMemoryRoles(userId: number): Promise<any[]> {
+    try {
+      const result = await db
+        .select({
+          id: roles.id,
+          name: roles.name,
+          permissions: roles.permissions,
+          memory_access_level: roles.memoryAccessLevel,
+          emotional_tag_access: roles.emotionalTagAccess
+        })
+        .from(userRoles)
+        .innerJoin(roles, eq(userRoles.roleId, roles.id))
+        .where(eq(userRoles.userId, userId));
+      
+      return result;
+    } catch (error) {
+      console.error('Error fetching user memory roles:', error);
+      return [];
+    }
+  }
+
+  async getUserActiveRole(userId: number): Promise<any> {
+    try {
+      // Get user's primary role or first assigned role
+      const result = await db
+        .select({
+          id: roles.id,
+          name: roles.name,
+          permissions: roles.permissions,
+          memory_access_level: roles.memoryAccessLevel,
+          emotional_tag_access: roles.emotionalTagAccess
+        })
+        .from(userRoles)
+        .innerJoin(roles, eq(userRoles.roleId, roles.id))
+        .where(and(eq(userRoles.userId, userId), eq(userRoles.isPrimary, true)))
+        .limit(1);
+      
+      if (result.length > 0) {
+        return result[0];
+      }
+
+      // Fallback to first role if no primary role set
+      const fallback = await db
+        .select({
+          id: roles.id,
+          name: roles.name,
+          permissions: roles.permissions,
+          memory_access_level: roles.memoryAccessLevel,
+          emotional_tag_access: roles.emotionalTagAccess
+        })
+        .from(userRoles)
+        .innerJoin(roles, eq(userRoles.roleId, roles.id))
+        .where(eq(userRoles.userId, userId))
+        .limit(1);
+      
+      return fallback[0] || null;
+    } catch (error) {
+      console.error('Error fetching user active role:', error);
+      return null;
+    }
+  }
+
+  async setUserActiveRole(userId: number, roleId: string): Promise<void> {
+    try {
+      // Reset all roles to non-primary
+      await db
+        .update(userRoles)
+        .set({ isPrimary: false })
+        .where(eq(userRoles.userId, userId));
+      
+      // Set specified role as primary
+      await db
+        .update(userRoles)
+        .set({ isPrimary: true })
+        .where(and(eq(userRoles.userId, userId), eq(userRoles.roleId, roleId)));
+    } catch (error) {
+      console.error('Error setting user active role:', error);
+      throw error;
+    }
+  }
+
+  async getMemoryPermissions(userId: number): Promise<any> {
+    try {
+      // Get counts of accessible memories by visibility type
+      const publicCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(sql`memories`)
+        .where(sql`emotion_visibility = 'public'`);
+      
+      const friendsCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(sql`memories`)
+        .where(sql`emotion_visibility = 'friends'`);
+      
+      const trustedCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(sql`memories`)
+        .where(sql`emotion_visibility = 'trusted'`);
+      
+      const privateCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(sql`memories`)
+        .where(sql`user_id = ${userId} AND emotion_visibility = 'private'`);
+
+      return {
+        publicCount: publicCount[0]?.count || 0,
+        friendsCount: friendsCount[0]?.count || 0,
+        trustedCount: trustedCount[0]?.count || 0,
+        privateCount: privateCount[0]?.count || 0
+      };
+    } catch (error) {
+      console.error('Error fetching memory permissions:', error);
+      return { publicCount: 0, friendsCount: 0, trustedCount: 0, privateCount: 0 };
+    }
+  }
+
+  async getUserTrustCircles(userId: number): Promise<any[]> {
+    try {
+      const result = await db
+        .select({
+          id: sql`trust_circles.id`,
+          trusted_user_id: sql`trust_circles.trusted_user_id`,
+          trusted_user_name: sql`users.username`,
+          circle_name: sql`trust_circles.circle_name`,
+          trust_level: sql`trust_circles.trust_level`,
+          emotional_access_level: sql`trust_circles.emotional_access_level`,
+          granted_at: sql`trust_circles.granted_at`
+        })
+        .from(sql`trust_circles`)
+        .innerJoin(sql`users`, sql`trust_circles.trusted_user_id = users.id`)
+        .where(sql`trust_circles.user_id = ${userId}`);
+      
+      return result;
+    } catch (error) {
+      console.error('Error fetching trust circles:', error);
+      return [];
+    }
+  }
+
+  async createMemory(memoryData: any): Promise<any> {
+    try {
+      const result = await db
+        .insert(sql`memories`)
+        .values({
+          id: sql`gen_random_uuid()::text`,
+          user_id: memoryData.user_id,
+          title: memoryData.title,
+          content: memoryData.content,
+          emotion_tags: memoryData.emotion_tags,
+          emotion_visibility: memoryData.emotion_visibility,
+          trust_circle_level: memoryData.trust_circle_level,
+          location: memoryData.location,
+          media_urls: memoryData.media_urls,
+          co_tagged_users: memoryData.co_tagged_users,
+          consent_required: memoryData.consent_required
+        })
+        .returning();
+      
+      return result[0];
+    } catch (error) {
+      console.error('Error creating memory:', error);
+      throw error;
+    }
+  }
+
+  async logMemoryAudit(auditData: any): Promise<void> {
+    try {
+      await db
+        .insert(sql`memory_audit_logs`)
+        .values({
+          id: sql`gen_random_uuid()::text`,
+          user_id: auditData.user_id,
+          memory_id: auditData.memory_id || null,
+          action_type: auditData.action_type,
+          result: auditData.result,
+          reason: auditData.reason || null,
+          metadata: JSON.stringify(auditData.metadata || {}),
+          ip_address: auditData.ip_address || null,
+          user_agent: auditData.user_agent || null
+        });
+    } catch (error) {
+      console.error('Error logging memory audit:', error);
+      // Don't throw error for audit logging to avoid breaking main functionality
+    }
   }
 }
 

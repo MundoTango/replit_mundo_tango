@@ -1,0 +1,110 @@
+8-Layer Replit Prompt Template for Mundo Tango
+
+You are building a secure, emotional, and role-aware feature for the Mundo Tango platform using Replit. Your goal is to implement and validate a memory-based, consent-driven system across 8 layers:
+
+🔁 Use Supabase as your backend (auth, db, RLS). Use Replit as your frontend+agent workspace.
+
+⸻
+
+🧩 LAYER 1: Frontend Component
+	•	Build a component in React or Replit UI that allows a logged-in user to:
+	•	Select their current active role (e.g. dancer, DJ, organizer)
+	•	Request a custom role (with text + reason)
+	•	View their memory permissions, including emotional tag visibility
+
+✅ Output: UI code with hooks to Supabase auth + backend functions
+✅ Include: Role-switch dropdown, visibility status component, custom role request form
+
+⸻
+
+⚙️ LAYER 2: Backend Logic
+	•	Create /api/submit-custom-role-request
+	•	Accept user_id, requested_role, context, justification
+	•	Check if user has verified identity and is linked to Replit OAuth session
+	•	Insert request into custom_role_requests table
+
+✅ Output: Node/Express or Replit backend route
+✅ Include: input validation, session auth extraction
+
+⸻
+
+🔐 LAYER 3: Authentication + OAuth Session Linking
+	•	Ensure user is authenticated via Replit OAuth
+	•	Cross-link replit_id to the correct Supabase user.id
+	•	If mismatch: update or error out
+	•	Middleware: auto-link OAuth → Supabase ID on login
+
+✅ Output: Session verification middleware or function
+✅ Include: Logging replit_id, Supabase ID check/update
+
+⸻
+
+🛡 LAYER 4: RBAC + ABAC Enforcement
+	•	Define roles table with RBAC metadata:
+	•	Permissions, allowed memory types, emotional tag access
+	•	ABAC logic:
+	•	“Only show memories where emotion_visibility = public OR user_id = current_user OR trust_level >= 2”
+
+✅ Output: Supabase policies.sql + ABAC table logic
+✅ Optional: Use Oso or embed in Supabase RLS
+
+⸻
+
+🧠 LAYER 5: Consent & Memory Metadata Enforcement
+	•	On memory post/edit:
+	•	Ensure co-tagging requires mutual approval
+	•	Emotional tags require explicit visibility tier
+	•	On memory surfacing:
+	•	Filter by consent, role, emotional trust level
+
+✅ Output: Supabase memories + memory_tags tables with RLS
+✅ Include: visibility, consent_granted, trust_circle_level
+
+⸻
+
+📊 LAYER 6: Admin Interface (Role Requests + Debugging)
+	•	Build admin-only dashboard in Replit
+	•	View pending custom role requests
+	•	Approve/deny with comment
+	•	View policy debug logs: “Why was this access blocked?”
+
+✅ Output: UI dashboard code + Supabase read/write logic
+✅ Bonus: Replit-friendly prompt for reviewing flagged rejections
+
+⸻
+
+🔄 LAYER 7: Logging, Trust Graphs & RLS Testing
+	•	Log every action:
+	•	Role requests
+	•	Consent changes
+	•	Memory view attempts (allowed or blocked)
+	•	Test Supabase RLS with actual queries to confirm access is enforced properly
+
+✅ Output: Insert logs to audit_logs table
+✅ Include: action_type, user_id, memory_id, result
+
+⸻
+
+🎯 LAYER 8: Developer Handoff & Traceable Memory Behavior
+	•	Document everything in replit.md:
+	•	How roles are linked
+	•	How RLS is structured
+	•	How to test memory access per role + trust level
+	•	Include: screenshots of working role requests, error cases, debug logs
+
+✅ Output: Clear Replit markdown doc + reproducible steps
+✅ Bonus: Include curl or fetch test snippets
+
+⸻
+
+💡 EXAMPLE FLOW:
+
+	•	User logs in with Replit
+	•	replit_id is updated/linked in Supabase
+	•	User requests a custom role (“DJ + visual artist”)
+	•	Admin sees request in Replit UI → approves
+	•	User now gains access to tag music AND media memories
+	•	RLS prevents viewing “private” memories without consent
+	•	Logs show all actions, roles, and surfacing rules applied
+
+⸻
