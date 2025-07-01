@@ -31,12 +31,52 @@ import {
 } from 'lucide-react';
 
 interface AdminStats {
+  // User Management
   totalUsers: number;
   activeUsers: number;
-  totalEvents: number;
+  verifiedUsers: number;
+  completedOnboarding: number;
+  suspendedUsers: number;
+  pendingApproval: number;
+  
+  // Content & Engagement
   totalPosts: number;
-  complianceScore: number;
+  postsToday: number;
+  totalLikes: number;
+  totalComments: number;
+  flaggedContent: number;
+  pendingReports: number;
+  autoModerated: number;
+  appeals: number;
+  
+  // Events
+  totalEvents: number;
+  eventsThisMonth: number;
+  totalRsvps: number;
+  eventCategories: Record<string, number>;
+  featuredEvents: number;
+  
+  // Community
+  totalGroups: number;
+  totalGroupMembers: number;
+  totalFollows: number;
+  
+  // Analytics
+  dailyActiveUsers: number;
+  pageViews: number;
+  engagementRate: number;
+  topLocations: Array<{ location: string; userCount: number }>;
+  
+  // System Health & Performance
   systemHealth: number;
+  responseTime: string;
+  uptime: string;
+  databaseLoad: number;
+  storageUsed: number;
+  errorLogs: number;
+  securityEvents: number;
+  apiRequests: number;
+  warnings: number;
 }
 
 interface ComplianceMetrics {
