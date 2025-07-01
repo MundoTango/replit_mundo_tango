@@ -690,19 +690,41 @@ Changelog:
   * Fixed user city assignment (Buenos Aires) enabling auto-join testing and validation
   * Created LAYER_11_GROUPS_SYSTEM_IMPLEMENTATION.md documenting complete 11-layer implementation across all architectural layers
   * Complete end-to-end groups workflow operational: discovery → auto-join → navigation → detailed view → membership management
+- July 1, 2025. Dynamic City Photo Fetching System implemented using enhanced 11L framework:
+  * Created comprehensive CityPhotoService using Pexels API for authentic high-resolution city photos fetched from internet
+  * Enhanced backend to automatically fetch photos during city group creation with comprehensive fallback system
+  * Updated frontend to use database-stored photo URLs instead of hardcoded mapping for dynamic content display
+  * Integrated complete workflow: user signup → city input → group creation → photo fetch → auto-join with seamless UX
+  * Added comprehensive error handling, API rate limiting, and curated fallback photos for major tango cities
+  * Implemented 11-Layer analysis framework for structured development approach covering all technical aspects
+  * Updated replit.md with enhanced 11L system for future feature development and analysis protocols
+  * System now dynamically replaces São Paulo pyramids with authentic São Paulo landmarks automatically
+  * Created AUTOMATIC_CITY_GROUP_ASSIGNMENT_RESULTS.md documenting complete 11L implementation with production readiness
 ```
 
 ## User Preferences
 
 ```
 Preferred communication style: Simple, everyday language.
-Development approach: Comprehensive full-stack implementation covering all 7 layers:
-1. Frontend/UI - Complete React components with UX design, responsive styling, accessibility
-2. Backend/API - REST endpoints with business logic, security, media handling  
-3. Middleware/Services - Logging, rate limiting, third-party integrations
-4. Database - Schema design, migrations, RLS policies, query optimization
-5. Security & Compliance - Authentication flows, data privacy, vulnerability prevention
-6. Testing & Validation - Unit, integration, E2E, database, performance tests with CI/CD
-7. Documentation - API docs, schema documentation, setup instructions, user flows
-Always reference existing implementations, include open-source tool URLs, coordinate API contracts, provide implementation summaries with next steps.
+Development approach: Comprehensive full-stack implementation using the **Mundo Tango 11 Layers System (11L)**:
+
+🏗️ 11 LAYERS SYSTEM FOR ANALYSIS + IMPLEMENTATION:
+1. **Expertise Layer** — Identify required expertise (full-stack, security, AI, etc.)
+2. **Open Source Scan Layer** — Research libraries, SDKs, public repos for implementation
+3. **Legal & Compliance Layer** — Consider privacy, GDPR, legal risks and requirements
+4. **Consent & UX Safeguards Layer** — Define visibility defaults, user controls, ethical considerations
+5. **Data Layer** — Design schema, tables, relationships, RLS policies, query optimization
+6. **Backend Layer** — Create API endpoints, server functions, triggers, business logic
+7. **Frontend Layer** — Build pages, components, tabs, modals with responsive design
+8. **Sync & Automation Layer** — Implement webhooks, events, scheduled jobs, real-time features
+9. **Security & Permissions Layer** — Configure RBAC/ABAC logic, scoped access, authentication
+10. **AI & Reasoning Layer** — Add suggestions, summarization, tagging, AI-driven features
+11. **Testing & Observability Layer** — Build tests, logs, monitors, performance tracking
+
+REWRITING PROTOCOL:
+- When receiving unstructured input, re-analyze using 11L system
+- Rewrite as fully structured Replit-ready implementation prompt
+- Include scoped actions and technical coverage across all layers
+- Always reference existing implementations, include open-source tool URLs, coordinate API contracts
+- Provide implementation summaries with next steps and testing validation
 ```
