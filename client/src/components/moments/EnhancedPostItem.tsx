@@ -17,6 +17,10 @@ import PostDetailModal from './PostDetailModal';
 import { renderWithMentions } from '@/utils/renderWithMentions';
 import { RoleEmojiDisplay } from '@/components/ui/RoleEmojiDisplay';
 import { formatUserLocation } from '@/utils/locationUtils';
+import { ReactionSelector } from '@/components/ui/ReactionSelector';
+import { RichTextCommentEditor } from '@/components/ui/RichTextCommentEditor';
+import { PostContextMenu } from '@/components/ui/PostContextMenu';
+import { ReportModal } from '@/components/ui/ReportModal';
 
 interface Post {
   id: number;
@@ -39,7 +43,7 @@ interface Post {
     country?: string;
   };
   likes?: number;
-  comments?: number;
+  commentsCount?: number;
   isLiked?: boolean;
   hashtags?: string[];
   location?: string;
@@ -50,6 +54,20 @@ interface Post {
     display: string;
   }>;
   emotionTags?: string[];
+  reactions?: { [key: string]: number };
+  currentUserReaction?: string;
+  comments?: Array<{
+    id: number;
+    content: string;
+    userId: number;
+    user: {
+      id: number;
+      name: string;
+      profileImage?: string;
+    };
+    createdAt: string;
+    mentions?: string[];
+  }>;
 }
 
 interface PostItemProps {
@@ -62,6 +80,9 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
   const [commentText, setCommentText] = useState('');
   const [isCommentFocused, setIsCommentFocused] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [currentUserReaction, setCurrentUserReaction] = useState(post.currentUserReaction);
 
   // Calculate age-based opacity for gradual fade effect
   const postAge = useMemo(() => {
@@ -98,6 +119,45 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
   const getAvatarFallback = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
+
+  // Enhanced handler functions
+  const handleReaction = (reactionId: string) => {
+    setCurrentUserReaction(reactionId === currentUserReaction ? '' : reactionId);
+    // TODO: Call API to save reaction
+    console.log(`Reacted with ${reactionId} to post ${post.id}`);
+  };
+
+  const handleComment = (content: string, mentions: string[]) => {
+    // TODO: Call API to save comment
+    console.log(`Comment on post ${post.id}:`, content, mentions);
+  };
+
+  const handleEdit = () => {
+    console.log(`Edit post ${post.id}`);
+    // TODO: Open edit modal
+  };
+
+  const handleDelete = () => {
+    if (confirm('Are you sure you want to delete this post?')) {
+      console.log(`Delete post ${post.id}`);
+      // TODO: Call API to delete post
+    }
+  };
+
+  const handleReport = (reason: string, description: string) => {
+    console.log(`Report post ${post.id}:`, reason, description);
+    // TODO: Call API to submit report
+    
+    // Show confirmation popup
+    alert('Thank you for your report. We have received it and will review it shortly.');
+  };
+
+  const handleShare = () => {
+    console.log(`Share post ${post.id}`);
+    onShare(post);
+  };
+
+  const isOwner = post.userId === 3; // TODO: Get actual current user ID
 
   const consentGlowClass = post.hasConsent 
     ? 'ring-2 ring-emerald-200 shadow-emerald-100/50 shadow-lg' 
@@ -146,17 +206,20 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
 
             {/* User Info with enhanced typography */}
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-1">
+              <div className="flex flex-col gap-1 mb-1">
                 <h3 
                   className="font-bold text-xl text-gray-900 hover:text-indigo-600 cursor-pointer transition-colors"
                   title={post.user?.fullName || post.user?.name || 'Anonymous'}
                 >
+                  {post.user?.name || 'Anonymous'}
+                </h3>
+                <div className="text-gray-500 text-sm">
                   {formatUserLocation({ 
                     city: post.user?.city, 
                     state: post.user?.state, 
                     country: post.user?.country 
                   })}
-                </h3>
+                </div>
               </div>
               
               {/* Enhanced Emoji Role Display */}
@@ -285,50 +348,87 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
 
         {/* Enhanced Action Bar */}
         <footer className="flex items-center justify-between pt-6 border-t border-gray-100">
-          <div className="flex items-center gap-6">
-            {/* Like button */}
-            <button
-              onClick={() => onLike(post.id)}
-              className={`
-                flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-200
-                ${post.isLiked 
-                  ? 'bg-pink-100 text-pink-700 hover:bg-pink-200' 
-                  : 'text-gray-600 hover:bg-pink-50 hover:text-pink-600'
-                }
-                hover:scale-105
-              `}
-            >
-              <Heart className={`h-5 w-5 ${post.isLiked ? 'fill-current' : ''}`} />
-              <span>{post.likes || 0}</span>
-            </button>
+          <div className="flex items-center gap-4">
+            {/* Enhanced Reaction System */}
+            <ReactionSelector
+              postId={post.id}
+              currentReaction={currentUserReaction}
+              reactions={post.reactions}
+              onReact={handleReaction}
+            />
 
             {/* Comment button */}
             <button
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 hover:scale-105"
+              onClick={() => setShowComments(!showComments)}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl font-medium text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
             >
               <MessageCircle className="h-5 w-5" />
-              <span>{post.comments || 0}</span>
+              <span>{post.commentsCount || 0}</span>
             </button>
 
             {/* Share button */}
             <button
-              onClick={() => onShare(post)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-gray-600 hover:bg-green-50 hover:text-green-600 transition-all duration-200 hover:scale-105"
+              onClick={handleShare}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl font-medium text-gray-600 hover:bg-green-50 hover:text-green-600 transition-all duration-200"
             >
               <Share2 className="h-5 w-5" />
-              <span>Share</span>
             </button>
           </div>
 
-          {/* Expand button */}
-          <button
-            onClick={() => setShowModal(true)}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200 hover:scale-105"
-          >
-            <Expand className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Context Menu */}
+            <PostContextMenu
+              postId={post.id}
+              isOwner={isOwner}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onReport={() => setIsReportModalOpen(true)}
+              onShare={handleShare}
+            />
+
+            {/* Expand button */}
+            <button
+              onClick={() => setShowModal(true)}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200"
+            >
+              <Expand className="h-5 w-5" />
+            </button>
+          </div>
         </footer>
+
+        {/* Comments Section */}
+        {showComments && (
+          <div className="mt-6 space-y-4">
+            {/* Comment Editor */}
+            <RichTextCommentEditor
+              postId={post.id}
+              onSubmit={handleComment}
+              placeholder="Write a thoughtful comment..."
+            />
+
+            {/* Existing Comments */}
+            {post.comments && post.comments.length > 0 && (
+              <div className="space-y-3">
+                {post.comments.map((comment) => (
+                  <div key={comment.id} className="flex gap-3 p-3 bg-gray-50 rounded-xl">
+                    <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      {getAvatarFallback(comment.user.name)}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-gray-900">{comment.user.name}</span>
+                        <span className="text-xs text-gray-500">
+                          {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                        </span>
+                      </div>
+                      <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: comment.content }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Modal */}
         {showModal && (
@@ -340,6 +440,14 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
             onShare={onShare}
           />
         )}
+
+        {/* Report Modal */}
+        <ReportModal
+          isOpen={isReportModalOpen}
+          postId={post.id}
+          onClose={() => setIsReportModalOpen(false)}
+          onSubmit={handleReport}
+        />
       </div>
     </article>
   );
