@@ -5218,126 +5218,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      if (!user.city) {
-        return res.status(400).json({
-          success: false,
-          message: 'User city not found in profile',
-          data: null
-        });
-      }
-
-      console.log(`🏙️ Starting 11-Layer city group automation for user ${userId}: ${user.city}, ${user.country}`);
-
-      // Import city group automation utilities
-      const { 
-        slugify, 
-        generateCityGroupName, 
-        generateCityGroupDescription, 
-        isValidCityName, 
-        logGroupAutomation 
-      } = await import('../utils/cityGroupAutomation.js');
-
-      if (!isValidCityName(user.city)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid city name in user profile',
-          data: null
-        });
-      }
-
-      const groupSlug = slugify(user.city);
-      let cityGroup = await storage.getGroupBySlug(groupSlug);
-      let wasGroupCreated = false;
-      let photoFetched = false;
-
-      // Layer 1-3: Check if city group exists, create if needed with authentic photo
-      if (!cityGroup) {
-        console.log(`🏗️ Creating new city group for ${user.city}`);
-        
-        const groupName = generateCityGroupName(user.city, user.country);
-        const groupDescription = generateCityGroupDescription(user.city, user.country);
-
-        // Layer 4-8: Fetch authentic city photo from Pexels API
-        const { CityPhotoService } = await import('./services/cityPhotoService.js');
-        
-        console.log(`📸 Fetching authentic cityscape photo for ${user.city}, ${user.country}`);
-        const cityPhotoUrl = await CityPhotoService.fetchCityPhoto(user.city, user.country || 'Unknown');
-        
-        if (cityPhotoUrl && cityPhotoUrl !== '/api/placeholder/600/400') {
-          photoFetched = true;
-          console.log(`✅ Authentic photo found: ${cityPhotoUrl}`);
-        } else {
-          console.log(`⚠️ Using fallback photo for ${user.city}`);
-        }
-
-        // Layer 9: Create group with photo
-        cityGroup = await storage.createGroup({
-          name: groupName,
-          slug: groupSlug,
-          type: 'city',
-          emoji: '🏙️',
-          description: groupDescription,
-          city: user.city,
-          country: user.country || null,
-          imageUrl: cityPhotoUrl,
-          isPrivate: false,
-          memberCount: 0,
-          createdBy: userId
-        });
-
-        wasGroupCreated = true;
-        logGroupAutomation('city_group_created_with_photo', {
-          groupId: cityGroup.id,
-          city: user.city,
-          country: user.country,
-          photoUrl: cityPhotoUrl,
-          photoFetched
-        });
-
-        console.log(`🎉 Created city group: ${groupName} with photo: ${cityPhotoUrl}`);
-      }
-
-      // Layer 10: Auto-join user to city group
-      let membershipCreated = false;
-      const isMember = await storage.checkUserInGroup(cityGroup.id, userId);
+      let joinedGroups: any[] = [];
       
-      if (!isMember) {
-        await storage.addUserToGroup(cityGroup.id, userId, 'member');
-        await storage.updateGroupMemberCount(cityGroup.id);
-        membershipCreated = true;
+      // If user has city information, auto-join city groups
+      if (user.city && user.country) {
+        const cityGroups = await storage.getGroupsByCity(user.city);
         
-        logGroupAutomation('user_auto_joined', {
-          userId,
-          groupId: cityGroup.id,
-          city: user.city,
-          country: user.country
-        });
-        
-        console.log(`👤 Auto-joined user ${userId} to ${cityGroup.name}`);
+        for (const group of cityGroups) {
+          // Only auto-join public groups
+          if (!group.isPrivate) {
+            const isMember = await storage.checkUserInGroup(group.id, userId);
+            if (!isMember) {
+              const membership = await storage.addUserToGroup(group.id, userId, 'member');
+              await storage.updateGroupMemberCount(group.id);
+              joinedGroups.push({ group, membership });
+              console.log(`Auto-joined user ${userId} to group ${group.name}`);
+            }
+          }
+        }
       }
 
-      // Layer 11: Return comprehensive result
       res.status(200).json({
         success: true,
-        message: wasGroupCreated 
-          ? `Created new city group for ${user.city} with authentic photo and auto-joined you`
-          : membershipCreated 
-            ? `Auto-joined you to existing ${user.city} group`
-            : `You're already a member of ${user.city} group`,
+        message: joinedGroups.length > 0 
+          ? `Automatically joined ${joinedGroups.length} city group(s)` 
+          : 'No city groups available for auto-join',
         data: {
-          group: cityGroup,
-          wasGroupCreated,
-          photoFetched,
-          membershipCreated,
+          joinedGroups,
           userLocation: { city: user.city, country: user.country }
         }
       });
       
     } catch (error) {
-      console.error('Error in 11-Layer city group automation:', error);
+      console.error('Error auto-joining city groups:', error);
       res.status(500).json({
         success: false,
-        message: 'Failed to complete city group automation',
+        message: 'Failed to auto-join city groups',
         data: null
       });
     }
@@ -5455,160 +5371,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         message: 'Failed to retrieve user groups',
         data: []
-      });
-    }
-  });
-
-  // Test the complete 11-Layer signup-to-photo automation flow
-  app.post('/api/test/complete-signup-flow', isAuthenticated, async (req, res) => {
-    try {
-      const { testCity, testCountry } = req.body;
-      
-      if (!testCity) {
-        return res.status(400).json({
-          success: false,
-          message: 'testCity is required for testing',
-          data: null
-        });
-      }
-
-      console.log(`🧪 Testing complete 11-Layer flow for: ${testCity}, ${testCountry || 'Unknown'}`);
-      
-      // Simulate user signup with new city
-      const userId = req.user!.id;
-      
-      // Temporarily update user's city for testing
-      await storage.updateUser(userId, { 
-        city: testCity, 
-        country: testCountry || 'Unknown' 
-      });
-      
-      console.log(`👤 Updated user ${userId} city to: ${testCity}, ${testCountry || 'Unknown'}`);
-      
-      // Call the auto-join endpoint directly (internal call)
-      const autoJoinResult = await new Promise((resolve, reject) => {
-        // Create mock request/response for internal call
-        const mockReq = {
-          user: { id: userId },
-          body: {}
-        } as any;
-        
-        const mockRes = {
-          status: (code: number) => ({
-            json: (data: any) => resolve({ statusCode: code, data })
-          })
-        } as any;
-        
-        // Manually trigger the auto-join logic
-        (async () => {
-          try {
-            const user = await storage.getUser(userId);
-            
-            const { 
-              slugify, 
-              generateCityGroupName, 
-              generateCityGroupDescription, 
-              isValidCityName, 
-              logGroupAutomation 
-            } = await import('../utils/cityGroupAutomation.js');
-
-            if (!isValidCityName(user!.city!)) {
-              return resolve({ statusCode: 400, data: { success: false, message: 'Invalid city name' } });
-            }
-
-            const groupSlug = slugify(user!.city!);
-            let cityGroup = await storage.getGroupBySlug(groupSlug);
-            let wasGroupCreated = false;
-            let photoFetched = false;
-
-            // Create group if needed
-            if (!cityGroup) {
-              console.log(`🏗️ Creating new city group for ${user!.city}`);
-              
-              const groupName = generateCityGroupName(user!.city!, user!.country);
-              const groupDescription = generateCityGroupDescription(user!.city!, user!.country);
-
-              // Fetch authentic city photo from Pexels API
-              const { CityPhotoService } = await import('./services/cityPhotoService.js');
-              
-              console.log(`📸 Fetching authentic cityscape photo for ${user!.city}, ${user!.country}`);
-              const cityPhotoUrl = await CityPhotoService.fetchCityPhoto(user!.city!, user!.country || 'Unknown');
-              
-              if (cityPhotoUrl && cityPhotoUrl !== '/api/placeholder/600/400') {
-                photoFetched = true;
-                console.log(`✅ Authentic photo found: ${cityPhotoUrl}`);
-              } else {
-                console.log(`⚠️ Using fallback photo for ${user!.city}`);
-              }
-
-              cityGroup = await storage.createGroup({
-                name: groupName,
-                slug: groupSlug,
-                type: 'city',
-                emoji: '🏙️',
-                description: groupDescription,
-                city: user!.city,
-                country: user!.country || null,
-                imageUrl: cityPhotoUrl,
-                isPrivate: false,
-                createdBy: userId
-              });
-
-              wasGroupCreated = true;
-              console.log(`🎉 Created city group: ${groupName} with photo: ${cityPhotoUrl}`);
-            }
-
-            // Auto-join user to city group
-            let membershipCreated = false;
-            const isMember = await storage.checkUserInGroup(cityGroup.id, userId);
-            
-            if (!isMember) {
-              await storage.addUserToGroup(cityGroup.id, userId, 'member');
-              await storage.updateGroupMemberCount(cityGroup.id);
-              membershipCreated = true;
-              console.log(`👤 Auto-joined user ${userId} to ${cityGroup.name}`);
-            }
-
-            resolve({ 
-              statusCode: 200, 
-              data: {
-                success: true,
-                message: wasGroupCreated 
-                  ? `Created new city group for ${user!.city} with authentic photo and auto-joined you`
-                  : membershipCreated 
-                    ? `Auto-joined you to existing ${user!.city} group`
-                    : `You're already a member of ${user!.city} group`,
-                group: cityGroup,
-                wasGroupCreated,
-                photoFetched,
-                membershipCreated,
-                userLocation: { city: user!.city, country: user!.country }
-              }
-            });
-            
-          } catch (error) {
-            reject(error);
-          }
-        })();
-      });
-      
-      res.status(200).json({
-        success: true,
-        message: `Complete 11-Layer flow test completed for ${testCity}`,
-        data: {
-          testCity,
-          testCountry: testCountry || 'Unknown',
-          flowResult: autoJoinResult,
-          timestamp: new Date().toISOString()
-        }
-      });
-      
-    } catch (error) {
-      console.error('Error testing complete signup flow:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to test complete signup flow',
-        data: null
       });
     }
   });
