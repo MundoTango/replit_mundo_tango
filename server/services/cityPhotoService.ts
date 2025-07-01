@@ -29,7 +29,7 @@ export class CityPhotoService {
   
   // Layer 5: Data Layer - Curated city photo mappings
   private static readonly CURATED_PHOTOS = {
-    'Buenos Aires': 'https://images.pexels.com/photos/2635011/pexels-photo-2635011.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'Buenos Aires': 'https://images.pexels.com/photos/8242974/pexels-photo-8242974.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
     'Montevideo': 'https://images.pexels.com/photos/5472862/pexels-photo-5472862.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
     'Milan': 'https://images.pexels.com/photos/1797161/pexels-photo-1797161.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
     'Paris': 'https://images.pexels.com/photos/161853/eiffel-tower-paris-france-tower-161853.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',

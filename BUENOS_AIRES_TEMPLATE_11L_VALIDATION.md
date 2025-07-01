@@ -49,8 +49,8 @@
 
 ### **Layer 5: Data Layer**
 ```sql
--- Buenos Aires Template Validation
-✅ image_url: https://images.pexels.com/photos/2635011/... (Buenos Aires landmark)
+-- Buenos Aires Template Validation (CORRECTED)
+✅ image_url: https://images.pexels.com/photos/8242974/... (AUTHENTIC Buenos Aires Obelisco)
 ✅ coverImage: Matching image_url for consistency
 ✅ member_count: 2 (accurate active member count)
 ✅ type: 'city' (proper group categorization)
