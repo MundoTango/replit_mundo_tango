@@ -30,6 +30,8 @@ interface Post {
     username: string;
     profileImage?: string;
     tangoRoles?: string[];
+    leaderLevel?: number;
+    followerLevel?: number;
   };
   likes?: number;
   comments?: number;
@@ -48,6 +50,8 @@ interface Comment {
     username: string;
     profileImage?: string;
     tangoRoles?: string[];
+    leaderLevel?: number;
+    followerLevel?: number;
   };
 }
 
@@ -374,6 +378,8 @@ export default function PostDetailModal({
               <div className="mb-3">
                 <RoleEmojiDisplay 
                   tangoRoles={post.user.tangoRoles} 
+                  leaderLevel={post.user.leaderLevel}
+                  followerLevel={post.user.followerLevel}
                   fallbackRole="dancer"
                   size="md"
                   maxRoles={4}
@@ -498,6 +504,8 @@ export default function PostDetailModal({
                             </span>
                             <RoleEmojiDisplay 
                               tangoRoles={comment.user.tangoRoles} 
+                              leaderLevel={comment.user.leaderLevel}
+                              followerLevel={comment.user.followerLevel}
                               fallbackRole="dancer"
                               size="sm"
                               maxRoles={3}

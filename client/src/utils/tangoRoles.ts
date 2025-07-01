@@ -13,11 +13,12 @@ export interface TangoRole {
 }
 
 export const TANGO_ROLES: TangoRole[] = [
-  // Dance Roles
+  // Dance Roles - Enhanced with specific dancer categories
   { id: 'dancer', name: 'Dancer', emoji: '💃', description: 'Passionate tango dancer', category: 'dance', priority: 1 },
-  { id: 'leader', name: 'Leader', emoji: '🕺', description: 'Leads in tango dancing', category: 'dance', priority: 2 },
-  { id: 'follower', name: 'Follower', emoji: '💃', description: 'Follows in tango dancing', category: 'dance', priority: 3 },
-  { id: 'teacher', name: 'Teacher', emoji: '🎓', description: 'Teaches tango techniques and steps', category: 'dance', priority: 4 },
+  { id: 'dancer_leader', name: 'Dancer', emoji: '🕺', description: 'Dancer: Leader', category: 'dance', priority: 2 },
+  { id: 'dancer_follower', name: 'Dancer', emoji: '💃', description: 'Dancer: Follower', category: 'dance', priority: 3 },
+  { id: 'dancer_switch', name: 'Dancer', emoji: '🕺💃', description: 'Dancer: Switch', category: 'dance', priority: 4 },
+  { id: 'teacher', name: 'Teacher', emoji: '🎓', description: 'Teaches tango techniques and steps', category: 'dance', priority: 5 },
   { id: 'performer', name: 'Performer', emoji: '🎭', description: 'Performs tango shows and exhibitions', category: 'dance', priority: 5 },
   
   // Music Roles
@@ -75,4 +76,43 @@ export function mapUserRoleToTangoRole(userRole: string): TangoRole {
   
   const tangoRoleId = roleMapping[userRole.toLowerCase()] || 'dancer';
   return getTangoRoleById(tangoRoleId) || TANGO_ROLES[0];
+}
+
+/**
+ * 🎯 11L Enhancement: Process user dancer roles based on leader/follower levels
+ * Automatically converts dancer role with level data to specific dancer categories
+ */
+export function processDancerRoles(tangoRoles: string[], leaderLevel?: number, followerLevel?: number): string[] {
+  if (!tangoRoles || !Array.isArray(tangoRoles)) {
+    return [];
+  }
+
+  const processedRoles = [...tangoRoles];
+  
+  // Find and replace 'dancer' role with specific dancer categories
+  const dancerIndex = processedRoles.indexOf('dancer');
+  if (dancerIndex !== -1) {
+    // Remove generic 'dancer' role
+    processedRoles.splice(dancerIndex, 1);
+    
+    // Determine specific dancer role based on levels
+    const hasLeaderLevel = leaderLevel && leaderLevel > 0;
+    const hasFollowerLevel = followerLevel && followerLevel > 0;
+    
+    if (hasLeaderLevel && hasFollowerLevel) {
+      // Both roles - add switch
+      processedRoles.push('dancer_switch');
+    } else if (hasLeaderLevel) {
+      // Leader only
+      processedRoles.push('dancer_leader');
+    } else if (hasFollowerLevel) {
+      // Follower only
+      processedRoles.push('dancer_follower');
+    } else {
+      // Default to generic dancer if no levels specified
+      processedRoles.push('dancer');
+    }
+  }
+  
+  return processedRoles;
 }

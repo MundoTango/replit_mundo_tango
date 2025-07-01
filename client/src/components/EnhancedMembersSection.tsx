@@ -23,6 +23,8 @@ interface GroupMember {
   joinedAt: string;
   status: string;
   tangoRoles?: string[];
+  leaderLevel?: number;
+  followerLevel?: number;
 }
 
 interface EnhancedMembersSectionProps {
@@ -73,6 +75,8 @@ const MemberCard: React.FC<{ member: EnhancedMember; onClick: () => void }> = ({
         <div className="flex items-center mt-2">
           <RoleEmojiDisplay 
             tangoRoles={member.tangoRoles} 
+            leaderLevel={member.leaderLevel}
+            followerLevel={member.followerLevel}
             fallbackRole="dancer"
             size="lg"
             maxRoles={4}

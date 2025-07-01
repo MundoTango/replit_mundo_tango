@@ -175,6 +175,8 @@ export default function ProfileHead({
               <div className="flex items-center">
                 <RoleEmojiDisplay 
                   tangoRoles={user.tangoRoles} 
+                  leaderLevel={user.leaderLevel}
+                  followerLevel={user.followerLevel}
                   fallbackRole="dancer"
                   size="lg"
                   maxRoles={5}
@@ -223,7 +225,7 @@ export default function ProfileHead({
                         key={i} 
                         className={cn(
                           "w-2 h-2 rounded-full",
-                          i < user.leaderLevel ? "bg-blue-500" : "bg-gray-300"
+                          i < (user.leaderLevel || 0) ? "bg-blue-500" : "bg-gray-300"
                         )} 
                       />
                     ))}
@@ -239,7 +241,7 @@ export default function ProfileHead({
                         key={i} 
                         className={cn(
                           "w-2 h-2 rounded-full",
-                          i < user.followerLevel ? "bg-pink-500" : "bg-gray-300"
+                          i < (user.followerLevel || 0) ? "bg-pink-500" : "bg-gray-300"
                         )} 
                       />
                     ))}

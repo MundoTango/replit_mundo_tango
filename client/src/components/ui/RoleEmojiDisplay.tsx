@@ -4,13 +4,17 @@
  */
 
 import React from 'react';
-import { getTangoRoleById, mapUserRoleToTangoRole, TangoRole } from '@/utils/tangoRoles';
+import { getTangoRoleById, mapUserRoleToTangoRole, TangoRole, processDancerRoles } from '@/utils/tangoRoles';
 
 interface RoleEmojiDisplayProps {
   /** Array of role IDs from user's tangoRoles field */
   tangoRoles?: string[];
   /** Fallback role for users without tangoRoles data */
   fallbackRole?: string;
+  /** User leader level from registration */
+  leaderLevel?: number;
+  /** User follower level from registration */
+  followerLevel?: number;
   /** Size variant for different contexts */
   size?: 'sm' | 'md' | 'lg';
   /** Maximum number of roles to display */
@@ -22,15 +26,20 @@ interface RoleEmojiDisplayProps {
 export const RoleEmojiDisplay: React.FC<RoleEmojiDisplayProps> = ({
   tangoRoles,
   fallbackRole = 'dancer',
+  leaderLevel,
+  followerLevel,
   size = 'md',
   maxRoles = 5,
   className = ''
 }) => {
-  // Determine role objects to display
+  // Determine role objects to display with dancer automation
   const roleObjects: TangoRole[] = React.useMemo(() => {
     if (tangoRoles && tangoRoles.length > 0) {
-      // Map tangoRoles to role objects, filter out undefined, and limit to maxRoles
-      return tangoRoles
+      // Process dancer roles with leader/follower levels
+      const processedRoles = processDancerRoles(tangoRoles, leaderLevel, followerLevel);
+      
+      // Map processed roles to role objects, filter out undefined, and limit to maxRoles
+      return processedRoles
         .map(roleId => getTangoRoleById(roleId))
         .filter((role): role is TangoRole => role !== undefined)
         .slice(0, maxRoles);
@@ -38,7 +47,7 @@ export const RoleEmojiDisplay: React.FC<RoleEmojiDisplayProps> = ({
       // Fallback to mapped role
       return [mapUserRoleToTangoRole(fallbackRole)];
     }
-  }, [tangoRoles, fallbackRole, maxRoles]);
+  }, [tangoRoles, leaderLevel, followerLevel, fallbackRole, maxRoles]);
 
   // Size configurations
   const sizeConfig = {
