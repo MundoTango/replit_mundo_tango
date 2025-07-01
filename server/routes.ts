@@ -5111,24 +5111,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Flatten the response structure to match frontend expectations
+      const groupData = {
+        ...groupWithMembers,
+        isJoined: !!currentUserMembership,
+        userRole: currentUserMembership?.role || undefined,
+        recentEvents: upcomingEvents,
+        recentMemories: recentMemories
+      };
+
       res.json({
         success: true,
-        data: {
-          group: groupWithMembers,
-          recentMemories,
-          upcomingEvents,
-          currentUserMembership,
-          stats: {
-            totalMembers: groupWithMembers.members.length,
-            onlineMembers: 0, // Could be implemented with real-time presence
-            recentlyJoined: groupWithMembers.members.filter(m => {
-              const joinedDate = new Date(m.joinedAt);
-              const weekAgo = new Date();
-              weekAgo.setDate(weekAgo.getDate() - 7);
-              return joinedDate > weekAgo;
-            }).length
-          }
-        }
+        data: groupData
       });
     } catch (error) {
       console.error('Error fetching group details:', error);

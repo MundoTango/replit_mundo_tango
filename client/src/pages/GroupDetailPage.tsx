@@ -123,34 +123,46 @@ const GroupDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Hero Banner with City Photo */}
-      <div className="relative h-64 bg-gradient-to-r from-pink-500 to-purple-600 overflow-hidden">
+      <div className="relative h-80 bg-gradient-to-r from-pink-500 to-purple-600 overflow-hidden">
         {(group.coverImage || group.imageUrl) && (
           <img
             src={group.coverImage || group.imageUrl}
             alt={group.name}
-            className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
+            className="absolute inset-0 w-full h-full object-cover"
           />
         )}
-        <div className="absolute inset-0 bg-black bg-opacity-40" />
-        <div className="relative h-full flex items-end">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        <div className="absolute inset-0 bg-black bg-opacity-50" />
+        
+        {/* City Name Overlay at Top */}
+        <div className="absolute top-8 left-1/2 transform -translate-x-1/2">
+          <div className="text-center">
+            <h2 className="text-5xl font-bold text-white drop-shadow-2xl tracking-wide">
+              {group.city}
+            </h2>
+            <p className="text-xl text-white/90 drop-shadow-lg mt-2 font-medium">
+              {group.country}
+            </p>
+          </div>
+        </div>
+        
+        {/* Group Info at Bottom */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent pt-16 pb-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center space-x-4">
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-4xl shadow-lg">
                 {group.emoji || '🏙️'}
               </div>
               <div className="text-white">
-                <h1 className="text-3xl font-bold">{group.name}</h1>
+                <h1 className="text-3xl font-bold drop-shadow-lg">{group.name}</h1>
                 <div className="flex items-center space-x-4 mt-2">
-                  <div className="flex items-center space-x-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>{group.city}, {group.country}</span>
-                  </div>
                   <div className="flex items-center space-x-1">
                     <Users className="h-4 w-4" />
                     <span>{group.memberCount} members</span>
                   </div>
                   {group.isPrivate && (
-                    <Badge variant="secondary">Private</Badge>
+                    <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                      Private
+                    </Badge>
                   )}
                 </div>
               </div>
