@@ -5299,12 +5299,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const groupName = generateCityGroupName(user.city, user.country);
         const groupDescription = generateCityGroupDescription(user.city, user.country);
 
-        // Import and use dynamic photo service
+        // Import and use enhanced photo service with download capability
         const { CityPhotoService } = await import('./services/cityPhotoService.js');
         
-        console.log(`🔍 Fetching authentic photo for new city group: ${user.city}, ${user.country}`);
-        const cityPhotoUrl = await CityPhotoService.fetchCityPhoto(user.city, user.country || 'Unknown');
-
+        console.log(`🔍 [11L Photo Flow] Starting photo download for new city group: ${user.city}, ${user.country}`);
+        
+        // Create group first to get group ID for photo organization
         cityGroup = await storage.createGroup({
           name: groupName,
           slug: groupSlug,
@@ -5313,19 +5313,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description: groupDescription,
           city: user.city,
           country: user.country || null,
-          imageUrl: cityPhotoUrl, // Dynamic photo from internet
+          imageUrl: null, // Will be updated after photo download
           isPrivate: false,
-          memberCount: 0,
           createdBy: userId
         });
 
-        logGroupAutomation('group_created_with_photo', {
-          groupId: cityGroup.id,
-          city: user.city,
-          country: user.country,
-          photoUrl: cityPhotoUrl,
-          createdBy: userId
-        });
+        // Download and store authentic city photo
+        try {
+          const photoResult = await CityPhotoService.downloadAndStoreCityPhoto(
+            user.city, 
+            user.country || 'Unknown', 
+            cityGroup.id
+          );
+          
+          // Update group with downloaded photo path
+          await storage.updateGroup(cityGroup.id, {
+            imageUrl: photoResult.localPath
+          });
+          
+          console.log(`✅ [11L Photo Flow] Photo stored successfully: ${photoResult.localPath}`);
+          
+          logGroupAutomation('group_created_with_downloaded_photo', {
+            groupId: cityGroup.id,
+            city: user.city,
+            country: user.country,
+            localPath: photoResult.localPath,
+            originalUrl: photoResult.originalUrl,
+            photographer: photoResult.photographer,
+            pexelsId: photoResult.pexelsId,
+            createdBy: userId
+          });
+        } catch (photoError) {
+          console.error(`❌ [11L Photo Flow] Photo download failed for ${user.city}:`, photoError);
+          
+          // Update with fallback photo if download fails
+          const fallbackUrl = 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+          await storage.updateGroup(cityGroup.id, {
+            imageUrl: fallbackUrl
+          });
+          
+          logGroupAutomation('group_created_with_fallback_photo', {
+            groupId: cityGroup.id,
+            city: user.city,
+            country: user.country,
+            fallbackUrl,
+            error: photoError.message,
+            createdBy: userId
+          });
+        }
       }
 
       // Check if user is already a member
