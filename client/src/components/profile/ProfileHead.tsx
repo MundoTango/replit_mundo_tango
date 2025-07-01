@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RoleEmojiDisplay } from '@/components/ui/RoleEmojiDisplay';
 import { 
   MapPin, 
   Calendar, 
@@ -171,15 +172,13 @@ export default function ProfileHead({
               <h1 className="text-3xl font-bold text-gray-900">
                 {user.name}
               </h1>
-              <div className="flex flex-wrap gap-2">
-                {user.tangoRoles?.slice(0, 3).map((role) => (
-                  <RoleBadge key={role} role={role} size="sm" />
-                ))}
-                {user.tangoRoles && user.tangoRoles.length > 3 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{user.tangoRoles.length - 3} more
-                  </Badge>
-                )}
+              <div className="flex items-center">
+                <RoleEmojiDisplay 
+                  tangoRoles={user.tangoRoles} 
+                  fallbackRole="dancer"
+                  size="lg"
+                  maxRoles={5}
+                />
               </div>
             </div>
             

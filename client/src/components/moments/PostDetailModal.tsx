@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { RoleEmojiDisplay } from '@/components/ui/RoleEmojiDisplay';
 import { supabase } from '@/services/supabaseClient';
 import { renderWithMentions } from '@/utils/renderWithMentions';
 
@@ -46,6 +47,7 @@ interface Comment {
     name: string;
     username: string;
     profileImage?: string;
+    tangoRoles?: string[];
   };
 }
 
@@ -368,19 +370,15 @@ export default function PostDetailModal({
                 {renderWithMentions(post.content)}
               </p>
 
-              {/* Role Badges */}
-              {post.user.tangoRoles && post.user.tangoRoles.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {post.user.tangoRoles.slice(0, 3).map((role, index) => (
-                    <span
-                      key={index}
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(role)}`}
-                    >
-                      {role}
-                    </span>
-                  ))}
-                </div>
-              )}
+              {/* Role Emoji Display */}
+              <div className="mb-3">
+                <RoleEmojiDisplay 
+                  tangoRoles={post.user.tangoRoles} 
+                  fallbackRole="dancer"
+                  size="md"
+                  maxRoles={4}
+                />
+              </div>
 
               {/* Hashtags */}
               {post.hashtags && post.hashtags.length > 0 && (
@@ -498,6 +496,12 @@ export default function PostDetailModal({
                             <span className="font-medium text-sm text-gray-900">
                               {comment.user.name}
                             </span>
+                            <RoleEmojiDisplay 
+                              tangoRoles={comment.user.tangoRoles} 
+                              fallbackRole="dancer"
+                              size="sm"
+                              maxRoles={3}
+                            />
                             <span className="text-xs text-gray-500">
                               {formatDistanceToNow(new Date(comment.createdAt))} ago
                             </span>

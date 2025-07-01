@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TANGO_ROLES, ROLE_CATEGORIES, mapUserRoleToTangoRole, getTangoRoleById, TangoRole } from '@/utils/tangoRoles';
+import { RoleEmojiDisplay } from '@/components/ui/RoleEmojiDisplay';
 
 interface GroupMember {
   id: number;
@@ -69,25 +70,13 @@ const MemberCard: React.FC<{ member: EnhancedMember; onClick: () => void }> = ({
         <p className="text-xs text-gray-500 truncate">@{member.username}</p>
         
         {/* Clean emoji-only role indicators with hover tooltips */}
-        <div className="flex items-center space-x-1 mt-2">
-          {member.allTangoRoles && member.allTangoRoles.length > 0 ? (
-            member.allTangoRoles.map((role, index) => (
-              <span
-                key={index}
-                className="text-lg cursor-pointer hover:scale-110 transition-transform"
-                title={`${role.name}: ${role.description}`}
-              >
-                {role.emoji}
-              </span>
-            ))
-          ) : (
-            <span
-              className="text-lg cursor-pointer hover:scale-110 transition-transform"
-              title={`${member.tangoRole.name}: ${member.tangoRole.description}`}
-            >
-              {member.tangoRole.emoji}
-            </span>
-          )}
+        <div className="flex items-center mt-2">
+          <RoleEmojiDisplay 
+            tangoRoles={member.tangoRoles} 
+            fallbackRole="dancer"
+            size="lg"
+            maxRoles={4}
+          />
           
           {member.role !== 'member' && (
             <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 ml-2">

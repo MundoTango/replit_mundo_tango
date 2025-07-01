@@ -10,6 +10,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import PostDetailModal from './PostDetailModal';
 import { renderWithMentions } from '@/utils/renderWithMentions';
+import { RoleEmojiDisplay } from '@/components/ui/RoleEmojiDisplay';
 
 interface Post {
   id: number;
@@ -104,22 +105,15 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
                 )}
               </div>
 
-              {/* Role Badges */}
-              {post.user?.tangoRoles && post.user.tangoRoles.length > 0 && (
-                <div className="flex items-center gap-1 mt-2">
-                  {post.user.tangoRoles.slice(0, 3).map((role, index) => (
-                    <span
-                      key={index}
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(role)}`}
-                    >
-                      {role}
-                    </span>
-                  ))}
-                  {post.user.tangoRoles.length > 3 && (
-                    <span className="text-xs text-gray-500">+{post.user.tangoRoles.length - 3}</span>
-                  )}
-                </div>
-              )}
+              {/* Role Emoji Display */}
+              <div className="mt-2">
+                <RoleEmojiDisplay 
+                  tangoRoles={post.user?.tangoRoles} 
+                  fallbackRole="dancer"
+                  size="md"
+                  maxRoles={4}
+                />
+              </div>
             </div>
           </div>
 

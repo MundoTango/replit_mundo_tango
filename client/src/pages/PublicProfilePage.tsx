@@ -7,6 +7,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import PostCard from "@/components/feed/post-card";
 import { Badge } from "@/components/ui/badge";
 import { getTangoRoleById } from "@/utils/tangoRoles";
+import { RoleEmojiDisplay } from "@/components/ui/RoleEmojiDisplay";
 import { Users } from "lucide-react";
 
 interface PublicUser {
@@ -145,21 +146,13 @@ export default function PublicProfilePage() {
           <Card>
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold mb-4">Tango Roles</h3>
-              <div className="flex flex-wrap gap-2">
-                {userData.tangoRoles.map((roleId, index) => {
-                  const tangoRole = getTangoRoleById(roleId);
-                  if (!tangoRole) return null;
-                  
-                  return (
-                    <Badge
-                      key={index}
-                      variant="outline"
-                      className="bg-pink-50 text-pink-700 border-pink-200"
-                    >
-                      {tangoRole.emoji} {tangoRole.name}: {tangoRole.description}
-                    </Badge>
-                  );
-                })}
+              <div className="flex justify-center">
+                <RoleEmojiDisplay 
+                  tangoRoles={userData.tangoRoles} 
+                  size="lg"
+                  maxRoles={10}
+                  className="justify-center"
+                />
               </div>
             </CardContent>
           </Card>
