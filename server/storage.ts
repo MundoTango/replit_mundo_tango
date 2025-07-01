@@ -475,22 +475,76 @@ export class DatabaseStorage implements IStorage {
   async getFeedPosts(userId: number, limit = 20, offset = 0, filterTags: string[] = []): Promise<Post[]> {
     if (filterTags.length === 0) {
       return await db
-        .select()
+        .select({
+          id: posts.id,
+          userId: posts.userId,
+          content: posts.content,
+          imageUrl: posts.imageUrl,
+          videoUrl: posts.videoUrl,
+          hashtags: posts.hashtags,
+          location: posts.location,
+          isPublic: posts.isPublic,
+          createdAt: posts.createdAt,
+          updatedAt: posts.updatedAt,
+          user: {
+            id: users.id,
+            name: users.nickname, // Use nickname instead of name for display
+            username: users.username,
+            profileImage: users.profileImage,
+            tangoRoles: users.tangoRoles,
+            leaderLevel: users.leaderLevel,
+            followerLevel: users.followerLevel,
+          },
+          likes: sql<number>`COALESCE(COUNT(${postLikes.id}), 0)`.as('likes'),
+          comments: sql<number>`COALESCE(COUNT(${postComments.id}), 0)`.as('comments'),
+          isLiked: sql<boolean>`CASE WHEN COUNT(CASE WHEN ${postLikes.userId} = ${userId} THEN 1 END) > 0 THEN true ELSE false END`.as('isLiked')
+        })
         .from(posts)
+        .leftJoin(users, eq(posts.userId, users.id))
+        .leftJoin(postLikes, eq(posts.id, postLikes.postId))
+        .leftJoin(postComments, eq(posts.id, postComments.postId))
+        .groupBy(posts.id, users.id)
         .orderBy(desc(posts.createdAt))
         .limit(limit)
         .offset(offset);
     }
 
-    // Simple filtering by hashtags for now
+    // Complex filtering with tag support and user data
     return await db
-      .select()
+      .select({
+        id: posts.id,
+        userId: posts.userId,
+        content: posts.content,
+        imageUrl: posts.imageUrl,
+        videoUrl: posts.videoUrl,
+        hashtags: posts.hashtags,
+        location: posts.location,
+        isPublic: posts.isPublic,
+        createdAt: posts.createdAt,
+        updatedAt: posts.updatedAt,
+        user: {
+          id: users.id,
+          name: users.nickname, // Use nickname instead of name for display
+          username: users.username,
+          profileImage: users.profileImage,
+          tangoRoles: users.tangoRoles,
+          leaderLevel: users.leaderLevel,
+          followerLevel: users.followerLevel,
+        },
+        likes: sql<number>`COALESCE(COUNT(${postLikes.id}), 0)`.as('likes'),
+        comments: sql<number>`COALESCE(COUNT(${postComments.id}), 0)`.as('comments'),
+        isLiked: sql<boolean>`CASE WHEN COUNT(CASE WHEN ${postLikes.userId} = ${userId} THEN 1 END) > 0 THEN true ELSE false END`.as('isLiked')
+      })
       .from(posts)
+      .leftJoin(users, eq(posts.userId, users.id))
+      .leftJoin(postLikes, eq(posts.id, postLikes.postId))
+      .leftJoin(postComments, eq(posts.id, postComments.postId))
       .where(
         and(
           ...filterTags.map(tag => sql`${posts.hashtags} @> ARRAY[${tag}]`)
         )
       )
+      .groupBy(posts.id, users.id)
       .orderBy(desc(posts.createdAt))
       .limit(limit)
       .offset(offset);

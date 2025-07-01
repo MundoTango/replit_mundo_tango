@@ -2122,6 +2122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update user profile with basic information
       const updatedUser = await storage.updateUser(user.id, {
         nickname,
+        name: nickname || user.name || user.username, // Use nickname as display name
         languages,
         tangoRoles: selectedRoles || [], // Keep legacy field
         country: location.country,
@@ -2134,8 +2135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         yearsOfDancing: req.body.yearsOfDancing,
         startedDancingYear: req.body.startedDancingYear,
         isOnboardingComplete: false,
-        formStatus: 1,
-        name: user.name || user.username // Update name field instead of displayName
+        formStatus: 1
       });
 
       // Auto-create city group if city is provided and doesn't exist
