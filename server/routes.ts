@@ -5817,5 +5817,294 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============================================================================
+  // GDPR COMPLIANCE API ENDPOINTS
+  // =============================================================================
+
+  // Record user consent
+  app.post('/api/gdpr/consent', isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const { GDPRComplianceService } = await import('./services/gdprComplianceService');
+      
+      await GDPRComplianceService.recordConsent({
+        user_id: userId,
+        ...req.body
+      });
+
+      res.json({
+        success: true,
+        message: 'Consent recorded successfully'
+      });
+    } catch (error) {
+      console.error('Error recording consent:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to record consent'
+      });
+    }
+  });
+
+  // Withdraw user consent
+  app.delete('/api/gdpr/consent/:consentType', isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const { consentType } = req.params;
+      const { GDPRComplianceService } = await import('./services/gdprComplianceService');
+      
+      await GDPRComplianceService.withdrawConsent(userId, consentType);
+
+      res.json({
+        success: true,
+        message: 'Consent withdrawn successfully'
+      });
+    } catch (error) {
+      console.error('Error withdrawing consent:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to withdraw consent'
+      });
+    }
+  });
+
+  // Get user consent status
+  app.get('/api/gdpr/consent/status', isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const { GDPRComplianceService } = await import('./services/gdprComplianceService');
+      
+      const consentStatus = await GDPRComplianceService.getUserConsentStatus(userId);
+
+      res.json({
+        success: true,
+        data: consentStatus
+      });
+    } catch (error) {
+      console.error('Error getting consent status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get consent status'
+      });
+    }
+  });
+
+  // Create data subject rights request
+  app.post('/api/gdpr/data-subject-request', async (req, res) => {
+    try {
+      const { GDPRComplianceService } = await import('./services/gdprComplianceService');
+      
+      const requestId = await GDPRComplianceService.createDataSubjectRequest(req.body);
+
+      res.json({
+        success: true,
+        message: 'Data subject request created successfully',
+        data: { requestId }
+      });
+    } catch (error) {
+      console.error('Error creating data subject request:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create data subject request'
+      });
+    }
+  });
+
+  // Export user data (Article 15 - Right of Access)
+  app.get('/api/gdpr/export-data', isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const { GDPRComplianceService } = await import('./services/gdprComplianceService');
+      
+      const userData = await GDPRComplianceService.exportUserData(userId);
+
+      res.json({
+        success: true,
+        message: 'User data exported successfully',
+        data: userData
+      });
+    } catch (error) {
+      console.error('Error exporting user data:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export user data'
+      });
+    }
+  });
+
+  // Delete user data (Article 17 - Right to Erasure)
+  app.delete('/api/gdpr/delete-data', isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const { keepAuditTrail = true } = req.body;
+      const { GDPRComplianceService } = await import('./services/gdprComplianceService');
+      
+      await GDPRComplianceService.deleteUserData(userId, keepAuditTrail);
+
+      res.json({
+        success: true,
+        message: 'User data deleted successfully'
+      });
+    } catch (error) {
+      console.error('Error deleting user data:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete user data'
+      });
+    }
+  });
+
+  // Admin: Get data subject requests
+  app.get('/api/gdpr/admin/data-subject-requests', isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      
+      // Check if user has admin privileges
+      const { storage } = await import('./storage');
+      const userRoles = await storage.getUserRoles(userId);
+      const hasAdminAccess = userRoles.some(role => 
+        ['admin', 'super_admin', 'dpo'].includes(role.roleName)
+      );
+
+      if (!hasAdminAccess) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { status } = req.query;
+      const { GDPRComplianceService } = await import('./services/gdprComplianceService');
+      
+      const requests = await GDPRComplianceService.getDataSubjectRequests(status as string);
+
+      res.json({
+        success: true,
+        data: requests
+      });
+    } catch (error) {
+      console.error('Error getting data subject requests:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get data subject requests'
+      });
+    }
+  });
+
+  // Admin: Process data subject request
+  app.put('/api/gdpr/admin/data-subject-request/:requestId', isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      
+      // Check if user has admin privileges
+      const { storage } = await import('./storage');
+      const userRoles = await storage.getUserRoles(userId);
+      const hasAdminAccess = userRoles.some(role => 
+        ['admin', 'super_admin', 'dpo'].includes(role.roleName)
+      );
+
+      if (!hasAdminAccess) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { requestId } = req.params;
+      const { status, responseData, rejectionReason, adminNotes } = req.body;
+      const { GDPRComplianceService } = await import('./services/gdprComplianceService');
+      
+      await GDPRComplianceService.processDataSubjectRequest(
+        requestId, 
+        status, 
+        responseData, 
+        rejectionReason, 
+        adminNotes
+      );
+
+      res.json({
+        success: true,
+        message: 'Data subject request processed successfully'
+      });
+    } catch (error) {
+      console.error('Error processing data subject request:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to process data subject request'
+      });
+    }
+  });
+
+  // Admin: Generate compliance report
+  app.get('/api/gdpr/admin/compliance-report', isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      
+      // Check if user has admin privileges
+      const { storage } = await import('./storage');
+      const userRoles = await storage.getUserRoles(userId);
+      const hasAdminAccess = userRoles.some(role => 
+        ['admin', 'super_admin', 'dpo'].includes(role.roleName)
+      );
+
+      if (!hasAdminAccess) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { GDPRComplianceService } = await import('./services/gdprComplianceService');
+      
+      const report = await GDPRComplianceService.generateComplianceReport();
+
+      res.json({
+        success: true,
+        data: report
+      });
+    } catch (error) {
+      console.error('Error generating compliance report:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate compliance report'
+      });
+    }
+  });
+
+  // Admin: Check retention compliance
+  app.get('/api/gdpr/admin/retention-compliance', isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      
+      // Check if user has admin privileges
+      const { storage } = await import('./storage');
+      const userRoles = await storage.getUserRoles(userId);
+      const hasAdminAccess = userRoles.some(role => 
+        ['admin', 'super_admin', 'dpo'].includes(role.roleName)
+      );
+
+      if (!hasAdminAccess) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { GDPRComplianceService } = await import('./services/gdprComplianceService');
+      
+      const issues = await GDPRComplianceService.checkRetentionCompliance();
+
+      res.json({
+        success: true,
+        data: issues
+      });
+    } catch (error) {
+      console.error('Error checking retention compliance:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to check retention compliance'
+      });
+    }
+  });
+
   return server;
 }

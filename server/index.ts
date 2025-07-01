@@ -71,5 +71,17 @@ app.use('/uploads', express.static('uploads'));
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Initialize GDPR Compliance Monitoring
+    try {
+      import('../compliance/monitoring/complianceMonitor').then(({ complianceMonitor }) => {
+        complianceMonitor.startMonitoring();
+        console.log('🔒 Compliance monitoring system initialized');
+      }).catch(error => {
+        console.warn('⚠️ Compliance monitoring initialization failed:', error.message);
+      });
+    } catch (error) {
+      console.warn('⚠️ Compliance monitoring not available');
+    }
   });
 })();
