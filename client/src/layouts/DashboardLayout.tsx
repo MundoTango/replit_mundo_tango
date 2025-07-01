@@ -286,8 +286,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <Settings className="mr-2 h-4 w-4" />
                     View Profile
                   </DropdownMenuItem>
+                  {/* Admin Center - Only visible for admin users */}
+                  {(user?.username === 'admin' || user?.email?.includes('admin')) && (
+                    <DropdownMenuItem onClick={() => setLocation('/admin-center')}>
+                      <Shield className="mr-2 h-4 w-4" />
+                      Admin Center
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={() => setLocation('/settings')}>
-                    <Shield className="mr-2 h-4 w-4" />
+                    <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setLocation('/help')}>
