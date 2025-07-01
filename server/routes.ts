@@ -5761,7 +5761,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // 11L Layer 2: Open Source Scan - Fetch authentic city photo
           console.log(`📸 Fetching authentic photo for ${city}...`);
-          const photoUrl = await fetchCityPhoto(city);
+          const photoResult = await CityPhotoService.fetchCityPhoto(city, country);
+          const photoUrl = photoResult?.url || null;
           
           // 11L Layer 5: Data Layer - Create group with comprehensive metadata
           const groupData = {

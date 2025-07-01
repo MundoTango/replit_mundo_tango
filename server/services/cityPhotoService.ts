@@ -1,224 +1,208 @@
-import fetch from 'node-fetch';
-import fs from 'fs';
-import path from 'path';
-import { promisify } from 'util';
+/**
+ * 🏗️ 11L City Photo Service - Dynamic Photo Fetching for City Groups
+ * Automatically fetches authentic city photos from Pexels API
+ */
 
-const writeFile = promisify(fs.writeFile);
-const mkdir = promisify(fs.mkdir);
+import fetch from 'node-fetch';
+
+interface CityPhoto {
+  url: string;
+  photographer: string;
+  source: string;
+  quality: 'high' | 'medium' | 'low';
+}
 
 interface PexelsPhoto {
   id: number;
-  width: number;
-  height: number;
-  url: string;
   photographer: string;
-  photographer_url: string;
-  photographer_id: number;
-  avg_color: string;
   src: {
-    original: string;
-    large2x: string;
     large: string;
     medium: string;
     small: string;
-    portrait: string;
-    landscape: string;
-    tiny: string;
   };
-  liked: boolean;
   alt: string;
 }
 
-interface PexelsResponse {
-  photos: PexelsPhoto[];
-  total_results: number;
-  page: number;
-  per_page: number;
-  next_page?: string;
-}
-
-interface PhotoDownloadResult {
-  localPath: string;
-  originalUrl: string;
-  photographer: string;
-  pexelsId: number;
-}
-
 export class CityPhotoService {
-  private static readonly PEXELS_API_KEY = process.env.PEXELS_API_KEY || 'demo-key';
-  private static readonly API_BASE = 'https://api.pexels.com/v1';
-  private static readonly UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'group-photos');
+  private static readonly PEXELS_API_KEY = process.env.PEXELS_API_KEY;
+  private static readonly PEXELS_BASE_URL = 'https://api.pexels.com/v1';
   
+  // Layer 5: Data Layer - Curated city photo mappings
+  private static readonly CURATED_PHOTOS = {
+    'Buenos Aires': 'https://images.pexels.com/photos/2635011/pexels-photo-2635011.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'Montevideo': 'https://images.pexels.com/photos/5472862/pexels-photo-5472862.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'Milan': 'https://images.pexels.com/photos/1797161/pexels-photo-1797161.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'Paris': 'https://images.pexels.com/photos/161853/eiffel-tower-paris-france-tower-161853.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'Warsaw': 'https://images.pexels.com/photos/1477430/pexels-photo-1477430.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'São Paulo': 'https://images.pexels.com/photos/3619595/pexels-photo-3619595.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'San Francisco': 'https://images.pexels.com/photos/208745/pexels-photo-208745.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'Rosario': 'https://images.pexels.com/photos/2635011/pexels-photo-2635011.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop'
+  };
+
+  private static readonly DEFAULT_FALLBACK = 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop';
+
   /**
-   * Download and store authentic high-resolution city photo from Pexels API
-   * @param city - City name (e.g., "São Paulo", "Buenos Aires")
-   * @param country - Country name (e.g., "Brazil", "Argentina")
-   * @param groupId - Group ID for file organization
-   * @returns Promise<PhotoDownloadResult> - Local file path and metadata
+   * Layer 6: Backend Layer - Fetch city photo from Pexels API
    */
-  static async downloadAndStoreCityPhoto(city: string, country: string, groupId: number): Promise<PhotoDownloadResult> {
+  static async fetchCityPhoto(cityName: string, country?: string): Promise<CityPhoto | null> {
     try {
-      console.log(`🔍 [11L Photo Flow] Starting photo download for ${city}, ${country} (Group ID: ${groupId})`);
+      // Layer 4: UX Safeguards - Check curated photos first
+      if (this.CURATED_PHOTOS[cityName]) {
+        console.log(`🎯 Using curated photo for ${cityName}`);
+        return {
+          url: this.CURATED_PHOTOS[cityName],
+          photographer: 'Pexels Curated',
+          source: 'pexels',
+          quality: 'high'
+        };
+      }
+
+      // Layer 9: Security - Validate API key
+      if (!this.PEXELS_API_KEY) {
+        console.log('⚠️ Pexels API key not configured, using curated fallback');
+        return this.getFallbackPhoto(cityName);
+      }
+
+      // Layer 10: AI & Reasoning - Build intelligent search query
+      const searchQuery = this.buildSearchQuery(cityName, country);
       
-      // Create search query with city landmarks and architecture keywords
-      const searchQuery = `${city} ${country} skyline landmark architecture cityscape`;
-      const encodedQuery = encodeURIComponent(searchQuery);
-      
+      console.log(`🔍 Searching Pexels for: "${searchQuery}"`);
+
       const response = await fetch(
-        `${this.API_BASE}/search?query=${encodedQuery}&per_page=10&size=large`,
+        `${this.PEXELS_BASE_URL}/search?query=${encodeURIComponent(searchQuery)}&per_page=5&orientation=landscape`,
         {
           headers: {
             'Authorization': this.PEXELS_API_KEY,
-            'User-Agent': 'Mundo-Tango-City-Photos/1.0'
+            'User-Agent': 'MundoTango/1.0'
           }
         }
       );
 
       if (!response.ok) {
-        console.warn(`⚠️ Pexels API error ${response.status}: ${response.statusText}`);
         throw new Error(`Pexels API error: ${response.status}`);
       }
 
-      const data = await response.json() as PexelsResponse;
+      const data = await response.json() as { photos: PexelsPhoto[] };
       
       if (data.photos && data.photos.length > 0) {
-        // Get the best quality photo (large or landscape format)
-        const bestPhoto = data.photos[0];
+        const photo = data.photos[0];
+        console.log(`✅ Found photo for ${cityName} by ${photo.photographer}`);
         
-        console.log(`✅ Found authentic ${city} photo by ${bestPhoto.photographer}`);
-        
-        // Download and store the photo locally
-        const downloadResult = await this.downloadPhotoToLocal(bestPhoto, city, country, groupId);
-        console.log(`💾 [11L Photo Flow] Photo downloaded and stored: ${downloadResult.localPath}`);
-        
-        return downloadResult;
-      } else {
-        console.warn(`⚠️ No photos found for ${city}, ${country}`);
-        throw new Error('No photos found');
+        return {
+          url: photo.src.large,
+          photographer: photo.photographer,
+          source: 'pexels',
+          quality: 'high'
+        };
       }
-      
+
+      // Layer 4: UX Safeguards - Fallback to curated photo
+      return this.getFallbackPhoto(cityName);
+
     } catch (error) {
-      console.error(`❌ Error in photo download workflow for ${city}, ${country}:`, error);
-      
-      // Return fallback result structure
-      const fallbackUrl = this.getFallbackPhoto(city, country);
-      return {
-        localPath: fallbackUrl,
-        originalUrl: fallbackUrl,
-        photographer: 'Mundo Tango',
-        pexelsId: 0
-      };
+      console.error(`❌ Error fetching photo for ${cityName}:`, error);
+      return this.getFallbackPhoto(cityName);
     }
   }
 
   /**
-   * Download photo from Pexels and store locally
+   * Layer 10: AI & Reasoning - Build intelligent search query
    */
-  private static async downloadPhotoToLocal(photo: PexelsPhoto, city: string, country: string, groupId: number): Promise<PhotoDownloadResult> {
-    try {
-      // Ensure upload directory exists
-      await this.ensureUploadDirectory();
-      
-      // Generate unique filename
-      const timestamp = Date.now();
-      const photoExtension = 'jpg'; // Pexels photos are typically JPEG
-      const filename = `group-${groupId}-${city.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.${photoExtension}`;
-      const localPath = path.join(this.UPLOAD_DIR, filename);
-      
-      console.log(`📥 Downloading photo from: ${photo.src.large}`);
-      
-      // Download the photo
-      const photoResponse = await fetch(photo.src.large);
-      if (!photoResponse.ok) {
-        throw new Error(`Failed to download photo: ${photoResponse.status}`);
-      }
-      
-      // Get photo buffer
-      const photoBuffer = await photoResponse.buffer();
-      
-      // Save to local file system
-      await writeFile(localPath, photoBuffer);
-      
-      console.log(`💾 Photo saved to: ${localPath}`);
-      
-      return {
-        localPath: `/uploads/group-photos/${filename}`, // Relative path for web serving
-        originalUrl: photo.src.large,
-        photographer: photo.photographer,
-        pexelsId: photo.id
-      };
-      
-    } catch (error) {
-      console.error('❌ Error downloading photo to local storage:', error);
-      throw error;
+  private static buildSearchQuery(cityName: string, country?: string): string {
+    const cityKeywords = [
+      cityName,
+      `${cityName} skyline`,
+      `${cityName} landmark`,
+      `${cityName} architecture`
+    ];
+
+    if (country) {
+      cityKeywords.push(`${cityName} ${country}`);
     }
+
+    // Return the most specific query first
+    return country ? `${cityName} ${country} landmark` : `${cityName} skyline`;
   }
 
   /**
-   * Ensure upload directory exists
+   * Layer 4: UX Safeguards - Fallback photo system
    */
-  private static async ensureUploadDirectory(): Promise<void> {
-    try {
-      await mkdir(this.UPLOAD_DIR, { recursive: true });
-    } catch (error) {
-      // Directory might already exist, ignore error
-      console.log('📁 Upload directory ready');
-    }
-  }
-
-  /**
-   * Get curated fallback photo for major cities
-   */
-  private static getFallbackPhoto(city: string, country: string): string {
-    const cityKey = `${city}-${country}`;
+  private static getFallbackPhoto(cityName: string): CityPhoto {
+    // Try to find a regional fallback
+    const fallbackUrl = this.CURATED_PHOTOS[cityName] || this.DEFAULT_FALLBACK;
     
-    // Curated high-quality city photos as fallbacks
-    const fallbackPhotos: Record<string, string> = {
-      'São Paulo-Brazil': 'https://images.pexels.com/photos/161159/sao-paulo-brazil-skyline-skyscrapers-161159.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      'Buenos Aires-Argentina': 'https://images.pexels.com/photos/7061662/pexels-photo-7061662.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      'San Francisco-USA': 'https://images.pexels.com/photos/208745/pexels-photo-208745.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      'Paris-France': 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      'Milan-Italy': 'https://images.pexels.com/photos/1797161/pexels-photo-1797161.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      'Warsaw-Poland': 'https://images.pexels.com/photos/5477857/pexels-photo-5477857.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      'Montevideo-Uruguay': 'https://images.pexels.com/photos/8828678/pexels-photo-8828678.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      'Rosario-Argentina': 'https://images.pexels.com/photos/7205933/pexels-photo-7205933.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
+    return {
+      url: fallbackUrl,
+      photographer: 'Curated Collection',
+      source: 'fallback',
+      quality: 'medium'
     };
-    
-    const fallback = fallbackPhotos[cityKey];
-    if (fallback) {
-      console.log(`📸 Using curated fallback photo for ${cityKey}`);
-      return fallback;
-    }
-    
-    // Generic city skyline as ultimate fallback
-    console.log(`🏙️ Using generic city photo for ${cityKey}`);
-    return 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
   }
 
   /**
-   * Backward compatibility: Fetch city photo URL (legacy method)
-   * @deprecated Use downloadAndStoreCityPhoto instead
+   * Layer 8: Automation Layer - Batch update photos for existing groups
    */
-  static async fetchCityPhoto(city: string, country: string): Promise<string> {
+  static async updateAllGroupPhotos(storage: any): Promise<void> {
+    console.log('🔄 Starting batch photo update for all city groups...');
+    
     try {
-      // Use the new download method but return just the URL for compatibility
-      const result = await this.downloadAndStoreCityPhoto(city, country, 0);
-      return result.localPath;
+      // Get all city groups without photos
+      const groups = await storage.db.select().from(storage.schema.groups)
+        .where(storage.eq(storage.schema.groups.type, 'city'));
+
+      console.log(`📋 Found ${groups.length} city groups to process`);
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const group of groups) {
+        try {
+          console.log(`\n🔍 Processing ${group.name} (${group.city}, ${group.country})`);
+          
+          const photo = await this.fetchCityPhoto(group.city, group.country);
+          
+          if (photo) {
+            await storage.db.update(storage.schema.groups)
+              .set({ 
+                imageUrl: photo.url,
+                coverImage: photo.url
+              })
+              .where(storage.eq(storage.schema.groups.id, group.id));
+            
+            console.log(`✅ Updated photo for ${group.name}`);
+            successCount++;
+          } else {
+            console.log(`⚠️ No photo found for ${group.name}`);
+            errorCount++;
+          }
+          
+          // Layer 9: Security - Rate limiting
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+        } catch (error) {
+          console.error(`❌ Error updating ${group.name}:`, error);
+          errorCount++;
+        }
+      }
+
+      console.log(`\n📊 Batch update complete: ${successCount} success, ${errorCount} errors`);
+      
     } catch (error) {
-      console.error(`❌ Legacy fetchCityPhoto error for ${city}, ${country}:`, error);
-      return this.getFallbackPhoto(city, country);
+      console.error('❌ Batch update failed:', error);
     }
   }
 
   /**
-   * Cache photo URL in database to avoid repeated API calls
+   * Layer 11: Testing & Observability - Validate photo URLs
    */
-  static async cachePhotoUrl(groupId: number, photoUrl: string, storage: any): Promise<void> {
+  static async validatePhotoUrl(url: string): Promise<boolean> {
     try {
-      await storage.updateGroup(groupId, { imageUrl: photoUrl });
-      console.log(`💾 Cached photo URL for group ${groupId}`);
-    } catch (error) {
-      console.error(`❌ Error caching photo URL:`, error);
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.ok && response.headers.get('content-type')?.startsWith('image/');
+    } catch {
+      return false;
     }
   }
 }
+
+export default CityPhotoService;
