@@ -57,6 +57,18 @@ export const GroupAdminToolbar: React.FC<GroupAdminToolbarProps> = ({ group, onU
   }
 
   const adminPermissions = {
+    super_admin: {
+      canModifyGroup: true,
+      canManageMembers: true,
+      canDeleteContent: true,
+      canChangeSettings: true,
+      canPromoteMembers: true,
+      canViewAnalytics: true,
+      canManageEvents: true,
+      canModerateContent: true,
+      canDeleteGroup: true,
+      canTransferOwnership: true
+    },
     admin: {
       canModifyGroup: true,
       canManageMembers: true,
@@ -65,7 +77,33 @@ export const GroupAdminToolbar: React.FC<GroupAdminToolbarProps> = ({ group, onU
       canPromoteMembers: true,
       canViewAnalytics: true,
       canManageEvents: true,
-      canModerateContent: true
+      canModerateContent: true,
+      canDeleteGroup: false,
+      canTransferOwnership: false
+    },
+    city_admin: {
+      canModifyGroup: true,
+      canManageMembers: true,
+      canDeleteContent: true,
+      canChangeSettings: true,
+      canPromoteMembers: true,
+      canViewAnalytics: true,
+      canManageEvents: true,
+      canModerateContent: true,
+      canDeleteGroup: false,
+      canTransferOwnership: false
+    },
+    group_admin: {
+      canModifyGroup: true,
+      canManageMembers: true,
+      canDeleteContent: true,
+      canChangeSettings: true,
+      canPromoteMembers: true,
+      canViewAnalytics: true,
+      canManageEvents: true,
+      canModerateContent: true,
+      canDeleteGroup: false,
+      canTransferOwnership: false
     },
     moderator: {
       canModifyGroup: false,
@@ -75,7 +113,21 @@ export const GroupAdminToolbar: React.FC<GroupAdminToolbarProps> = ({ group, onU
       canPromoteMembers: false,
       canViewAnalytics: true,
       canManageEvents: true,
-      canModerateContent: true
+      canModerateContent: true,
+      canDeleteGroup: false,
+      canTransferOwnership: false
+    },
+    group_moderator: {
+      canModifyGroup: false,
+      canManageMembers: true,
+      canDeleteContent: true,
+      canChangeSettings: false,
+      canPromoteMembers: false,
+      canViewAnalytics: true,
+      canManageEvents: true,
+      canModerateContent: true,
+      canDeleteGroup: false,
+      canTransferOwnership: false
     }
   };
 
