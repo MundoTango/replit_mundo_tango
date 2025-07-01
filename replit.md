@@ -750,6 +750,7 @@ Changelog:
   * Fixed backend authentication middleware to properly convert Replit OAuth sessions to database users with role validation
   * Verified data accuracy: AdminCenter displays authentic statistics (11 users, 33 events) matching actual database content
   * Updated App.tsx routing to use single /admin route pointing to consolidated AdminCenter component
+  * Fixed DashboardLayout.tsx Admin Center dropdown navigation from obsolete /admin-center to correct /admin route
   * Admin portal now fully functional with working API endpoints, accurate data display, and intuitive navigation
   * Complete RBAC/ABAC system operational with proper admin role authentication and secure access control
 ```

@@ -288,7 +288,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </DropdownMenuItem>
                   {/* Admin Center - Only visible for admin users */}
                   {(user?.username === 'admin' || user?.email?.includes('admin')) && (
-                    <DropdownMenuItem onClick={() => setLocation('/admin-center')}>
+                    <DropdownMenuItem onClick={() => setLocation('/admin')}>
                       <Shield className="mr-2 h-4 w-4" />
                       Admin Center
                     </DropdownMenuItem>
