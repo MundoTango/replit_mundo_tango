@@ -54,6 +54,7 @@ interface GroupDetail {
   memberCount: number;
   isPrivate: boolean;
   coverImage?: string;
+  imageUrl?: string; // City photo URL for backward compatibility
   emoji: string;
   isJoined: boolean;
   userRole?: string;
@@ -121,11 +122,11 @@ const GroupDetailPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Hero Banner */}
+      {/* Hero Banner with City Photo */}
       <div className="relative h-64 bg-gradient-to-r from-pink-500 to-purple-600 overflow-hidden">
-        {group.coverImage && (
+        {(group.coverImage || group.imageUrl) && (
           <img
-            src={group.coverImage}
+            src={group.coverImage || group.imageUrl}
             alt={group.name}
             className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
           />

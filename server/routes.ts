@@ -4838,6 +4838,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const groupName = generateCityGroupName(city, country);
         const groupDescription = generateCityGroupDescription(city, country);
 
+        // Import city photo service for authentic photo fetching
+        const { CityPhotoService } = await import('./services/cityPhotoService.js');
+        
+        // Create group first to get group ID
         cityGroup = await storage.createGroup({
           name: groupName,
           slug: groupSlug,
@@ -4847,8 +4851,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           city: city,
           country: country || null,
           isPrivate: false,
-          createdBy: userId
+          createdBy: userId,
+          imageUrl: null // Will be updated with city photo
         });
+
+        // Fetch and set authentic city photo as coverImage
+        try {
+          const photoResult = await CityPhotoService.downloadAndStoreCityPhoto(
+            city, 
+            country || 'Unknown', 
+            cityGroup.id
+          );
+          
+          // Update group with both imageUrl and coverImage pointing to the same photo
+          await storage.updateGroup(cityGroup.id, { 
+            imageUrl: photoResult.localPath,
+            coverImage: photoResult.localPath
+          });
+          
+          console.log(`✅ City group ${groupName} created with authentic photo: ${photoResult.localPath}`);
+          
+        } catch (photoError) {
+          console.warn(`⚠️ Photo fetch failed for ${groupName}, using fallback:`, photoError);
+          const fallbackUrl = 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+          await storage.updateGroup(cityGroup.id, { 
+            imageUrl: fallbackUrl,
+            coverImage: fallbackUrl
+          });
+        }
 
         logGroupAutomation('Group Created', {
           groupId: cityGroup.id,
@@ -5326,9 +5356,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             cityGroup.id
           );
           
-          // Update group with downloaded photo path
+          // Update group with downloaded photo path for both imageUrl and coverImage
           await storage.updateGroup(cityGroup.id, {
-            imageUrl: photoResult.localPath
+            imageUrl: photoResult.localPath,
+            coverImage: photoResult.localPath
           });
           
           console.log(`✅ [11L Photo Flow] Photo stored successfully: ${photoResult.localPath}`);

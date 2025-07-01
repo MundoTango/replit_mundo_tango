@@ -770,6 +770,7 @@ export const groups = pgTable("groups", {
   type: varchar("type", { length: 50 }).notNull().default("city"), // city, community, interest, etc.
   emoji: varchar("emoji", { length: 10 }).default("🏙️"),
   imageUrl: text("image_url"),
+  coverImage: text("coverImage"), // Cover photo for group detail pages
   description: text("description"),
   isPrivate: boolean("is_private").default(false),
   city: varchar("city", { length: 100 }),
