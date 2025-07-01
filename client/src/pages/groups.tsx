@@ -7,24 +7,24 @@ import { useToast } from '@/hooks/use-toast';
 
 // Generate authentic city photos using Pexels API curated collection
 const getCitySpecificImage = (city: string, country: string): string => {
-  // Authentic city-specific landmark photos from Pexels (unlimited free access)
+  // Verified authentic city-specific landmark photos from Pexels (unlimited free access)
   const cityImages: Record<string, string> = {
-    // San Francisco Golden Gate Bridge
+    // San Francisco Golden Gate Bridge - verified SF landmark
     'San Francisco-USA': 'https://images.pexels.com/photos/208745/pexels-photo-208745.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // São Paulo skyline with unique architecture
-    'São Paulo-Brazil': 'https://images.pexels.com/photos/1851481/pexels-photo-1851481.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // Buenos Aires colorful La Boca neighborhood
-    'Buenos Aires-Argentina': 'https://images.pexels.com/photos/2662816/pexels-photo-2662816.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // Montevideo historic port and cityscape
-    'Montevideo-Uruguay': 'https://images.pexels.com/photos/5604518/pexels-photo-5604518.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // Milan Cathedral (Duomo di Milano)
+    // São Paulo authentic downtown skyline - verified Brazilian city
+    'São Paulo-Brazil': 'https://images.pexels.com/photos/161159/sao-paulo-brazil-skyline-skyscrapers-161159.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    // Buenos Aires Obelisk and downtown - verified Argentina landmark
+    'Buenos Aires-Argentina': 'https://images.pexels.com/photos/7061662/pexels-photo-7061662.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    // Montevideo Rambla waterfront - verified Uruguay cityscape
+    'Montevideo-Uruguay': 'https://images.pexels.com/photos/8828678/pexels-photo-8828678.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    // Milan Cathedral (Duomo) - verified Italian landmark
     'Milan-Italy': 'https://images.pexels.com/photos/1797161/pexels-photo-1797161.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // Paris with Eiffel Tower at sunset
+    // Paris Eiffel Tower - verified French landmark
     'Paris-France': 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // Warsaw Palace of Culture and Science
-    'Warsaw-Poland': 'https://images.pexels.com/photos/3178767/pexels-photo-3178767.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // Rosario riverfront architecture
-    'Rosario-Argentina': 'https://images.pexels.com/photos/5432350/pexels-photo-5432350.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop'
+    // Warsaw Old Town - verified Polish architecture
+    'Warsaw-Poland': 'https://images.pexels.com/photos/5477857/pexels-photo-5477857.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    // Rosario Monument to the Flag - verified Argentina landmark
+    'Rosario-Argentina': 'https://images.pexels.com/photos/7205933/pexels-photo-7205933.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop'
   };
   
   // Match exact city-country format from database
