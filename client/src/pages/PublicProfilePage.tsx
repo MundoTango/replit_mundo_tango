@@ -31,9 +31,9 @@ export default function PublicProfilePage() {
 
   // Fetch public user profile
   const { data: userData, isLoading: userLoading, error } = useQuery({
-    queryKey: ['/api/user/public-profile', username],
+    queryKey: ['/api/public-profile', username],
     queryFn: async () => {
-      const response = await fetch(`/api/user/public-profile/${username}`, {
+      const response = await fetch(`/api/public-profile/${username}`, {
         credentials: 'include'
       });
       

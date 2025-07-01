@@ -78,8 +78,9 @@ const MemberCard: React.FC<{ member: EnhancedMember; onClick: () => void }> = ({
           <Badge 
             variant="outline" 
             className={`text-xs ${ROLE_CATEGORIES[member.tangoRole.category]?.color || 'bg-gray-100 text-gray-800'}`}
+            title={member.tangoRole.description}
           >
-            {member.tangoRole.name}
+            {member.tangoRole.emoji} {member.tangoRole.name}: {member.tangoRole.description}
           </Badge>
           {member.role !== 'member' && (
             <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">

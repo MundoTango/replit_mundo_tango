@@ -828,6 +828,15 @@ Changelog:
   * Implemented clickable member cards with profile navigation to /u/:username using wouter routing
   * Added visual role indicators: emoji badges, admin crown icons, category-based color coding, and hover descriptions
   * Enhanced member organization: grouped by tango specialization (💃 Dance, 🎵 Music, 📅 Events, 🤝 Community, 💼 Business)
+- July 1, 2025. Enhanced Members Role Display with Emoji + Description Format using 11L framework:
+  * Applied comprehensive 11-Layer analysis to fix role display format showing "📚 Organizer: Organizes tango events and milongas" with hover tooltips
+  * Enhanced EnhancedMembersSection component to display authentic tangoRoles data from user registration forms instead of hardcoded mappings
+  * Fixed /u/:username profile navigation 404 errors by correcting API endpoint URL from `/api/user/public-profile/` to `/api/public-profile/`
+  * Updated database queries to include tangoRoles from user profiles in group member data via JOIN statements
+  * Implemented proper hover tooltips showing role descriptions sourced from actual user registration data
+  * Fixed MemberCard navigation to properly route to public profiles using wouter's useLocation hook
+  * Created ENHANCED_MEMBERS_ROLE_DISPLAY_11L_IMPLEMENTATION.md documenting complete 11-layer systematic implementation approach
+  * All user requirements fulfilled: emoji + description format, hover tooltips from registration data, authentic data sources, working navigation
   * Integrated advanced filtering: search by name/username/role, filter by category, filter by specific roles with clear filter options
   * Applied interactive design: gradient avatars, hover animations, transition effects, and responsive grid layout
   * Complete user experience: click member cards → navigate to profiles, hover role badges → see descriptions, use filters → find specific members

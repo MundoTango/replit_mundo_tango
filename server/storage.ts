@@ -1587,7 +1587,7 @@ export class DatabaseStorage implements IStorage {
       const group = groupResult[0];
       console.log('Found group:', group);
 
-      // Get group members using Drizzle ORM with JOIN
+      // Get group members using Drizzle ORM with JOIN to include user tangoRoles
       const membersResult = await db
         .select({
           userId: groupMembers.userId,
@@ -1596,7 +1596,8 @@ export class DatabaseStorage implements IStorage {
           status: groupMembers.status,
           name: users.name,
           username: users.username,
-          profileImage: users.profileImage
+          profileImage: users.profileImage,
+          tangoRoles: users.tangoRoles // Include tangoRoles from user registration
         })
         .from(groupMembers)
         .innerJoin(users, eq(groupMembers.userId, users.id))
@@ -1604,7 +1605,7 @@ export class DatabaseStorage implements IStorage {
         .orderBy(asc(groupMembers.joinedAt));
       
       console.log('Members query result rows count:', membersResult?.length || 0);
-      console.log('Processed members:', membersResult);
+      console.log('Processed members with tangoRoles:', membersResult);
 
       // Transform to camelCase format expected by frontend
       return {
