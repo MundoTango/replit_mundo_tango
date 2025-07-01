@@ -142,6 +142,55 @@ export default function GroupsPage() {
             >
               🌆 Fix Photos
             </button>
+            <button 
+              onClick={async () => {
+                try {
+                  const testCity = prompt('Enter a test city (e.g., "Tokyo", "Berlin"):');
+                  const testCountry = prompt('Enter the country (e.g., "Japan", "Germany"):');
+                  
+                  if (!testCity) return;
+                  
+                  console.log(`🧪 Testing 11-Layer flow for: ${testCity}, ${testCountry}`);
+                  
+                  const response = await fetch('/api/test/complete-signup-flow', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ testCity, testCountry })
+                  });
+                  
+                  const result = await response.json();
+                  console.log('🎯 11-Layer test result:', result);
+                  
+                  // Refresh groups data
+                  queryClient.invalidateQueries({ queryKey: ['/api/groups'] });
+                  
+                  if (result.success) {
+                    const flowData = result.data.flowResult.data;
+                    toast({
+                      title: "11-Layer Flow Complete!",
+                      description: `${flowData.wasGroupCreated ? 'Created new group with' : 'Used existing group with'} ${flowData.photoFetched ? 'authentic' : 'fallback'} photo for ${testCity}`,
+                      variant: "default",
+                    });
+                  } else {
+                    toast({
+                      title: "Test Failed",
+                      description: result.message || "Could not complete 11-layer test",
+                      variant: "destructive",
+                    });
+                  }
+                } catch (error) {
+                  console.error('💥 11-Layer test failed:', error);
+                  toast({
+                    title: "Test Failed",
+                    description: "Could not complete signup flow test",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              className="rounded-xl bg-gradient-to-r from-green-500 to-teal-600 text-sm font-bold text-white flex items-center justify-center gap-2 px-4 h-10"
+            >
+              🧪 Test 11L Flow
+            </button>
             <button className="rounded-xl bg-btn-color text-sm font-bold text-white flex items-center justify-center gap-2 px-6 h-10">
               <Plus className="h-4 w-4" />
               Create Group
