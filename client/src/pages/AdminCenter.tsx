@@ -17,7 +17,17 @@ import {
   Lock,
   Globe,
   Zap,
-  ArrowLeft
+  ArrowLeft,
+  Calendar,
+  AlertCircle,
+  Ban,
+  UserX,
+  MessageSquare,
+  Flag,
+  Monitor,
+  Server,
+  HardDrive,
+  Wifi
 } from 'lucide-react';
 
 interface AdminStats {
@@ -75,6 +85,10 @@ const AdminCenter: React.FC = () => {
   const tabs = [
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
+    { id: 'content', label: 'Content Moderation', icon: <FileText className="w-4 h-4" /> },
+    { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="w-4 h-4" /> },
+    { id: 'events', label: 'Event Management', icon: <Calendar className="w-4 h-4" /> },
+    { id: 'reports', label: 'Reports & Logs', icon: <Eye className="w-4 h-4" /> },
     { id: 'compliance', label: 'Compliance Center', icon: <Shield className="w-4 h-4" /> },
     { id: 'system', label: 'System Health', icon: <Activity className="w-4 h-4" /> },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
@@ -337,29 +351,499 @@ const AdminCenter: React.FC = () => {
     </div>
   );
 
-  const renderUsers = () => (
+  const renderUserManagement = () => (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-900">User Management</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">User Management</h2>
+        <div className="flex gap-3">
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <Users className="w-4 h-4 inline mr-2" />
+            Export Users
+          </button>
+        </div>
+      </div>
+
+      {/* User Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <StatCard
+          title="Total Users"
+          value={stats?.totalUsers || 0}
+          icon={<Users className="w-5 h-5" />}
+          bgColor="bg-blue-50"
+        />
+        <StatCard
+          title="Active Today"
+          value={stats?.activeUsers || 0}
+          icon={<Activity className="w-5 h-5" />}
+          bgColor="bg-green-50"
+        />
+        <StatCard
+          title="Suspended"
+          value="3"
+          icon={<Ban className="w-5 h-5" />}
+          bgColor="bg-red-50"
+        />
+        <StatCard
+          title="Pending Approval"
+          value="7"
+          icon={<Clock className="w-5 h-5" />}
+          bgColor="bg-yellow-50"
+        />
+      </div>
+
+      {/* User Actions */}
       <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <p className="text-gray-600">User management interface coming soon...</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <UserX className="w-5 h-5 text-orange-600" />
+            <div className="text-left">
+              <div className="font-medium">Moderate Users</div>
+              <div className="text-sm text-gray-500">Review flagged accounts</div>
+            </div>
+          </button>
+          <button className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <Shield className="w-5 h-5 text-blue-600" />
+            <div className="text-left">
+              <div className="font-medium">Manage Roles</div>
+              <div className="text-sm text-gray-500">Assign admin permissions</div>
+            </div>
+          </button>
+          <button className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <Database className="w-5 h-5 text-green-600" />
+            <div className="text-left">
+              <div className="font-medium">Bulk Operations</div>
+              <div className="text-sm text-gray-500">Mass user actions</div>
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   );
 
-  const renderSystem = () => (
+  const renderContentModeration = () => (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-900">System Health</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">Content Moderation</h2>
+        <div className="flex gap-3">
+          <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+            <Flag className="w-4 h-4 inline mr-2" />
+            Review Reports
+          </button>
+        </div>
+      </div>
+
+      {/* Content Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <StatCard
+          title="Total Posts"
+          value={stats?.totalPosts || 0}
+          icon={<FileText className="w-5 h-5" />}
+          bgColor="bg-blue-50"
+        />
+        <StatCard
+          title="Flagged Content"
+          value="12"
+          icon={<Flag className="w-5 h-5" />}
+          bgColor="bg-red-50"
+        />
+        <StatCard
+          title="Auto-Moderated"
+          value="89"
+          icon={<Shield className="w-5 h-5" />}
+          bgColor="bg-green-50"
+        />
+        <StatCard
+          title="Appeals"
+          value="4"
+          icon={<MessageSquare className="w-5 h-5" />}
+          bgColor="bg-yellow-50"
+        />
+      </div>
+
+      {/* Recent Reports */}
       <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <p className="text-gray-600">System monitoring dashboard coming soon...</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Reports</h3>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+              <div>
+                <div className="font-medium">Inappropriate content reported</div>
+                <div className="text-sm text-gray-500">Post ID: #1234 • 2 hours ago</div>
+              </div>
+            </div>
+            <button className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700">
+              Review
+            </button>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5 text-yellow-600" />
+              <div>
+                <div className="font-medium">Spam detection triggered</div>
+                <div className="text-sm text-gray-500">User: @user123 • 4 hours ago</div>
+              </div>
+            </div>
+            <button className="px-3 py-1 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700">
+              Review
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderAnalytics = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">Platform Analytics</h2>
+        <div className="flex gap-3">
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <TrendingUp className="w-4 h-4 inline mr-2" />
+            Export Report
+          </button>
+        </div>
+      </div>
+
+      {/* Analytics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard
+          title="Daily Active Users"
+          value="2,847"
+          subtitle="+12% from yesterday"
+          icon={<Users className="w-5 h-5" />}
+          trend="+12%"
+          bgColor="bg-green-50"
+        />
+        <StatCard
+          title="Page Views"
+          value="18,392"
+          subtitle="+8.2% from last week"
+          icon={<Eye className="w-5 h-5" />}
+          trend="+8.2%"
+          bgColor="bg-blue-50"
+        />
+        <StatCard
+          title="Engagement Rate"
+          value="74.3%"
+          subtitle="+2.1% improvement"
+          icon={<TrendingUp className="w-5 h-5" />}
+          trend="+2.1%"
+          bgColor="bg-purple-50"
+        />
+      </div>
+
+      {/* Geographic Analytics */}
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Locations</h3>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Globe className="w-4 h-4 text-blue-600" />
+              <span>Buenos Aires, Argentina</span>
+            </div>
+            <span className="text-sm text-gray-500">1,247 users</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Globe className="w-4 h-4 text-blue-600" />
+              <span>Barcelona, Spain</span>
+            </div>
+            <span className="text-sm text-gray-500">892 users</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Globe className="w-4 h-4 text-blue-600" />
+              <span>Paris, France</span>
+            </div>
+            <span className="text-sm text-gray-500">634 users</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderEventManagement = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">Event Management</h2>
+        <div className="flex gap-3">
+          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+            <Calendar className="w-4 h-4 inline mr-2" />
+            Create Event
+          </button>
+        </div>
+      </div>
+
+      {/* Event Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <StatCard
+          title="Total Events"
+          value={stats?.totalEvents || 0}
+          icon={<Calendar className="w-5 h-5" />}
+          bgColor="bg-green-50"
+        />
+        <StatCard
+          title="This Month"
+          value="47"
+          icon={<Calendar className="w-5 h-5" />}
+          bgColor="bg-blue-50"
+        />
+        <StatCard
+          title="Pending Approval"
+          value="8"
+          icon={<Clock className="w-5 h-5" />}
+          bgColor="bg-yellow-50"
+        />
+        <StatCard
+          title="Featured Events"
+          value="12"
+          icon={<TrendingUp className="w-5 h-5" />}
+          bgColor="bg-purple-50"
+        />
+      </div>
+
+      {/* Event Categories */}
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Categories</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 border border-gray-200 rounded-lg">
+            <div className="text-2xl font-bold text-blue-600">15</div>
+            <div className="text-sm text-gray-600">Milongas</div>
+          </div>
+          <div className="p-4 border border-gray-200 rounded-lg">
+            <div className="text-2xl font-bold text-green-600">8</div>
+            <div className="text-sm text-gray-600">Workshops</div>
+          </div>
+          <div className="p-4 border border-gray-200 rounded-lg">
+            <div className="text-2xl font-bold text-purple-600">6</div>
+            <div className="text-sm text-gray-600">Festivals</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderReportsAndLogs = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">Reports & System Logs</h2>
+        <div className="flex gap-3">
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <Eye className="w-4 h-4 inline mr-2" />
+            View All Logs
+          </button>
+        </div>
+      </div>
+
+      {/* Log Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <StatCard
+          title="Error Logs"
+          value="23"
+          icon={<AlertTriangle className="w-5 h-5" />}
+          bgColor="bg-red-50"
+        />
+        <StatCard
+          title="Security Events"
+          value="156"
+          icon={<Shield className="w-5 h-5" />}
+          bgColor="bg-blue-50"
+        />
+        <StatCard
+          title="API Requests"
+          value="47.2K"
+          icon={<Database className="w-5 h-5" />}
+          bgColor="bg-green-50"
+        />
+        <StatCard
+          title="Warnings"
+          value="8"
+          icon={<AlertCircle className="w-5 h-5" />}
+          bgColor="bg-yellow-50"
+        />
+      </div>
+
+      {/* Recent Logs */}
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent System Events</h3>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <div className="flex-1">
+              <div className="font-medium">Database backup completed</div>
+              <div className="text-sm text-gray-500">2 hours ago • Size: 2.4GB</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
+            <AlertTriangle className="w-5 h-5 text-yellow-600" />
+            <div className="flex-1">
+              <div className="font-medium">High memory usage detected</div>
+              <div className="text-sm text-gray-500">4 hours ago • 87% utilization</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+            <Database className="w-5 h-5 text-blue-600" />
+            <div className="flex-1">
+              <div className="font-medium">Scheduled maintenance completed</div>
+              <div className="text-sm text-gray-500">Yesterday • Duration: 15 minutes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderSystemHealth = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">System Health Monitor</h2>
+        <div className="flex gap-3">
+          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+            <Monitor className="w-4 h-4 inline mr-2" />
+            Refresh Status
+          </button>
+        </div>
+      </div>
+
+      {/* System Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <StatCard
+          title="Server Uptime"
+          value="99.9%"
+          subtitle="30-day average"
+          icon={<Server className="w-5 h-5" />}
+          bgColor="bg-green-50"
+        />
+        <StatCard
+          title="Response Time"
+          value="127ms"
+          subtitle="Average API response"
+          icon={<Zap className="w-5 h-5" />}
+          bgColor="bg-blue-50"
+        />
+        <StatCard
+          title="Database Load"
+          value="23%"
+          subtitle="Current utilization"
+          icon={<Database className="w-5 h-5" />}
+          bgColor="bg-yellow-50"
+        />
+        <StatCard
+          title="Storage Used"
+          value="67%"
+          subtitle="of allocated space"
+          icon={<HardDrive className="w-5 h-5" />}
+          bgColor="bg-purple-50"
+        />
+      </div>
+
+      {/* Service Status */}
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Service Status</h3>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <span>Web Application</span>
+            </div>
+            <span className="text-sm text-green-600 font-medium">Operational</span>
+          </div>
+          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <span>Database</span>
+            </div>
+            <span className="text-sm text-green-600 font-medium">Operational</span>
+          </div>
+          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <span>WebSocket Services</span>
+            </div>
+            <span className="text-sm text-green-600 font-medium">Operational</span>
+          </div>
+          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Wifi className="w-5 h-5 text-green-600" />
+              <span>CDN</span>
+            </div>
+            <span className="text-sm text-green-600 font-medium">Operational</span>
+          </div>
+        </div>
       </div>
     </div>
   );
 
   const renderSettings = () => (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-900">Settings</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">Admin Settings</h2>
+        <div className="flex gap-3">
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <Settings className="w-4 h-4 inline mr-2" />
+            Save Changes
+          </button>
+        </div>
+      </div>
+
+      {/* Platform Settings */}
       <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <p className="text-gray-600">Admin settings panel coming soon...</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Configuration</h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium">User Registration</div>
+              <div className="text-sm text-gray-500">Allow new user signups</div>
+            </div>
+            <button className="w-12 h-6 bg-green-500 rounded-full relative">
+              <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5"></div>
+            </button>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium">Content Moderation</div>
+              <div className="text-sm text-gray-500">Auto-moderate flagged content</div>
+            </div>
+            <button className="w-12 h-6 bg-green-500 rounded-full relative">
+              <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5"></div>
+            </button>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium">Email Notifications</div>
+              <div className="text-sm text-gray-500">Send system notifications via email</div>
+            </div>
+            <button className="w-12 h-6 bg-gray-300 rounded-full relative">
+              <div className="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5"></div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Security Settings */}
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Security Configuration</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 border border-gray-200 rounded-lg">
+            <div className="font-medium mb-2">Session Timeout</div>
+            <select className="w-full p-2 border border-gray-300 rounded-lg">
+              <option>30 minutes</option>
+              <option>1 hour</option>
+              <option>4 hours</option>
+              <option>24 hours</option>
+            </select>
+          </div>
+          <div className="p-4 border border-gray-200 rounded-lg">
+            <div className="font-medium mb-2">Password Policy</div>
+            <select className="w-full p-2 border border-gray-300 rounded-lg">
+              <option>Standard</option>
+              <option>Strong</option>
+              <option>Enterprise</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -367,9 +851,13 @@ const AdminCenter: React.FC = () => {
   const renderContent = () => {
     switch (selectedTab) {
       case 'overview': return renderOverview();
-      case 'users': return renderUsers();
+      case 'users': return renderUserManagement();
+      case 'content': return renderContentModeration();
+      case 'analytics': return renderAnalytics();
+      case 'events': return renderEventManagement();
+      case 'reports': return renderReportsAndLogs();
       case 'compliance': return renderCompliance();
-      case 'system': return renderSystem();
+      case 'system': return renderSystemHealth();
       case 'settings': return renderSettings();
       default: return renderOverview();
     }
