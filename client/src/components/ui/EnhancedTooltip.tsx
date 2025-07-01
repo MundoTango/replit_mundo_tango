@@ -25,62 +25,80 @@ export const EnhancedTooltip: React.FC<EnhancedTooltipProps> = ({
       'dancer_leader': {
         gradient: 'from-blue-500 via-purple-500 to-indigo-600',
         accent: 'border-blue-400',
-        description: '🕺 Leading with passion and precision!',
-        subtitle: 'Masters the art of guidance on the dance floor'
+        description: 'Dancer: Leader',
+        subtitle: ''
       },
       'dancer_follower': {
         gradient: 'from-pink-500 via-rose-500 to-red-500',
         accent: 'border-pink-400',
-        description: '💃 Following with grace and elegance!',
-        subtitle: 'Embraces the beauty of responsive movement'
+        description: 'Dancer: Follower',
+        subtitle: ''
       },
       'dancer_switch': {
         gradient: 'from-purple-500 via-indigo-500 to-blue-500',
         accent: 'border-purple-400',
-        description: '🕺💃 Dancing both roles with versatility!',
-        subtitle: 'The ultimate tango chameleon'
+        description: 'Dancer: Switch',
+        subtitle: ''
       },
       'dancer': {
         gradient: 'from-teal-500 via-cyan-500 to-blue-500',
         accent: 'border-teal-400',
-        description: '💃 Passionate tango dancer!',
-        subtitle: 'Living life one tango at a time'
+        description: 'Dancer',
+        subtitle: ''
       },
       'dj': {
         gradient: 'from-purple-600 via-violet-600 to-indigo-700',
         accent: 'border-purple-400',
-        description: '🎧 Spinning the magic of tango!',
-        subtitle: 'Setting hearts dancing with perfect playlists'
+        description: 'DJ',
+        subtitle: ''
       },
       'teacher': {
         gradient: 'from-green-500 via-emerald-500 to-teal-600',
         accent: 'border-green-400',
-        description: '📚 Sharing the wisdom of tango!',
-        subtitle: 'Nurturing the next generation of dancers'
+        description: 'Teacher',
+        subtitle: ''
       },
       'organizer': {
         gradient: 'from-orange-500 via-amber-500 to-yellow-600',
         accent: 'border-orange-400',
-        description: '🎯 Creating magical tango experiences!',
-        subtitle: 'The architect of unforgettable milongas'
+        description: 'Organizer',
+        subtitle: ''
       },
       'performer': {
         gradient: 'from-red-500 via-pink-500 to-rose-600',
         accent: 'border-red-400',
-        description: '🌟 Captivating audiences with artistry!',
-        subtitle: 'Bringing tango stories to life on stage'
+        description: 'Performer',
+        subtitle: ''
       },
       'musician': {
         gradient: 'from-indigo-500 via-blue-500 to-cyan-600',
         accent: 'border-indigo-400',
-        description: '🎵 Creating the heartbeat of tango!',
-        subtitle: 'Weaving melodies that move souls'
+        description: 'Musician',
+        subtitle: ''
       },
       'photographer': {
         gradient: 'from-gray-600 via-slate-600 to-zinc-700',
         accent: 'border-gray-400',
-        description: '📸 Capturing tango moments forever!',
-        subtitle: 'Freezing passion in perfect frames'
+        description: 'Photographer',
+        subtitle: ''
+      },
+      'traveler': {
+        gradient: 'from-emerald-500 via-teal-500 to-cyan-600',
+        accent: 'border-emerald-400',
+        description: 'Traveler',
+        subtitle: ''
+      },
+      'host': {
+        gradient: 'from-amber-500 via-orange-500 to-red-600',
+        accent: 'border-amber-400',
+        description: 'Host',
+        subtitle: ''
+      },
+      'guide': {
+        gradient: 'from-violet-500 via-purple-500 to-fuchsia-600',
+        accent: 'border-violet-400',
+        description: 'Guide',
+        subtitle: ''
       }
     };
 
