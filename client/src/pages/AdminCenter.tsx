@@ -435,11 +435,11 @@ const AdminCenter: React.FC = () => {
   };
 
   useEffect(() => {
-    if (activeTab === 'compliance') {
+    if (selectedTab === 'compliance') {
       loadComplianceHistory();
       loadMonitoringStatus();
     }
-  }, [activeTab]);
+  }, [selectedTab]);
 
   const renderCompliance = () => (
     <div className="space-y-6">
