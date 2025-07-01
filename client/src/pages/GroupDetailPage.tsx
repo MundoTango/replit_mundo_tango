@@ -180,11 +180,12 @@ const GroupDetailPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="events">Events</TabsTrigger>
                 <TabsTrigger value="members">Members</TabsTrigger>
-                <TabsTrigger value="memories">Memories</TabsTrigger>
+                <TabsTrigger value="events">Events</TabsTrigger>
+                <TabsTrigger value="housing">Housing</TabsTrigger>
+                <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
               </TabsList>
             </Tabs>
             
@@ -281,58 +282,8 @@ const GroupDetailPage: React.FC = () => {
                 <div className="text-sm text-gray-600">Recent Memories</div>
               </div>
             </div>
-          </TabsContent>
 
-          <TabsContent value="events">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-6">Upcoming Events</h3>
-              {group.recentEvents?.length > 0 ? (
-                <div className="space-y-4">
-                  {group.recentEvents.map((event) => (
-                    <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{event.title}</h4>
-                          <p className="text-gray-600 text-sm mt-1">{event.description}</p>
-                          <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500">
-                            <div className="flex items-center space-x-1">
-                              <Calendar className="h-4 w-4" />
-                              <span>{new Date(event.date).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <MapPin className="h-4 w-4" />
-                              <span>{event.location}</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <Users className="h-4 w-4" />
-                              <span>{event.attendeeCount} attending</span>
-                            </div>
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          View Event
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>No upcoming events</p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="members">
-            <EnhancedMembersSection 
-              members={group.members || []} 
-              memberCount={group.memberCount} 
-            />
-          </TabsContent>
-
-          <TabsContent value="memories">
+            {/* Recent Memories Feed */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-semibold mb-6">Recent Memories</h3>
               {group.recentMemories?.length > 0 ? (
@@ -378,8 +329,106 @@ const GroupDetailPage: React.FC = () => {
                 <div className="text-center py-8 text-gray-500">
                   <MessageCircle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                   <p>No memories shared yet</p>
+                  <p className="text-sm mt-1">Be the first to share a memory with this group!</p>
                 </div>
               )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="members">
+            <EnhancedMembersSection 
+              members={group.members || []} 
+              memberCount={group.memberCount} 
+            />
+          </TabsContent>
+
+          <TabsContent value="events">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold mb-6">Upcoming Events</h3>
+              {group.recentEvents?.length > 0 ? (
+                <div className="space-y-4">
+                  {group.recentEvents.map((event) => (
+                    <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900">{event.title}</h4>
+                          <p className="text-gray-600 text-sm mt-1">{event.description}</p>
+                          <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500">
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="h-4 w-4" />
+                              <span>{new Date(event.date).toLocaleDateString()}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <MapPin className="h-4 w-4" />
+                              <span>{event.location}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Users className="h-4 w-4" />
+                              <span>{event.attendeeCount} attending</span>
+                            </div>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          View Event
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No upcoming events</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="housing">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold mb-6">Housing & Accommodation</h3>
+              <div className="text-center py-12 text-gray-500">
+                <div className="mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">🏠</span>
+                  </div>
+                </div>
+                <h4 className="text-lg font-medium text-gray-900 mb-2">Housing Coming Soon</h4>
+                <p className="text-sm text-gray-600 max-w-md mx-auto">
+                  Find or offer accommodation for tango events, festivals, and workshops. 
+                  Connect with local hosts and fellow dancers for authentic cultural exchanges.
+                </p>
+                <div className="mt-6">
+                  <Button variant="outline" disabled>
+                    <span className="mr-2">🔔</span>
+                    Get Notified When Available
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="recommendations">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold mb-6">Local Recommendations</h3>
+              <div className="text-center py-12 text-gray-500">
+                <div className="mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">⭐</span>
+                  </div>
+                </div>
+                <h4 className="text-lg font-medium text-gray-900 mb-2">Recommendations Coming Soon</h4>
+                <p className="text-sm text-gray-600 max-w-md mx-auto">
+                  Discover the best milongas, restaurants, shops, and cultural experiences 
+                  recommended by local tango community members.
+                </p>
+                <div className="mt-6">
+                  <Button variant="outline" disabled>
+                    <span className="mr-2">🔔</span>
+                    Get Notified When Available
+                  </Button>
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
