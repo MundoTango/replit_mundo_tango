@@ -21,6 +21,7 @@ interface GroupMember {
   role: string;
   joinedAt: string;
   status: string;
+  tangoRoles?: string[];
 }
 
 interface EnhancedMembersSectionProps {
@@ -128,12 +129,19 @@ export const EnhancedMembersSection: React.FC<EnhancedMembersSectionProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedRole, setSelectedRole] = useState<string>('all');
 
-  // Enhanced members with tango role mapping
+  // Enhanced members with tango role mapping from user profile data
   const enhancedMembers: EnhancedMember[] = useMemo(() => {
-    return members.map(member => ({
-      ...member,
-      tangoRole: mapUserRoleToTangoRole(member.role)
-    }));
+    return members.map(member => {
+      // Use tangoRoles from user profile if available, otherwise fallback to role mapping
+      const primaryTangoRole = member.tangoRoles && member.tangoRoles.length > 0 
+        ? member.tangoRoles[0] 
+        : member.role;
+      
+      return {
+        ...member,
+        tangoRole: mapUserRoleToTangoRole(primaryTangoRole)
+      };
+    });
   }, [members]);
 
   // Filtered and organized members

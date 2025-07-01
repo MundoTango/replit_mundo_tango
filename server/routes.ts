@@ -6778,6 +6778,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ========================================================================
+  // Public Profile API Endpoints
+  // ========================================================================
+  
+  // Get public profile by username
+  app.get('/api/public-profile/:username', async (req, res) => {
+    try {
+      const { username } = req.params;
+      
+      if (!username) {
+        return res.status(400).json({
+          success: false,
+          message: 'Username is required'
+        });
+      }
+
+      // Get user by username
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Format user data for public profile
+      const publicProfile = {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        profileImage: user.profileImage,
+        bio: user.bio,
+        city: user.city,
+        country: user.country,
+        tangoRoles: user.tangoRoles,
+        yearsOfDancing: user.yearsOfDancing,
+        leaderLevel: user.leaderLevel,
+        followerLevel: user.followerLevel,
+        createdAt: user.createdAt,
+        isPublic: true
+      };
+
+      res.json({
+        success: true,
+        data: publicProfile
+      });
+    } catch (error: any) {
+      console.error('Error fetching public profile:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch public profile'
+      });
+    }
+  });
+
+  // Get public profile posts
+  app.get('/api/public-profile/:username/posts', async (req, res) => {
+    try {
+      const { username } = req.params;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      // Get user by username
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Get public posts by user
+      const posts = await storage.getPostsByUserId(user.id, { limit, offset, visibility: 'public' });
+      
+      res.json({
+        success: true,
+        data: posts
+      });
+    } catch (error: any) {
+      console.error('Error fetching public profile posts:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch posts'
+      });
+    }
+  });
+
+  // ========================================================================
   // RBAC/ABAC Routes Integration
   // ========================================================================
   app.use('/api/rbac', rbacRoutes);
