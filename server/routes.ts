@@ -20,6 +20,7 @@ import { enhancedRoleService, AllRoles } from "./services/enhancedRoleService";
 import { requireRole, requireAdmin, ensureUserProfile, auditRoleAction } from "./middleware/roleAuth";
 import { supabase } from "./supabaseClient";
 import { getNotionEntries, getNotionEntryBySlug, getNotionFilterOptions } from "./notion.js";
+import { CityPhotoService } from "./services/cityPhotoService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
@@ -2075,6 +2076,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         formStatus: 1,
         name: user.name || user.username // Update name field instead of displayName
       });
+
+      // Auto-create city group if city is provided and doesn't exist
+      if (location.city && location.country) {
+        try {
+          console.log(`🏙️ Checking city group for: ${location.city}, ${location.country}`);
+          
+          // Generate city group slug
+          const citySlug = `tango-${location.city.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${location.country.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
+          
+          // Check if city group already exists
+          const existingGroup = await storage.getGroupBySlug(citySlug);
+          
+          if (!existingGroup) {
+            console.log(`🎨 Creating new city group for ${location.city}, ${location.country}`);
+            
+            // Create city group with fallback photo initially
+            const cityGroup = await storage.createGroup({
+              name: `Tango ${location.city}, ${location.country}`,
+              slug: citySlug,
+              type: 'city' as const,
+              emoji: '🏙️',
+              imageUrl: 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+              description: `Welcome to the ${location.city} tango community! Connect with local dancers, find milongas, and share your tango journey in this beautiful city.`,
+              isPrivate: false,
+              city: location.city,
+              country: location.country,
+              createdBy: user.id
+            });
+            
+            console.log(`✅ Created city group: ${cityGroup.name} (ID: ${cityGroup.id})`);
+            
+            // Auto-join user to their city group
+            await storage.addUserToGroup(user.id, cityGroup.id, 'member');
+            await storage.updateGroupMemberCount(cityGroup.id, 1);
+            console.log(`👥 Auto-joined user ${user.id} to ${cityGroup.name}`);
+            
+          } else {
+            console.log(`ℹ️ City group already exists: ${existingGroup.name}`);
+            
+            // Check if user is already a member
+            const isMember = await storage.checkUserInGroup(user.id, existingGroup.id);
+            if (!isMember) {
+              await storage.addUserToGroup(user.id, existingGroup.id, 'member');
+              await storage.updateGroupMemberCount(existingGroup.id, 1);
+              console.log(`👥 Auto-joined user ${user.id} to existing group ${existingGroup.name}`);
+            }
+          }
+        } catch (groupError) {
+          console.error('Error creating/joining city group during onboarding:', groupError);
+          // Continue with onboarding even if city group creation fails
+        }
+      }
 
       // Handle role assignment using the enhanced role system
       const rolesToAssign = selectedRoles && selectedRoles.length > 0 ? selectedRoles : ['guest'];
