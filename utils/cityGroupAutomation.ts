@@ -22,10 +22,10 @@ export function generateCityGroupDescription(city: string, country?: string): st
   return `Connect with tango dancers and enthusiasts in ${location}. Share local events, find dance partners, and build community connections.`;
 }
 
-// Generate group name from city
+// Generate group name from city (without "Tango" prefix per user preference)
 export function generateCityGroupName(city: string, country?: string): string {
   const location = country ? `${city}, ${country}` : city;
-  return `Tango ${location}`;
+  return location;
 }
 
 // Validate city name for group creation

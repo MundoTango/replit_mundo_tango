@@ -5,38 +5,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 
-// Generate authentic city photos using Pexels API curated collection
-const getCitySpecificImage = (city: string, country: string): string => {
-  // Verified authentic city-specific landmark photos from Pexels (unlimited free access)
-  const cityImages: Record<string, string> = {
-    // San Francisco Golden Gate Bridge - verified SF landmark
-    'San Francisco-USA': 'https://images.pexels.com/photos/208745/pexels-photo-208745.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // São Paulo authentic downtown skyline - verified Brazilian city
-    'São Paulo-Brazil': 'https://images.pexels.com/photos/161159/sao-paulo-brazil-skyline-skyscrapers-161159.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // Buenos Aires Obelisk and downtown - verified Argentina landmark
-    'Buenos Aires-Argentina': 'https://images.pexels.com/photos/7061662/pexels-photo-7061662.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // Montevideo Rambla waterfront - verified Uruguay cityscape
-    'Montevideo-Uruguay': 'https://images.pexels.com/photos/8828678/pexels-photo-8828678.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // Milan Cathedral (Duomo) - verified Italian landmark
-    'Milan-Italy': 'https://images.pexels.com/photos/1797161/pexels-photo-1797161.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // Paris Eiffel Tower - verified French landmark
-    'Paris-France': 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // Warsaw Old Town - verified Polish architecture
-    'Warsaw-Poland': 'https://images.pexels.com/photos/5477857/pexels-photo-5477857.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-    // Rosario Monument to the Flag - verified Argentina landmark
-    'Rosario-Argentina': 'https://images.pexels.com/photos/7205933/pexels-photo-7205933.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop'
-  };
-  
-  // Match exact city-country format from database
-  const key = `${city}-${country}`;
-  const photo = cityImages[key];
-  
-  if (photo) {
-    console.log(`🏙️ Loading authentic ${city} photo:`, photo);
-    return photo;
+// Dynamic city photo system - uses database-stored photos fetched from internet
+const getCitySpecificImage = (group: any): string => {
+  // Use the photo URL stored in database (fetched dynamically from internet)
+  if (group.imageUrl) {
+    console.log(`🏙️ Loading dynamic photo for ${group.name}:`, group.imageUrl);
+    return group.imageUrl;
   }
   
-  console.log(`⚠️ No city-specific photo found for ${key}, using default`);
+  // Fallback for groups without photos yet
+  console.log(`⚠️ No dynamic photo found for ${group.name}, using default`);
   return 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop';
 };
 
@@ -226,7 +204,7 @@ interface EnhancedGroupCardProps {
 }
 
 function EnhancedGroupCard({ group, onClick }: EnhancedGroupCardProps) {
-  const backgroundImage = getCitySpecificImage(group.city || '', group.country || '');
+  const backgroundImage = getCitySpecificImage(group);
   
   // Clean group name by removing "Tango" prefix
   const cleanGroupName = group.name?.replace(/^Tango\s+/, '') || group.name;

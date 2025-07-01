@@ -5299,6 +5299,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const groupName = generateCityGroupName(user.city, user.country);
         const groupDescription = generateCityGroupDescription(user.city, user.country);
 
+        // Import and use dynamic photo service
+        const { CityPhotoService } = await import('./services/cityPhotoService.js');
+        
+        console.log(`🔍 Fetching authentic photo for new city group: ${user.city}, ${user.country}`);
+        const cityPhotoUrl = await CityPhotoService.fetchCityPhoto(user.city, user.country || 'Unknown');
+
         cityGroup = await storage.createGroup({
           name: groupName,
           slug: groupSlug,
@@ -5307,15 +5313,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description: groupDescription,
           city: user.city,
           country: user.country || null,
+          imageUrl: cityPhotoUrl, // Dynamic photo from internet
           isPrivate: false,
           memberCount: 0,
           createdBy: userId
         });
 
-        logGroupAutomation('group_created', {
+        logGroupAutomation('group_created_with_photo', {
           groupId: cityGroup.id,
           city: user.city,
           country: user.country,
+          photoUrl: cityPhotoUrl,
           createdBy: userId
         });
       }
