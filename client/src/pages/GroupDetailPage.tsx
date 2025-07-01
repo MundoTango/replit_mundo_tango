@@ -72,6 +72,15 @@ const GroupDetailPage: React.FC = () => {
 
   const { data: groupData, isLoading } = useQuery<{ data: GroupDetail }>({
     queryKey: ['/api/groups', slug],
+    queryFn: async () => {
+      const response = await fetch(`/api/groups/${slug}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch group details');
+      }
+      return response.json();
+    },
     enabled: !!slug
   });
 
