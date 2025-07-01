@@ -16,7 +16,8 @@ import {
   Eye,
   Lock,
   Globe,
-  Zap
+  Zap,
+  ArrowLeft
 } from 'lucide-react';
 
 interface AdminStats {
@@ -410,14 +411,23 @@ const AdminCenter: React.FC = () => {
                     <p className="text-sm text-gray-500">Mundo Tango Platform Administration</p>
                   </div>
                 </div>
-            <div className="flex items-center gap-4">
-              <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                System Healthy
+                <div className="flex items-center gap-4">
+                  {/* Back to App Button */}
+                  <button 
+                    onClick={() => window.location.href = '/moments'}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm"
+                  >
+                    <ArrowLeft className="w-4 h-4 text-gray-600" />
+                    <span className="text-gray-700 font-medium">Back to App</span>
+                  </button>
+                  
+                  <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                    System Healthy
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
       {/* Navigation Tabs */}
       <div className="bg-white border-b border-gray-200">
