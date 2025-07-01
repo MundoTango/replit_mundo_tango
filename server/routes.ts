@@ -5107,13 +5107,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Extract user ID - check multiple sources
       if (req.isAuthenticated && req.isAuthenticated()) {
-        // First try the security context (set by setUserContext middleware)
-        if ((req as any).userId) {
+        // First try req.user.id directly
+        if ((req as any).user?.id) {
+          userId = (req as any).user.id;
+          console.log('Using userId from req.user:', userId);
+        } else if ((req as any).userId) {
+          // Try the security context (set by setUserContext middleware)
           userId = (req as any).userId;
           console.log('Using userId from security context:', userId);
         } else {
           // Fallback to Replit session lookup
-          const replitId = (req.session as any)?.passport?.user?.claims?.id || req.user?.claims?.id;
+          const replitId = (req.session as any)?.passport?.user?.claims?.id || (req as any).user?.claims?.id;
           console.log('Auth check - Replit ID:', replitId);
           
           if (replitId === '44164221') {
