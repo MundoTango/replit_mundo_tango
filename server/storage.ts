@@ -1562,24 +1562,37 @@ export class DatabaseStorage implements IStorage {
 
   async getGroupWithMembers(slug: string): Promise<any> {
     try {
-      const query = `
-        SELECT id, name, slug, type, emoji, image_url, 
-               description, is_private, city, country, 
-               member_count, created_by, created_at, updated_at
-        FROM groups 
-        WHERE slug = $1 
-        LIMIT 1
-      `;
-      
       console.log('Executing query with slug:', slug);
-      const result = await pool.query(query, [slug]);
-      console.log('Query result rows count:', result.rows?.length || 0);
       
-      if (!result.rows || result.rows.length === 0) {
+      // Get group using Drizzle ORM
+      const groupResult = await db.select().from(groups).where(eq(groups.slug, slug)).limit(1);
+      console.log('Query result rows count:', groupResult?.length || 0);
+      
+      if (!groupResult || groupResult.length === 0) {
         return undefined;
       }
 
-      const group = result.rows[0];
+      const group = groupResult[0];
+      console.log('Found group:', group);
+
+      // Get group members using Drizzle ORM with JOIN
+      const membersResult = await db
+        .select({
+          userId: groupMembers.userId,
+          role: groupMembers.role,
+          joinedAt: groupMembers.joinedAt,
+          status: groupMembers.status,
+          name: users.name,
+          username: users.username,
+          profileImage: users.profileImage
+        })
+        .from(groupMembers)
+        .innerJoin(users, eq(groupMembers.userId, users.id))
+        .where(and(eq(groupMembers.groupId, group.id), eq(groupMembers.status, 'active')))
+        .orderBy(asc(groupMembers.joinedAt));
+      
+      console.log('Members query result rows count:', membersResult?.length || 0);
+      console.log('Processed members:', membersResult);
 
       // Transform to camelCase format expected by frontend
       return {
@@ -1588,16 +1601,16 @@ export class DatabaseStorage implements IStorage {
         slug: group.slug,
         type: group.type,
         emoji: group.emoji,
-        imageUrl: group.image_url,
+        imageUrl: group.imageUrl,
         description: group.description,
-        isPrivate: group.is_private,
+        isPrivate: group.isPrivate,
         city: group.city,
         country: group.country,
-        memberCount: group.member_count,
-        createdBy: group.created_by,
-        createdAt: group.created_at,
-        updatedAt: group.updated_at,
-        members: []
+        memberCount: group.memberCount,
+        createdBy: group.createdBy,
+        createdAt: group.createdAt,
+        updatedAt: group.updatedAt,
+        members: membersResult
       };
     } catch (error) {
       console.error('Error in getGroupWithMembers:', error);
