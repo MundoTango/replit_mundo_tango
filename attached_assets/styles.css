@@ -1,0 +1,98 @@
+body {
+    margin: 0;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+.bg {
+    color: white !important;
+    background: linear-gradient(123.9deg, #29A5DE 24.41%, #2B3C8E 94.01%) !important;
+}
+
+.border-gd {
+    width: 100%;
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    padding: 1.05px;
+}
+
+.border-gd::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    padding: 0.6px;
+    background: linear-gradient(123.9deg, #29A5DE 24.41%, #2B3C8E 94.01%);
+    ;
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+p.fs-7,
+ol.fs-7,
+ul.fs-7,
+h6.fs-7,
+span.fs-7,
+input.fs-7 {
+    font-size: 0.875rem !important;
+}
+
+p.fs-75 {
+    font-size: 0.78rem !important;
+}
+
+p.fs-8,
+ol.fs-8,
+ul.fs-8,
+h6.fs-8,
+span.fs-8 {
+    font-size: 0.75rem !important;
+}
+
+
+p.fs-9,
+ol.fs-9,
+ul.fs-9,
+span.fs-9 {
+    font-size: 0.68rem !important;
+}
+
+p.fs-10,
+ol.fs-10,
+ul.fs-10 {
+    font-size: 0.6rem !important;
+}
+
+p.link {
+    color: #0AA7FF !important;
+    cursor: pointer;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.lc-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.lc-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.Toastify__toast {
+    background-color: #0D0D1C !important;
+}

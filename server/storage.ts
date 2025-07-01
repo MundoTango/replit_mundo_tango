@@ -217,6 +217,12 @@ export interface IStorage {
   getGroupWithMembers(slug: string): Promise<(Group & { members: (GroupMember & { user: User })[] }) | undefined>;
   getGroupRecentMemories(groupId: number, limit?: number): Promise<any[]>;
   getGroupUpcomingEvents(groupId: number, limit?: number): Promise<any[]>;
+  
+  // Admin count methods for statistics
+  getUserCount(): Promise<number>;
+  getEventCount(): Promise<number>;
+  getPostCount(): Promise<number>;
+  getActiveUserCount(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1706,6 +1712,55 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error getting group by ID:', error);
       return undefined;
+    }
+  }
+
+  // Admin count methods for statistics
+  async getUserCount(): Promise<number> {
+    try {
+      const result = await db.select({ count: count() }).from(users);
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error getting user count:', error);
+      return 0;
+    }
+  }
+
+  async getEventCount(): Promise<number> {
+    try {
+      const result = await db.select({ count: count() }).from(events);
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error getting event count:', error);
+      return 0;
+    }
+  }
+
+  async getPostCount(): Promise<number> {
+    try {
+      const result = await db.select({ count: count() }).from(posts);
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error getting post count:', error);
+      return 0;
+    }
+  }
+
+  async getActiveUserCount(): Promise<number> {
+    try {
+      // Get users who have been active in the last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const result = await db
+        .select({ count: count() })
+        .from(users)
+        .where(gte(users.updatedAt, thirtyDaysAgo));
+      
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error getting active user count:', error);
+      return 0;
     }
   }
 }

@@ -29,6 +29,7 @@ import PublicResumePage from "@/pages/PublicResumePage";
 import { NotionHomePage } from "@/pages/NotionHomePage";
 import { NotionEntryPage } from "@/pages/NotionEntryPage";
 import AdminPage from "@/pages/admin";
+import AdminCenter from "@/pages/AdminCenter";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -98,6 +99,7 @@ function Router() {
       <Route path="/stories" component={NotionHomePage} />
       <Route path="/stories/:slug" component={NotionEntryPage} />
       <Route path="/admin" component={AdminPage} />
+      <Route path="/admin-center" component={AdminCenter} />
       <Route component={NotFound} />
     </Switch>
   );

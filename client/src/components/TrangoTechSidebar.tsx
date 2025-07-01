@@ -64,15 +64,18 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     },
   ];
 
-  // Add admin route for super admins
+  // Check if user has admin privileges
+  const hasAdminAccess = user && (user.username === 'admin' || user.email?.includes('admin'));
+
+  // Add Admin Center route for admins
   const adminRoute = {
     icon: <Shield className="w-5 h-5" />,
-    title: "Admin Portal",
-    link: "/admin",
+    title: "Admin Center",
+    link: "/admin-center",
   };
 
   // Combine routes with conditional admin access
-  const allRoutes = user?.roles?.includes('super_admin') 
+  const allRoutes = hasAdminAccess 
     ? [...sidebarRoutes, adminRoute] 
     : sidebarRoutes;
 
