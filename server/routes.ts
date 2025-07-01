@@ -5103,17 +5103,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if current user is a member (authenticated via isAuthenticated middleware)
       let currentUserMembership = null;
-      const userId = req.user!.id; // isAuthenticated middleware ensures req.user exists
+      const userId = (req as any).user?.id; // Use same pattern as working endpoints
       
-      console.log('Group detail auth check - User ID:', userId);
+      console.log('Group detail auth check - User ID:', userId, 'req.user:', (req as any).user);
 
-      const isMember = await storage.checkUserInGroup(groupWithMembers.id, userId);
-      if (isMember) {
-        const memberData = groupWithMembers.members.find((m: any) => m.userId === userId);
-        currentUserMembership = memberData || null;
-        console.log('User is member:', { userId, role: memberData?.role });
+      if (userId) {
+        const isMember = await storage.checkUserInGroup(groupWithMembers.id, userId);
+        if (isMember) {
+          const memberData = groupWithMembers.members.find((m: any) => m.userId === userId);
+          currentUserMembership = memberData || null;
+          console.log('User is member:', { userId, role: memberData?.role });
+        } else {
+          console.log('User is not a member:', userId);
+        }
       } else {
-        console.log('User is not a member:', userId);
+        console.log('No user found in request object');
       }
 
       // Flatten the response structure to match frontend expectations
