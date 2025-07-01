@@ -15,6 +15,7 @@ import {
 import { formatDistanceToNow, differenceInDays } from 'date-fns';
 import PostDetailModal from './PostDetailModal';
 import { renderWithMentions } from '@/utils/renderWithMentions';
+import { RoleEmojiDisplay } from '@/components/ui/RoleEmojiDisplay';
 
 interface Post {
   id: number;
@@ -29,6 +30,8 @@ interface Post {
     username: string;
     profileImage?: string;
     tangoRoles?: string[];
+    leaderLevel?: number;
+    followerLevel?: number;
   };
   likes?: number;
   comments?: number;
@@ -64,17 +67,7 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
     return 0.75; // Most fade for older posts
   }, [post.createdAt]);
 
-  const getRoleBadgeColor = (role: string) => {
-    const colors: Record<string, string> = {
-      'dancer': 'bg-pink-100 text-pink-700 border-pink-200',
-      'dj': 'bg-purple-100 text-purple-700 border-purple-200',
-      'teacher': 'bg-blue-100 text-blue-700 border-blue-200',
-      'organizer': 'bg-green-100 text-green-700 border-green-200',
-      'performer': 'bg-amber-100 text-amber-700 border-amber-200',
-      'musician': 'bg-indigo-100 text-indigo-700 border-indigo-200'
-    };
-    return colors[role.toLowerCase()] || 'bg-gray-100 text-gray-700 border-gray-200';
-  };
+
 
   const getEmotionColor = (emotion: string) => {
     const colors: Record<string, string> = {
@@ -155,26 +148,15 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
                 <span className="text-gray-500 text-base">@{post.user?.username || 'anonymous'}</span>
               </div>
               
-              {/* Roles with enhanced styling */}
-              {post.user?.tangoRoles && post.user.tangoRoles.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  {post.user.tangoRoles.slice(0, 3).map((role, index) => (
-                    <span
-                      key={index}
-                      className={`
-                        px-3 py-1 rounded-full text-xs font-medium border
-                        ${getRoleBadgeColor(role)}
-                        hover:scale-105 transition-transform duration-200
-                      `}
-                    >
-                      {role}
-                    </span>
-                  ))}
-                  {post.user.tangoRoles.length > 3 && (
-                    <span className="text-xs text-gray-500">+{post.user.tangoRoles.length - 3} more</span>
-                  )}
-                </div>
-              )}
+              {/* Enhanced Emoji Role Display */}
+              <RoleEmojiDisplay
+                tangoRoles={post.user?.tangoRoles}
+                leaderLevel={post.user?.leaderLevel}
+                followerLevel={post.user?.followerLevel}
+                size="sm"
+                maxRoles={5}
+                className="mt-1"
+              />
             </div>
           </div>
 
