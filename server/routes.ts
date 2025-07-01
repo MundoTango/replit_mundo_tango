@@ -6696,6 +6696,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin City Group Creation Endpoint
+  app.post('/api/admin/create-city-group', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { city, country } = req.body;
+      
+      if (!city || !country) {
+        return res.status(400).json({
+          success: false,
+          message: 'City and country are required'
+        });
+      }
+
+      // Check if group already exists
+      const existingSlug = `tango-${city.toLowerCase().replace(/\s+/g, '-')}-${country.toLowerCase().replace(/\s+/g, '-')}`;
+      const existingGroup = await storage.getGroupBySlug(existingSlug);
+      
+      if (existingGroup) {
+        return res.json({
+          success: true,
+          message: 'Group already exists',
+          name: existingGroup.name,
+          image_url: existingGroup.image_url
+        });
+      }
+
+      // Import city photo service
+      const { CityPhotoService } = await import('./services/cityPhotoService');
+      
+      // Fetch city-specific photo
+      const photoUrl = await CityPhotoService.fetchCityPhoto(city);
+      
+      // Create group
+      const groupData = {
+        name: `Tango ${city}, ${country}`,
+        slug: existingSlug,
+        description: `Connect with tango dancers and enthusiasts in ${city}, ${country}. Share local events, find dance partners, and build community connections.`,
+        type: 'city' as const,
+        isPrivate: false,
+        city: city,
+        country: country,
+        emoji: '🏙️',
+        image_url: photoUrl,
+        member_count: 0
+      };
+
+      const newGroup = await storage.createGroup(groupData);
+      
+      res.json({
+        success: true,
+        message: 'City group created successfully',
+        name: newGroup.name,
+        image_url: newGroup.image_url,
+        group: newGroup
+      });
+
+    } catch (error) {
+      console.error('Error creating city group:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create city group',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // ========================================================================
   // RBAC/ABAC Routes Integration
   // ========================================================================
