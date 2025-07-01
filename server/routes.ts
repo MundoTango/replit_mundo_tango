@@ -6174,7 +6174,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get comprehensive statistics from database
-      const statsQuery = await storage.db.execute(`
+      const { db } = await import('./db');
+      const statsQuery = await db.execute(`
         SELECT 
           (SELECT COUNT(*) FROM users) as total_users,
           (SELECT COUNT(*) FROM users WHERE is_active = true) as active_users,
@@ -6195,7 +6196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dbStats = statsQuery.rows[0];
 
       // Get moderation statistics
-      const moderationQuery = await storage.db.execute(`
+      const moderationQuery = await db.execute(`
         SELECT 
           (SELECT COUNT(*) FROM post_reports WHERE created_at IS NOT NULL) as flagged_posts,
           (SELECT COUNT(*) FROM post_reports WHERE status = 'pending') as pending_reports
@@ -6204,7 +6205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const modStats = moderationQuery.rows[0];
 
       // Get geographic analytics
-      const geoQuery = await storage.db.execute(`
+      const geoQuery = await db.execute(`
         SELECT city, country, COUNT(*) as user_count 
         FROM users 
         WHERE city IS NOT NULL AND country IS NOT NULL 
@@ -6219,7 +6220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
 
       // Get event category breakdown
-      const eventQuery = await storage.db.execute(`
+      const eventQuery = await db.execute(`
         SELECT type, COUNT(*) as count 
         FROM events 
         WHERE type IS NOT NULL
@@ -6338,32 +6339,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Import compliance monitor
+      // Get current compliance status from automated monitoring
       try {
-        const { complianceMonitor } = await import('../compliance/monitoring/complianceMonitor');
-        const complianceData = await complianceMonitor.getComplianceStatus();
-
-        res.json({
-          gdprScore: complianceData.gdpr?.score || 90,
-          soc2Score: complianceData.soc2?.score || 75,
-          enterpriseScore: complianceData.enterprise?.score || 70,
-          multiTenantScore: complianceData.multiTenant?.score || 78,
-          overallScore: complianceData.overall?.score || 78,
-          lastAudit: complianceData.lastAudit || new Date().toISOString().split('T')[0],
-          criticalIssues: complianceData.criticalIssues || 0,
-          warnings: complianceData.warnings || 2
-        });
+        const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
+        const currentStatus = automatedComplianceMonitor.getCurrentComplianceStatus();
+        
+        if (currentStatus) {
+          res.json({
+            gdprScore: currentStatus.gdprScore,
+            soc2Score: currentStatus.soc2Score,
+            enterpriseScore: currentStatus.enterpriseScore,
+            multiTenantScore: currentStatus.multiTenantScore,
+            overallScore: currentStatus.overallScore,
+            lastAudit: currentStatus.timestamp.toISOString().split('T')[0],
+            criticalIssues: currentStatus.criticalIssues.length,
+            warnings: currentStatus.warnings.length,
+            recommendations: currentStatus.recommendations,
+            auditType: currentStatus.auditType,
+            executionTimeMs: currentStatus.executionTimeMs,
+            isAutomated: true
+          });
+        } else {
+          // Run immediate audit if no status available
+          const auditResult = await automatedComplianceMonitor.runComplianceAudit('manual', 'admin_request');
+          res.json({
+            gdprScore: auditResult.gdprScore,
+            soc2Score: auditResult.soc2Score,
+            enterpriseScore: auditResult.enterpriseScore,
+            multiTenantScore: auditResult.multiTenantScore,
+            overallScore: auditResult.overallScore,
+            lastAudit: auditResult.timestamp.toISOString().split('T')[0],
+            criticalIssues: auditResult.criticalIssues.length,
+            warnings: auditResult.warnings.length,
+            recommendations: auditResult.recommendations,
+            auditType: auditResult.auditType,
+            executionTimeMs: auditResult.executionTimeMs,
+            isAutomated: true
+          });
+        }
       } catch (complianceError) {
-        // Fallback compliance data if monitoring not available
-        res.json({
-          gdprScore: 90,
-          soc2Score: 75,
-          enterpriseScore: 70,
-          multiTenantScore: 78,
-          overallScore: 78,
-          lastAudit: new Date().toISOString().split('T')[0],
-          criticalIssues: 0,
-          warnings: 2
+        console.error('Compliance monitoring error:', complianceError);
+        res.status(500).json({
+          success: false,
+          message: 'Failed to get compliance status',
+          error: complianceError instanceof Error ? complianceError.message : 'Unknown error'
         });
       }
     } catch (error) {
@@ -6569,6 +6588,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Admin analytics error:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch analytics data' });
+    }
+  });
+
+  // Automated Compliance Monitoring API Endpoints
+  app.post('/api/admin/compliance/refresh', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = await getUserFromSession(req);
+      if (!user || !user.roles.some(role => ['super_admin', 'admin'].includes(role))) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
+      const auditResult = await automatedComplianceMonitor.refreshCompliance(user.username);
+      
+      res.json({
+        success: true,
+        message: 'Compliance audit refreshed successfully',
+        data: {
+          overallScore: auditResult.overallScore,
+          gdprScore: auditResult.gdprScore,
+          soc2Score: auditResult.soc2Score,
+          enterpriseScore: auditResult.enterpriseScore,
+          multiTenantScore: auditResult.multiTenantScore,
+          criticalIssues: auditResult.criticalIssues.length,
+          warnings: auditResult.warnings.length,
+          recommendations: auditResult.recommendations,
+          auditType: auditResult.auditType,
+          executionTimeMs: auditResult.executionTimeMs,
+          timestamp: auditResult.timestamp
+        }
+      });
+    } catch (error) {
+      console.error('Compliance refresh error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to refresh compliance audit',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/admin/compliance/history', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = await getUserFromSession(req);
+      if (!user || !user.roles.some(role => ['super_admin', 'admin'].includes(role))) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
+      const limit = parseInt(req.query.limit as string) || 20;
+      const auditHistory = await automatedComplianceMonitor.getAuditHistory(limit);
+      
+      res.json({
+        success: true,
+        data: auditHistory,
+        totalCount: auditHistory.length
+      });
+    } catch (error) {
+      console.error('Compliance history error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get compliance history',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/admin/compliance/monitoring-status', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = await getUserFromSession(req);
+      if (!user || !user.roles.some(role => ['super_admin', 'admin'].includes(role))) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
+      const monitoringStatus = automatedComplianceMonitor.getMonitoringStatus();
+      
+      res.json({
+        success: true,
+        data: monitoringStatus
+      });
+    } catch (error) {
+      console.error('Monitoring status error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get monitoring status',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

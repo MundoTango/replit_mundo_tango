@@ -300,6 +300,76 @@ const AdminCenter: React.FC = () => {
     </div>
   );
 
+  const [complianceRefreshing, setComplianceRefreshing] = useState(false);
+  const [auditHistory, setAuditHistory] = useState([]);
+  const [monitoringStatus, setMonitoringStatus] = useState(null);
+
+  const refreshCompliance = async () => {
+    setComplianceRefreshing(true);
+    try {
+      const response = await fetch('/api/admin/compliance/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update compliance data
+        setCompliance(result.data);
+        
+        // Show success message
+        console.log('Compliance audit refreshed successfully');
+        
+        // Refresh all data
+        await loadData();
+      } else {
+        console.error('Failed to refresh compliance:', result.message);
+      }
+    } catch (error) {
+      console.error('Error refreshing compliance:', error);
+    } finally {
+      setComplianceRefreshing(false);
+    }
+  };
+
+  const loadComplianceHistory = async () => {
+    try {
+      const response = await fetch('/api/admin/compliance/history?limit=10');
+      const result = await response.json();
+      if (result.success) {
+        setAuditHistory(result.data);
+      }
+    } catch (error) {
+      console.error('Error loading compliance history:', error);
+    }
+  };
+
+  const loadMonitoringStatus = async () => {
+    try {
+      const response = await fetch('/api/admin/compliance/monitoring-status');
+      const result = await response.json();
+      if (result.success) {
+        setMonitoringStatus(result.data);
+      }
+    } catch (error) {
+      console.error('Error loading monitoring status:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'compliance') {
+      loadComplianceHistory();
+      loadMonitoringStatus();
+    }
+  }, [activeTab]);
+
   const renderCompliance = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -307,12 +377,82 @@ const AdminCenter: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="text-sm text-gray-500">
             Last audit: {compliance?.lastAudit || 'Never'}
+            {compliance?.auditType && (
+              <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                {compliance.auditType}
+              </span>
+            )}
           </div>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            Run Audit
+          <button 
+            onClick={refreshCompliance}
+            disabled={complianceRefreshing}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {complianceRefreshing ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Running...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4" />
+                Run Audit
+              </>
+            )}
           </button>
         </div>
       </div>
+
+      {/* Monitoring Status */}
+      {monitoringStatus && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <div>
+                <h3 className="font-semibold text-green-900">Automated Monitoring Active</h3>
+                <p className="text-sm text-green-700">
+                  Next scheduled audit: {new Date(monitoringStatus.nextScheduledAudit).toLocaleString()}
+                </p>
+              </div>
+            </div>
+            <div className="text-sm text-green-600">
+              {compliance?.executionTimeMs && `Last audit: ${compliance.executionTimeMs}ms`}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Audit History */}
+      {auditHistory.length > 0 && (
+        <div className="bg-white rounded-xl p-6 border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Audit History</h3>
+          <div className="space-y-3">
+            {auditHistory.slice(0, 5).map((audit, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${
+                    audit.overallScore >= 85 ? 'bg-green-500' : 
+                    audit.overallScore >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+                  }`}></div>
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {new Date(audit.timestamp).toLocaleDateString()} at{' '}
+                      {new Date(audit.timestamp).toLocaleTimeString()}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {audit.auditType} audit • {audit.executionTimeMs}ms
+                    </div>
+                  </div>
+                </div>
+                <div className="text-lg font-semibold text-gray-900">
+                  {audit.overallScore}%
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Overall Compliance Score */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
