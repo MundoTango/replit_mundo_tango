@@ -6116,8 +6116,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { storage } = await import('./storage');
       const user = req.user;
 
+      // Debug user object
+      console.log('🔍 Admin stats - User object:', JSON.stringify(user, null, 2));
+      console.log('🔍 Admin stats - Username:', user?.username);
+      console.log('🔍 Admin stats - Email:', user?.email);
+
       // Check admin access
       const hasAdminAccess = user && (user.username === 'admin' || user.email?.includes('admin'));
+      console.log('🔍 Admin stats - Has admin access:', hasAdminAccess);
+      
       if (!hasAdminAccess) {
         return res.status(403).json({
           success: false,
@@ -6161,8 +6168,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user;
 
+      // Debug user object
+      console.log('🔍 Admin compliance - User object:', JSON.stringify(user, null, 2));
+      console.log('🔍 Admin compliance - Username:', user?.username);
+      console.log('🔍 Admin compliance - Email:', user?.email);
+
       // Check admin access
       const hasAdminAccess = user && (user.username === 'admin' || user.email?.includes('admin'));
+      console.log('🔍 Admin compliance - Has admin access:', hasAdminAccess);
+      
       if (!hasAdminAccess) {
         return res.status(403).json({
           success: false,

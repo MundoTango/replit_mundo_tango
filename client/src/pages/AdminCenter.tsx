@@ -41,6 +41,7 @@ interface ComplianceMetrics {
 
 const AdminCenter: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('overview');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Fetch admin statistics
   const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
@@ -389,8 +390,6 @@ const AdminCenter: React.FC = () => {
       </div>
     );
   }
-
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-blue-50 to-cyan-50 flex">
