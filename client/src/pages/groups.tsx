@@ -4,7 +4,6 @@ import { Search, Plus, Users, Globe, Lock, Star, MapPin, UserPlus } from 'lucide
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
-
 export default function GroupsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
@@ -123,9 +122,9 @@ export default function GroupsPage() {
     }
   });
 
-  // Auto-join on page load (with authentication check)
+  // Auto-join on page load
   useEffect(() => {
-    // Only auto-join if we have groups data (indicating we're authenticated)
+    // Only auto-join if we have groups data
     if (groupsData?.data) {
       autoJoinMutation.mutate();
     }
