@@ -898,6 +898,9 @@ export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
 
 // Type definitions
 export type User = typeof users.$inferSelect;
+export type UserWithRoles = User & {
+  roles?: string[];
+};
 export type Group = typeof groups.$inferSelect;
 export type GroupMember = typeof groupMembers.$inferSelect;
 export type InsertGroup = z.infer<typeof insertGroupSchema>;

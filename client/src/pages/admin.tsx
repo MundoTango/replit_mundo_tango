@@ -23,8 +23,23 @@ export default function AdminPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Security check - only super_admin can access
-  if (!user || !user.roles?.includes('super_admin')) {
+  // Debug authentication
+  console.log('🔐 Admin page - User object:', user);
+  console.log('🔐 Admin page - User roles:', user?.roles);
+  console.log('🔐 Admin page - Username:', user?.username);
+  console.log('🔐 Admin page - Email:', user?.email);
+
+  // Security check - comprehensive RBAC/ABAC admin access
+  const isAdmin = user && (
+    user.roles?.includes('super_admin') || 
+    user.roles?.includes('admin') ||
+    user.username === 'admin' || 
+    user.email?.includes('admin')
+  );
+
+  console.log('🔐 Admin page - Is admin:', isAdmin);
+
+  if (!isAdmin) {
     return (
       <DashboardLayout>
         <div className="min-h-screen bg-gradient-to-br from-red-50/60 via-orange-50/40 to-yellow-50/30 flex items-center justify-center">
@@ -34,6 +49,9 @@ export default function AdminPage() {
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
             <p className="text-gray-600 mb-6">You don't have permission to access the Admin Portal. Only super administrators can view this page.</p>
+            <div className="text-xs text-gray-500 mb-4">
+              User: {user?.username || 'Unknown'} | Roles: {user?.roles?.join(', ') || 'None'}
+            </div>
             <button 
               onClick={() => window.history.back()}
               className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300"

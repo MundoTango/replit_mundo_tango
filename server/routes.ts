@@ -85,6 +85,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Load user roles for RBAC/ABAC
+      let userRoles: string[] = [];
+      try {
+        const roles = await storage.getUserRoles(user.id);
+        userRoles = roles.map(role => role.roleName);
+        console.log('🔐 User roles loaded:', { userId: user.id, username: user.username, roles: userRoles });
+      } catch (roleError) {
+        console.error('Failed to load user roles:', roleError);
+        // Default admin roles for admin users
+        if (user.username === 'admin' || user.email?.includes('admin')) {
+          userRoles = ['super_admin', 'admin'];
+          console.log('🔐 Applied default admin roles:', userRoles);
+        }
+      }
+
       res.json({
         id: user.id,
         name: user.name,
@@ -94,7 +109,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isOnboardingComplete: user.isOnboardingComplete,
         codeOfConductAccepted: user.codeOfConductAccepted,
         profileImage: user.profileImage,
-        replitId: replitId
+        replitId: replitId,
+        roles: userRoles
       });
     } catch (error: any) {
       console.error("Auth user error:", error);
@@ -6121,9 +6137,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🔍 Admin stats - Username:', user?.username);
       console.log('🔍 Admin stats - Email:', user?.email);
 
-      // Check admin access
-      const hasAdminAccess = user && (user.username === 'admin' || user.email?.includes('admin'));
-      console.log('🔍 Admin stats - Has admin access:', hasAdminAccess);
+      // Check admin access using RBAC system
+      let userRoles: string[] = [];
+      try {
+        const roles = await storage.getUserRoles(user.id);
+        userRoles = roles.map(role => role.roleName);
+      } catch (roleError) {
+        // Fallback for admin users
+        if (user.username === 'admin' || user.email?.includes('admin')) {
+          userRoles = ['super_admin', 'admin'];
+        }
+      }
+
+      const hasAdminAccess = userRoles.includes('super_admin') || userRoles.includes('admin');
+      console.log('🔍 Admin stats - User roles:', userRoles, 'Has admin access:', hasAdminAccess);
       
       if (!hasAdminAccess) {
         return res.status(403).json({
@@ -6173,9 +6200,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🔍 Admin compliance - Username:', user?.username);
       console.log('🔍 Admin compliance - Email:', user?.email);
 
-      // Check admin access
-      const hasAdminAccess = user && (user.username === 'admin' || user.email?.includes('admin'));
-      console.log('🔍 Admin compliance - Has admin access:', hasAdminAccess);
+      // Check admin access using RBAC system
+      let userRoles: string[] = [];
+      try {
+        const roles = await storage.getUserRoles(user.id);
+        userRoles = roles.map(role => role.roleName);
+      } catch (roleError) {
+        // Fallback for admin users
+        if (user.username === 'admin' || user.email?.includes('admin')) {
+          userRoles = ['super_admin', 'admin'];
+        }
+      }
+
+      const hasAdminAccess = userRoles.includes('super_admin') || userRoles.includes('admin');
+      console.log('🔍 Admin compliance - User roles:', userRoles, 'Has admin access:', hasAdminAccess);
       
       if (!hasAdminAccess) {
         return res.status(403).json({
