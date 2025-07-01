@@ -101,10 +101,10 @@ async function complete11LCityGroupAutomation() {
     // Step 5: Auto-join admin user to the group
     console.log('\n5️⃣ Auto-joining admin user to group...');
     try {
-      await storage.addUserToGroup(adminUser.id, cityGroup.id);
+      await storage.addUserToGroup(cityGroup.id, adminUser.id, 'admin');
       console.log(`✅ Admin user joined group: ${cityGroup.name}`);
     } catch (joinError) {
-      console.log('⚠️ Auto-join failed (user might already be member)');
+      console.log('⚠️ Auto-join failed:', joinError);
     }
     
     // Step 6: Verify group creation and membership
