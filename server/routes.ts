@@ -4969,25 +4969,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           imageUrl: null // Will be updated with city photo
         });
 
-        // Fetch and set authentic city photo as coverImage
+        // Fetch authentic city photo using Buenos Aires template system
         try {
-          const photoResult = await CityPhotoService.downloadAndStoreCityPhoto(
-            city, 
-            country || 'Unknown', 
-            cityGroup.id
-          );
+          console.log(`🔍 [11L Template System] Fetching photo for onboarding city group: ${city}, ${country}`);
           
-          // Update group with both imageUrl and coverImage pointing to the same photo
-          await storage.updateGroup(cityGroup.id, { 
-            imageUrl: photoResult.localPath,
-            coverImage: photoResult.localPath
-          });
+          const cityPhoto = await CityPhotoService.fetchCityPhoto(city, country);
           
-          console.log(`✅ City group ${groupName} created with authentic photo: ${photoResult.localPath}`);
+          if (cityPhoto) {
+            // Update group with both imageUrl and coverImage pointing to the same photo
+            await storage.updateGroup(cityGroup.id, { 
+              imageUrl: cityPhoto.url,
+              coverImage: cityPhoto.url
+            });
+            
+            console.log(`✅ [11L Template System] City group ${groupName} created with Buenos Aires template photo: ${cityPhoto.url}`);
+          } else {
+            throw new Error('No photo found from Buenos Aires template system');
+          }
           
         } catch (photoError) {
-          console.warn(`⚠️ Photo fetch failed for ${groupName}, using fallback:`, photoError);
-          const fallbackUrl = 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+          console.warn(`⚠️ [11L Template System] Photo fetch failed for ${groupName}, using template fallback:`, photoError);
+          const fallbackUrl = 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop';
           await storage.updateGroup(cityGroup.id, { 
             imageUrl: fallbackUrl,
             coverImage: fallbackUrl
@@ -5483,47 +5485,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdBy: userId
         });
 
-        // Download and store authentic city photo
+        // Fetch authentic city photo using updated Buenos Aires template system
         try {
-          const photoResult = await CityPhotoService.downloadAndStoreCityPhoto(
-            user.city, 
-            user.country || 'Unknown', 
-            cityGroup.id
-          );
+          console.log(`🔍 [11L Template System] Fetching photo for new city group: ${user.city}, ${user.country}`);
           
-          // Update group with downloaded photo path for both imageUrl and coverImage
-          await storage.updateGroup(cityGroup.id, {
-            imageUrl: photoResult.localPath,
-            coverImage: photoResult.localPath
-          });
+          const cityPhoto = await CityPhotoService.fetchCityPhoto(user.city, user.country);
           
-          console.log(`✅ [11L Photo Flow] Photo stored successfully: ${photoResult.localPath}`);
-          
-          logGroupAutomation('group_created_with_downloaded_photo', {
-            groupId: cityGroup.id,
-            city: user.city,
-            country: user.country,
-            localPath: photoResult.localPath,
-            originalUrl: photoResult.originalUrl,
-            photographer: photoResult.photographer,
-            pexelsId: photoResult.pexelsId,
-            createdBy: userId
-          });
+          if (cityPhoto) {
+            // Update group with fetched photo URL for both imageUrl and coverImage
+            await storage.updateGroup(cityGroup.id, {
+              imageUrl: cityPhoto.url,
+              coverImage: cityPhoto.url
+            });
+            
+            console.log(`✅ [11L Template System] Buenos Aires template photo system applied: ${cityPhoto.url}`);
+            
+            logGroupAutomation('group_created_with_template_photo', {
+              groupId: cityGroup.id,
+              city: user.city,
+              country: user.country,
+              photoUrl: cityPhoto.url,
+              photographer: cityPhoto.photographer,
+              source: cityPhoto.source,
+              quality: cityPhoto.quality,
+              createdBy: userId
+            });
+          } else {
+            throw new Error('No photo found from template system');
+          }
         } catch (photoError) {
-          console.error(`❌ [11L Photo Flow] Photo download failed for ${user.city}:`, photoError);
+          console.error(`❌ [11L Template System] Photo fetch failed for ${user.city}:`, photoError);
           
-          // Update with fallback photo if download fails
-          const fallbackUrl = 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+          // Update with Buenos Aires template fallback system
+          const fallbackUrl = 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop';
           await storage.updateGroup(cityGroup.id, {
-            imageUrl: fallbackUrl
+            imageUrl: fallbackUrl,
+            coverImage: fallbackUrl
           });
           
-          logGroupAutomation('group_created_with_fallback_photo', {
+          logGroupAutomation('group_created_with_template_fallback', {
             groupId: cityGroup.id,
             city: user.city,
             country: user.country,
             fallbackUrl,
-            error: photoError.message,
+            error: String(photoError),
             createdBy: userId
           });
         }
@@ -5607,32 +5612,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Import and use enhanced photo service with download capability
           const { CityPhotoService } = await import('./services/cityPhotoService.js');
           
-          // Download and store authentic city photo locally
-          const photoResult = await CityPhotoService.downloadAndStoreCityPhoto(
-            group.city, 
-            group.country || 'Unknown', 
-            group.id
-          );
+          // Fetch authentic city photo using Buenos Aires template system
+          const cityPhoto = await CityPhotoService.fetchCityPhoto(group.city, group.country);
           
-          // Update group with local photo path
-          await storage.updateGroup(group.id, { 
-            imageUrl: photoResult.localPath 
-          });
-          
-          console.log(`✅ [11L Success] ${group.name} updated with authentic photo: ${photoResult.localPath}`);
-          successCount++;
-          
-          results.push({
-            groupId: group.id,
-            groupName: group.name,
-            city: group.city,
-            country: group.country,
-            success: true,
-            localPath: photoResult.localPath,
-            originalUrl: photoResult.originalUrl,
-            photographer: photoResult.photographer,
-            pexelsId: photoResult.pexelsId
-          });
+          if (cityPhoto) {
+            // Update group with template photo URL
+            await storage.updateGroup(group.id, { 
+              imageUrl: cityPhoto.url,
+              coverImage: cityPhoto.url
+            });
+            
+            console.log(`✅ [11L Template Success] ${group.name} updated with Buenos Aires template photo: ${cityPhoto.url}`);
+            successCount++;
+            
+            results.push({
+              groupId: group.id,
+              groupName: group.name,
+              city: group.city,
+              country: group.country,
+              success: true,
+              photoUrl: cityPhoto.url,
+              photographer: cityPhoto.photographer,
+              source: cityPhoto.source,
+              quality: cityPhoto.quality
+            });
+          } else {
+            throw new Error('No photo found from Buenos Aires template system');
+          }
           
           // Rate limiting: wait 2 seconds between requests to respect Pexels API
           await new Promise(resolve => setTimeout(resolve, 2000));

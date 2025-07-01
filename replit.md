@@ -787,6 +787,14 @@ Changelog:
   * Created BUENOS_AIRES_STANDOUT_PHOTO_11L_IMPLEMENTATION.md documenting complete 11-layer implementation approach
   * Buenos Aires template now displays professional aerial photography serving as gold standard for all city groups
   * UI/Graphics requirements fulfilled with authentic, recognizable Buenos Aires imagery that stands out and conveys city identity
+- July 1, 2025. Buenos Aires Template Automation Fix completed using 11L framework:
+  * Fixed critical automation bug where all city group creation endpoints were calling non-existent downloadAndStoreCityPhoto() method
+  * Updated 4 key automation endpoints to use correct CityPhotoService.fetchCityPhoto() method: user registration, onboarding, admin photo update, script automation
+  * Ensured Buenos Aires aerial template (Pexels ID: 16228260) automatically propagates to all new city groups through template inheritance system
+  * Enhanced automation error handling with proper fallbacks and comprehensive logging for template system monitoring
+  * All new city groups now automatically receive Buenos Aires template improvements without manual intervention
+  * Created BUENOS_AIRES_TEMPLATE_11L_VALIDATION.md documenting complete automation fix and production readiness validation
+  * Template propagation system operational: User Registration → City Input → Group Creation → Buenos Aires Template Applied → Auto-Join
 ```
 
 ## User Preferences

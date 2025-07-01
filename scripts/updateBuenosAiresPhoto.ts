@@ -32,21 +32,22 @@ async function updateBuenosAiresGroupPhoto() {
     
     console.log('🔑 PEXELS_API_KEY configured successfully');
     
-    // Layer 6: Backend Layer - Fetch authentic Buenos Aires photo
-    console.log('📸 Fetching authentic Buenos Aires cityscape from Pexels...');
-    const photoResult = await CityPhotoService.downloadAndStoreCityPhoto(
-      'Buenos Aires',
-      'Argentina', 
-      group.id
-    );
+    // Layer 6: Backend Layer - Fetch authentic Buenos Aires photo using template system
+    console.log('📸 Fetching authentic Buenos Aires cityscape using template system...');
+    const cityPhoto = await CityPhotoService.fetchCityPhoto('Buenos Aires', 'Argentina');
     
-    console.log('✅ Photo download result:', photoResult);
+    if (!cityPhoto) {
+      console.error('❌ No photo found from template system');
+      return;
+    }
+    
+    console.log('✅ Photo fetch result:', cityPhoto);
     
     // Layer 5: Data Layer - Update group with new photo
-    console.log('💾 Updating group with authentic photo...');
+    console.log('💾 Updating group with template photo...');
     await storage.updateGroup(group.id, { 
-      imageUrl: photoResult.localPath,
-      coverImage: photoResult.localPath  // Also set as cover image
+      imageUrl: cityPhoto.url,
+      coverImage: cityPhoto.url  // Also set as cover image
     });
     
     console.log(`🎉 Buenos Aires group updated successfully!`);
