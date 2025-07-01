@@ -1,0 +1,107 @@
+📌 OBJECTIVE:
+Fix the Groups system end-to-end using the 11 Layer system. Ensure:
+- Users are auto-added to their primary city group
+- The UI reflects accurate group status (joined, pending, etc.)
+- Clicking a group opens a **Group Detail Page** based on TT files
+
+---
+
+1️⃣ EXPERTISE LAYER
+→ You are acting as a full-stack developer (React + Supabase + Tailwind), with deep UX fidelity to the Mundo Tango design system and TT reference files.
+
+---
+
+2️⃣ OPEN SOURCE SCAN LAYER
+→ Before building, check:
+- [react-query](https://tanstack.com/query/latest) or SWR for real-time state
+- [supabase-js](https://supabase.com/docs/reference/javascript)
+- [Headless UI](https://headlessui.dev/) for tabs and toggles
+
+---
+
+3️⃣ LEGAL & COMPLIANCE LAYER
+→ No PII shared. Group visibility must respect:
+- Public groups: visible to all
+- Private groups: request-based only
+- Default visibility = Public unless explicitly marked
+
+---
+
+4️⃣ CONSENT & UX SAFEGUARDS LAYER
+→ Auto-join **only** if group is public and matches user.city_dance_primary  
+→ For private groups, always show "Request to Join"
+
+---
+
+5️⃣ DATA LAYER
+📌 Tables:
+- `groups`: id, name, slug, description, visibility (public/private), created_by
+- `group_members`: id, group_id, user_id, role, status ("member", "pending", "denied")
+
+🎯 Add relationship indexes between users.city_dance_primary ↔ groups.slug
+
+---
+
+6️⃣ BACKEND LAYER
+✅ Add API Endpoints:
+- `POST /api/groups/:slug/join`
+- `POST /api/groups/:slug/request`
+- `GET /api/groups/:slug/details`
+
+🎯 On login or registration:
+- Check if group exists for `user.city_dance_primary`
+- If yes, and group is public, auto-add user to `group_members`
+
+---
+
+7️⃣ FRONTEND LAYER
+✅ On the Groups list page:
+- Hide "Join Group" if already joined
+- Clicking the group card opens **Group Detail Page**
+
+📄 GroupDetailPage.tsx:
+- Pull full design from TT files
+- Show banner, description, member list, events, shared posts
+- Add tabs: Overview | Events | Members | Memories
+
+📌 Use: `pages/groups/[slug].tsx`
+
+---
+
+8️⃣ SYNC & AUTOMATION LAYER
+→ After user joins, broadcast membership via Supabase Realtime
+→ Optionally trigger welcome automation (e.g., post to group's feed)
+→ Consider N8N job to reprocess past users missing group joins
+
+---
+
+9️⃣ SECURITY & PERMISSIONS LAYER
+→ Enforce RBAC on:
+- Who can join/create groups
+- Who sees member info
+→ For private groups, only allow invites or approvals
+
+---
+
+🔟 AI & REASONING LAYER
+→ When joining a group:
+- Update user embeddings / interest vectors
+- AI can suggest content/memories based on group activity
+
+---
+
+1️⃣1️⃣ TESTING & OBSERVABILITY LAYER
+✅ Tests:
+- You (admin@mundotango.life) are placed in “Buenos Aires Tango”
+- Buttons respond appropriately
+- GroupDetailPage loads without error
+
+📊 Add console logs, dev mode feedback, and Supabase audit entry: `group_joined`
+
+---
+
+📎 OUTPUT SUMMARY:
+- ✅ Auto-join to city group at login
+- ✅ Fixed Join/Request button logic
+- ✅ Clicking group loads TT-inspired detail page
+- ✅ Fully conforms to 11L architecture

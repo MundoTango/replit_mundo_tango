@@ -4906,16 +4906,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's city groups
+  // Get user's city groups with membership status
   app.get('/api/user/groups', isAuthenticated, async (req, res) => {
     try {
       const userId = req.user!.id;
-      const groups = await storage.getUserGroups(userId);
+      const user = await storage.getUser(userId);
+      
+      // Get all city groups
+      const allGroups = await storage.getGroupsByCity(user?.city || '');
+      
+      // Get user's joined groups
+      const joinedGroups = await storage.getUserGroups(userId);
+      const joinedGroupIds = joinedGroups.map((g: any) => g.id);
+      
+      // Mark membership status for each group
+      const groupsWithStatus = allGroups.map((group: any) => ({
+        ...group,
+        membershipStatus: joinedGroupIds.includes(group.id) ? 'member' : 'not_member',
+        isJoined: joinedGroupIds.includes(group.id)
+      }));
 
       res.status(200).json({
         success: true,
         message: 'User groups retrieved successfully',
-        data: groups
+        data: {
+          joinedGroups,
+          availableGroups: groupsWithStatus,
+          userCity: user?.city,
+          userCountry: user?.country
+        }
       });
     } catch (error) {
       console.error('Error fetching user groups:', error);
@@ -5032,6 +5051,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: 'Failed to join group',
+        data: null
+      });
+    }
+  });
+
+  // Auto-join user to city groups based on location
+  app.post('/api/user/auto-join-city-groups', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+          data: null
+        });
+      }
+
+      let joinedGroups: any[] = [];
+      
+      // If user has city information, auto-join city groups
+      if (user.city && user.country) {
+        const cityGroups = await storage.getGroupsByCity(user.city);
+        
+        for (const group of cityGroups) {
+          // Only auto-join public groups
+          if (!group.isPrivate) {
+            const isMember = await storage.checkUserInGroup(group.id, userId);
+            if (!isMember) {
+              const membership = await storage.addUserToGroup(group.id, userId, 'member');
+              await storage.updateGroupMemberCount(group.id);
+              joinedGroups.push({ group, membership });
+              console.log(`Auto-joined user ${userId} to group ${group.name}`);
+            }
+          }
+        }
+      }
+
+      res.status(200).json({
+        success: true,
+        message: joinedGroups.length > 0 
+          ? `Automatically joined ${joinedGroups.length} city group(s)` 
+          : 'No city groups available for auto-join',
+        data: {
+          joinedGroups,
+          userLocation: { city: user.city, country: user.country }
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error auto-joining city groups:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to auto-join city groups',
         data: null
       });
     }
