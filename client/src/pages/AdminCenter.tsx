@@ -93,6 +93,14 @@ interface ComplianceMetrics {
 const AdminCenter: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [rbacData, setRbacData] = useState<any>(null);
+  const [rbacLoading, setRbacLoading] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [permissionTest, setPermissionTest] = useState({
+    resource: '',
+    action: '',
+    result: null as any
+  });
 
   // Fetch admin statistics
   const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
@@ -122,6 +130,68 @@ const AdminCenter: React.FC = () => {
     }
   });
 
+  // RBAC/ABAC Management Functions
+  const fetchRbacAnalytics = async () => {
+    setRbacLoading(true);
+    try {
+      const response = await fetch('/api/rbac/analytics', {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      setRbacData(data);
+    } catch (error) {
+      console.error('Error fetching RBAC analytics:', error);
+    } finally {
+      setRbacLoading(false);
+    }
+  };
+
+  const testPermission = async () => {
+    if (!selectedUserId || !permissionTest.resource || !permissionTest.action) return;
+    
+    try {
+      const response = await fetch('/api/rbac/check-permission', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          userId: selectedUserId,
+          resource: permissionTest.resource,
+          action: permissionTest.action
+        })
+      });
+      const result = await response.json();
+      setPermissionTest(prev => ({ ...prev, result }));
+    } catch (error) {
+      console.error('Error testing permission:', error);
+    }
+  };
+
+  const triggerAutoAssignment = async () => {
+    try {
+      await fetch('/api/rbac/auto-assign', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      await fetchRbacAnalytics(); // Refresh data
+    } catch (error) {
+      console.error('Error triggering auto-assignment:', error);
+    }
+  };
+
+  const runComplianceAudit = async () => {
+    try {
+      const response = await fetch('/api/rbac/compliance-audit', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const result = await response.json();
+      setRbacData(prev => ({ ...prev, auditResults: result }));
+    } catch (error) {
+      console.error('Error running compliance audit:', error);
+    }
+  };
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
@@ -130,6 +200,7 @@ const AdminCenter: React.FC = () => {
     { id: 'events', label: 'Event Management', icon: <Calendar className="w-4 h-4" /> },
     { id: 'reports', label: 'Reports & Logs', icon: <Eye className="w-4 h-4" /> },
     { id: 'compliance', label: 'Compliance Center', icon: <Shield className="w-4 h-4" /> },
+    { id: 'rbac', label: 'RBAC/ABAC Manager', icon: <Lock className="w-4 h-4" /> },
     { id: 'system', label: 'System Health', icon: <Activity className="w-4 h-4" /> },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
   ];
@@ -1028,6 +1099,258 @@ const AdminCenter: React.FC = () => {
     </div>
   );
 
+  const renderRbacManager = () => (
+    <div className="space-y-6">
+      {/* RBAC/ABAC Header */}
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
+              <Lock className="w-6 h-6 text-blue-600" />
+              Automated RBAC/ABAC Management System
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">Centralized role-based and attribute-based access control with automated permission management</p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={fetchRbacAnalytics}
+              disabled={rbacLoading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              <Database className="w-4 h-4" />
+              {rbacLoading ? 'Loading...' : 'Refresh Analytics'}
+            </button>
+            <button
+              onClick={triggerAutoAssignment}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+            >
+              <Zap className="w-4 h-4" />
+              Auto-Assign Roles
+            </button>
+            <button
+              onClick={runComplianceAudit}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+            >
+              <Shield className="w-4 h-4" />
+              Run Audit
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* RBAC Analytics Dashboard */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Role Distribution */}
+          <div className="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Users className="w-5 h-5 text-blue-600" />
+              Role Distribution & Assignment
+            </h3>
+            {rbacData?.roleDistribution ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {Object.entries(rbacData.roleDistribution).map(([role, count]) => (
+                  <div key={role} className="bg-gray-50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-gray-900">{count as number}</div>
+                    <div className="text-sm text-gray-600 capitalize">{role.replace('_', ' ')}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                Click "Refresh Analytics" to load role distribution data
+              </div>
+            )}
+          </div>
+
+          {/* Permission Testing Tool */}
+          <div className="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-green-600" />
+              Permission Testing & Validation
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">User ID</label>
+                <input
+                  type="number"
+                  value={selectedUserId || ''}
+                  onChange={(e) => setSelectedUserId(e.target.value ? parseInt(e.target.value) : null)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter user ID"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Resource</label>
+                <select
+                  value={permissionTest.resource}
+                  onChange={(e) => setPermissionTest(prev => ({ ...prev, resource: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select resource</option>
+                  <option value="posts">Posts</option>
+                  <option value="events">Events</option>
+                  <option value="users">Users</option>
+                  <option value="groups">Groups</option>
+                  <option value="admin">Admin Panel</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Action</label>
+                <select
+                  value={permissionTest.action}
+                  onChange={(e) => setPermissionTest(prev => ({ ...prev, action: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select action</option>
+                  <option value="create">Create</option>
+                  <option value="read">Read</option>
+                  <option value="update">Update</option>
+                  <option value="delete">Delete</option>
+                  <option value="moderate">Moderate</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Test</label>
+                <button
+                  onClick={testPermission}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  disabled={!selectedUserId || !permissionTest.resource || !permissionTest.action}
+                >
+                  Test Permission
+                </button>
+              </div>
+            </div>
+            {permissionTest.result && (
+              <div className={`p-4 rounded-lg ${
+                permissionTest.result.granted ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+              }`}>
+                <div className={`flex items-center gap-2 ${
+                  permissionTest.result.granted ? 'text-green-800' : 'text-red-800'
+                }`}>
+                  {permissionTest.result.granted ? (
+                    <CheckCircle className="w-5 h-5" />
+                  ) : (
+                    <Ban className="w-5 h-5" />
+                  )}
+                  <span className="font-medium">
+                    {permissionTest.result.granted ? 'Permission Granted' : 'Permission Denied'}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 mt-1">{permissionTest.result.reason}</p>
+                {permissionTest.result.appliedPolicies?.length > 0 && (
+                  <div className="mt-2">
+                    <span className="text-xs font-medium text-gray-500">Applied Policies:</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {permissionTest.result.appliedPolicies.map((policy: string, idx: number) => (
+                        <span key={idx} className="text-xs bg-gray-100 px-2 py-1 rounded">{policy}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {/* System Performance */}
+          <div className="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-purple-600" />
+              Performance Metrics
+            </h3>
+            {rbacData?.performance ? (
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Average Evaluation Time</span>
+                    <span className="font-medium">{rbacData.performance.avgEvaluationTime}ms</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                    <div 
+                      className="bg-purple-500 h-2 rounded-full" 
+                      style={{ width: `${Math.min(rbacData.performance.avgEvaluationTime / 10, 100)}%` }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Cache Hit Rate</span>
+                    <span className="font-medium">{rbacData.performance.cacheHitRate}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                    <div 
+                      className="bg-green-500 h-2 rounded-full" 
+                      style={{ width: `${rbacData.performance.cacheHitRate}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500">
+                No performance data available
+              </div>
+            )}
+          </div>
+
+          {/* Security Events */}
+          <div className="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-600" />
+              Security Events
+            </h3>
+            {rbacData?.securityEvents ? (
+              <div className="space-y-3">
+                {rbacData.securityEvents.slice(0, 5).map((event: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{event.type}</div>
+                      <div className="text-xs text-gray-500">{event.timestamp}</div>
+                    </div>
+                    <div className={`px-2 py-1 rounded text-xs ${
+                      event.severity === 'high' ? 'bg-red-100 text-red-800' :
+                      event.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {event.severity}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500">
+                No security events detected
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Automated Assignment Rules */}
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <Zap className="w-5 h-5 text-yellow-600" />
+          Automated Assignment Rules
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h4 className="font-medium text-blue-900 mb-2">Location-Based Assignment</h4>
+            <p className="text-sm text-blue-700">Users automatically assigned city-specific roles based on location data</p>
+          </div>
+          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+            <h4 className="font-medium text-green-900 mb-2">Experience-Based Roles</h4>
+            <p className="text-sm text-green-700">Roles assigned based on user experience levels and specializations</p>
+          </div>
+          <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <h4 className="font-medium text-purple-900 mb-2">Activity-Based Promotion</h4>
+            <p className="text-sm text-purple-700">Users promoted to higher roles based on community contributions</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
     switch (selectedTab) {
       case 'overview': return renderOverview();
@@ -1037,6 +1360,7 @@ const AdminCenter: React.FC = () => {
       case 'events': return renderEventManagement();
       case 'reports': return renderReportsAndLogs();
       case 'compliance': return renderCompliance();
+      case 'rbac': return renderRbacManager();
       case 'system': return renderSystemHealth();
       case 'settings': return renderSettings();
       default: return renderOverview();
