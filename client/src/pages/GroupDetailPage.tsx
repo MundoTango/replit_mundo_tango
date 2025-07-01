@@ -10,6 +10,7 @@ import EnhancedPostItem from '@/components/moments/EnhancedPostItem';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { GroupAdminToolbar } from '@/components/GroupAdminToolbar';
 import { canAccessGroupAdmin, getAdminRoleDisplay } from '@/utils/adminAccess';
+import { EnhancedMembersSection } from '@/components/EnhancedMembersSection';
 
 interface GroupMember {
   id: number;
@@ -325,34 +326,10 @@ const GroupDetailPage: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="members">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-6">Members ({group.memberCount})</h3>
-              {group.members?.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {group.members.map((member) => (
-                    <div key={member.id} className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                      <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                        {member.profileImage ? (
-                          <img src={member.profileImage} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
-                        ) : (
-                          member.name.charAt(0).toUpperCase()
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{member.name}</p>
-                        <p className="text-xs text-gray-500 truncate">@{member.username}</p>
-                        <Badge variant="outline" className="text-xs mt-1">{member.role}</Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>No members to display</p>
-                </div>
-              )}
-            </div>
+            <EnhancedMembersSection 
+              members={group.members || []} 
+              memberCount={group.memberCount} 
+            />
           </TabsContent>
 
           <TabsContent value="memories">
