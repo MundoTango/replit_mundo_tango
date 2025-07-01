@@ -116,7 +116,8 @@ export default function GroupsPage() {
                   console.log('🚀 Triggering photo update...');
                   const response = await fetch('/api/admin/update-group-photos', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
                   });
                   const result = await response.json();
                   console.log('📸 Photo update result:', result);

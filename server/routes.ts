@@ -5410,21 +5410,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 11L Photo Fix: Update Group Photos API
+  // 11L Photo Fix: Update ALL Group Photos with Authentic City Images
   app.post('/api/admin/update-group-photos', isAuthenticated, async (req, res) => {
     try {
-      console.log('🚀 Starting 11L Photo Update for all groups...');
+      console.log('🚀 [11L Photo Fix] Starting photo update for ALL groups with authentic city images...');
       
-      // Fetch all groups without photos
-      const groupsWithoutPhotos = await storage.getAllGroups();
-      const groupsToUpdate = groupsWithoutPhotos.filter(group => !group.imageUrl);
+      // Fetch ALL groups (not just ones without photos)
+      const allGroups = await storage.getAllGroups();
+      const cityGroups = allGroups.filter(group => group.type === 'city' && group.city);
       
-      console.log(`📊 Found ${groupsToUpdate.length} groups without photos`);
+      console.log(`📊 Found ${cityGroups.length} city groups to update with authentic photos`);
       
-      if (groupsToUpdate.length === 0) {
+      if (cityGroups.length === 0) {
         return res.json({
           success: true,
-          message: 'All groups already have photos!',
+          message: 'No city groups found to update!',
           data: { updated: 0, total: 0 }
         });
       }
@@ -5433,66 +5433,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let failureCount = 0;
       const results = [];
       
-      // Process each group
-      for (const group of groupsToUpdate) {
+      // Process each city group with new download system
+      for (const group of cityGroups) {
         try {
-          console.log(`🌆 Fetching photo for ${group.name}...`);
+          console.log(`🌆 [11L Photo Download] Processing ${group.name} (${group.city}, ${group.country})...`);
           
-          // Extract city name for search
-          const cityName = group.city || group.name.replace(/^Tango\s+/, '').split(',')[0].trim();
-          const countryName = group.country || '';
-          
-          // Fetch authentic city photo using cityPhotoService
+          // Import and use enhanced photo service with download capability
           const { CityPhotoService } = await import('./services/cityPhotoService.js');
-          const photoUrl = await CityPhotoService.fetchCityPhoto(cityName, countryName);
           
-          if (photoUrl) {
-            // Update group with photo URL
-            await storage.updateGroup(group.id, { imageUrl: photoUrl });
+          // Download and store authentic city photo locally
+          const photoResult = await CityPhotoService.downloadAndStoreCityPhoto(
+            group.city, 
+            group.country || 'Unknown', 
+            group.id
+          );
+          
+          // Update group with local photo path
+          await storage.updateGroup(group.id, { 
+            imageUrl: photoResult.localPath 
+          });
+          
+          console.log(`✅ [11L Success] ${group.name} updated with authentic photo: ${photoResult.localPath}`);
+          successCount++;
+          
+          results.push({
+            groupId: group.id,
+            groupName: group.name,
+            city: group.city,
+            country: group.country,
+            success: true,
+            localPath: photoResult.localPath,
+            originalUrl: photoResult.originalUrl,
+            photographer: photoResult.photographer,
+            pexelsId: photoResult.pexelsId
+          });
+          
+          // Rate limiting: wait 2 seconds between requests to respect Pexels API
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+        } catch (error) {
+          console.error(`❌ [11L Error] Failed to update ${group.name}:`, error);
+          
+          // Try fallback photo if download fails
+          try {
+            const fallbackUrl = 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+            await storage.updateGroup(group.id, { imageUrl: fallbackUrl });
             
-            console.log(`✅ Updated ${group.name} with photo`);
-            successCount++;
+            console.log(`🔄 [11L Fallback] ${group.name} updated with fallback photo`);
             results.push({
               groupId: group.id,
               groupName: group.name,
               success: true,
-              photoUrl
+              fallback: true,
+              photoUrl: fallbackUrl,
+              originalError: error.message
             });
-          } else {
-            console.log(`❌ No photo found for ${group.name}`);
+            successCount++;
+          } catch (fallbackError) {
+            console.error(`💥 [11L Critical] Complete failure for ${group.name}:`, fallbackError);
             failureCount++;
             results.push({
               groupId: group.id,
               groupName: group.name,
               success: false,
-              error: 'No photo found'
+              error: error.message,
+              fallbackError: fallbackError.message
             });
           }
-          
-          // Rate limiting: wait 1 second between requests
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-        } catch (error) {
-          console.error(`💥 Error updating ${group.name}:`, error);
-          failureCount++;
-          results.push({
-            groupId: group.id,
-            groupName: group.name,
-            success: false,
-            error: error.message
-          });
         }
       }
       
-      console.log(`\n📈 Update Complete: ${successCount} success, ${failureCount} failures`);
+      console.log(`\n📈 [11L Complete] Update finished: ${successCount} success, ${failureCount} failures`);
       
       res.json({
         success: true,
-        message: `Photo update completed: ${successCount} updated, ${failureCount} failed`,
+        message: `11L Photo update completed: ${successCount} groups updated with authentic city photos, ${failureCount} failed`,
         data: {
           updated: successCount,
           failed: failureCount,
-          total: groupsToUpdate.length,
+          total: cityGroups.length,
           results
         }
       });
