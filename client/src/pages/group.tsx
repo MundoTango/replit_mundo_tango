@@ -10,6 +10,7 @@ import { MapPin, Users, Calendar, Sparkles, Heart, UserPlus } from "lucide-react
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import EnhancedPostItem from "@/components/moments/EnhancedPostItem";
 
 interface GroupMember {
   id: number;
@@ -67,12 +68,12 @@ export default function GroupPage() {
     enabled: !!slug,
   });
 
-  const autoAssignMutation = useMutation({
-    mutationFn: () => apiRequest("/api/groups/auto-assign", "POST", {}),
-    onSuccess: (data) => {
+  const joinGroupMutation = useMutation({
+    mutationFn: () => apiRequest(`/api/user/join-group/${slug}`, "POST", {}),
+    onSuccess: (response: any) => {
       toast({
-        title: "Joined group successfully!",
-        description: data.message,
+        title: response.data?.newMember ? "Welcome to the group! 🎉" : "You're already a member",
+        description: response.message || "Successfully joined the group",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/groups', slug] });
     },
@@ -116,7 +117,7 @@ export default function GroupPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-coral-50">
         <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-6">
           {/* Header Section with TT Branding */}
           <div className="bg-gradient-to-r from-coral-400 via-coral-500 to-indigo-500 rounded-2xl p-8 mb-6 shadow-lg">
@@ -149,13 +150,13 @@ export default function GroupPage() {
                   </div>
                 ) : (
                   <Button
-                    onClick={() => autoAssignMutation.mutate()}
-                    disabled={autoAssignMutation.isPending}
+                    onClick={() => joinGroupMutation.mutate()}
+                    disabled={joinGroupMutation.isPending}
                     className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm"
                     size="lg"
                   >
                     <UserPlus className="h-5 w-5 mr-2" />
-                    {autoAssignMutation.isPending ? "Joining..." : "Join Group"}
+                    {joinGroupMutation.isPending ? "Joining..." : "Join Group"}
                   </Button>
                 )}
               </div>
@@ -267,32 +268,78 @@ export default function GroupPage() {
                 </CardContent>
               </Card>
 
-              {/* Recent Memories/Activity */}
-              <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg rounded-xl">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-gray-800">
-                    <Sparkles className="h-5 w-5 mr-2 text-teal-500" />
+              {/* Recent Memories - Enhanced Design */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-r from-indigo-500 to-coral-500 rounded-xl">
+                    <Sparkles className="h-5 w-5 text-white animate-pulse" />
+                  </div>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-blue-600 to-coral-500 bg-clip-text text-transparent">
                     Recent Memories
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {recentMemories.length > 0 ? (
-                    <div className="space-y-4">
-                      {recentMemories.map((memory, index) => (
-                        <div key={index} className="p-4 border border-gray-100 rounded-lg">
-                          <p className="text-gray-700">{memory.content}</p>
-                        </div>
-                      ))}
+                  </h2>
+                </div>
+                
+                {recentMemories.length > 0 ? (
+                  <div className="space-y-6">
+                    {recentMemories.map((memory: any, index: number) => {
+                      // Transform memory data to match EnhancedPostItem expected format
+                      const transformedPost = {
+                        id: memory.id || index,
+                        content: memory.content || memory.description || '',
+                        imageUrl: memory.imageUrl,
+                        videoUrl: memory.videoUrl,
+                        userId: memory.userId,
+                        createdAt: memory.createdAt || new Date().toISOString(),
+                        user: memory.user || {
+                          id: memory.userId || 0,
+                          name: memory.userName || 'Anonymous',
+                          username: memory.userUsername || 'user',
+                          profileImage: memory.userProfileImage,
+                          tangoRoles: memory.userRoles || []
+                        },
+                        likes: memory.likes || 0,
+                        comments: memory.comments || 0,
+                        isLiked: memory.isLiked || false,
+                        hashtags: memory.hashtags || [],
+                        location: memory.location,
+                        hasConsent: memory.hasConsent || true,
+                        mentions: memory.mentions || [],
+                        emotionTags: memory.emotionTags || []
+                      };
+                      
+                      return (
+                        <EnhancedPostItem 
+                          key={memory.id || index} 
+                          post={transformedPost}
+                          onLike={(postId: number) => {
+                            // Handle like functionality for group memories
+                            console.log('Liked memory:', postId);
+                            // TODO: Implement memory like API
+                          }}
+                          onShare={(post: any) => {
+                            // Handle share functionality for group memories
+                            console.log('Shared memory:', post);
+                            // TODO: Implement memory share functionality
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-16 bg-gradient-to-br from-indigo-50 to-coral-50 rounded-3xl border border-indigo-100/50">
+                    <div className="max-w-sm mx-auto">
+                      <div className="w-20 h-20 bg-gradient-to-br from-indigo-400 to-coral-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Heart className="h-10 w-10 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">No memories shared yet</h3>
+                      <p className="text-gray-600 mb-6">Be the first to share a tango memory with this group!</p>
+                      <Button className="bg-gradient-to-r from-indigo-500 to-coral-500 hover:from-indigo-600 hover:to-coral-600 text-white">
+                        Share a Memory
+                      </Button>
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Heart className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                      <p>No memories shared yet</p>
-                      <p className="text-sm mt-1">Be the first to share a tango memory with this group!</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -4986,6 +4986,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Join a specific group by slug
+  app.post('/api/user/join-group/:slug', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { slug } = req.params;
+      
+      // Find the group by slug
+      const group = await storage.getGroupBySlug(slug);
+      if (!group) {
+        return res.status(404).json({
+          success: false,
+          message: 'Group not found',
+          data: null
+        });
+      }
+      
+      // Check if user is already a member
+      const isMember = await storage.checkUserInGroup(group.id, userId);
+      if (isMember) {
+        return res.status(200).json({
+          success: true,
+          message: 'You are already a member of this group',
+          data: { group, alreadyMember: true }
+        });
+      }
+      
+      // Add user to group
+      const membership = await storage.addUserToGroup(group.id, userId, 'member');
+      
+      // Update member count
+      await storage.updateGroupMemberCount(group.id);
+      
+      // Log the action
+      console.log(`User ${userId} joined group ${group.name} (${slug})`);
+      
+      res.status(200).json({
+        success: true,
+        message: `Welcome to ${group.name}! 🎉`,
+        data: { group, membership, newMember: true }
+      });
+      
+    } catch (error) {
+      console.error('Error joining group:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to join group',
+        data: null
+      });
+    }
+  });
+
   // Auto-assign user to city group based on profile location
   app.post('/api/groups/auto-assign', isAuthenticated, async (req, res) => {
     try {
