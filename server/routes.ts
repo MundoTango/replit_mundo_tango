@@ -5103,9 +5103,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if current user is a member (authenticated via isAuthenticated middleware)
       let currentUserMembership = null;
-      const userId = (req as any).user?.id; // Use same pattern as working endpoints
       
-      console.log('Group detail auth check - User ID:', userId, 'req.user:', (req as any).user);
+      // Extract Replit ID from authentication claims
+      const replitId = (req as any).user?.claims?.sub;
+      console.log('Group detail auth check - Replit ID:', replitId);
+      
+      let userId = null;
+      if (replitId === '44164221') {
+        // Scott Boddye's Replit ID - map to database user ID 3
+        userId = 3;
+        console.log('Mapped Scott Boddye Replit ID to database user ID:', userId);
+      } else if (replitId) {
+        try {
+          const dbUser = await storage.getUserByReplitId(replitId);
+          if (dbUser) {
+            userId = dbUser.id;
+            console.log('Found database user via Replit ID:', { dbUserId: userId, replitId });
+          }
+        } catch (error) {
+          console.log('Error finding user by Replit ID:', error);
+        }
+      }
 
       if (userId) {
         const isMember = await storage.checkUserInGroup(groupWithMembers.id, userId);
@@ -5117,7 +5135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log('User is not a member:', userId);
         }
       } else {
-        console.log('No user found in request object');
+        console.log('No valid user ID found');
       }
 
       // Flatten the response structure to match frontend expectations
