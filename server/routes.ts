@@ -2152,14 +2152,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!existingGroup) {
             console.log(`🎨 Creating new city group for ${location.city}, ${location.country}`);
             
-            // Create city group with fallback photo initially
+            // Fetch authentic city photo from Pexels API
+            let cityPhotoUrl = 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop'; // fallback
+            
+            try {
+              const { CityPhotoService } = await import('./services/cityPhotoService.js');
+              const fetchedPhoto = await CityPhotoService.fetchCityPhoto(location.city, location.country);
+              if (fetchedPhoto) {
+                cityPhotoUrl = fetchedPhoto.url;
+                console.log(`📸 Fetched authentic city photo for ${location.city}: ${cityPhotoUrl}`);
+              } else {
+                console.log(`⚠️ No photo found for ${location.city}, using fallback`);
+              }
+            } catch (photoError) {
+              console.error(`❌ Error fetching city photo for ${location.city}:`, photoError);
+            }
+            
+            // Create city group with authentic photo
             const cityGroup = await storage.createGroup({
               name: `Tango ${location.city}, ${location.country}`,
               slug: citySlug,
               type: 'city' as const,
               emoji: '🏙️',
-              imageUrl: 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
-              description: `Welcome to the ${location.city} tango community! Connect with local dancers, find milongas, and share your tango journey in this beautiful city.`,
+              imageUrl: cityPhotoUrl,
+              description: `Connect with tango dancers and enthusiasts in ${location.city}, ${location.country}. Share local events, find dance partners, and build community connections.`,
               isPrivate: false,
               city: location.city,
               country: location.country,
