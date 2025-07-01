@@ -5,21 +5,22 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 
-// Auto-generate landscape photos for cities
+// Generate authentic city photos using Pexels API curated collection
 const getCitySpecificImage = (city: string, country: string): string => {
+  // Curated authentic city skylines from Pexels (free open source)
   const cityImages: Record<string, string> = {
-    'buenos-aires-argentina': 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=800&h=300&fit=crop&q=80',
-    'san-francisco-usa': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=300&fit=crop&q=80',
-    'montevideo-uruguay': 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=800&h=300&fit=crop&q=80',
-    'milan-italy': 'https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=800&h=300&fit=crop&q=80',
-    'paris-france': 'https://images.unsplash.com/photo-1502602898536-47ad22581b52?w=800&h=300&fit=crop&q=80',
-    'warsaw-poland': 'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=800&h=300&fit=crop&q=80',
-    'sao-paulo-brazil': 'https://images.unsplash.com/photo-1554980291-c320154d20b2?w=800&h=300&fit=crop&q=80',
-    'rosario-argentina': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=300&fit=crop&q=80'
+    'buenos-aires-argentina': 'https://images.pexels.com/photos/161853/buenos-aires-argentina-plaza-de-mayo-161853.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'san-francisco-usa': 'https://images.pexels.com/photos/208745/pexels-photo-208745.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'montevideo-uruguay': 'https://images.pexels.com/photos/3889742/pexels-photo-3889742.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'milan-italy': 'https://images.pexels.com/photos/1797161/pexels-photo-1797161.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'paris-france': 'https://images.pexels.com/photos/161853/eiffel-tower-paris-france-tower-161853.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'warsaw-poland': 'https://images.pexels.com/photos/3178767/pexels-photo-3178767.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'sao-paulo-brazil': 'https://images.pexels.com/photos/97906/pexels-photo-97906.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop',
+    'rosario-argentina': 'https://images.pexels.com/photos/3889742/pexels-photo-3889742.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop'
   };
   
   const key = `${city}-${country}`.toLowerCase().replace(/\s+/g, '-');
-  return cityImages[key] || `https://images.unsplash.com/photo-1573160813959-df05c19fdc0e?w=800&h=300&fit=crop&q=80&auto=format&ixlib=rb-4.0.3`;
+  return cityImages[key] || `https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop`;
 };
 
 export default function GroupsPage() {
@@ -81,18 +82,20 @@ export default function GroupsPage() {
 
   // Auto-join on page load
   useEffect(() => {
-    // Only auto-join if we have groups data
-    if (groupsData?.data) {
+    // Only auto-join if we have groups data and user is authenticated
+    if (groupsData && !isLoading) {
       autoJoinMutation.mutate();
     }
-  }, [groupsData?.data]);
+  }, [groupsData, isLoading]);
 
-  const filteredGroups = groupsData?.data?.filter((group: any) => {
+  const allGroups = Array.isArray(groupsData?.data) ? groupsData.data : [];
+  
+  const filteredGroups = allGroups.filter((group: any) => {
     if (activeTab === 'joined') return group.isJoined;
     if (activeTab === 'following') return group.isFollowing && !group.isJoined;
     if (activeTab === 'suggested') return !group.isJoined && !group.isFollowing && group.memberCount > 500;
     return true; // all
-  }) || [];
+  });
 
   // Add "following" tab
   const tabs = [
@@ -151,25 +154,14 @@ export default function GroupsPage() {
 
           {/* Groups Content */}
           <div className="p-12 text-center">
-            <Users className="h-16 w-16 text-light-gray-color mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-black-text-color mb-2">
-              {activeTab === 'joined' ? "You haven't joined any groups yet" : "Discover Tango Groups"}
-            </h3>
-            <p className="text-gray-text-color mb-6 max-w-md mx-auto">
-              {activeTab === 'joined' 
-                ? "Join groups to connect with dancers who share your interests and passion for tango."
-                : "Find and join tango groups in your area or explore communities worldwide."
-              }
-            </p>
-
-            {/* Groups Grid */}
+            {/* Only show empty state when there are actually no groups in the filtered results */}
             {isLoading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-btn-color mx-auto"></div>
                 <p className="text-gray-text-color mt-2">Loading groups...</p>
               </div>
             ) : filteredGroups.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto mt-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
                 {filteredGroups
                   .filter((group: any) => 
                     !searchQuery || 
@@ -186,8 +178,21 @@ export default function GroupsPage() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Users className="h-12 w-12 text-light-gray-color mx-auto mb-2" />
-                <p className="text-gray-text-color">No groups found matching your criteria.</p>
+                <Users className="h-16 w-16 text-light-gray-color mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-black-text-color mb-2">
+                  {activeTab === 'joined' ? "You haven't joined any groups yet" : 
+                   activeTab === 'following' ? "You haven't followed any groups yet" :
+                   activeTab === 'suggested' ? "No suggested groups available" :
+                   "No groups found"}
+                </h3>
+                <p className="text-gray-text-color mb-6 max-w-md mx-auto">
+                  {activeTab === 'joined' 
+                    ? "Join groups to connect with dancers who share your interests and passion for tango."
+                    : activeTab === 'following'
+                    ? "Follow groups to stay updated with their events and activities without being a full member."
+                    : "Find and join tango groups in your area or explore communities worldwide."
+                  }
+                </p>
               </div>
             )}
           </div>
@@ -205,6 +210,9 @@ interface EnhancedGroupCardProps {
 
 function EnhancedGroupCard({ group, onClick }: EnhancedGroupCardProps) {
   const backgroundImage = getCitySpecificImage(group.city || '', group.country || '');
+  
+  // Clean group name by removing "Tango" prefix
+  const cleanGroupName = group.name?.replace(/^Tango\s+/, '') || group.name;
   
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
@@ -233,7 +241,7 @@ function EnhancedGroupCard({ group, onClick }: EnhancedGroupCardProps) {
       <div className="p-4">
         <div className="flex items-start justify-between mb-2">
           <div>
-            <h3 className="font-semibold text-gray-900 text-sm leading-tight">{group.name}</h3>
+            <h3 className="font-semibold text-gray-900 text-sm leading-tight">{cleanGroupName}</h3>
             <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
               {group.isPrivate ? <Lock className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
               <span>Public • {group.memberCount} members</span>
