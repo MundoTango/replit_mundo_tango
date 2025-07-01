@@ -6222,16 +6222,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get event category breakdown
       const eventQuery = await db.execute(`
-        SELECT type, COUNT(*) as count 
+        SELECT event_type, COUNT(*) as count 
         FROM events 
-        WHERE type IS NOT NULL
-        GROUP BY type 
+        WHERE event_type IS NOT NULL
+        GROUP BY event_type 
         ORDER BY count DESC
       `);
 
       const eventCategories = {};
       eventQuery.rows.forEach(row => {
-        eventCategories[row.type] = Number(row.count);
+        eventCategories[row.event_type] = Number(row.count);
       });
 
       const stats = {
@@ -6342,7 +6342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get current compliance status from automated monitoring
       try {
-        const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
+        const { automatedComplianceMonitor } = await import('./services/automatedComplianceMonitor');
         const currentStatus = automatedComplianceMonitor.getCurrentComplianceStatus();
         
         if (currentStatus) {
@@ -6603,7 +6603,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
+      const { automatedComplianceMonitor } = await import('./services/automatedComplianceMonitor');
       const auditResult = await automatedComplianceMonitor.refreshCompliance(user.username);
       
       res.json({
@@ -6643,7 +6643,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
+      const { automatedComplianceMonitor } = await import('./services/automatedComplianceMonitor');
       const limit = parseInt(req.query.limit as string) || 20;
       const auditHistory = await automatedComplianceMonitor.getAuditHistory(limit);
       
@@ -6672,7 +6672,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
+      const { automatedComplianceMonitor } = await import('./services/automatedComplianceMonitor');
       const monitoringStatus = automatedComplianceMonitor.getMonitoringStatus();
       
       res.json({

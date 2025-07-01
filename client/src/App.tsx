@@ -28,7 +28,7 @@ import ResumePage from "@/pages/ResumePage";
 import PublicResumePage from "@/pages/PublicResumePage";
 import { NotionHomePage } from "@/pages/NotionHomePage";
 import { NotionEntryPage } from "@/pages/NotionEntryPage";
-import AdminCenter from "@/pages/AdminCenter";
+import AdminCenter from "@/pages/AdminCenterFixed";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
