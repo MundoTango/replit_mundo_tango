@@ -1818,9 +1818,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Modern events creation endpoint with role assignment support
+  // Modern events creation endpoint with role assignment and automatic city group assignment
   app.post("/api/events", isAuthenticated, async (req: any, res) => {
     try {
+      const { processEventCityGroupAssignment } = await import('./utils/eventCityGroupAssignment');
+      
       const validatedData = insertEventSchema.parse({
         userId: req.user!.id,
         title: req.body.title,
@@ -1835,6 +1837,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const event = await storage.createEvent(validatedData);
+      console.log(`✅ Event created: ${event.title} (ID: ${event.id})`);
+
+      // Automatic City Group Assignment
+      let cityGroupAssignment = null;
+      if (event.location || req.body.city || req.body.country) {
+        try {
+          const assignmentResult = await processEventCityGroupAssignment(
+            event.id,
+            {
+              location: event.location,
+              city: req.body.city,
+              country: req.body.country
+            },
+            req.user!.id
+          );
+
+          if (assignmentResult.success) {
+            cityGroupAssignment = assignmentResult.groupAssigned;
+            console.log(`🏙️ Event automatically assigned to city group: ${cityGroupAssignment?.name}`);
+          } else {
+            console.log(`⚠️ City group assignment failed: ${assignmentResult.error}`);
+          }
+        } catch (assignmentError) {
+          console.error('Error in automatic city group assignment:', assignmentError);
+        }
+      }
 
       // Handle role assignments if provided
       const assignedRoles = req.body.assignedRoles;
@@ -1880,7 +1908,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      res.json({ success: true, message: "Event created and invitations sent!", data: { event } });
+      // Enhanced response with city group information
+      const responseMessage = cityGroupAssignment 
+        ? `Event created successfully and automatically added to ${cityGroupAssignment.name}!`
+        : "Event created successfully!";
+
+      res.json({ 
+        success: true, 
+        message: responseMessage, 
+        data: { 
+          event,
+          cityGroupAssigned: cityGroupAssignment ? {
+            id: cityGroupAssignment.id,
+            name: cityGroupAssignment.name,
+            slug: cityGroupAssignment.slug
+          } : null
+        } 
+      });
     } catch (error: any) {
       res.status(400).json({ success: false, message: error.message });
     }
