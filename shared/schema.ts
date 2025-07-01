@@ -802,6 +802,26 @@ export const groupMembers = pgTable("group_members", {
   index("idx_group_members_status").on(table.status),
 ]);
 
+// Chat History table for tracking all conversations
+export const chatHistory = pgTable("chat_history", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  sessionId: varchar("session_id", { length: 255 }).notNull(),
+  userId: integer("user_id").references(() => users.id),
+  userMessage: text("user_message"),
+  assistantMessage: text("assistant_message"),
+  messageType: varchar("message_type", { length: 50 }).default("conversation"), // conversation, system, error
+  context: jsonb("context"), // Additional context like file attachments, tool calls
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  projectState: jsonb("project_state"), // Snapshot of project state at time of message
+  toolsUsed: text("tools_used").array(), // Track which tools were used
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_chat_history_session").on(table.sessionId),
+  index("idx_chat_history_user").on(table.userId),
+  index("idx_chat_history_timestamp").on(table.timestamp),
+  index("idx_chat_history_type").on(table.messageType),
+]);
+
 // Reaction schema for post and comment reactions  
 export const insertReactionSchema = createInsertSchema(reactions).omit({
   id: true,
@@ -856,6 +876,13 @@ export const insertGroupMemberSchema = createInsertSchema(groupMembers).omit({
   joinedAt: true,
 });
 
+// Chat History schema
+export const insertChatHistorySchema = createInsertSchema(chatHistory).omit({
+  id: true,
+  createdAt: true,
+  timestamp: true,
+});
+
 // Group relations
 export const groupsRelations = relations(groups, ({ one, many }) => ({
   creator: one(users, { fields: [groups.createdBy], references: [users.id] }),
@@ -898,6 +925,8 @@ export type PostLike = typeof postLikes.$inferSelect;
 export type PostComment = typeof postComments.$inferSelect;
 export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type Reaction = typeof reactions.$inferSelect;
+export type ChatHistory = typeof chatHistory.$inferSelect;
+export type InsertChatHistory = z.infer<typeof insertChatHistorySchema>;
 export type InsertReaction = z.infer<typeof insertReactionSchema>;
 export type PostReport = typeof postReports.$inferSelect;
 export type InsertPostReport = z.infer<typeof insertReportSchema>;

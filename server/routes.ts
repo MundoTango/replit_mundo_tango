@@ -5375,6 +5375,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 11L Photo Fix: Update Group Photos API
+  app.post('/api/admin/update-group-photos', isAuthenticated, async (req, res) => {
+    try {
+      console.log('🚀 Starting 11L Photo Update for all groups...');
+      
+      // Fetch all groups without photos
+      const groupsWithoutPhotos = await storage.getAllGroups();
+      const groupsToUpdate = groupsWithoutPhotos.filter(group => !group.imageUrl);
+      
+      console.log(`📊 Found ${groupsToUpdate.length} groups without photos`);
+      
+      if (groupsToUpdate.length === 0) {
+        return res.json({
+          success: true,
+          message: 'All groups already have photos!',
+          data: { updated: 0, total: 0 }
+        });
+      }
+      
+      let successCount = 0;
+      let failureCount = 0;
+      const results = [];
+      
+      // Process each group
+      for (const group of groupsToUpdate) {
+        try {
+          console.log(`🌆 Fetching photo for ${group.name}...`);
+          
+          // Extract city name for search
+          const cityName = group.city || group.name.replace(/^Tango\s+/, '').split(',')[0].trim();
+          const countryName = group.country || '';
+          
+          // Fetch authentic city photo using cityPhotoService
+          const { CityPhotoService } = await import('./services/cityPhotoService.js');
+          const photoUrl = await CityPhotoService.fetchCityPhoto(cityName, countryName);
+          
+          if (photoUrl) {
+            // Update group with photo URL
+            await storage.updateGroup(group.id, { imageUrl: photoUrl });
+            
+            console.log(`✅ Updated ${group.name} with photo`);
+            successCount++;
+            results.push({
+              groupId: group.id,
+              groupName: group.name,
+              success: true,
+              photoUrl
+            });
+          } else {
+            console.log(`❌ No photo found for ${group.name}`);
+            failureCount++;
+            results.push({
+              groupId: group.id,
+              groupName: group.name,
+              success: false,
+              error: 'No photo found'
+            });
+          }
+          
+          // Rate limiting: wait 1 second between requests
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+        } catch (error) {
+          console.error(`💥 Error updating ${group.name}:`, error);
+          failureCount++;
+          results.push({
+            groupId: group.id,
+            groupName: group.name,
+            success: false,
+            error: error.message
+          });
+        }
+      }
+      
+      console.log(`\n📈 Update Complete: ${successCount} success, ${failureCount} failures`);
+      
+      res.json({
+        success: true,
+        message: `Photo update completed: ${successCount} updated, ${failureCount} failed`,
+        data: {
+          updated: successCount,
+          failed: failureCount,
+          total: groupsToUpdate.length,
+          results
+        }
+      });
+      
+    } catch (error) {
+      console.error('💥 Photo update endpoint failed:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update group photos',
+        error: error.message
+      });
+    }
+  });
+
   // Initialize Supabase Storage bucket on server start
   initializeStorageBucket();
 

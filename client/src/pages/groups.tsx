@@ -109,10 +109,44 @@ export default function GroupsPage() {
             <h1 className="text-2xl font-bold text-black-text-color">Groups</h1>
             <p className="text-gray-text-color">Join communities and discover tango groups</p>
           </div>
-          <button className="rounded-xl bg-btn-color text-sm font-bold text-white flex items-center justify-center gap-2 px-6 h-10">
-            <Plus className="h-4 w-4" />
-            Create Group
-          </button>
+          <div className="flex gap-3">
+            <button 
+              onClick={async () => {
+                try {
+                  console.log('🚀 Triggering photo update...');
+                  const response = await fetch('/api/admin/update-group-photos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                  });
+                  const result = await response.json();
+                  console.log('📸 Photo update result:', result);
+                  
+                  // Refresh groups data
+                  queryClient.invalidateQueries({ queryKey: ['/api/groups'] });
+                  
+                  toast({
+                    title: "Photos Updated!",
+                    description: `Updated ${result.data?.updated || 0} group photos`,
+                    variant: "default",
+                  });
+                } catch (error) {
+                  console.error('💥 Photo update failed:', error);
+                  toast({
+                    title: "Update Failed",
+                    description: "Could not update group photos",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              className="rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-sm font-bold text-white flex items-center justify-center gap-2 px-4 h-10"
+            >
+              🌆 Fix Photos
+            </button>
+            <button className="rounded-xl bg-btn-color text-sm font-bold text-white flex items-center justify-center gap-2 px-6 h-10">
+              <Plus className="h-4 w-4" />
+              Create Group
+            </button>
+          </div>
         </div>
 
         {/* Search Bar - TT Style */}

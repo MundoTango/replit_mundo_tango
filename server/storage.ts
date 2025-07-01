@@ -195,6 +195,7 @@ export interface IStorage {
 
   // City Group Automation Methods
   createGroup(group: InsertGroup): Promise<Group>;
+  updateGroup(groupId: number, updates: Partial<Group>): Promise<Group>;
   getGroupBySlug(slug: string): Promise<Group | undefined>;
   getGroupsByCity(city: string): Promise<Group[]>;
   addUserToGroup(groupId: number, userId: number, role?: string): Promise<GroupMember>;
@@ -1435,6 +1436,14 @@ export class DatabaseStorage implements IStorage {
   // City Group Automation Implementation
   async createGroup(group: InsertGroup): Promise<Group> {
     const result = await db.insert(groups).values(group).returning();
+    return result[0];
+  }
+
+  async updateGroup(groupId: number, updates: Partial<Group>): Promise<Group> {
+    const result = await db.update(groups)
+      .set(updates)
+      .where(eq(groups.id, groupId))
+      .returning();
     return result[0];
   }
 
