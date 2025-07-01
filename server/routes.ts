@@ -6130,12 +6130,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/stats', isAuthenticated, async (req, res) => {
     try {
       const { storage } = await import('./storage');
-      const user = req.user;
+      
+      // Get database user from Replit OAuth session
+      const replitId = req.session?.passport?.user?.claims?.sub;
+      if (!replitId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required.'
+        });
+      }
+
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found.'
+        });
+      }
 
       // Debug user object
-      console.log('🔍 Admin stats - User object:', JSON.stringify(user, null, 2));
-      console.log('🔍 Admin stats - Username:', user?.username);
-      console.log('🔍 Admin stats - Email:', user?.email);
+      console.log('🔍 Admin stats - Database user:', { id: user.id, username: user.username, email: user.email });
 
       // Check admin access using RBAC system
       let userRoles: string[] = [];
@@ -6193,12 +6207,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin: Get compliance metrics
   app.get('/api/admin/compliance', isAuthenticated, async (req, res) => {
     try {
-      const user = req.user;
+      const { storage } = await import('./storage');
+      
+      // Get database user from Replit OAuth session
+      const replitId = req.session?.passport?.user?.claims?.sub;
+      if (!replitId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required.'
+        });
+      }
+
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found.'
+        });
+      }
 
       // Debug user object
-      console.log('🔍 Admin compliance - User object:', JSON.stringify(user, null, 2));
-      console.log('🔍 Admin compliance - Username:', user?.username);
-      console.log('🔍 Admin compliance - Email:', user?.email);
+      console.log('🔍 Admin compliance - Database user:', { id: user.id, username: user.username, email: user.email });
 
       // Check admin access using RBAC system
       let userRoles: string[] = [];

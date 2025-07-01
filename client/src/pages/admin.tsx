@@ -11,7 +11,8 @@ import {
   Activity,
   AlertTriangle,
   Database,
-  Sparkles
+  Sparkles,
+  ArrowLeft
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UserRoleTable from '@/components/admin/UserRoleTable';
@@ -107,17 +108,34 @@ export default function AdminPage() {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 py-8">
-          {/* Enhanced header section */}
+          {/* Enhanced header section with navigation */}
           <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <div className="p-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-lg">
-                <Shield className="h-8 w-8 text-white" />
+            <div className="flex items-center justify-between mb-6">
+              {/* Back to App Button */}
+              <button 
+                onClick={() => window.location.href = '/moments'}
+                className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl hover:bg-gray-50 transition-all duration-300 shadow-sm"
+              >
+                <ArrowLeft className="h-4 w-4 text-gray-600" />
+                <span className="text-gray-700 font-medium">Back to App</span>
+              </button>
+
+              {/* Center Icons */}
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-lg">
+                  <Shield className="h-8 w-8 text-white" />
+                </div>
+                <div className="p-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl shadow-lg animate-pulse">
+                  <Settings className="h-8 w-8 text-white" />
+                </div>
+                <div className="p-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg">
+                  <Database className="h-8 w-8 text-white" />
+                </div>
               </div>
-              <div className="p-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl shadow-lg animate-pulse">
-                <Settings className="h-8 w-8 text-white" />
-              </div>
-              <div className="p-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg">
-                <Database className="h-8 w-8 text-white" />
+
+              {/* Admin Badge */}
+              <div className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl shadow-lg">
+                <span className="text-white font-semibold text-sm">Super Admin</span>
               </div>
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
