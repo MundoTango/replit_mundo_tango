@@ -41,8 +41,18 @@ export const GroupAdminToolbar: React.FC<GroupAdminToolbarProps> = ({ group, onU
   const [activeTab, setActiveTab] = useState('overview');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
-  // Only show for admin/moderator roles
-  if (!['admin', 'moderator'].includes(group.userRole)) {
+  // Define administrative roles that can access group management
+  const adminRoles = [
+    'super_admin',    // Platform super administrators
+    'admin',          // Platform administrators
+    'moderator',      // Platform moderators
+    'city_admin',     // City-specific administrators
+    'group_admin',    // Group administrators
+    'group_moderator' // Group moderators
+  ];
+  
+  // Only show for users with administrative privileges
+  if (!adminRoles.includes(group.userRole)) {
     return null;
   }
 
