@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import TrangoTechSidebar from '@/components/TrangoTechSidebar';
 import ProjectTrackerDashboard from '@/components/admin/ProjectTrackerDashboard';
 import Comprehensive11LProjectTracker from '@/components/admin/Comprehensive11LProjectTracker';
+import { PlatformFeatureDeepDive } from '@/components/admin/PlatformFeatureDeepDive';
 import { 
   Users, 
   Activity, 
@@ -198,6 +199,7 @@ const AdminCenter: React.FC = () => {
   const tabs = [
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'project-tracker', label: '11L Project Tracker', icon: <GitCommit className="w-4 h-4" /> },
+    { id: 'feature-deep-dive', label: 'Feature Deep Dive', icon: <Database className="w-4 h-4" /> },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
     { id: 'content', label: 'Content Moderation', icon: <FileText className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="w-4 h-4" /> },
@@ -1359,6 +1361,7 @@ const AdminCenter: React.FC = () => {
     switch (selectedTab) {
       case 'overview': return renderOverview();
       case 'project-tracker': return <Comprehensive11LProjectTracker />;
+      case 'feature-deep-dive': return <PlatformFeatureDeepDive />;
       case 'users': return renderUserManagement();
       case 'content': return renderContentModeration();
       case 'analytics': return renderAnalytics();
