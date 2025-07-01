@@ -202,6 +202,9 @@ export interface IStorage {
   updateGroupMemberCount(groupId: number): Promise<void>;
   getUserGroups(userId: number): Promise<Group[]>;
   checkUserInGroup(groupId: number, userId: number): Promise<boolean>;
+  followGroup(groupId: number, userId: number): Promise<void>;
+  unfollowGroup(groupId: number, userId: number): Promise<void>;
+  checkUserFollowingGroup(groupId: number, userId: number): Promise<boolean>;
   
   // Group page methods
   getGroupWithMembers(slug: string): Promise<(Group & { members: (GroupMember & { user: User })[] }) | undefined>;
@@ -1442,6 +1445,32 @@ export class DatabaseStorage implements IStorage {
 
   async getGroupsByCity(city: string): Promise<Group[]> {
     return await db.select().from(groups).where(and(eq(groups.city, city), eq(groups.type, 'city')));
+  }
+
+  async getAllGroups(): Promise<Group[]> {
+    return await db.select().from(groups).orderBy(desc(groups.createdAt));
+  }
+
+  async followGroup(groupId: number, userId: number): Promise<void> {
+    await pool.query(
+      'INSERT INTO group_followers (user_id, group_id) VALUES ($1, $2) ON CONFLICT (user_id, group_id) DO NOTHING',
+      [userId, groupId]
+    );
+  }
+
+  async unfollowGroup(groupId: number, userId: number): Promise<void> {
+    await pool.query(
+      'DELETE FROM group_followers WHERE user_id = $1 AND group_id = $2',
+      [userId, groupId]
+    );
+  }
+
+  async checkUserFollowingGroup(groupId: number, userId: number): Promise<boolean> {
+    const result = await pool.query(
+      'SELECT 1 FROM group_followers WHERE user_id = $1 AND group_id = $2',
+      [userId, groupId]
+    );
+    return result.rows.length > 0;
   }
 
   async addUserToGroup(groupId: number, userId: number, role: string = 'member'): Promise<GroupMember> {

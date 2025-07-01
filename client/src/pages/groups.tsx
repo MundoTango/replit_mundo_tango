@@ -71,6 +71,58 @@ export default function GroupsPage() {
     }
   });
 
+  // Follow group mutation
+  const followGroupMutation = useMutation({
+    mutationFn: async (slug: string) => {
+      const response = await fetch(`/api/groups/follow/${slug}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to follow group');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Following!",
+        description: "You'll receive updates from this group",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/groups'] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to follow group. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Unfollow group mutation
+  const unfollowGroupMutation = useMutation({
+    mutationFn: async (slug: string) => {
+      const response = await fetch(`/api/groups/unfollow/${slug}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to unfollow group');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Unfollowed",
+        description: "You won't receive updates from this group anymore",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/groups'] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to unfollow group. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Auto-join on page load (with authentication check)
   useEffect(() => {
     // Only auto-join if we have groups data (indicating we're authenticated)
@@ -81,9 +133,18 @@ export default function GroupsPage() {
 
   const filteredGroups = groupsData?.data?.filter((group: any) => {
     if (activeTab === 'joined') return group.isJoined;
-    if (activeTab === 'suggested') return !group.isJoined && group.memberCount > 500;
+    if (activeTab === 'following') return group.isFollowing && !group.isJoined;
+    if (activeTab === 'suggested') return !group.isJoined && !group.isFollowing && group.memberCount > 500;
     return true; // all
   }) || [];
+
+  // Add "following" tab
+  const tabs = [
+    { key: 'all', label: 'All Groups' },
+    { key: 'joined', label: 'Joined' },
+    { key: 'following', label: 'Following' },
+    { key: 'suggested', label: 'Suggested' }
+  ];
 
   return (
     <DashboardLayout>
@@ -117,17 +178,17 @@ export default function GroupsPage() {
         {/* Tabs */}
         <div className="card">
           <div className="flex border-b border-border-color">
-            {['all', 'joined', 'suggested'].map((tab) => (
+            {tabs.map((tab) => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
                 className={`px-6 py-3 font-medium capitalize transition-colors ${
-                  activeTab === tab
+                  activeTab === tab.key
                     ? 'text-btn-color border-b-2 border-btn-color'
                     : 'text-gray-text-color hover:text-black-text-color'
                 }`}
               >
-                {tab === 'all' ? 'All Groups' : tab === 'joined' ? 'Joined' : 'Suggested'}
+                {tab.label}
               </button>
             ))}
           </div>
@@ -200,22 +261,47 @@ export default function GroupsPage() {
                           ✓ Member - View Group
                         </button>
                       ) : (
-                        <button 
-                          className={`w-full rounded-lg py-2 text-sm font-medium ${
-                            group.isPrivate
-                              ? 'border border-btn-color text-btn-color'
-                              : 'bg-btn-color text-white'
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!group.isPrivate) {
-                              joinGroupMutation.mutate(group.slug);
-                            }
-                          }}
-                          disabled={joinGroupMutation.isPending}
-                        >
-                          {joinGroupMutation.isPending ? 'Joining...' : (group.isPrivate ? 'Request to Join' : 'Join Group')}
-                        </button>
+                        <div className="space-y-2">
+                          <button 
+                            className={`w-full rounded-lg py-2 text-sm font-medium ${
+                              group.isPrivate
+                                ? 'border border-btn-color text-btn-color'
+                                : 'bg-btn-color text-white'
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!group.isPrivate) {
+                                joinGroupMutation.mutate(group.slug);
+                              }
+                            }}
+                            disabled={joinGroupMutation.isPending}
+                          >
+                            {joinGroupMutation.isPending ? 'Joining...' : (group.isPrivate ? 'Request to Join' : 'Join Group')}
+                          </button>
+                          {!group.isPrivate && (
+                            <button 
+                              className={`w-full rounded-lg py-1.5 text-xs font-medium border ${
+                                group.isFollowing 
+                                  ? 'border-orange-200 text-orange-800 bg-orange-50' 
+                                  : 'border-gray-200 text-gray-600 bg-white'
+                              }`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (group.isFollowing) {
+                                  unfollowGroupMutation.mutate(group.slug);
+                                } else {
+                                  followGroupMutation.mutate(group.slug);
+                                }
+                              }}
+                              disabled={followGroupMutation.isPending || unfollowGroupMutation.isPending}
+                            >
+                              {followGroupMutation.isPending || unfollowGroupMutation.isPending 
+                                ? (group.isFollowing ? 'Unfollowing...' : 'Following...') 
+                                : (group.isFollowing ? '👁️ Following' : '👁️ Follow for updates')
+                              }
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

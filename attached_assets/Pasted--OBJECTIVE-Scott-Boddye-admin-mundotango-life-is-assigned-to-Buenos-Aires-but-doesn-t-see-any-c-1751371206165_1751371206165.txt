@@ -1,0 +1,97 @@
+🎯 OBJECTIVE:
+Scott Boddye (admin@mundotango.life) is assigned to Buenos Aires but doesn’t see any city groups in the “Joined” tab. Fix group visibility and auto-join detection. Then add:
+• “Follow Group” (non-member view)
+• RBAC/ABAC-based access controls
+• Role-aware UI (locals vs visitors)
+• All styling must match TT design system.
+
+—
+
+🧠 1. EXPERTISE LAYER:
+You’re a full-stack engineer using React + Supabase + RBAC/ABAC. Design with Moments UI system (indigo-coral theme, tabbed pages, mobile responsive).
+
+—
+
+🔍 2. OPEN SOURCE SCAN LAYER:
+Use/extend:
+- `@casl/react` (already implemented)
+- Supabase RLS
+- Casbin if needed for ABAC
+- Reuse `group_members` + new `group_followers` table
+
+—
+
+⚖️ 3. LEGAL & COMPLIANCE LAYER:
+- “Follow” = view-only
+- “Join” = full membership with data visibility
+- Visitors can’t post or see member lists unless invited
+
+—
+
+🔒 4. CONSENT & UX SAFEGUARDS LAYER:
+- “Follow” creates a record but does not show user publicly
+- UI must reflect clear states: Followed / Requested / Joined
+
+—
+
+🧩 5. DATA LAYER:
+Add:
+- `group_followers` (user_id, group_id, followed_at)
+Fix:
+- `group_members` edge-case: users auto-joined but not listed
+
+—
+
+⚙️ 6. BACKEND LAYER:
+- Fix `/api/user/auto-join-city-groups` logic (ensure city is set and used)
+- Add `/api/groups/follow` and `/api/groups/unfollow` endpoints
+- Update groups query to return `joined` and `followed` status
+
+—
+
+🖥 7. FRONTEND LAYER:
+- On city match: auto join
+- If user not local: show “Follow Group” CTA
+- Joined tab shows real-time data
+- Group card shows badge: “Following” / “Joined” / “Pending”
+
+—
+
+🔁 8. SYNC & AUTOMATION LAYER:
+- Trigger auto-join once user auth + profile load
+- Call follow/unfollow endpoints without reload
+
+—
+
+🛡 9. SECURITY & PERMISSIONS LAYER:
+- Supabase RLS for `group_members` and `group_followers`
+  - Locals: full group view
+  - Visitors: limited tabs (Overview only)
+- UI tabs conditionally rendered based on permission
+
+—
+
+🧠 10. AI & REASONING LAYER:
+- Group suggestion logic should prioritize:
+  - Location proximity
+  - Followed/shared group overlap
+  - Tag similarity
+
+(Leave stub logic for now — future implementation)
+
+—
+
+✅ 11. TESTING & OBSERVABILITY LAYER:
+- Add unit test: follow logic (user A can’t follow private group)
+- Add integration test: Scott auto-joins Buenos Aires
+- Log RLS violations and auth issues for debugging
+
+—
+
+📄 FILES TO UPDATE:
+- `client/src/pages/groups.tsx`
+- `client/src/pages/GroupDetailPage.tsx`
+- `client/components/GroupCard.tsx`
+- `server/routes.ts`
+- `server/storage.ts`
+- Supabase SQL schema: create `group_followers` table

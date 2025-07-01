@@ -4906,7 +4906,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's city groups with membership status
+  // Get all groups with membership status for user
+  app.get('/api/groups', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      // Get all groups (not just city groups)
+      const allGroups = await storage.getAllGroups();
+      
+      // Get user's joined groups
+      const userGroups = await storage.getUserGroups(userId);
+      const joinedGroupIds = userGroups.map((g: any) => g.id);
+      
+      // Get user's followed groups (non-members who follow for updates)
+      const followedGroups = await Promise.all(
+        allGroups.map(async (group: any) => {
+          const isFollowing = await storage.checkUserFollowingGroup(group.id, userId);
+          return { groupId: group.id, isFollowing };
+        })
+      );
+      const followedGroupIds = followedGroups.filter(g => g.isFollowing).map(g => g.groupId);
+
+      // Mark membership and follow status for each group
+      const groupsWithStatus = allGroups.map((group: any) => {
+        const isJoined = joinedGroupIds.includes(group.id);
+        const isFollowing = followedGroupIds.includes(group.id);
+        
+        return {
+          ...group,
+          membershipStatus: isJoined ? 'member' : (isFollowing ? 'following' : 'not_member'),
+          isJoined,
+          isFollowing,
+          memberCount: group.memberCount || 0
+        };
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Groups retrieved successfully',
+        data: groupsWithStatus
+      });
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        data: []
+      });
+    }
+  });
+
+  // Get user's city groups with membership status (legacy endpoint)
   app.get('/api/user/groups', isAuthenticated, async (req, res) => {
     try {
       const userId = req.user!.id;
@@ -5000,6 +5051,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: 'Internal server error',
+        data: null
+      });
+    }
+  });
+
+  // Follow a group (for non-members to get updates)
+  app.post('/api/groups/follow/:slug', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { slug } = req.params;
+      
+      const group = await storage.getGroupBySlug(slug);
+      if (!group) {
+        return res.status(404).json({
+          success: false,
+          message: 'Group not found',
+          data: null
+        });
+      }
+
+      // Check if user is already a member (members don't need to follow)
+      const isMember = await storage.checkUserInGroup(group.id, userId);
+      if (isMember) {
+        return res.status(400).json({
+          success: false,
+          message: 'You are already a member of this group',
+          data: null
+        });
+      }
+
+      // Check if already following
+      const isFollowing = await storage.checkUserFollowingGroup(group.id, userId);
+      if (isFollowing) {
+        return res.status(400).json({
+          success: false,
+          message: 'You are already following this group',
+          data: null
+        });
+      }
+
+      // Add follow relationship
+      await storage.followGroup(group.id, userId);
+
+      res.status(200).json({
+        success: true,
+        message: `Now following ${group.name}`,
+        data: { group, action: 'followed' }
+      });
+    } catch (error) {
+      console.error('Error following group:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to follow group',
+        data: null
+      });
+    }
+  });
+
+  // Unfollow a group
+  app.post('/api/groups/unfollow/:slug', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { slug } = req.params;
+      
+      const group = await storage.getGroupBySlug(slug);
+      if (!group) {
+        return res.status(404).json({
+          success: false,
+          message: 'Group not found',
+          data: null
+        });
+      }
+
+      // Check if currently following
+      const isFollowing = await storage.checkUserFollowingGroup(group.id, userId);
+      if (!isFollowing) {
+        return res.status(400).json({
+          success: false,
+          message: 'You are not following this group',
+          data: null
+        });
+      }
+
+      // Remove follow relationship
+      await storage.unfollowGroup(group.id, userId);
+
+      res.status(200).json({
+        success: true,
+        message: `Unfollowed ${group.name}`,
+        data: { group, action: 'unfollowed' }
+      });
+    } catch (error) {
+      console.error('Error unfollowing group:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to unfollow group',
         data: null
       });
     }
