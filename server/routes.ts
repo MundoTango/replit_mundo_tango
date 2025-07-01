@@ -6867,6 +6867,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ========================================================================
+  // Project Tracker API Endpoints
+  // ========================================================================
+  
+  // Get all project tracker items with filtering
+  app.get('/api/project-tracker/items', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { layer, type, mvpStatus, search, limit = 50, offset = 0 } = req.query;
+      
+      const items = await storage.getProjectTrackerItems({
+        layer: layer as string,
+        type: type as string,
+        mvpStatus: mvpStatus as string,
+        search: search as string,
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string)
+      });
+      
+      res.json({
+        success: true,
+        data: items
+      });
+    } catch (error) {
+      console.error('Error fetching project tracker items:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch project tracker items'
+      });
+    }
+  });
+
+  // Get project tracker summary/analytics
+  app.get('/api/project-tracker/summary', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const summary = await storage.getProjectTrackerSummary();
+      
+      res.json({
+        success: true,
+        data: summary
+      });
+    } catch (error) {
+      console.error('Error fetching project tracker summary:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch project tracker summary'
+      });
+    }
+  });
+
+  // Create new project tracker item
+  app.post('/api/project-tracker/items', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.passport?.user?.claims?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const itemData = {
+        ...req.body,
+        createdBy: userId,
+        updatedBy: userId
+      };
+
+      const newItem = await storage.createProjectTrackerItem(itemData);
+      
+      res.json({
+        success: true,
+        data: newItem
+      });
+    } catch (error) {
+      console.error('Error creating project tracker item:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create project tracker item'
+      });
+    }
+  });
+
+  // Update project tracker item
+  app.put('/api/project-tracker/items/:id', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.passport?.user?.claims?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const { id } = req.params;
+      const updateData = {
+        ...req.body,
+        updatedBy: userId
+      };
+
+      const updatedItem = await storage.updateProjectTrackerItem(id, updateData);
+      
+      res.json({
+        success: true,
+        data: updatedItem
+      });
+    } catch (error) {
+      console.error('Error updating project tracker item:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update project tracker item'
+      });
+    }
+  });
+
+  // Delete project tracker item
+  app.delete('/api/project-tracker/items/:id', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      
+      await storage.deleteProjectTrackerItem(id);
+      
+      res.json({
+        success: true,
+        message: 'Project tracker item deleted successfully'
+      });
+    } catch (error) {
+      console.error('Error deleting project tracker item:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete project tracker item'
+      });
+    }
+  });
+
+  // ========================================================================
   // RBAC/ABAC Routes Integration
   // ========================================================================
   app.use('/api/rbac', rbacRoutes);

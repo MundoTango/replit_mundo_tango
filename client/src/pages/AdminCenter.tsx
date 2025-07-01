@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import TrangoTechSidebar from '@/components/TrangoTechSidebar';
+import ProjectTrackerDashboard from '@/components/admin/ProjectTrackerDashboard';
 import { 
   Users, 
   Activity, 
@@ -194,6 +195,7 @@ const AdminCenter: React.FC = () => {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
+    { id: 'project-tracker', label: '11L Project Tracker', icon: <Zap className="w-4 h-4" /> },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
     { id: 'content', label: 'Content Moderation', icon: <FileText className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="w-4 h-4" /> },
@@ -1354,6 +1356,7 @@ const AdminCenter: React.FC = () => {
   const renderContent = () => {
     switch (selectedTab) {
       case 'overview': return renderOverview();
+      case 'project-tracker': return <ProjectTrackerDashboard />;
       case 'users': return renderUserManagement();
       case 'content': return renderContentModeration();
       case 'analytics': return renderAnalytics();

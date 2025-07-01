@@ -979,3 +979,106 @@ export type InsertEventSeries = typeof eventSeries.$inferInsert;
 export type CustomRoleRequest = typeof customRoleRequests.$inferSelect;
 export type InsertCustomRoleRequest = z.infer<typeof insertCustomRoleRequestSchema>;
 export type UpdateCustomRoleRequest = z.infer<typeof updateCustomRoleRequestSchema>;
+
+// 11L Project Tracker System - Master tracking for all Mundo Tango features
+export const projectTrackerItems = pgTable("project_tracker_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // Feature, Prompt, Automation, Agent, UI, Schema
+  layer: varchar("layer", { length: 100 }).notNull(), // Layer 1-11 with name
+  createdOn: timestamp("created_on").defaultNow().notNull(),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  reviewStatus: varchar("review_status", { length: 50 }).notNull().default("Pending"), // Pending, Needs Review, Approved, Deprecated
+  reviewedBy: text("reviewed_by"),
+  version: varchar("version", { length: 20 }).notNull().default("v1.0.0"),
+  mvpScope: boolean("mvp_scope").notNull().default(false),
+  mvpStatus: varchar("mvp_status", { length: 50 }).notNull().default("In Progress"), // In Progress, Ready, Signed Off, Deferred
+  mvpSignedOffBy: text("mvp_signed_off_by"),
+  summary: text("summary").notNull(),
+  metadata: jsonb("metadata"), // Additional technical details, dependencies, etc.
+  codeLocation: text("code_location"), // File paths where this is implemented
+  apiEndpoints: text("api_endpoints").array(), // Related API endpoints
+  dependencies: text("dependencies").array(), // What this depends on
+  relatedItems: text("related_items").array(), // UUIDs of related tracker items
+  tags: text("tags").array(), // Searchable tags
+  priority: varchar("priority", { length: 20 }).default("medium"), // low, medium, high, critical
+  estimatedHours: integer("estimated_hours"),
+  actualHours: integer("actual_hours"),
+  completionPercentage: integer("completion_percentage").default(0),
+  blockers: text("blockers").array(), // Current blocking issues
+  notes: text("notes"), // Implementation notes
+  createdBy: integer("created_by").references(() => users.id),
+  updatedBy: integer("updated_by").references(() => users.id),
+}, (table) => [
+  index("idx_tracker_layer").on(table.layer),
+  index("idx_tracker_type").on(table.type),
+  index("idx_tracker_review_status").on(table.reviewStatus),
+  index("idx_tracker_mvp_scope").on(table.mvpScope),
+  index("idx_tracker_mvp_status").on(table.mvpStatus),
+  index("idx_tracker_priority").on(table.priority),
+  index("idx_tracker_completion").on(table.completionPercentage),
+  index("idx_tracker_created_on").on(table.createdOn),
+  index("idx_tracker_last_updated").on(table.lastUpdated),
+]);
+
+// Project Tracker Change Log for version control
+export const projectTrackerChangelog = pgTable("project_tracker_changelog", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  itemId: uuid("item_id").references(() => projectTrackerItems.id).notNull(),
+  changeType: varchar("change_type", { length: 50 }).notNull(), // created, updated, deleted, reviewed, mvp_status_change
+  previousValue: jsonb("previous_value"),
+  newValue: jsonb("new_value"),
+  changedBy: integer("changed_by").references(() => users.id),
+  changeReason: text("change_reason"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+}, (table) => [
+  index("idx_changelog_item").on(table.itemId),
+  index("idx_changelog_type").on(table.changeType),
+  index("idx_changelog_timestamp").on(table.timestamp),
+]);
+
+// Live Agent Actions for real-time tracking
+export const liveAgentActions = pgTable("live_agent_actions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  agentName: varchar("agent_name", { length: 100 }).notNull(),
+  actionType: varchar("action_type", { length: 50 }).notNull(), // feature_detection, classification, tracking, analysis
+  targetType: varchar("target_type", { length: 50 }).notNull(), // component, api, schema, automation
+  targetPath: text("target_path"), // File path or identifier
+  detectedChanges: jsonb("detected_changes"),
+  autoClassification: jsonb("auto_classification"), // AI-determined layer, type, etc.
+  confidence: integer("confidence"), // 0-100 confidence in classification
+  requiresReview: boolean("requires_review").default(true),
+  trackerItemId: uuid("tracker_item_id").references(() => projectTrackerItems.id),
+  sessionId: varchar("session_id", { length: 255 }),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+}, (table) => [
+  index("idx_agent_actions_agent").on(table.agentName),
+  index("idx_agent_actions_type").on(table.actionType),
+  index("idx_agent_actions_session").on(table.sessionId),
+  index("idx_agent_actions_timestamp").on(table.timestamp),
+]);
+
+// Project Tracker Schemas
+export const insertProjectTrackerItemSchema = createInsertSchema(projectTrackerItems).omit({
+  id: true,
+  createdOn: true,
+  lastUpdated: true,
+});
+
+export const insertProjectTrackerChangelogSchema = createInsertSchema(projectTrackerChangelog).omit({
+  id: true,
+  timestamp: true,
+});
+
+export const insertLiveAgentActionSchema = createInsertSchema(liveAgentActions).omit({
+  id: true,
+  timestamp: true,
+});
+
+// Project Tracker Types
+export type ProjectTrackerItem = typeof projectTrackerItems.$inferSelect;
+export type InsertProjectTrackerItem = z.infer<typeof insertProjectTrackerItemSchema>;
+export type ProjectTrackerChangelog = typeof projectTrackerChangelog.$inferSelect;
+export type InsertProjectTrackerChangelog = z.infer<typeof insertProjectTrackerChangelogSchema>;
+export type LiveAgentAction = typeof liveAgentActions.$inferSelect;
+export type InsertLiveAgentAction = z.infer<typeof insertLiveAgentActionSchema>;

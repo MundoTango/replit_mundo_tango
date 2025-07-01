@@ -22,6 +22,9 @@ import {
   customRoleRequests,
   groups,
   groupMembers,
+  projectTrackerItems,
+  projectTrackerChangelog,
+  liveAgentActions,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -55,7 +58,13 @@ import {
   type GroupMember,
   type InsertGroupMember,
   type InsertCustomRoleRequest,
-  type UpdateCustomRoleRequest
+  type UpdateCustomRoleRequest,
+  type ProjectTrackerItem,
+  type InsertProjectTrackerItem,
+  type ProjectTrackerChangelog,
+  type InsertProjectTrackerChangelog,
+  type LiveAgentAction,
+  type InsertLiveAgentAction
 } from '../shared/schema';
 import { db, pool } from './db';
 import { eq, desc, asc, sql, and, or, gte, lte, count, ilike, inArray } from 'drizzle-orm';
@@ -223,6 +232,44 @@ export interface IStorage {
   getEventCount(): Promise<number>;
   getPostCount(): Promise<number>;
   getActiveUserCount(): Promise<number>;
+  
+  // 11L Project Tracker System
+  createProjectTrackerItem(item: InsertProjectTrackerItem): Promise<ProjectTrackerItem>;
+  updateProjectTrackerItem(id: string, updates: Partial<ProjectTrackerItem>): Promise<ProjectTrackerItem>;
+  getProjectTrackerItem(id: string): Promise<ProjectTrackerItem | undefined>;
+  getAllProjectTrackerItems(filters?: {
+    layer?: string;
+    type?: string;
+    reviewStatus?: string;
+    mvpScope?: boolean;
+    mvpStatus?: string;
+    priority?: string;
+  }): Promise<ProjectTrackerItem[]>;
+  deleteProjectTrackerItem(id: string): Promise<void>;
+  
+  // Project Tracker Changelog
+  createProjectTrackerChangelog(changelog: InsertProjectTrackerChangelog): Promise<ProjectTrackerChangelog>;
+  getProjectTrackerChangelog(itemId: string): Promise<ProjectTrackerChangelog[]>;
+  
+  // Live Agent Actions
+  createLiveAgentAction(action: InsertLiveAgentAction): Promise<LiveAgentAction>;
+  getLiveAgentActions(sessionId?: string, agentName?: string): Promise<LiveAgentAction[]>;
+  
+  // Project Tracker Analytics
+  getProjectTrackerSummary(): Promise<{
+    totalItems: number;
+    layerDistribution: { layer: string; count: number }[];
+    typeDistribution: { type: string; count: number }[];
+    mvpProgress: { status: string; count: number }[];
+    reviewStatus: { status: string; count: number }[];
+  }>;
+  
+  // Automated Feature Detection
+  analyzeCodebaseForFeatures(): Promise<{
+    detectedFeatures: any[];
+    missingDocumentation: any[];
+    suggestionItems: any[];
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1825,6 +1872,168 @@ export class DatabaseStorage implements IStorage {
       console.error('Error getting active user count:', error);
       return 0;
     }
+  }
+
+  // 11L Project Tracker System Implementation
+  async createProjectTrackerItem(item: InsertProjectTrackerItem): Promise<ProjectTrackerItem> {
+    const [trackerItem] = await db.insert(projectTrackerItems).values(item).returning();
+    return trackerItem;
+  }
+
+  async updateProjectTrackerItem(id: string, updates: Partial<ProjectTrackerItem>): Promise<ProjectTrackerItem> {
+    const [trackerItem] = await db
+      .update(projectTrackerItems)
+      .set({ ...updates, lastUpdated: new Date() })
+      .where(eq(projectTrackerItems.id, id))
+      .returning();
+    return trackerItem;
+  }
+
+  async getProjectTrackerItem(id: string): Promise<ProjectTrackerItem | undefined> {
+    const result = await db.select().from(projectTrackerItems).where(eq(projectTrackerItems.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getAllProjectTrackerItems(filters?: {
+    layer?: string;
+    type?: string;
+    reviewStatus?: string;
+    mvpScope?: boolean;
+    mvpStatus?: string;
+    priority?: string;
+  }): Promise<ProjectTrackerItem[]> {
+    let query = db.select().from(projectTrackerItems);
+    
+    if (filters) {
+      const conditions = [];
+      if (filters.layer) conditions.push(eq(projectTrackerItems.layer, filters.layer));
+      if (filters.type) conditions.push(eq(projectTrackerItems.type, filters.type));
+      if (filters.reviewStatus) conditions.push(eq(projectTrackerItems.reviewStatus, filters.reviewStatus));
+      if (filters.mvpScope !== undefined) conditions.push(eq(projectTrackerItems.mvpScope, filters.mvpScope));
+      if (filters.mvpStatus) conditions.push(eq(projectTrackerItems.mvpStatus, filters.mvpStatus));
+      if (filters.priority) conditions.push(eq(projectTrackerItems.priority, filters.priority));
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    return await query.orderBy(desc(projectTrackerItems.lastUpdated));
+  }
+
+  async deleteProjectTrackerItem(id: string): Promise<void> {
+    await db.delete(projectTrackerItems).where(eq(projectTrackerItems.id, id));
+  }
+
+  // Project Tracker Changelog
+  async createProjectTrackerChangelog(changelog: InsertProjectTrackerChangelog): Promise<ProjectTrackerChangelog> {
+    const [changelogItem] = await db.insert(projectTrackerChangelog).values(changelog).returning();
+    return changelogItem;
+  }
+
+  async getProjectTrackerChangelog(itemId: string): Promise<ProjectTrackerChangelog[]> {
+    return await db
+      .select()
+      .from(projectTrackerChangelog)
+      .where(eq(projectTrackerChangelog.itemId, itemId))
+      .orderBy(desc(projectTrackerChangelog.timestamp));
+  }
+
+  // Live Agent Actions
+  async createLiveAgentAction(action: InsertLiveAgentAction): Promise<LiveAgentAction> {
+    const [agentAction] = await db.insert(liveAgentActions).values(action).returning();
+    return agentAction;
+  }
+
+  async getLiveAgentActions(sessionId?: string, agentName?: string): Promise<LiveAgentAction[]> {
+    let query = db.select().from(liveAgentActions);
+    
+    if (sessionId || agentName) {
+      const conditions = [];
+      if (sessionId) conditions.push(eq(liveAgentActions.sessionId, sessionId));
+      if (agentName) conditions.push(eq(liveAgentActions.agentName, agentName));
+      
+      query = query.where(and(...conditions));
+    }
+    
+    return await query.orderBy(desc(liveAgentActions.timestamp));
+  }
+
+  // Project Tracker Analytics
+  async getProjectTrackerSummary(): Promise<{
+    totalItems: number;
+    layerDistribution: { layer: string; count: number }[];
+    typeDistribution: { type: string; count: number }[];
+    mvpProgress: { status: string; count: number }[];
+    reviewStatus: { status: string; count: number }[];
+  }> {
+    // Get total items
+    const totalResult = await db.select({ count: count() }).from(projectTrackerItems);
+    const totalItems = totalResult[0]?.count || 0;
+
+    // Get layer distribution
+    const layerResult = await db
+      .select({
+        layer: projectTrackerItems.layer,
+        count: count()
+      })
+      .from(projectTrackerItems)
+      .groupBy(projectTrackerItems.layer)
+      .orderBy(projectTrackerItems.layer);
+
+    // Get type distribution
+    const typeResult = await db
+      .select({
+        type: projectTrackerItems.type,
+        count: count()
+      })
+      .from(projectTrackerItems)
+      .groupBy(projectTrackerItems.type)
+      .orderBy(projectTrackerItems.type);
+
+    // Get MVP progress
+    const mvpResult = await db
+      .select({
+        status: projectTrackerItems.mvpStatus,
+        count: count()
+      })
+      .from(projectTrackerItems)
+      .where(eq(projectTrackerItems.mvpScope, true))
+      .groupBy(projectTrackerItems.mvpStatus)
+      .orderBy(projectTrackerItems.mvpStatus);
+
+    // Get review status
+    const reviewResult = await db
+      .select({
+        status: projectTrackerItems.reviewStatus,
+        count: count()
+      })
+      .from(projectTrackerItems)
+      .groupBy(projectTrackerItems.reviewStatus)
+      .orderBy(projectTrackerItems.reviewStatus);
+
+    return {
+      totalItems,
+      layerDistribution: layerResult.map(r => ({ layer: r.layer, count: Number(r.count) })),
+      typeDistribution: typeResult.map(r => ({ type: r.type, count: Number(r.count) })),
+      mvpProgress: mvpResult.map(r => ({ status: r.status, count: Number(r.count) })),
+      reviewStatus: reviewResult.map(r => ({ status: r.status, count: Number(r.count) }))
+    };
+  }
+
+  // Automated Feature Detection
+  async analyzeCodebaseForFeatures(): Promise<{
+    detectedFeatures: any[];
+    missingDocumentation: any[];
+    suggestionItems: any[];
+  }> {
+    // This will be enhanced with actual codebase analysis
+    // For now, return placeholder structure
+    return {
+      detectedFeatures: [],
+      missingDocumentation: [],
+      suggestionItems: []
+    };
   }
 }
 
