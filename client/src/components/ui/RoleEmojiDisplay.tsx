@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { getTangoRoleById, mapUserRoleToTangoRole, TangoRole, processDancerRoles } from '@/utils/tangoRoles';
+import { EnhancedTooltip } from './EnhancedTooltip';
 
 interface RoleEmojiDisplayProps {
   /** Array of role IDs from user's tangoRoles field */
@@ -70,22 +71,26 @@ export const RoleEmojiDisplay: React.FC<RoleEmojiDisplayProps> = ({
   return (
     <div className={`flex items-center ${config.spacing} ${className}`}>
       {roleObjects.map((role, index) => (
-        <span
+        <EnhancedTooltip 
           key={`${role.id}-${index}`}
-          className={`
-            ${config.emoji} 
-            cursor-pointer 
-            hover:scale-110 
-            transition-transform 
-            duration-200 
-            select-none
-          `}
-          title={`${role.name}: ${role.description}`}
-          role="img"
-          aria-label={`${role.name}: ${role.description}`}
+          role={role}
+          size={size}
         >
-          {role.emoji}
-        </span>
+          <span
+            className={`
+              ${config.emoji} 
+              cursor-pointer 
+              hover:scale-110 
+              transition-transform 
+              duration-200 
+              select-none
+            `}
+            role="img"
+            aria-label={`${role.name}: ${role.description}`}
+          >
+            {role.emoji}
+          </span>
+        </EnhancedTooltip>
       ))}
       
       {/* Show "+X more" indicator if there are more roles */}
