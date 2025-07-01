@@ -5082,7 +5082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get group details with members for group page
-  app.get('/api/groups/:slug', async (req, res) => {
+  app.get('/api/groups/:slug', isAuthenticated, async (req, res) => {
     try {
       const { slug } = req.params;
       const groupWithMembers = await storage.getGroupWithMembers(slug);
@@ -5101,62 +5101,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getGroupUpcomingEvents(groupWithMembers.id, 4)
       ]);
 
-      // Check if current user is a member (if authenticated)
+      // Check if current user is a member (authenticated via isAuthenticated middleware)
       let currentUserMembership = null;
-      let userId = null;
+      const userId = req.user!.id; // isAuthenticated middleware ensures req.user exists
       
-      // Extract user ID - check multiple sources
-      if (req.isAuthenticated && req.isAuthenticated()) {
-        // First try req.user.id directly
-        if ((req as any).user?.id) {
-          userId = (req as any).user.id;
-          console.log('Using userId from req.user:', userId);
-        } else if ((req as any).userId) {
-          // Try the security context (set by setUserContext middleware)
-          userId = (req as any).userId;
-          console.log('Using userId from security context:', userId);
-        } else {
-          // Fallback to Replit session lookup
-          const replitId = (req.session as any)?.passport?.user?.claims?.id || (req as any).user?.claims?.id;
-          console.log('Auth check - Replit ID:', replitId);
-          
-          if (replitId === '44164221') {
-            // Scott Boddye's Replit ID - set to user ID 3
-            userId = 3;
-            console.log('Found Scott Boddye via Replit ID:', { dbUserId: userId, replitId });
-          } else if (replitId) {
-            try {
-              const dbUser = await storage.getUserByReplitId(replitId);
-              if (dbUser) {
-                userId = dbUser.id;
-                console.log('Found database user via Replit ID:', { dbUserId: userId, replitId });
-              }
-            } catch (error) {
-              console.log('Error finding user by Replit ID:', error);
-            }
-          }
-        }
+      console.log('Group detail auth check - User ID:', userId);
+
+      const isMember = await storage.checkUserInGroup(groupWithMembers.id, userId);
+      if (isMember) {
+        const memberData = groupWithMembers.members.find((m: any) => m.userId === userId);
+        currentUserMembership = memberData || null;
+        console.log('User is member:', { userId, role: memberData?.role });
       } else {
-        // For testing: if not authenticated but this is a browser request, assume Scott Boddye
-        const userAgent = req.headers['user-agent'];
-        if (userAgent && userAgent.includes('Mozilla')) {
-          userId = 3;
-          console.log('Using default Scott Boddye for browser request testing');
-        }
-      }
-
-      console.log('Group detail auth check:', {
-        isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
-        userId,
-        replitId: (req.session as any)?.passport?.user?.claims?.id
-      });
-
-      if (userId) {
-        const isMember = await storage.checkUserInGroup(groupWithMembers.id, userId);
-        if (isMember) {
-          const memberData = groupWithMembers.members.find(m => m.userId === userId);
-          currentUserMembership = memberData || null;
-        }
+        console.log('User is not a member:', userId);
       }
 
       // Flatten the response structure to match frontend expectations
