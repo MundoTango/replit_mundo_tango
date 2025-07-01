@@ -5370,10 +5370,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auto-join user to city groups based on location
-  app.post('/api/user/auto-join-city-groups', isAuthenticated, async (req, res) => {
+  app.post('/api/user/auto-join-city-groups', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user!.id;
-      const user = await storage.getUser(userId);
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
       
       if (!user) {
         return res.status(404).json({
@@ -5392,12 +5392,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const group of cityGroups) {
           // Only auto-join public groups
           if (!group.isPrivate) {
-            const isMember = await storage.checkUserInGroup(group.id, userId);
+            const isMember = await storage.checkUserInGroup(group.id, user.id);
             if (!isMember) {
-              const membership = await storage.addUserToGroup(group.id, userId, 'member');
+              const membership = await storage.addUserToGroup(group.id, user.id, 'member');
               await storage.updateGroupMemberCount(group.id);
               joinedGroups.push({ group, membership });
-              console.log(`Auto-joined user ${userId} to group ${group.name}`);
+              console.log(`Auto-joined user ${user.id} to group ${group.name}`);
             }
           }
         }
