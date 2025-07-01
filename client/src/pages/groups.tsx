@@ -55,6 +55,37 @@ export default function GroupsPage() {
     }
   });
 
+  // City groups creation mutation
+  const createCityGroupsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/admin/create-city-groups', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to create city groups');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "City Groups Created!",
+        description: `Created ${data.data.groupsCreated} city groups with authentic photos.`,
+        variant: "default",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/groups'] });
+    },
+    onError: (error) => {
+      console.error('City groups creation error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create city groups. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Join group mutation
   const joinGroupMutation = useMutation({
     mutationFn: async (slug: string) => {
