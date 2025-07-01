@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TANGO_ROLES, ROLE_CATEGORIES, mapUserRoleToTangoRole, TangoRole } from '@/utils/tangoRoles';
+import { TANGO_ROLES, ROLE_CATEGORIES, mapUserRoleToTangoRole, getTangoRoleById, TangoRole } from '@/utils/tangoRoles';
 
 interface GroupMember {
   id: number;
@@ -31,6 +31,7 @@ interface EnhancedMembersSectionProps {
 
 interface EnhancedMember extends GroupMember {
   tangoRole: TangoRole;
+  allTangoRoles?: TangoRole[];
 }
 
 const MemberCard: React.FC<{ member: EnhancedMember; onClick: () => void }> = ({ member, onClick }) => {
@@ -45,21 +46,13 @@ const MemberCard: React.FC<{ member: EnhancedMember; onClick: () => void }> = ({
       className="flex items-center space-x-3 p-4 rounded-xl border border-gray-200 hover:shadow-lg hover:border-gray-300 transition-all duration-200 cursor-pointer group"
       onClick={handleClick}
     >
-      <div className="relative">
-        <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-          {member.profileImage ? (
-            <img src={member.profileImage} alt={member.name} className="w-12 h-12 rounded-full object-cover" />
-          ) : (
-            member.name.charAt(0).toUpperCase()
-          )}
-        </div>
-        {/* Tango Role Emoji Badge */}
-        <div 
-          className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md text-sm group-hover:scale-110 transition-transform"
-          title={member.tangoRole.description}
-        >
-          {member.tangoRole.emoji}
-        </div>
+      {/* Clean profile image without emoji badge */}
+      <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+        {member.profileImage ? (
+          <img src={member.profileImage} alt={member.name} className="w-12 h-12 rounded-full object-cover" />
+        ) : (
+          member.name.charAt(0).toUpperCase()
+        )}
       </div>
       
       <div className="flex-1 min-w-0">
@@ -74,16 +67,30 @@ const MemberCard: React.FC<{ member: EnhancedMember; onClick: () => void }> = ({
           )}
         </div>
         <p className="text-xs text-gray-500 truncate">@{member.username}</p>
-        <div className="flex items-center space-x-2 mt-1">
-          <Badge 
-            variant="outline" 
-            className={`text-xs ${ROLE_CATEGORIES[member.tangoRole.category]?.color || 'bg-gray-100 text-gray-800'}`}
-            title={member.tangoRole.description}
-          >
-            {member.tangoRole.emoji} {member.tangoRole.name}: {member.tangoRole.description}
-          </Badge>
+        
+        {/* Clean emoji-only role indicators with hover tooltips */}
+        <div className="flex items-center space-x-1 mt-2">
+          {member.allTangoRoles && member.allTangoRoles.length > 0 ? (
+            member.allTangoRoles.map((role, index) => (
+              <span
+                key={index}
+                className="text-lg cursor-pointer hover:scale-110 transition-transform"
+                title={`${role.name}: ${role.description}`}
+              >
+                {role.emoji}
+              </span>
+            ))
+          ) : (
+            <span
+              className="text-lg cursor-pointer hover:scale-110 transition-transform"
+              title={`${member.tangoRole.name}: ${member.tangoRole.description}`}
+            >
+              {member.tangoRole.emoji}
+            </span>
+          )}
+          
           {member.role !== 'member' && (
-            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
+            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 ml-2">
               {member.role}
             </Badge>
           )}
@@ -138,9 +145,15 @@ export const EnhancedMembersSection: React.FC<EnhancedMembersSectionProps> = ({
         ? member.tangoRoles[0] 
         : member.role;
       
+      // Map all tangoRoles to role objects for multi-role support
+      const allTangoRoles = member.tangoRoles && member.tangoRoles.length > 0
+        ? member.tangoRoles.map(roleId => getTangoRoleById(roleId)).filter((role): role is TangoRole => role !== undefined)
+        : [mapUserRoleToTangoRole(primaryTangoRole)];
+      
       return {
         ...member,
-        tangoRole: mapUserRoleToTangoRole(primaryTangoRole)
+        tangoRole: mapUserRoleToTangoRole(primaryTangoRole),
+        allTangoRoles: allTangoRoles as TangoRole[]
       };
     });
   }, [members]);
