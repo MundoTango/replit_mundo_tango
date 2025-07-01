@@ -489,11 +489,15 @@ export class DatabaseStorage implements IStorage {
           user: {
             id: users.id,
             name: users.nickname, // Use nickname instead of name for display
+            fullName: users.name, // Add full name for hover tooltip
             username: users.username,
             profileImage: users.profileImage,
             tangoRoles: users.tangoRoles,
             leaderLevel: users.leaderLevel,
             followerLevel: users.followerLevel,
+            city: users.city,
+            state: users.state,
+            country: users.country,
           },
           likes: sql<number>`COALESCE(COUNT(${postLikes.id}), 0)`.as('likes'),
           comments: sql<number>`COALESCE(COUNT(${postComments.id}), 0)`.as('comments'),
@@ -525,11 +529,15 @@ export class DatabaseStorage implements IStorage {
         user: {
           id: users.id,
           name: users.nickname, // Use nickname instead of name for display
+          fullName: users.name, // Add full name for hover tooltip
           username: users.username,
           profileImage: users.profileImage,
           tangoRoles: users.tangoRoles,
           leaderLevel: users.leaderLevel,
           followerLevel: users.followerLevel,
+          city: users.city,
+          state: users.state,
+          country: users.country,
         },
         likes: sql<number>`COALESCE(COUNT(${postLikes.id}), 0)`.as('likes'),
         comments: sql<number>`COALESCE(COUNT(${postComments.id}), 0)`.as('comments'),

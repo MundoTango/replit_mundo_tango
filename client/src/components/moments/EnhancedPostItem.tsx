@@ -16,6 +16,7 @@ import { formatDistanceToNow, differenceInDays } from 'date-fns';
 import PostDetailModal from './PostDetailModal';
 import { renderWithMentions } from '@/utils/renderWithMentions';
 import { RoleEmojiDisplay } from '@/components/ui/RoleEmojiDisplay';
+import { formatUserLocation } from '@/utils/locationUtils';
 
 interface Post {
   id: number;
@@ -27,11 +28,15 @@ interface Post {
   user: {
     id: number;
     name: string;
+    fullName?: string; // Full name for hover tooltip
     username: string;
     profileImage?: string;
     tangoRoles?: string[];
     leaderLevel?: number;
     followerLevel?: number;
+    city?: string;
+    state?: string;
+    country?: string;
   };
   likes?: number;
   comments?: number;
@@ -142,10 +147,16 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
             {/* User Info with enhanced typography */}
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-1">
-                <h3 className="font-bold text-xl text-gray-900 hover:text-indigo-600 cursor-pointer transition-colors">
-                  {post.user?.name || 'Anonymous'}
+                <h3 
+                  className="font-bold text-xl text-gray-900 hover:text-indigo-600 cursor-pointer transition-colors"
+                  title={post.user?.fullName || post.user?.name || 'Anonymous'}
+                >
+                  {formatUserLocation({ 
+                    city: post.user?.city, 
+                    state: post.user?.state, 
+                    country: post.user?.country 
+                  })}
                 </h3>
-                <span className="text-gray-500 text-base">@{post.user?.username || 'anonymous'}</span>
               </div>
               
               {/* Enhanced Emoji Role Display */}
