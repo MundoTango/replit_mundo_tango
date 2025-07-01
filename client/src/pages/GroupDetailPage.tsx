@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import EnhancedPostItem from '@/components/moments/EnhancedPostItem';
+import DashboardLayout from '../layouts/DashboardLayout';
 
 interface GroupMember {
   id: number;
@@ -121,7 +122,8 @@ const GroupDetailPage: React.FC = () => {
   const group = groupData.data;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Hero Banner with City Photo */}
       <div className="relative h-80 bg-gradient-to-r from-pink-500 to-purple-600 overflow-hidden">
         {(group.coverImage || group.imageUrl) && (
@@ -369,6 +371,7 @@ const GroupDetailPage: React.FC = () => {
         </Tabs>
       </div>
     </div>
+    </DashboardLayout>
   );
 };
 

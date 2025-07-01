@@ -5082,7 +5082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get group details with members for group page
-  app.get('/api/groups/:slug', async (req, res) => {
+  app.get('/api/groups/:slug', isAuthenticated, async (req, res) => {
     try {
       const { slug } = req.params;
       const groupWithMembers = await storage.getGroupWithMembers(slug);
@@ -5103,10 +5103,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if current user is a member (if authenticated)
       let currentUserMembership = null;
-      if (req.user) {
-        const isMember = await storage.checkUserInGroup(groupWithMembers.id, req.user.id);
+      let userId = null;
+      
+      // Extract user ID from session or user object
+      if (req.isAuthenticated && req.isAuthenticated()) {
+        userId = req.session?.passport?.user?.claims?.id || req.user?.id;
+      } else if (req.user) {
+        userId = req.user.id;
+      }
+
+      console.log('Group detail auth check:', {
+        isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
+        userId,
+        sessionUser: req.session?.passport?.user?.claims?.id,
+        reqUser: req.user?.id
+      });
+
+      if (userId) {
+        const isMember = await storage.checkUserInGroup(groupWithMembers.id, userId);
         if (isMember) {
-          const memberData = groupWithMembers.members.find(m => m.userId === req.user!.id);
+          const memberData = groupWithMembers.members.find(m => m.userId === userId);
           currentUserMembership = memberData || null;
         }
       }
