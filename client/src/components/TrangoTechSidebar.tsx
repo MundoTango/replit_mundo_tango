@@ -71,7 +71,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const adminRoute = {
     icon: <Shield className="w-5 h-5" />,
     title: "Admin Center",
-    link: "/admin-center",
+    link: "/admin",
   };
 
   // Combine routes with conditional admin access
