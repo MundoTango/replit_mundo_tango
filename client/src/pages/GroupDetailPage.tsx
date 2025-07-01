@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import EnhancedPostItem from '@/components/moments/EnhancedPostItem';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { GroupAdminToolbar } from '@/components/GroupAdminToolbar';
+import { canAccessGroupAdmin, getAdminRoleDisplay } from '@/utils/adminAccess';
 
 interface GroupMember {
   id: number;
@@ -192,9 +193,17 @@ const GroupDetailPage: React.FC = () => {
                   <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
                     ✓ Member
                   </Badge>
-                  {group.userRole && (
-                    <Badge variant="outline">{group.userRole}</Badge>
-                  )}
+                  {group.userRole && (() => {
+                    const roleDisplay = getAdminRoleDisplay(group.userRole);
+                    return (
+                      <Badge 
+                        variant="outline" 
+                        className={roleDisplay.color}
+                      >
+                        {roleDisplay.icon} {roleDisplay.label}
+                      </Badge>
+                    );
+                  })()}
                 </div>
               ) : (
                 <Button
@@ -214,26 +223,33 @@ const GroupDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Admin Toolbar */}
-      {group.currentUserMembership && group.userRole && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <GroupAdminToolbar 
-            group={{
-              id: group.id,
-              name: group.name,
-              userRole: group.userRole,
-              memberCount: group.memberCount,
-              isPrivate: group.isPrivate,
-              description: group.description,
-              coverImage: group.coverImage
-            }}
-            onUpdate={(updates: any) => {
-              console.log('Group update requested:', updates);
-              // TODO: Implement group update functionality
-            }}
-          />
-        </div>
-      )}
+      {/* Admin Toolbar - Only visible to administrative roles */}
+      {(() => {
+        // Check if current user has admin access using comprehensive role system
+        const hasAdminAccess = group.userRole && 
+                              canAccessGroupAdmin(group.userRole, group.type) &&
+                              group.members?.some(member => member.userId === 3); // Scott Boddye's user ID
+
+        return hasAdminAccess ? (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <GroupAdminToolbar 
+              group={{
+                id: group.id,
+                name: group.name,
+                userRole: group.userRole,
+                memberCount: group.memberCount,
+                isPrivate: group.isPrivate,
+                description: group.description,
+                coverImage: group.coverImage
+              }}
+              onUpdate={(updates: any) => {
+                console.log('Group update requested:', updates);
+                // TODO: Implement group update functionality
+              }}
+            />
+          </div>
+        ) : null;
+      })()}
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
