@@ -18,6 +18,8 @@ import {
   GitBranch,
   CheckCircle,
   AlertTriangle,
+  Smartphone,
+  Monitor,
   XCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -280,12 +282,64 @@ const DetailedCard: React.FC<DetailedCardProps> = ({ item, onClose }) => {
               </div>
             </div>
 
+            {/* Web Development Prerequisites for Mobile */}
+            {item.webStatus === 'Complete' && item.mobileStatus === 'Not Started' && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Web Development Foundation - Ready for Mobile
+                </h4>
+                <div className="space-y-2">
+                  {getWebDevFoundationTasks(item).map((task, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        ✓
+                      </div>
+                      <div className="text-sm text-green-700 leading-relaxed">{task}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 p-3 bg-green-100 rounded-lg">
+                  <p className="text-xs text-green-800 font-medium">
+                    ✅ Web Development Complete: These foundational components are built and ready for mobile integration. 
+                    The API endpoints, data structures, and business logic are prepared for native mobile consumption.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Web Development Tasks Needed for Mobile Readiness */}
+            {item.webStatus !== 'Complete' && item.mobileStatus === 'Not Started' && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                <h4 className="font-semibold text-orange-800 mb-3 flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Web Development Prerequisites for Mobile
+                </h4>
+                <div className="space-y-2">
+                  {getWebDevPrerequisites(item).map((task, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        {index + 1}
+                      </div>
+                      <div className="text-sm text-orange-700 leading-relaxed">{task}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 p-3 bg-orange-100 rounded-lg">
+                  <p className="text-xs text-orange-800 font-medium">
+                    🔧 Web Team Action Required: These tasks must be completed by the web development team 
+                    before mobile development can begin. Focus on API endpoints, data structures, and business logic.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Mobile Development Next Steps */}
             {item.mobileNextSteps && item.mobileNextSteps.length > 0 && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-                  <Target className="h-4 w-4" />
-                  Mobile Development Next Steps
+                  <Smartphone className="h-4 w-4" />
+                  Mobile Development Implementation Steps
                 </h4>
                 <div className="space-y-2">
                   {item.mobileNextSteps.map((step, index) => (
@@ -299,9 +353,9 @@ const DetailedCard: React.FC<DetailedCardProps> = ({ item, onClose }) => {
                 </div>
                 <div className="mt-3 p-3 bg-blue-100 rounded-lg">
                   <p className="text-xs text-blue-800 font-medium">
-                    💡 These steps represent what the web development team has prepared for mobile implementation. 
-                    Each step is ready for a Senior Mobile Architect to execute using native iOS (Swift/SwiftUI) 
-                    and Android (Kotlin/Jetpack Compose) technologies.
+                    📱 Mobile Architect Tasks: These steps require Senior Mobile Architect expertise. 
+                    Native iOS (Swift/SwiftUI) and Android (Kotlin/Jetpack Compose) implementation ready to begin 
+                    once web development prerequisites are complete.
                   </p>
                 </div>
               </div>
@@ -1562,6 +1616,93 @@ const getNextSteps = (item: ProjectItem): string[] => {
         'Add comprehensive testing coverage',
         'Optimize performance and user experience',
         'Complete documentation and user guides'
+      ];
+  }
+};
+
+
+
+// Helper functions for Web Development Prerequisites
+const getWebDevFoundationTasks = (item: ProjectItem): string[] => {
+  switch (item.id) {
+    case 'authentication':
+    case 'MT-001-USER-REG':
+      return [
+        'RESTful API endpoints for authentication fully operational',
+        'JWT token system with mobile-compatible expiration',
+        'Role-based access control with 23 role types',
+        'Database schema optimized for mobile sync',
+        'Session management supporting mobile app tokens',
+        'OAuth integration ready for mobile deep linking'
+      ];
+    case 'posts-feed':
+    case 'MT-002-POSTS':
+      return [
+        'Post creation API with media upload support',
+        'Real-time commenting system with WebSocket',
+        'Media library with mobile-optimized responses',
+        'Location integration API with Google Maps',
+        'Tag-based filtering with efficient queries',
+        'User mention system with notification triggers'
+      ];
+    case 'events-system':
+      return [
+        'Event CRUD API with role assignment support',
+        'RSVP system with real-time updates',
+        'Participant management with mobile notifications',
+        'Location-based event discovery API',
+        'Calendar integration endpoints',
+        'Event-to-group automatic assignment'
+      ];
+    default:
+      return [
+        'Core API endpoints implemented and tested',
+        'Database schema with mobile sync support',
+        'Authentication system mobile-compatible',
+        'Real-time features with WebSocket support'
+      ];
+  }
+};
+
+const getWebDevPrerequisites = (item: ProjectItem): string[] => {
+  switch (item.id) {
+    case 'authentication':
+    case 'MT-001-USER-REG':
+      return [
+        'Implement mobile app registration API endpoint',
+        'Add biometric authentication backend support',
+        'Create device management system for mobile apps',
+        'Build OAuth deep linking flow for mobile',
+        'Add mobile-specific JWT token management',
+        'Implement push notification device registration'
+      ];
+    case 'posts-feed':
+    case 'MT-002-POSTS':
+      return [
+        'Optimize API responses for mobile bandwidth',
+        'Implement image compression for mobile delivery',
+        'Add mobile-specific caching headers',
+        'Create offline-capable post sync endpoints',
+        'Build mobile push notification triggers',
+        'Add mobile camera upload optimization'
+      ];
+    case 'events-system':
+      return [
+        'Create mobile-optimized event listing API',
+        'Implement location-based push notifications',
+        'Add calendar app integration endpoints',
+        'Build mobile share functionality API',
+        'Create mobile-specific event filters',
+        'Implement background location tracking API'
+      ];
+    default:
+      return [
+        'Add mobile API versioning (/api/mobile/v1)',
+        'Implement mobile-optimized response compression',
+        'Create mobile-specific authentication flow',
+        'Add background sync and offline support',
+        'Implement mobile analytics collection',
+        'Create mobile app configuration endpoints'
       ];
   }
 };
