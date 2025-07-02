@@ -675,6 +675,180 @@ const COMPREHENSIVE_PLATFORM_INVENTORY = [
   }
 ];
 
+// Hierarchical structure for detailed breakdown
+const PLATFORM_HIERARCHICAL_STRUCTURE = {
+  'Mundo Tango Platform': {
+    description: 'Global tango community platform with comprehensive social features',
+    completion: 82,
+    children: {
+      'Core Application Features': {
+        description: 'Primary user-facing features and functionality',
+        completion: 89,
+        children: {
+          'Moments & Feed System': {
+            completion: 95,
+            tasks: [
+              'Post Creation Interface - 100%',
+              'Media Upload Integration - 100%', 
+              'Real-time Feed Updates - 95%',
+              'Comment & Reaction System - 90%',
+              'Tag-based Filtering - 85%'
+            ]
+          },
+          'Events & RSVP Management': {
+            completion: 92,
+            tasks: [
+              'Event Creation Workflow - 100%',
+              'RSVP System - 95%',
+              'Role Assignment Features - 90%',
+              'Calendar Integration - 85%',
+              'Location-based Discovery - 90%'
+            ]
+          },
+          'Community & Groups': {
+            completion: 87,
+            tasks: [
+              'City Group Auto-creation - 100%',
+              'Auto-join Functionality - 95%',
+              'Group Management Interface - 80%',
+              'Member Administration - 85%',
+              'Group Discovery Features - 80%'
+            ]
+          },
+          'Social Features': {
+            completion: 85,
+            tasks: [
+              'Friend Request System - 90%',
+              'User Profiles - 95%',
+              'Messaging Interface - 75%',
+              'Activity Feed - 85%',
+              'Notification System - 80%'
+            ]
+          }
+        }
+      },
+      'Administrative Systems': {
+        description: 'Backend management and administrative interfaces',
+        completion: 76,
+        children: {
+          'User Management': {
+            completion: 89,
+            tasks: [
+              'Role Assignment System - 95%',
+              'User Moderation Tools - 85%',
+              'Bulk Operations - 80%',
+              'Account Management - 90%',
+              'Security Controls - 85%'
+            ]
+          },
+          'Analytics Dashboard': {
+            completion: 73,
+            tasks: [
+              'Platform Metrics - 80%',
+              'User Engagement Tracking - 75%',
+              'Performance Monitoring - 70%',
+              'Report Generation - 65%',
+              'Real-time Analytics - 70%'
+            ]
+          },
+          'Content Moderation': {
+            completion: 68,
+            tasks: [
+              'Auto-moderation System - 70%',
+              'Reporting Workflows - 75%',
+              'Review Interface - 65%',
+              'Policy Enforcement - 60%',
+              'Appeal Process - 65%'
+            ]
+          },
+          'System Health Monitoring': {
+            completion: 82,
+            tasks: [
+              'Uptime Monitoring - 95%',
+              'Performance Tracking - 85%',
+              'Error Logging - 80%',
+              'Alert System - 75%',
+              'Health Dashboards - 80%'
+            ]
+          }
+        }
+      },
+      'Infrastructure & Security': {
+        description: 'Technical foundation and security systems',
+        completion: 88,
+        children: {
+          'Authentication & Authorization': {
+            completion: 93,
+            tasks: [
+              'OAuth Integration - 100%',
+              'Role-based Access Control - 95%',
+              'Session Management - 90%',
+              'Security Middleware - 90%',
+              'Multi-role Support - 90%'
+            ]
+          },
+          'Database & Storage': {
+            completion: 91,
+            tasks: [
+              'PostgreSQL Setup - 100%',
+              'Media Storage (Supabase) - 95%',
+              'Backup Systems - 85%',
+              'Performance Optimization - 90%',
+              'Data Migration Tools - 85%'
+            ]
+          },
+          'API Infrastructure': {
+            completion: 85,
+            tasks: [
+              'RESTful API Design - 90%',
+              'Authentication Middleware - 95%',
+              'Rate Limiting - 80%',
+              'Error Handling - 85%',
+              'Documentation - 75%'
+            ]
+          }
+        }
+      },
+      'Advanced Features': {
+        description: 'Enhanced functionality and intelligent systems',
+        completion: 75,
+        children: {
+          '11L Project Tracker': {
+            completion: 75,
+            tasks: [
+              'Dual-view Interface - 80%',
+              'Jira-style Cards - 85%',
+              'Analytics Integration - 70%',
+              'Hierarchical Breakdown - 70%',
+              'Progress Tracking - 75%'
+            ]
+          },
+          'Compliance Systems': {
+            completion: 71,
+            tasks: [
+              'GDPR Compliance - 90%',
+              'Privacy Controls - 80%',
+              'Audit Logging - 75%',
+              'Data Subject Rights - 85%',
+              'SOC 2 Preparation - 60%'
+            ]
+          },
+          'Automation Systems': {
+            completion: 88,
+            tasks: [
+              'City Group Creation - 100%',
+              'Photo Fetching (Pexels) - 95%',
+              'Auto-join Logic - 90%',
+              'Event Assignment - 85%',
+              'Notification Triggers - 80%'
+            ]
+          }
+        }
+      }
+    }
+  }
+};
+
 export const Comprehensive11LProjectTracker: React.FC = () => {
   const [selectedLayer, setSelectedLayer] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -686,11 +860,22 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
   const [expandedLayers, setExpandedLayers] = useState<Set<string>>(new Set(['platform', 'app', 'admin']));
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showItemModal, setShowItemModal] = useState<boolean>(false);
+  const [hierarchicalBreakdown, setHierarchicalBreakdown] = useState<any>(null);
+  const [expandedHierarchy, setExpandedHierarchy] = useState<Set<string>>(new Set());
 
   // Handle card click for detailed view
   const handleCardClick = (item: any) => {
     setSelectedItem(item);
     setShowItemModal(true);
+    
+    // Check if this is a platform component that needs hierarchical breakdown
+    if (item.title === 'Mundo Tango Platform' || item.title === 'Platform Components') {
+      setHierarchicalBreakdown(PLATFORM_HIERARCHICAL_STRUCTURE['Mundo Tango Platform']);
+      setExpandedHierarchy(new Set(['Core Application Features', 'Administrative Systems']));
+    } else {
+      setHierarchicalBreakdown(null);
+    }
+    
     // Analytics tracking
     if (typeof window !== 'undefined' && window.plausible) {
       window.plausible('11L Card Clicked', {
@@ -702,7 +887,125 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
         }
       });
     }
-  };
+  }
+
+  // Toggle hierarchy expansion
+  const toggleHierarchyExpansion = (key: string) => {
+    const newExpanded = new Set(expandedHierarchy);
+    if (newExpanded.has(key)) {
+      newExpanded.delete(key);
+    } else {
+      newExpanded.add(key);
+    }
+    setExpandedHierarchy(newExpanded);
+  }
+
+  // Render hierarchical breakdown component
+  const renderHierarchicalBreakdown = (data: any, level: number = 0, parentKey: string = '') => {
+    if (!data) return null;
+
+    return (
+      <div className={`space-y-3 ${level > 0 ? 'ml-4 pl-4 border-l-2 border-blue-200' : ''}`}>
+        {Object.entries(data.children || {}).map(([key, value]: [string, any]) => {
+          const fullKey = `${parentKey}-${key}`;
+          const isExpanded = expandedHierarchy.has(fullKey);
+          const hasChildren = value.children && Object.keys(value.children).length > 0;
+          const hasTasks = value.tasks && value.tasks.length > 0;
+
+          return (
+            <div key={fullKey} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              {/* Section Header */}
+              <div 
+                className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
+                  hasChildren ? 'bg-gradient-to-r from-blue-50 to-indigo-50' : 'bg-gray-50'
+                }`}
+                onClick={() => hasChildren && toggleHierarchyExpansion(fullKey)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {hasChildren && (
+                      <div className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>
+                        ▶
+                      </div>
+                    )}
+                    <div>
+                      <h4 className={`font-semibold ${level === 0 ? 'text-lg text-blue-900' : 'text-base text-gray-800'}`}>
+                        {key}
+                      </h4>
+                      {value.description && (
+                        <p className="text-sm text-gray-600 mt-1">{value.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <div className={`text-sm font-medium ${
+                        value.completion >= 90 ? 'text-green-600' :
+                        value.completion >= 70 ? 'text-blue-600' : 'text-orange-600'
+                      }`}>
+                        {value.completion}%
+                      </div>
+                      <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            value.completion >= 90 ? 'bg-green-500' :
+                            value.completion >= 70 ? 'bg-blue-500' : 'bg-orange-500'
+                          }`}
+                          style={{ width: `${value.completion}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Expanded Content */}
+              {isExpanded && hasChildren && (
+                <div className="p-4 pt-0">
+                  {renderHierarchicalBreakdown(value, level + 1, fullKey)}
+                </div>
+              )}
+
+              {/* Task List */}
+              {hasTasks && !hasChildren && (
+                <div className="p-4 pt-0">
+                  <div className="space-y-2">
+                    {value.tasks.map((task: string, index: number) => {
+                      const [taskName, percentage] = task.split(' - ');
+                      const percentValue = parseInt(percentage?.replace('%', '') || '0');
+                      
+                      return (
+                        <div key={index} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">
+                          <span className="text-sm text-gray-700">{taskName}</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-medium ${
+                              percentValue >= 90 ? 'text-green-600' :
+                              percentValue >= 70 ? 'text-blue-600' : 'text-orange-600'
+                            }`}>
+                              {percentage}
+                            </span>
+                            <div className="w-12 bg-gray-200 rounded-full h-1.5">
+                              <div 
+                                className={`h-1.5 rounded-full ${
+                                  percentValue >= 90 ? 'bg-green-500' :
+                                  percentValue >= 70 ? 'bg-blue-500' : 'bg-orange-500'
+                                }`}
+                                style={{ width: `${percentValue}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };;
 
   // Get layer statistics for Layer Distribution view
   const getLayerStats = () => {
@@ -1453,7 +1756,32 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
 
                 {/* Sub-Components Section */}
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-4 text-gray-800">Platform Components</h3>
+                  <h3 
+                    className="text-lg font-semibold mb-4 text-gray-800 cursor-pointer hover:text-blue-600 transition-colors flex items-center gap-2"
+                    onClick={() => {
+                      const mockPlatformComponents = {
+                        id: 'platform-components',
+                        title: 'Platform Components',
+                        description: 'Individual platform components and modules with detailed hierarchical breakdown',
+                        layer: 'Frontend',
+                        type: 'Component Suite',
+                        mvpStatus: 'In Progress',
+                        completionPercentage: 89,
+                        riskLevel: 'Low',
+                        actualHours: 890,
+                        estimatedHours: 1000,
+                        reviewStatus: 'Active Development',
+                        blockers: [],
+                        dependencies: ['Core Platform'],
+                        tags: ['Components', 'Platform', 'Architecture']
+                      };
+                      handleCardClick(mockPlatformComponents);
+                    }}
+                  >
+                    <BarChart3 className="h-5 w-5" />
+                    Platform Components
+                    <span className="text-sm text-gray-500 font-normal">(Click for breakdown)</span>
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                     
                     {[
@@ -1849,6 +2177,33 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
                     </div>
                   </div>
                 </div>
+
+                {/* Hierarchical Breakdown Section */}
+                {hierarchicalBreakdown && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-blue-600" />
+                      Platform Hierarchical Breakdown
+                    </h3>
+                    <div className="bg-blue-50 rounded-lg p-6">
+                      <div className="mb-4">
+                        <h4 className="text-xl font-bold text-blue-900">{hierarchicalBreakdown.description}</h4>
+                        <div className="flex items-center gap-4 mt-2">
+                          <div className="text-lg font-semibold text-blue-700">
+                            Overall Progress: {hierarchicalBreakdown.completion}%
+                          </div>
+                          <div className="flex-1 bg-blue-200 rounded-full h-3">
+                            <div 
+                              className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                              style={{ width: `${hierarchicalBreakdown.completion}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      {renderHierarchicalBreakdown(hierarchicalBreakdown)}
+                    </div>
+                  </div>
+                )}
 
                 {/* Blockers Section */}
                 {selectedItem.blockers.length > 0 && (
