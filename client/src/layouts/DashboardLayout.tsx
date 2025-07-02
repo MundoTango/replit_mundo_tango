@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import TrangoTechSidebar from '@/components/TrangoTechSidebar';
+import ProjectSwitcher from '@/components/ProjectSwitcher';
 import { useQuery } from '@tanstack/react-query';
 
 interface DashboardLayoutProps {
@@ -253,6 +254,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Badge>
                 )}
               </Button>
+
+              {/* Project Switcher */}
+              <ProjectSwitcher />
 
               {/* Profile Menu */}
               <DropdownMenu>

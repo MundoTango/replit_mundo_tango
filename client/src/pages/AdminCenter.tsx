@@ -5,6 +5,7 @@ import ProjectTrackerDashboard from '@/components/admin/ProjectTrackerDashboard'
 import Comprehensive11LProjectTracker from '@/components/admin/Comprehensive11LProjectTracker';
 import EnhancedHierarchicalTreeView from '@/components/admin/EnhancedHierarchicalTreeView';
 import { PlatformFeatureDeepDive } from '@/components/admin/PlatformFeatureDeepDive';
+import LifeCEOPortal from '@/components/admin/LifeCEOPortal';
 import { 
   Users, 
   Activity, 
@@ -32,7 +33,8 @@ import {
   Server,
   HardDrive,
   Wifi,
-  GitCommit
+  GitCommit,
+  Brain
 } from 'lucide-react';
 
 interface AdminStats {
@@ -96,7 +98,7 @@ interface ComplianceMetrics {
 }
 
 const AdminCenter: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState('overview');
+  const [selectedTab, setSelectedTab] = useState('life-ceo');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [rbacData, setRbacData] = useState<any>(null);
   const [rbacLoading, setRbacLoading] = useState(false);
@@ -198,6 +200,7 @@ const AdminCenter: React.FC = () => {
   };
 
   const tabs = [
+    { id: 'life-ceo', label: 'Life CEO Portal', icon: <Brain className="w-4 h-4" /> },
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'project-tracker', label: '11L Project Tracker', icon: <GitCommit className="w-4 h-4" /> },
     { id: 'feature-deep-dive', label: 'Feature Deep Dive', icon: <Database className="w-4 h-4" /> },
@@ -1360,6 +1363,7 @@ const AdminCenter: React.FC = () => {
 
   const renderContent = () => {
     switch (selectedTab) {
+      case 'life-ceo': return <LifeCEOPortal />;
       case 'overview': return renderOverview();
       case 'project-tracker': return <EnhancedHierarchicalTreeView />;
       case 'feature-deep-dive': return <PlatformFeatureDeepDive />;
