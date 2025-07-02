@@ -20,7 +20,8 @@ import {
   LogOut,
   Settings,
   Shield,
-  HelpCircle
+  HelpCircle,
+  Brain
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -292,10 +293,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </DropdownMenuItem>
                   {/* Admin Center - Only visible for admin users */}
                   {(user?.username === 'admin' || user?.email?.includes('admin')) && (
-                    <DropdownMenuItem onClick={() => setLocation('/admin')}>
-                      <Shield className="mr-2 h-4 w-4" />
-                      Admin Center
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem onClick={() => setLocation('/admin')}>
+                        <Shield className="mr-2 h-4 w-4" />
+                        Admin Center
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setLocation('/admin')} className="lg:hidden">
+                        <Brain className="mr-2 h-4 w-4" />
+                        Life CEO Portal
+                      </DropdownMenuItem>
+                    </>
                   )}
                   <DropdownMenuItem onClick={() => setLocation('/settings')}>
                     <Settings className="mr-2 h-4 w-4" />
