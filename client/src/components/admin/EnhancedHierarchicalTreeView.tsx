@@ -24,563 +24,481 @@ interface ProjectItem {
   mobileNextSteps?: string[];
 }
 
-// Comprehensive project data structure using 11L methodology with full hierarchical nesting
+// 11L Framework: Proper Organizational Hierarchy with Card Templates
 const projectData: ProjectItem[] = [
   {
-    id: 'mundo-tango-platform',
-    title: 'Mundo Tango Platform',
-    description: 'Complete social media platform for the global tango community',
+    id: 'mundo-tango-org',
+    title: 'Mundo Tango Organization',
+    description: 'Global tango community platform organization with comprehensive digital ecosystem',
     type: 'Platform',
     status: 'In Progress',
     completion: 85,
     priority: 'High',
-    estimatedHours: 2000,
-    actualHours: 1700,
-    assignee: 'Development Team',
-    tags: ['Social Media', 'Tango Community', 'Full Stack'],
+    estimatedHours: 3500,
+    actualHours: 2980,
+    assignee: 'Scott Boddye',
+    startDate: '2025-06-27',
+    endDate: '2025-08-15',
+    dependencies: [],
+    tags: ['Organization', 'Tango Community', 'Digital Platform'],
+    webDevPrerequisites: [
+      'Complete organizational structure implementation',
+      'Finalize all core platform components',
+      'Establish enterprise-grade infrastructure',
+      'Implement comprehensive testing frameworks'
+    ],
+    mobileNextSteps: [
+      'Design mobile organizational management interface',
+      'Create native platform administration tools',
+      'Implement mobile-first organizational workflows',
+      'Build cross-platform synchronization systems'
+    ],
     children: [
       {
-        id: 'authentication-system',
-        title: 'Authentication System',
-        description: 'Complete user authentication and authorization system',
-        type: 'Section',
-        status: 'Completed',
-        completion: 100,
-        priority: 'High',
-        estimatedHours: 200,
-        actualHours: 180,
-        assignee: 'Backend Team',
-        tags: ['Security', 'OAuth', 'JWT'],
-        children: [
-          {
-            id: 'replit-oauth-integration',
-            title: 'Replit OAuth Integration',
-            description: 'OAuth authentication flow with Replit identity provider',
-            type: 'Feature',
-            status: 'Completed',
-            completion: 100,
-            priority: 'High',
-            estimatedHours: 40,
-            actualHours: 35,
-            assignee: 'Scott Boddye',
-            tags: ['OAuth', 'Replit', 'Identity'],
-            children: [
-              {
-                id: 'oauth-strategy-setup',
-                title: 'OAuth Strategy Configuration',
-                description: 'Passport.js strategy setup for Replit OAuth',
-                type: 'Project',
-                status: 'Completed',
-                completion: 100,
-                priority: 'High',
-                estimatedHours: 15,
-                actualHours: 12,
-                assignee: 'Scott Boddye',
-                tags: ['Passport.js', 'Strategy'],
-                children: [
-                  {
-                    id: 'passport-strategy-impl',
-                    title: 'Passport Strategy Implementation',
-                    description: 'Configure OpenID Connect strategy for Replit authentication',
-                    type: 'Task',
-                    status: 'Completed',
-                    completion: 100,
-                    priority: 'High',
-                    estimatedHours: 8,
-                    actualHours: 6,
-                    assignee: 'Scott Boddye',
-                    tags: ['OpenID Connect', 'Implementation'],
-                    children: [
-                      {
-                        id: 'strategy-registration',
-                        title: 'Strategy Registration Logic',
-                        description: 'Dynamic strategy registration based on domain',
-                        type: 'Sub-task',
-                        status: 'Completed',
-                        completion: 100,
-                        priority: 'Medium',
-                        estimatedHours: 3,
-                        actualHours: 2,
-                        assignee: 'Scott Boddye',
-                        tags: ['Dynamic Registration']
-                      },
-                      {
-                        id: 'callback-handling',
-                        title: 'OAuth Callback Handler',
-                        description: 'Process OAuth callback and extract user claims',
-                        type: 'Sub-task',
-                        status: 'Completed',
-                        completion: 100,
-                        priority: 'High',
-                        estimatedHours: 5,
-                        actualHours: 4,
-                        assignee: 'Scott Boddye',
-                        tags: ['Callback', 'Claims Processing']
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        id: 'project-tracker-system',
-        title: '11L Project Tracker System',
-        description: 'Comprehensive hierarchical project management with true nested design',
+        id: 'mundo-tango-app',
+        title: 'Mundo Tango App',
+        description: 'Core social media application for tango community engagement and content sharing',
         type: 'Section',
         status: 'In Progress',
         completion: 90,
         priority: 'High',
-        estimatedHours: 120,
-        actualHours: 108,
-        assignee: 'Frontend Team',
-        tags: ['Project Management', '11L Framework', 'React'],
+        estimatedHours: 1800,
+        actualHours: 1620,
+        assignee: 'Frontend Development Team',
+        startDate: '2025-06-27',
+        endDate: '2025-07-30',
+        dependencies: ['mundo-tango-admin'],
+        tags: ['Social Media', 'User Interface', 'Community Features'],
         webDevPrerequisites: [
-          'Complete responsive design implementation',
-          'Finish all React component state management',
-          'Implement comprehensive error handling',
-          'Add real-time synchronization capabilities'
+          'Complete all React component optimizations',
+          'Finalize responsive design implementation', 
+          'Implement comprehensive state management',
+          'Add advanced real-time synchronization',
+          'Complete API integration testing'
         ],
         mobileNextSteps: [
-          'Design mobile-first navigation patterns',
-          'Implement native gesture controls',
-          'Create offline-capable data synchronization',
-          'Build native mobile performance optimizations'
+          'Design React Native component architecture',
+          'Implement native navigation patterns',
+          'Create offline-capable social features',
+          'Build native device integrations',
+          'Design mobile-specific user interactions'
         ],
         children: [
           {
-            id: 'hierarchical-tree-view',
-            title: 'Enhanced Hierarchical Tree View',
-            description: 'Multi-level expandable tree component with Jira-style detail modals',
+            id: 'social-engagement-system',
+            title: 'Social Engagement System',
+            description: 'Comprehensive social media functionality including posts, comments, reactions, and user interactions',
             type: 'Feature',
-            status: 'In Progress',
-            completion: 85,
+            status: 'Completed',
+            completion: 95,
             priority: 'High',
-            estimatedHours: 60,
-            actualHours: 54,
+            estimatedHours: 450,
+            actualHours: 427,
             assignee: 'Scott Boddye',
-            tags: ['Tree View', 'Hierarchical', 'React Component'],
+            startDate: '2025-06-28',
+            endDate: '2025-07-15',
+            dependencies: ['authentication-system'],
+            tags: ['Social Media', 'User Engagement', 'Real-time'],
+            webDevPrerequisites: [
+              'Optimize React Query caching strategies',
+              'Implement advanced error boundary patterns',
+              'Add comprehensive loading state management',
+              'Complete accessibility compliance testing'
+            ],
+            mobileNextSteps: [
+              'Design mobile gesture-based interactions',
+              'Implement native social sharing capabilities',
+              'Create offline comment synchronization',
+              'Build native notification systems'
+            ],
             children: [
               {
-                id: 'tree-rendering-engine',
-                title: 'Tree Rendering Engine',
-                description: 'Recursive component rendering with dynamic depth support',
+                id: 'enhanced-post-creation',
+                title: 'Enhanced Post Creation System',
+                description: 'Advanced post composer with rich text editing, media uploads, mentions, and location integration',
                 type: 'Project',
                 status: 'Completed',
                 completion: 100,
                 priority: 'High',
-                estimatedHours: 25,
-                actualHours: 22,
+                estimatedHours: 120,
+                actualHours: 115,
                 assignee: 'Scott Boddye',
-                tags: ['Recursive Rendering', 'Dynamic Depth'],
+                startDate: '2025-06-29',
+                endDate: '2025-07-05',
+                dependencies: ['media-upload-system', 'google-maps-integration'],
+                tags: ['Rich Text', 'Media Upload', 'Mentions', 'Location'],
+                webDevPrerequisites: [
+                  'Complete React Quill performance optimization',
+                  'Finalize media compression algorithms',
+                  'Implement advanced mention autocomplete',
+                  'Add real-time preview capabilities'
+                ],
+                mobileNextSteps: [
+                  'Design native rich text editing interface',
+                  'Implement mobile camera integration',
+                  'Create voice-to-text post creation',
+                  'Build gesture-based media manipulation'
+                ],
                 children: [
                   {
-                    id: 'recursive-tree-algorithm',
-                    title: 'Recursive Tree Algorithm',
-                    description: 'Core algorithm for rendering nested project items',
+                    id: 'rich-text-editor-integration',
+                    title: 'Rich Text Editor Integration',
+                    description: 'React Quill integration with custom toolbar, formatting options, and content validation',
                     type: 'Task',
                     status: 'Completed',
                     completion: 100,
                     priority: 'High',
-                    estimatedHours: 12,
-                    actualHours: 10,
+                    estimatedHours: 35,
+                    actualHours: 32,
                     assignee: 'Scott Boddye',
-                    tags: ['Algorithm', 'Recursion'],
+                    startDate: '2025-06-29',
+                    endDate: '2025-07-01',
+                    dependencies: [],
+                    tags: ['React Quill', 'Rich Text', 'Content Validation'],
+                    webDevPrerequisites: [
+                      'Optimize editor loading performance',
+                      'Add custom formatting toolbar',
+                      'Implement content sanitization',
+                      'Create responsive editor layout'
+                    ],
+                    mobileNextSteps: [
+                      'Design mobile-optimized editor interface',
+                      'Implement touch-friendly formatting controls',
+                      'Create native text manipulation gestures',
+                      'Build mobile keyboard optimization'
+                    ],
                     children: [
                       {
-                        id: 'depth-calculation',
-                        title: 'Depth Calculation Logic',
-                        description: 'Calculate and apply appropriate indentation for each level',
+                        id: 'quill-toolbar-customization',
+                        title: 'Quill Toolbar Customization',
+                        description: 'Custom toolbar with tango-specific formatting options and emoji integration',
                         type: 'Sub-task',
                         status: 'Completed',
                         completion: 100,
                         priority: 'Medium',
-                        estimatedHours: 4,
-                        actualHours: 3,
+                        estimatedHours: 15,
+                        actualHours: 14,
                         assignee: 'Scott Boddye',
-                        tags: ['Indentation', 'CSS Classes']
-                      },
-                      {
-                        id: 'expand-collapse-state',
-                        title: 'Expand/Collapse State Management',
-                        description: 'React state management for tree expansion',
-                        type: 'Sub-task',
-                        status: 'Completed',
-                        completion: 100,
-                        priority: 'High',
-                        estimatedHours: 8,
-                        actualHours: 7,
-                        assignee: 'Scott Boddye',
-                        tags: ['React State', 'Set Management']
+                        startDate: '2025-06-29',
+                        endDate: '2025-06-30',
+                        dependencies: [],
+                        tags: ['Custom Toolbar', 'Emoji Integration', 'UI Components'],
+                        webDevPrerequisites: [
+                          'Finalize toolbar design system',
+                          'Add accessibility compliance',
+                          'Implement keyboard navigation',
+                          'Create hover state animations'
+                        ],
+                        mobileNextSteps: [
+                          'Design mobile toolbar interface',
+                          'Implement touch-optimized controls',
+                          'Create gesture-based formatting',
+                          'Build native toolbar components'
+                        ]
                       }
                     ]
                   }
                 ]
-              },
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'mundo-tango-admin',
+        title: 'Mundo Tango Admin',
+        description: 'Comprehensive administrative dashboard with user management, content moderation, and platform analytics',
+        type: 'Section',
+        status: 'In Progress',
+        completion: 85,
+        priority: 'High',
+        estimatedHours: 800,
+        actualHours: 680,
+        assignee: 'Backend Development Team',
+        startDate: '2025-06-27',
+        endDate: '2025-07-25',
+        dependencies: [],
+        tags: ['Administration', 'Analytics', 'User Management'],
+        webDevPrerequisites: [
+          'Complete all admin API endpoints',
+          'Implement comprehensive role-based access control',
+          'Add advanced analytics dashboard',
+          'Create automated content moderation',
+          'Finalize compliance monitoring systems'
+        ],
+        mobileNextSteps: [
+          'Design mobile admin interface',
+          'Implement native administrative controls',
+          'Create mobile analytics dashboards',
+          'Build native notification management',
+          'Design mobile-first moderation tools'
+        ],
+        children: [
+          {
+            id: 'admin-center-dashboard',
+            title: 'Admin Center Dashboard',
+            description: 'Central administrative interface with user management, content moderation, and system monitoring',
+            type: 'Feature',
+            status: 'Completed',
+            completion: 90,
+            priority: 'High',
+            estimatedHours: 200,
+            actualHours: 180,
+            assignee: 'Scott Boddye',
+            startDate: '2025-07-01',
+            endDate: '2025-07-10',
+            dependencies: ['user-management-system'],
+            tags: ['Admin Dashboard', 'User Management', 'System Monitoring'],
+            webDevPrerequisites: [
+              'Optimize dashboard loading performance',
+              'Add real-time system health monitoring',
+              'Implement advanced filtering capabilities',
+              'Create comprehensive audit logging'
+            ],
+            mobileNextSteps: [
+              'Design mobile admin dashboard layout',
+              'Implement native admin controls',
+              'Create mobile-optimized data visualization',
+              'Build native admin notification system'
+            ],
+            children: [
               {
-                id: 'detail-modal-system',
-                title: 'Jira-Style Detail Modal',
-                description: 'Comprehensive item detail view with all metadata',
+                id: 'user-management-interface',
+                title: 'User Management Interface',
+                description: 'Comprehensive user administration with role assignment, account management, and activity monitoring',
                 type: 'Project',
-                status: 'In Progress',
-                completion: 80,
+                status: 'Completed',
+                completion: 95,
                 priority: 'High',
-                estimatedHours: 35,
-                actualHours: 32,
+                estimatedHours: 80,
+                actualHours: 76,
                 assignee: 'Scott Boddye',
-                tags: ['Modal', 'Detail View', 'Metadata'],
+                startDate: '2025-07-02',
+                endDate: '2025-07-06',
+                dependencies: ['role-based-access-control'],
+                tags: ['User Management', 'Role Assignment', 'Activity Monitoring'],
+                webDevPrerequisites: [
+                  'Complete user search optimization',
+                  'Add bulk user operations',
+                  'Implement advanced user filtering',
+                  'Create user activity timeline'
+                ],
+                mobileNextSteps: [
+                  'Design mobile user management interface',
+                  'Implement native user search',
+                  'Create mobile role assignment flow',
+                  'Build native user activity viewer'
+                ],
                 children: [
                   {
-                    id: 'modal-component-structure',
-                    title: 'Modal Component Architecture',
-                    description: 'Responsive modal with tabbed interface and comprehensive data display',
+                    id: 'role-assignment-system',
+                    title: 'Role Assignment System',
+                    description: 'Dynamic role assignment with permission management and hierarchical role structures',
                     type: 'Task',
                     status: 'Completed',
                     completion: 100,
                     priority: 'High',
-                    estimatedHours: 20,
-                    actualHours: 18,
+                    estimatedHours: 25,
+                    actualHours: 23,
                     assignee: 'Scott Boddye',
-                    tags: ['Component Architecture', 'Responsive Design']
-                  },
-                  {
-                    id: 'web-mobile-handoff-display',
-                    title: 'Web-to-Mobile Handoff Display',
-                    description: 'Show web development prerequisites and mobile next steps',
-                    type: 'Task',
-                    status: 'In Progress',
-                    completion: 60,
-                    priority: 'Medium',
-                    estimatedHours: 15,
-                    actualHours: 14,
-                    assignee: 'Scott Boddye',
-                    tags: ['Handoff Criteria', 'Mobile Development']
+                    startDate: '2025-07-03',
+                    endDate: '2025-07-04',
+                    dependencies: [],
+                    tags: ['Role Assignment', 'Permissions', 'RBAC'],
+                    webDevPrerequisites: [
+                      'Optimize role lookup performance',
+                      'Add role inheritance mechanisms',
+                      'Implement permission caching',
+                      'Create role audit logging'
+                    ],
+                    mobileNextSteps: [
+                      'Design mobile role selection interface',
+                      'Implement native permission controls',
+                      'Create mobile role visualization',
+                      'Build native role assignment workflow'
+                    ],
+                    children: [
+                      {
+                        id: 'permission-matrix-implementation',
+                        title: 'Permission Matrix Implementation',
+                        description: 'Comprehensive permission system with granular access controls and role inheritance',
+                        type: 'Sub-task',
+                        status: 'Completed',
+                        completion: 100,
+                        priority: 'High',
+                        estimatedHours: 12,
+                        actualHours: 11,
+                        assignee: 'Scott Boddye',
+                        startDate: '2025-07-03',
+                        endDate: '2025-07-04',
+                        dependencies: [],
+                        tags: ['Permission Matrix', 'Access Control', 'Role Inheritance'],
+                        webDevPrerequisites: [
+                          'Complete permission caching system',
+                          'Add real-time permission updates',
+                          'Implement permission audit trail',
+                          'Create permission testing framework'
+                        ],
+                        mobileNextSteps: [
+                          'Design mobile permission interface',
+                          'Implement native permission checks',
+                          'Create mobile permission editor',
+                          'Build native access control UI'
+                        ]
+                      }
+                    ]
                   }
                 ]
               }
             ]
-          },
-          {
-            id: 'timeline-teams-management',
-            title: 'Timeline & Teams Management',
-            description: 'Comprehensive project timeline and team assignment tracking',
-            type: 'Feature',
-            status: 'In Progress',
-            completion: 75,
-            priority: 'High',
-            estimatedHours: 40,
-            actualHours: 30,
-            assignee: 'Scott Boddye',
-            tags: ['Timeline', 'Team Management', 'Project Tracking'],
-            children: [
-              {
-                id: 'development-timeline',
-                title: 'Development Phase Timeline',
-                description: 'Visual timeline showing 5 major development phases',
-                type: 'Project',
-                status: 'Completed',
-                completion: 100,
-                priority: 'Medium',
-                estimatedHours: 20,
-                actualHours: 15,
-                assignee: 'Scott Boddye',
-                tags: ['Visual Timeline', 'Phase Tracking']
-              },
-              {
-                id: 'team-assignment-system',
-                title: 'Team Assignment Cards',
-                description: 'Interactive team cards with performance metrics and click-through details',
-                type: 'Project',
-                status: 'In Progress',
-                completion: 50,
-                priority: 'High',
-                estimatedHours: 20,
-                actualHours: 15,
-                assignee: 'Scott Boddye',
-                tags: ['Team Cards', 'Performance Metrics']
-              }
-            ]
           }
         ]
       },
       {
-        id: 'posts-feed-system',
-        title: 'Enhanced Posts Feed System',
-        description: 'Modern social media feed with rich content creation and real-time engagement',
-        type: 'Section',
-        status: 'Completed',
-        completion: 95,
-        priority: 'High',
-        estimatedHours: 300,
-        actualHours: 285,
-        assignee: 'Full Stack Team',
-        tags: ['Social Media', 'Real-time', 'Content Creation'],
-        children: [
-          {
-            id: 'modern-post-composer',
-            title: 'Modern Post Composer',
-            description: 'Rich text editor with mentions, media uploads, and location integration',
-            type: 'Feature',
-            status: 'Completed',
-            completion: 100,
-            priority: 'High',
-            estimatedHours: 80,
-            actualHours: 75,
-            assignee: 'Scott Boddye',
-            tags: ['Rich Text', 'Mentions', 'Media Upload'],
-            children: [
-              {
-                id: 'rich-text-editor',
-                title: 'Rich Text Editor Integration',
-                description: 'React Quill integration with custom toolbar and formatting',
-                type: 'Project',
-                status: 'Completed',
-                completion: 100,
-                priority: 'High',
-                estimatedHours: 25,
-                actualHours: 22,
-                assignee: 'Scott Boddye',
-                tags: ['React Quill', 'Rich Text']
-              },
-              {
-                id: 'mention-system',
-                title: 'User Mention System',
-                description: 'Real-time @ autocomplete with user, event, and group mentions',
-                type: 'Project',
-                status: 'Completed',
-                completion: 100,
-                priority: 'High',
-                estimatedHours: 30,
-                actualHours: 28,
-                assignee: 'Scott Boddye',
-                tags: ['Mentions', 'Autocomplete', 'Real-time']
-              },
-              {
-                id: 'media-upload-integration',
-                title: 'Media Upload Integration',
-                description: 'Drag-drop media upload with progress tracking and metadata',
-                type: 'Project',
-                status: 'Completed',
-                completion: 100,
-                priority: 'Medium',
-                estimatedHours: 25,
-                actualHours: 25,
-                assignee: 'Scott Boddye',
-                tags: ['Media Upload', 'Drag Drop', 'Progress Tracking']
-              }
-            ]
-          }
-        ]
-      },
-      {
-        id: 'event-management-system',
-        title: 'Event Management System',
-        description: 'Comprehensive event creation, RSVP management, and role assignment',
-        type: 'Section',
-        status: 'Completed',
-        completion: 100,
-        priority: 'High',
-        estimatedHours: 250,
-        actualHours: 240,
-        assignee: 'Full Stack Team',
-        tags: ['Events', 'RSVP', 'Role Assignment'],
-        children: [
-          {
-            id: 'event-creation-workflow',
-            title: 'Event Creation Workflow',
-            description: 'Complete event creation with Google Maps integration and role assignments',
-            type: 'Feature',
-            status: 'Completed',
-            completion: 100,
-            priority: 'High',
-            estimatedHours: 120,
-            actualHours: 115,
-            assignee: 'Scott Boddye',
-            tags: ['Event Creation', 'Google Maps', 'Role Assignment'],
-            children: [
-              {
-                id: 'google-maps-integration',
-                title: 'Google Maps Location Picker',
-                description: 'Advanced location selection with Places API and embedded map display',
-                type: 'Project',
-                status: 'Completed',
-                completion: 100,
-                priority: 'High',
-                estimatedHours: 40,
-                actualHours: 38,
-                assignee: 'Scott Boddye',
-                tags: ['Google Maps', 'Places API', 'Location']
-              },
-              {
-                id: 'role-assignment-system',
-                title: 'Event Role Assignment',
-                description: 'Dynamic role assignment for DJs, Teachers, Performers, etc.',
-                type: 'Project',
-                status: 'Completed',
-                completion: 100,
-                priority: 'High',
-                estimatedHours: 35,
-                actualHours: 32,
-                assignee: 'Scott Boddye',
-                tags: ['Role Assignment', 'Event Participants']
-              }
-            ]
-          }
-        ]
-      },
-      {
-        id: 'community-groups-system',
-        title: 'Community & Groups System',
-        description: 'Automated city group creation and comprehensive community management',
-        type: 'Section',
-        status: 'Completed',
-        completion: 100,
-        priority: 'High',
-        estimatedHours: 180,
-        actualHours: 175,
-        assignee: 'Backend Team',
-        tags: ['Community', 'Groups', 'Automation'],
-        children: [
-          {
-            id: 'automated-city-groups',
-            title: 'Automated City Group Creation',
-            description: 'Intelligent city group creation during user registration with photo automation',
-            type: 'Feature',
-            status: 'Completed',
-            completion: 100,
-            priority: 'High',
-            estimatedHours: 90,
-            actualHours: 88,
-            assignee: 'Scott Boddye',
-            tags: ['Automation', 'City Groups', 'Photo Integration'],
-            children: [
-              {
-                id: 'city-photo-automation',
-                title: 'City Photo Automation',
-                description: 'Pexels API integration for authentic city photography',
-                type: 'Project',
-                status: 'Completed',
-                completion: 100,
-                priority: 'Medium',
-                estimatedHours: 35,
-                actualHours: 33,
-                assignee: 'Scott Boddye',
-                tags: ['Pexels API', 'Photo Automation']
-              }
-            ]
-          }
-        ]
-      },
-      {
-        id: 'analytics-infrastructure',
-        title: 'Analytics & Infrastructure',
-        description: 'Comprehensive analytics system with performance monitoring and compliance',
+        id: 'mundo-tango-project',
+        title: 'Mundo Tango Project Tracker',
+        description: 'Advanced 11L methodology project management system with hierarchical breakdown and comprehensive tracking',
         type: 'Section',
         status: 'In Progress',
-        completion: 85,
-        priority: 'Medium',
-        estimatedHours: 200,
-        actualHours: 170,
-        assignee: 'Infrastructure Team',
-        tags: ['Analytics', 'Performance', 'Compliance'],
-        children: [
-          {
-            id: 'plausible-analytics',
-            title: 'Plausible Analytics Integration',
-            description: 'Privacy-first analytics with comprehensive event tracking',
-            type: 'Feature',
-            status: 'Completed',
-            completion: 100,
-            priority: 'Medium',
-            estimatedHours: 40,
-            actualHours: 35,
-            assignee: 'Scott Boddye',
-            tags: ['Plausible', 'Privacy', 'Event Tracking']
-          },
-          {
-            id: 'compliance-monitoring',
-            title: 'Automated Compliance Monitoring',
-            description: 'GDPR, SOC2, and enterprise compliance automation',
-            type: 'Feature',
-            status: 'In Progress',
-            completion: 80,
-            priority: 'High',
-            estimatedHours: 80,
-            actualHours: 68,
-            assignee: 'Scott Boddye',
-            tags: ['GDPR', 'SOC2', 'Compliance']
-          }
-        ]
-      },
-      {
-        id: 'mobile-development-pipeline',
-        title: 'Mobile Development Pipeline',
-        description: 'Web-to-mobile development roadmap with comprehensive handoff criteria',
-        type: 'Section',
-        status: 'Planned',
-        completion: 15,
-        priority: 'Medium',
-        estimatedHours: 400,
-        actualHours: 60,
-        assignee: 'Mobile Team',
-        tags: ['Mobile', 'iOS', 'Android', 'React Native'],
+        completion: 80,
+        priority: 'High',
+        estimatedHours: 900,
+        actualHours: 720,
+        assignee: 'Project Management Team',
+        startDate: '2025-07-01',
+        endDate: '2025-08-15',
+        dependencies: ['mundo-tango-admin'],
+        tags: ['Project Management', '11L Framework', 'Hierarchical Tracking'],
         webDevPrerequisites: [
-          'Complete API stabilization and documentation',
-          'Finalize all responsive design patterns',
-          'Implement comprehensive error handling',
-          'Complete authentication system testing',
-          'Optimize performance for mobile data usage',
-          'Standardize component library for reuse'
+          'Complete all hierarchical rendering components',
+          'Implement comprehensive data visualization',
+          'Add real-time project synchronization',
+          'Create advanced project analytics',
+          'Finalize timeline management system'
         ],
         mobileNextSteps: [
-          'Create React Native project structure',
-          'Implement native navigation patterns',
-          'Build offline-first data synchronization',
-          'Integrate native device capabilities',
-          'Design mobile-specific user flows',
-          'Implement push notification system'
+          'Design mobile project management interface',
+          'Implement native project tracking',
+          'Create mobile timeline visualization',
+          'Build native project collaboration tools',
+          'Design mobile-first project workflows'
         ],
         children: [
           {
-            id: 'web-platform-stabilization',
-            title: 'Web Platform Stabilization',
-            description: '248 hours of web development work required before mobile handoff',
+            id: 'hierarchical-project-structure',
+            title: 'Hierarchical Project Structure',
+            description: 'Deep nested project breakdown using 11L methodology with unlimited depth support',
             type: 'Feature',
             status: 'In Progress',
-            completion: 60,
+            completion: 85,
             priority: 'High',
-            estimatedHours: 248,
-            actualHours: 149,
-            assignee: 'Web Development Team',
-            tags: ['Platform Stabilization', 'API Documentation', 'Performance'],
+            estimatedHours: 300,
+            actualHours: 255,
+            assignee: 'Scott Boddye',
+            startDate: '2025-07-01',
+            endDate: '2025-07-20',
+            dependencies: ['11l-framework-implementation'],
+            tags: ['Hierarchical Structure', '11L Methodology', 'Project Breakdown'],
+            webDevPrerequisites: [
+              'Complete recursive rendering optimization',
+              'Add dynamic depth visualization',
+              'Implement advanced tree navigation',
+              'Create comprehensive project metadata'
+            ],
+            mobileNextSteps: [
+              'Design mobile hierarchical navigation',
+              'Implement native tree visualization',
+              'Create mobile project breakdown interface',
+              'Build native hierarchy manipulation'
+            ],
             children: [
               {
-                id: 'api-documentation-completion',
-                title: 'Complete API Documentation',
-                description: 'Comprehensive API documentation for mobile team handoff',
+                id: 'enhanced-tree-view-component',
+                title: 'Enhanced Tree View Component',
+                description: 'Advanced React component with card-based rendering, expand/collapse, and detailed item views',
                 type: 'Project',
                 status: 'In Progress',
-                completion: 40,
+                completion: 90,
                 priority: 'High',
-                estimatedHours: 80,
-                actualHours: 32,
-                assignee: 'Backend Team',
-                tags: ['API Documentation', 'Handoff']
-              },
-              {
-                id: 'responsive-design-finalization',
-                title: 'Responsive Design Finalization',
-                description: 'Complete responsive design implementation across all components',
-                type: 'Project',
-                status: 'In Progress',
-                completion: 70,
-                priority: 'High',
-                estimatedHours: 120,
-                actualHours: 84,
-                assignee: 'Frontend Team',
-                tags: ['Responsive Design', 'Mobile-First']
+                estimatedHours: 150,
+                actualHours: 135,
+                assignee: 'Scott Boddye',
+                startDate: '2025-07-01',
+                endDate: '2025-07-15',
+                dependencies: ['card-template-system'],
+                tags: ['React Component', 'Tree View', 'Card Rendering'],
+                webDevPrerequisites: [
+                  'Optimize component re-rendering performance',
+                  'Add advanced keyboard navigation',
+                  'Implement comprehensive accessibility',
+                  'Create responsive card layouts'
+                ],
+                mobileNextSteps: [
+                  'Design mobile tree navigation patterns',
+                  'Implement native card interactions',
+                  'Create mobile-optimized card layouts',
+                  'Build native tree manipulation gestures'
+                ],
+                children: [
+                  {
+                    id: 'card-template-rendering',
+                    title: 'Card Template Rendering System',
+                    description: 'Comprehensive card template with all project metadata, progress tracking, and interactive elements',
+                    type: 'Task',
+                    status: 'In Progress',
+                    completion: 75,
+                    priority: 'High',
+                    estimatedHours: 60,
+                    actualHours: 45,
+                    assignee: 'Scott Boddye',
+                    startDate: '2025-07-02',
+                    endDate: '2025-07-08',
+                    dependencies: [],
+                    tags: ['Card Template', 'Metadata Display', 'Progress Tracking'],
+                    webDevPrerequisites: [
+                      'Complete card layout optimization',
+                      'Add interactive progress elements',
+                      'Implement comprehensive metadata display',
+                      'Create responsive card design'
+                    ],
+                    mobileNextSteps: [
+                      'Design mobile card template',
+                      'Implement native card interactions',
+                      'Create mobile metadata visualization',
+                      'Build native progress indicators'
+                    ],
+                    children: [
+                      {
+                        id: 'comprehensive-metadata-display',
+                        title: 'Comprehensive Metadata Display',
+                        description: 'Advanced metadata display with time tracking, dependencies, web dev prerequisites, and mobile next steps',
+                        type: 'Sub-task',
+                        status: 'In Progress',
+                        completion: 80,
+                        priority: 'High',
+                        estimatedHours: 30,
+                        actualHours: 24,
+                        assignee: 'Scott Boddye',
+                        startDate: '2025-07-02',
+                        endDate: '2025-07-06',
+                        dependencies: [],
+                        tags: ['Metadata Display', 'Time Tracking', 'Dependencies', 'Handoff Criteria'],
+                        webDevPrerequisites: [
+                          'Finalize metadata grid layout',
+                          'Add interactive metadata elements',
+                          'Implement real-time data updates',
+                          'Create comprehensive tooltip system'
+                        ],
+                        mobileNextSteps: [
+                          'Design mobile metadata layout',
+                          'Implement native metadata display',
+                          'Create mobile data visualization',
+                          'Build native metadata interaction'
+                        ]
+                      }
+                    ]
+                  }
+                ]
               }
             ]
           }
@@ -592,7 +510,7 @@ const projectData: ProjectItem[] = [
 
 const EnhancedHierarchicalTreeView: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['mundo-tango-platform']));
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['mundo-tango-org']));
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems);
@@ -661,24 +579,117 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
                     {item.description}
                   </p>
                   
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <span className="flex items-center">
-                      <CheckCircle2 className="h-4 w-4 mr-1" />
-                      {item.completion}% Complete
-                    </span>
-                    {item.assignee && (
-                      <span className="flex items-center">
-                        <Users className="h-4 w-4 mr-1" />
-                        {item.assignee}
-                      </span>
-                    )}
-                    {item.estimatedHours && (
-                      <span className="flex items-center">
-                        <Clock className="h-4 w-4 mr-1" />
-                        {item.actualHours || 0}/{item.estimatedHours}h
-                      </span>
-                    )}
+                  {/* Progress Bar */}
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full" 
+                      style={{ width: `${item.completion}%` }}
+                    ></div>
                   </div>
+                  
+                  {/* Comprehensive Metadata Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm">
+                        <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" />
+                        <span className="font-medium">{item.completion}% Complete</span>
+                      </div>
+                      {item.assignee && (
+                        <div className="flex items-center text-sm">
+                          <Users className="h-4 w-4 mr-2 text-green-500" />
+                          <span>{item.assignee}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center text-sm">
+                        <Badge variant="secondary" className="text-xs">
+                          {item.type}
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {item.estimatedHours && (
+                        <div className="flex items-center text-sm">
+                          <Clock className="h-4 w-4 mr-2 text-orange-500" />
+                          <span>{item.actualHours || 0}h / {item.estimatedHours}h</span>
+                        </div>
+                      )}
+                      {item.startDate && (
+                        <div className="text-sm text-gray-600">
+                          <strong>Start:</strong> {item.startDate}
+                        </div>
+                      )}
+                      {item.endDate && (
+                        <div className="text-sm text-gray-600">
+                          <strong>End:</strong> {item.endDate}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {item.dependencies && item.dependencies.length > 0 && (
+                        <div className="text-sm">
+                          <strong className="text-purple-600">Dependencies:</strong>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {item.dependencies.map(dep => (
+                              <Badge key={dep} variant="outline" className="text-xs">
+                                {dep}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Tags */}
+                  {item.tags && item.tags.length > 0 && (
+                    <div className="mb-4">
+                      <div className="flex flex-wrap gap-2">
+                        {item.tags.map(tag => (
+                          <Badge key={tag} variant="secondary" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Web Dev Prerequisites */}
+                  {item.webDevPrerequisites && item.webDevPrerequisites.length > 0 && (
+                    <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center mb-2">
+                        <Code2 className="h-4 w-4 mr-2 text-blue-600" />
+                        <span className="font-medium text-blue-800 dark:text-blue-300">Web Dev Prerequisites</span>
+                      </div>
+                      <ul className="space-y-1">
+                        {item.webDevPrerequisites.map((prereq, index) => (
+                          <li key={index} className="text-sm text-blue-700 dark:text-blue-400 flex items-start">
+                            <span className="mr-2">•</span>
+                            <span>{prereq}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {/* Mobile Next Steps */}
+                  {item.mobileNextSteps && item.mobileNextSteps.length > 0 && (
+                    <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="flex items-center mb-2">
+                        <Smartphone className="h-4 w-4 mr-2 text-green-600" />
+                        <span className="font-medium text-green-800 dark:text-green-300">Mobile Next Steps</span>
+                      </div>
+                      <ul className="space-y-1">
+                        {item.mobileNextSteps.map((step, index) => (
+                          <li key={index} className="text-sm text-green-700 dark:text-green-400 flex items-start">
+                            <span className="mr-2">•</span>
+                            <span>{step}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
                 <Button
