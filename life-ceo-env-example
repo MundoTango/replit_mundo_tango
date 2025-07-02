@@ -1,0 +1,65 @@
+# Life CEO Platform Environment Variables
+
+# Supabase Configuration
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_KEY=your-service-key
+
+# AI Services
+OPENAI_API_KEY=sk-your-openai-key
+ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
+
+# Voice Processing
+WHISPER_API_KEY=your-whisper-key
+
+# GitHub Integration
+GITHUB_TOKEN=ghp_your-github-token
+GITHUB_OWNER=scottboddye
+GITHUB_REPO=life-ceo-platform
+
+# Notion Integration
+NOTION_API_KEY=secret_your-notion-key
+NOTION_DATABASE_ID=your-database-id
+
+# Financial Integrations
+STRIPE_API_KEY=sk_live_your-stripe-key
+LEMON_SQUEEZY_API_KEY=your-lemon-key
+
+# Travel Integrations
+BOOKING_API_KEY=your-booking-key
+AIRBNB_API_KEY=your-airbnb-key
+GOOGLE_MAPS_API_KEY=your-maps-key
+
+# Social Media
+INSTAGRAM_ACCESS_TOKEN=your-instagram-token
+FACEBOOK_ACCESS_TOKEN=your-facebook-token
+TWITTER_API_KEY=your-twitter-key
+TWITTER_API_SECRET=your-twitter-secret
+
+# System Configuration
+NODE_ENV=development
+PORT=3000
+LOG_LEVEL=info
+
+# Agent Configuration
+LIFE_CEO_TIMEZONE=auto
+DAILY_REVIEW_TIME=10:00
+MEMORY_SCAN_DEPTH=30
+
+# Security
+JWT_SECRET=your-jwt-secret
+ENCRYPTION_KEY=your-encryption-key
+
+# Automation
+N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook
+MAKE_WEBHOOK_URL=https://hook.eu1.make.com/your-webhook
+
+# Monitoring
+SENTRY_DSN=https://your-sentry-dsn
+DATADOG_API_KEY=your-datadog-key
+
+# Feature Flags
+ENABLE_VOICE_PROCESSING=true
+ENABLE_DAILY_REVIEW=true
+ENABLE_AUTO_DELEGATION=true
+ENABLE_SOCIAL_POSTING=false
