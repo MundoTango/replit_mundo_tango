@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import TrangoTechSidebar from '@/components/TrangoTechSidebar';
 import ProjectTrackerDashboard from '@/components/admin/ProjectTrackerDashboard';
-import Comprehensive11LProjectTracker from '@/components/admin/Comprehensive11LProjectTracker';
+import HierarchicalProjectTracker from '@/components/admin/HierarchicalProjectTracker';
 import { PlatformFeatureDeepDive } from '@/components/admin/PlatformFeatureDeepDive';
 import { 
   Users, 
@@ -1360,7 +1360,7 @@ const AdminCenter: React.FC = () => {
   const renderContent = () => {
     switch (selectedTab) {
       case 'overview': return renderOverview();
-      case 'project-tracker': return <Comprehensive11LProjectTracker />;
+      case 'project-tracker': return <HierarchicalProjectTracker />;
       case 'feature-deep-dive': return <PlatformFeatureDeepDive />;
       case 'users': return renderUserManagement();
       case 'content': return renderContentModeration();
