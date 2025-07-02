@@ -1377,114 +1377,6 @@ const projectData: ProjectItem[] = [
 
 const EnhancedHierarchicalTreeView: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-
-  const toggleExpanded = (id: string) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedItems(newExpanded);
-  };
-
-  const handleItemClick = (item: ProjectItem) => {
-    setSelectedItem(item);
-  };
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'Platform': return <Globe className="h-5 w-5" />;
-      case 'Section': return <Users className="h-5 w-5" />;
-      case 'Feature': return <Zap className="h-5 w-5" />;
-      case 'Project': return <Code className="h-5 w-5" />;
-      case 'Task': return <CheckCircle className="h-5 w-5" />;
-      case 'Sub-task': return <Target className="h-5 w-5" />;
-      default: return <FileText className="h-5 w-5" />;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Complete': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'In Progress': return <Clock className="h-4 w-4 text-blue-600" />;
-      case 'Planning': return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
-      case 'Blocked': return <XCircle className="h-4 w-4 text-red-600" />;
-      default: return <Clock className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
-  const renderTreeItem = (item: ProjectItem, level: number = 0) => {
-    const isExpanded = expandedItems.has(item.id);
-    const hasChildren = item.children && item.children.length > 0;
-    const indent = level * 24;
-
-    return (
-      <div key={item.id} className="w-full">
-        <div 
-          className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-l-2 border-transparent hover:border-blue-500 transition-all duration-200"
-          style={{ paddingLeft: `${12 + indent}px` }}
-          onClick={() => handleItemClick(item)}
-        >
-          {/* Expand/Collapse Button */}
-          {hasChildren && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleExpanded(item.id);
-              }}
-              className="flex-shrink-0 p-1 hover:bg-gray-200 rounded"
-            >
-              {isExpanded ? 
-                <ChevronDown className="h-4 w-4" /> : 
-                <ChevronRight className="h-4 w-4" />
-              }
-            </button>
-          )}
-
-          {/* Icon */}
-          <div className="flex-shrink-0 text-gray-600">
-            {getIcon(item.type)}
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h4 className="font-medium text-gray-900 truncate">{item.title}</h4>
-              <div className="flex items-center gap-1">
-                {getStatusIcon(item.status)}
-                <Badge variant="outline" className="text-xs">{item.type}</Badge>
-              </div>
-            </div>
-            {item.description && (
-              <p className="text-sm text-gray-600 truncate mt-1">{item.description}</p>
-            )}
-          </div>
-
-          {/* Progress */}
-          <div className="flex-shrink-0 flex items-center gap-2">
-            <div className="text-sm font-medium text-blue-600">
-              {item.completion}%
-            </div>
-            <div className="w-16 bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${item.completion}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Children */}
-        {hasChildren && isExpanded && (
-          <div className="ml-0">
-            {item.children!.map(child => renderTreeItem(child, level + 1))}
-          </div>
-        )}
-      </div>
-    );
-  };
 
   const getCompletedTasks = (item: ProjectItem): string[] => {
     switch (item.id) {
@@ -1723,6 +1615,118 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
     }
   };
 
+  // Component state and handlers
+  const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
+  const handleItemClick = (item: ProjectItem) => {
+    setSelectedItem(item);
+  };
+
+  const toggleExpanded = (id: string) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedItems(newExpanded);
+  };
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case 'Platform': return <Building2 className="h-4 w-4" />;
+      case 'Section': return <Folder className="h-4 w-4" />;
+      case 'Feature': return <Layers className="h-4 w-4" />;
+      case 'Project': return <GitBranch className="h-4 w-4" />;
+      case 'Task': return <FileText className="h-4 w-4" />;
+      case 'Sub-task': return <CheckSquare className="h-4 w-4" />;
+      default: return <Circle className="h-4 w-4" />;
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'Complete': return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'In Progress': return <Clock className="h-4 w-4 text-blue-600" />;
+      case 'Planning': return <Calendar className="h-4 w-4 text-yellow-600" />;
+      case 'Blocked': return <AlertCircle className="h-4 w-4 text-red-600" />;
+      case 'Not Started': return <Circle className="h-4 w-4 text-gray-400" />;
+      default: return <Circle className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const renderTreeItem = (item: ProjectItem, level: number = 0) => {
+    const isExpanded = expandedItems.has(item.id);
+    const hasChildren = item.children && item.children.length > 0;
+    const indent = level * 24;
+
+    return (
+      <div key={item.id} className="w-full">
+        <div 
+          className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-l-2 border-transparent hover:border-blue-500 transition-all duration-200"
+          style={{ paddingLeft: `${12 + indent}px` }}
+          onClick={() => handleItemClick(item)}
+        >
+          {/* Expand/Collapse Button */}
+          {hasChildren && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleExpanded(item.id);
+              }}
+              className="flex-shrink-0 p-1 hover:bg-gray-200 rounded"
+            >
+              {isExpanded ? 
+                <ChevronDown className="h-4 w-4" /> : 
+                <ChevronRight className="h-4 w-4" />
+              }
+            </button>
+          )}
+
+          {/* Icon */}
+          <div className="flex-shrink-0 text-gray-600">
+            {getIcon(item.type)}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h4 className="font-medium text-gray-900 truncate">{item.title}</h4>
+              <div className="flex items-center gap-1">
+                {getStatusIcon(item.status)}
+                <Badge variant="outline" className="text-xs">{item.type}</Badge>
+              </div>
+            </div>
+            {item.description && (
+              <p className="text-sm text-gray-600 truncate mt-1">{item.description}</p>
+            )}
+          </div>
+
+          {/* Progress */}
+          <div className="flex-shrink-0 flex items-center gap-2">
+            <div className="text-sm font-medium text-blue-600">
+              {item.completion}%
+            </div>
+            <div className="w-16 bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${item.completion}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Children */}
+        {hasChildren && isExpanded && (
+          <div className="ml-0">
+            {item.children!.map(child => renderTreeItem(child, level + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="w-full space-y-2">
       {projectData.map(item => renderTreeItem(item))}
@@ -1739,4 +1743,3 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
 };
 
 export default EnhancedHierarchicalTreeView;
-
