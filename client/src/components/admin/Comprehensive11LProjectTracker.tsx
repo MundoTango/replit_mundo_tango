@@ -1245,314 +1245,305 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
       {/* View Content */}
       {view === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Mundo Tango Platform Structure */}
+          {/* Mundo Tango Platform Structure - Enhanced Jira Style */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
                 Mundo Tango Platform Structure
               </CardTitle>
+              <div className="text-sm text-gray-600 mt-2">
+                Interactive project cards with detailed metadata tracking and Jira-style organization
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {/* Level 1: Mundo Tango Platform */}
-                <Collapsible open={expandedLayers.has('platform')} >
-                  <CollapsibleTrigger 
-                    className="w-full hover:bg-gray-50 p-3 rounded-lg transition-colors border-2 border-blue-200 bg-blue-50"
-                    onClick={() => toggleLayerExpansion('platform')}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {expandedLayers.has('platform') ? (
-                          <ChevronDown className="h-5 w-5 text-blue-600" />
-                        ) : (
-                          <ChevronRight className="h-5 w-5 text-blue-600" />
-                        )}
-                        <Globe className="h-5 w-5 text-blue-600" />
-                        <span className="text-lg font-bold text-blue-800">Mundo Tango Platform</span>
+              <div className="space-y-6">
+                
+                {/* Epic: Mundo Tango Platform */}
+                <div className="border-2 border-blue-200 rounded-lg p-4 bg-gradient-to-r from-blue-50 to-blue-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-600 rounded-lg">
+                        <Globe className="h-6 w-6 text-white" />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-blue-600 text-white">82%</Badge>
-                        <div className="text-sm text-blue-700 font-semibold">Platform Complete</div>
+                      <div>
+                        <h2 className="text-xl font-bold text-blue-900">Mundo Tango Platform</h2>
+                        <p className="text-sm text-blue-700">Global tango community platform with comprehensive social features</p>
                       </div>
                     </div>
-                  </CollapsibleTrigger>
+                    <div className="text-right">
+                      <Badge className="bg-blue-600 text-white text-lg px-3 py-1">82%</Badge>
+                      <div className="text-sm text-blue-700 font-medium mt-1">Epic Progress</div>
+                    </div>
+                  </div>
                   
-                  <CollapsibleContent className="px-4 pb-2">
-                    <div className="ml-6 space-y-3 mt-3">
-                      
-                      {/* Level 2: Mundo Tango App */}
-                      <Collapsible open={expandedLayers.has('app')} >
-                        <CollapsibleTrigger 
-                          className="w-full hover:bg-gray-50 p-2 rounded-lg transition-colors border border-green-200 bg-green-50"
-                          onClick={() => toggleLayerExpansion('app')}
+                  {/* Stories Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    
+                    {/* Story: App Features */}
+                    <Card 
+                      className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 border-l-4 border-l-green-500 bg-white"
+                      onClick={() => {
+                        const mockAppItem = {
+                          id: 'app-features',
+                          title: 'Mundo Tango App Features',
+                          description: 'Core social media functionality including posts, events, communities, and user management',
+                          layer: 'Frontend',
+                          type: 'Feature Set',
+                          mvpStatus: 'Done',
+                          completionPercentage: 89,
+                          riskLevel: 'Low',
+                          actualHours: 340,
+                          estimatedHours: 380,
+                          reviewStatus: 'Approved',
+                          blockers: [],
+                          dependencies: ['Authentication', 'Database Schema'],
+                          tags: ['Social Media', 'User Experience', 'Real-time', 'Mobile Ready']
+                        };
+                        handleCardClick(mockAppItem);
+                      }}
+                    >
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="font-semibold text-sm text-green-900">Mundo Tango App</div>
+                              <div className="text-xs text-gray-500 mt-1">Core Features</div>
+                            </div>
+                            <Badge className="bg-green-600 text-white text-xs">DONE</Badge>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span>Completion</span>
+                              <span className="font-medium">89%</span>
+                            </div>
+                            <Progress value={89} className="h-2" />
+                          </div>
+                          
+                          <div className="flex items-center justify-between text-xs text-gray-500">
+                            <span>340h / 380h</span>
+                            <Badge variant="outline" className="bg-green-100 text-green-700 text-xs">
+                              Low Risk
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 text-xs">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-green-600">6 Components Active</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Story: Admin Center */}
+                    <Card 
+                      className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 border-l-4 border-l-blue-500 bg-white"
+                      onClick={() => {
+                        const mockAdminItem = {
+                          id: 'admin-center',
+                          title: 'Admin Center Management',
+                          description: 'Comprehensive administrative interface with user management, analytics, and system monitoring',
+                          layer: 'Backend',
+                          type: 'Admin Interface',
+                          mvpStatus: 'In Progress',
+                          completionPercentage: 76,
+                          riskLevel: 'Medium',
+                          actualHours: 285,
+                          estimatedHours: 375,
+                          reviewStatus: 'In Review',
+                          blockers: ['GDPR Compliance Review'],
+                          dependencies: ['User Roles', 'Analytics API'],
+                          tags: ['Administration', 'Analytics', 'Monitoring', 'Security']
+                        };
+                        handleCardClick(mockAdminItem);
+                      }}
+                    >
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="font-semibold text-sm text-blue-900">Admin Center</div>
+                              <div className="text-xs text-gray-500 mt-1">Management Portal</div>
+                            </div>
+                            <Badge className="bg-blue-600 text-white text-xs">IN PROGRESS</Badge>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span>Completion</span>
+                              <span className="font-medium">76%</span>
+                            </div>
+                            <Progress value={76} className="h-2" />
+                          </div>
+                          
+                          <div className="flex items-center justify-between text-xs text-gray-500">
+                            <span>285h / 375h</span>
+                            <Badge variant="outline" className="bg-yellow-100 text-yellow-700 text-xs">
+                              Medium Risk
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex items-center gap-1 text-xs text-orange-600">
+                            <AlertTriangle className="h-3 w-3" />
+                            <span>1 blocker</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Story: 11L Project Tracker */}
+                    <Card 
+                      className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 border-l-4 border-l-purple-500 bg-white"
+                      onClick={() => {
+                        const mockTrackerItem = {
+                          id: '11l-tracker',
+                          title: '11L Project Tracker System',
+                          description: 'Advanced project tracking with dual-view interface and comprehensive metadata analysis',
+                          layer: 'Intelligence',
+                          type: 'Tracking System',
+                          mvpStatus: 'In Progress',
+                          completionPercentage: 75,
+                          riskLevel: 'Low',
+                          actualHours: 165,
+                          estimatedHours: 220,
+                          reviewStatus: 'Active Development',
+                          blockers: [],
+                          dependencies: ['Admin Center', 'Analytics Integration'],
+                          tags: ['Project Management', 'Analytics', 'Visualization', 'Jira-Style']
+                        };
+                        handleCardClick(mockTrackerItem);
+                      }}
+                    >
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="font-semibold text-sm text-purple-900">11L Project Tracker</div>
+                              <div className="text-xs text-gray-500 mt-1">Analytics System</div>
+                            </div>
+                            <Badge className="bg-purple-600 text-white text-xs">IN PROGRESS</Badge>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span>Completion</span>
+                              <span className="font-medium">75%</span>
+                            </div>
+                            <Progress value={75} className="h-2" />
+                          </div>
+                          
+                          <div className="flex items-center justify-between text-xs text-gray-500">
+                            <span>165h / 220h</span>
+                            <Badge variant="outline" className="bg-green-100 text-green-700 text-xs">
+                              Low Risk
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 text-xs">
+                            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                            <span className="text-purple-600">Active Development</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                  </div>
+                </div>
+
+                {/* Sub-Components Section */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-4 text-gray-800">Platform Components</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    
+                    {[
+                      { name: 'Moments & Feed', completion: 95, color: 'purple', icon: Eye },
+                      { name: 'Events & RSVP', completion: 92, color: 'orange', icon: CalendarIcon },
+                      { name: 'Community & Groups', completion: 87, color: 'teal', icon: Users },
+                      { name: 'Friends & Social', completion: 85, color: 'pink', icon: Users },
+                      { name: 'Auth & Onboarding', completion: 93, color: 'red', icon: Shield },
+                      { name: 'Media & Storage', completion: 91, color: 'indigo', icon: Database },
+                      { name: 'User Management', completion: 89, color: 'gray', icon: Users },
+                      { name: 'Analytics Dashboard', completion: 73, color: 'cyan', icon: BarChart3 }
+                    ].map((component, index) => {
+                      const Icon = component.icon;
+                      return (
+                        <Card 
+                          key={index}
+                          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 border-l-2"
+                          style={{ borderLeftColor: 
+                            component.color === 'purple' ? '#8B5CF6' :
+                            component.color === 'orange' ? '#F97316' :
+                            component.color === 'teal' ? '#14B8A6' :
+                            component.color === 'pink' ? '#EC4899' :
+                            component.color === 'red' ? '#EF4444' :
+                            component.color === 'indigo' ? '#6366F1' :
+                            component.color === 'gray' ? '#6B7280' :
+                            component.color === 'cyan' ? '#06B6D4' : '#6B7280'
+                          }}
+                          onClick={() => {
+                            const mockComponentItem = {
+                              id: `component-${index}`,
+                              title: component.name,
+                              description: `Platform component for ${component.name.toLowerCase()} functionality`,
+                              layer: 'Frontend',
+                              type: 'Component',
+                              mvpStatus: component.completion >= 90 ? 'Done' : 'In Progress',
+                              completionPercentage: component.completion,
+                              riskLevel: component.completion >= 90 ? 'Low' : component.completion >= 80 ? 'Medium' : 'High',
+                              actualHours: Math.floor(component.completion * 2.5),
+                              estimatedHours: 250,
+                              reviewStatus: component.completion >= 90 ? 'Approved' : 'In Review',
+                              blockers: component.completion < 80 ? ['Performance Optimization'] : [],
+                              dependencies: ['Core Platform'],
+                              tags: ['Component', 'Feature', component.color]
+                            };
+                            handleCardClick(mockComponentItem);
+                          }}
                         >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              {expandedLayers.has('app') ? (
-                                <ChevronDown className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 text-green-600" />
-                              )}
-                              <Activity className="h-4 w-4 text-green-600" />
-                              <span className="text-md font-semibold text-green-800">Mundo Tango App</span>
+                          <CardContent className="p-3">
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <Icon className="h-4 w-4" style={{ color: 
+                                  component.color === 'purple' ? '#8B5CF6' :
+                                  component.color === 'orange' ? '#F97316' :
+                                  component.color === 'teal' ? '#14B8A6' :
+                                  component.color === 'pink' ? '#EC4899' :
+                                  component.color === 'red' ? '#EF4444' :
+                                  component.color === 'indigo' ? '#6366F1' :
+                                  component.color === 'gray' ? '#6B7280' :
+                                  component.color === 'cyan' ? '#06B6D4' : '#6B7280'
+                                }} />
+                                <span className="text-xs font-medium truncate">{component.name}</span>
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span>Progress</span>
+                                  <span className="font-medium">{component.completion}%</span>
+                                </div>
+                                <Progress value={component.completion} className="h-1" />
+                              </div>
+                              <Badge 
+                                className={`text-xs ${
+                                  component.completion >= 90 ? 'bg-green-600' : 
+                                  component.completion >= 80 ? 'bg-blue-600' : 'bg-yellow-600'
+                                } text-white`}
+                              >
+                                {component.completion >= 90 ? 'DONE' : 'IN PROGRESS'}
+                              </Badge>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge className="bg-green-600 text-white text-xs">89%</Badge>
-                              <div className="text-xs text-green-700">App Ready</div>
-                            </div>
-                          </div>
-                        </CollapsibleTrigger>
-                        
-                        <CollapsibleContent className="px-2 pb-2">
-                          <div className="ml-6 space-y-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
-                            
-                            {/* Moments Section */}
-                            <Card className="border-purple-200 bg-purple-50">
-                              <CardContent className="p-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Eye className="h-4 w-4 text-purple-600" />
-                                    <span className="text-sm font-medium text-purple-800">Moments & Feed</span>
-                                  </div>
-                                  <Badge className="bg-purple-600 text-white text-xs">95%</Badge>
-                                </div>
-                                <div className="text-xs text-purple-600 mt-1">
-                                  Post creation, media, real-time engagement
-                                </div>
-                                <Progress value={95} className="mt-2 h-1" />
-                              </CardContent>
-                            </Card>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
 
-                            {/* Events Section */}
-                            <Card className="border-orange-200 bg-orange-50">
-                              <CardContent className="p-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <CalendarIcon className="h-4 w-4 text-orange-600" />
-                                    <span className="text-sm font-medium text-orange-800">Events & RSVP</span>
-                                  </div>
-                                  <Badge className="bg-orange-600 text-white text-xs">92%</Badge>
-                                </div>
-                                <div className="text-xs text-orange-600 mt-1">
-                                  Event management, role assignments, RSVPs
-                                </div>
-                                <Progress value={92} className="mt-2 h-1" />
-                              </CardContent>
-                            </Card>
-
-                            {/* Community Section */}
-                            <Card className="border-teal-200 bg-teal-50">
-                              <CardContent className="p-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Users className="h-4 w-4 text-teal-600" />
-                                    <span className="text-sm font-medium text-teal-800">Community & Groups</span>
-                                  </div>
-                                  <Badge className="bg-teal-600 text-white text-xs">87%</Badge>
-                                </div>
-                                <div className="text-xs text-teal-600 mt-1">
-                                  City groups, auto-join, member management
-                                </div>
-                                <Progress value={87} className="mt-2 h-1" />
-                              </CardContent>
-                            </Card>
-
-                            {/* Friends Section */}
-                            <Card className="border-pink-200 bg-pink-50">
-                              <CardContent className="p-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Users className="h-4 w-4 text-pink-600" />
-                                    <span className="text-sm font-medium text-pink-800">Friends & Social</span>
-                                  </div>
-                                  <Badge className="bg-pink-600 text-white text-xs">85%</Badge>
-                                </div>
-                                <div className="text-xs text-pink-600 mt-1">
-                                  Friend requests, messaging, profiles
-                                </div>
-                                <Progress value={85} className="mt-2 h-1" />
-                              </CardContent>
-                            </Card>
-
-                            {/* Authentication Section */}
-                            <Card className="border-red-200 bg-red-50">
-                              <CardContent className="p-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Shield className="h-4 w-4 text-red-600" />
-                                    <span className="text-sm font-medium text-red-800">Auth & Onboarding</span>
-                                  </div>
-                                  <Badge className="bg-red-600 text-white text-xs">93%</Badge>
-                                </div>
-                                <div className="text-xs text-red-600 mt-1">
-                                  Registration, roles, code of conduct
-                                </div>
-                                <Progress value={93} className="mt-2 h-1" />
-                              </CardContent>
-                            </Card>
-
-                            {/* Media System */}
-                            <Card className="border-indigo-200 bg-indigo-50">
-                              <CardContent className="p-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Database className="h-4 w-4 text-indigo-600" />
-                                    <span className="text-sm font-medium text-indigo-800">Media & Storage</span>
-                                  </div>
-                                  <Badge className="bg-indigo-600 text-white text-xs">91%</Badge>
-                                </div>
-                                <div className="text-xs text-indigo-600 mt-1">
-                                  File uploads, Supabase integration, tagging
-                                </div>
-                                <Progress value={91} className="mt-2 h-1" />
-                              </CardContent>
-                            </Card>
-
-                          </div>
-                        </CollapsibleContent>
-                      </Collapsible>
-
-                      {/* Level 2: Admin Center */}
-                      <Collapsible open={expandedLayers.has('admin')} >
-                        <CollapsibleTrigger 
-                          className="w-full hover:bg-gray-50 p-2 rounded-lg transition-colors border border-blue-200 bg-blue-50"
-                          onClick={() => toggleLayerExpansion('admin')}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              {expandedLayers.has('admin') ? (
-                                <ChevronDown className="h-4 w-4 text-blue-600" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 text-blue-600" />
-                              )}
-                              <Settings className="h-4 w-4 text-blue-600" />
-                              <span className="text-md font-semibold text-blue-800">Mundo Tango Admin Center</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge className="bg-blue-600 text-white text-xs">76%</Badge>
-                              <div className="text-xs text-blue-700">Admin Portal</div>
-                            </div>
-                          </div>
-                        </CollapsibleTrigger>
-                        
-                        <CollapsibleContent className="px-2 pb-2">
-                          <div className="ml-6 space-y-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
-                            
-                            {/* User Management */}
-                            <Card className="border-gray-200 bg-gray-50">
-                              <CardContent className="p-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Users className="h-4 w-4 text-gray-600" />
-                                    <span className="text-sm font-medium text-gray-800">User Management</span>
-                                  </div>
-                                  <Badge className="bg-gray-600 text-white text-xs">89%</Badge>
-                                </div>
-                                <div className="text-xs text-gray-600 mt-1">
-                                  Role assignment, moderation, bulk operations
-                                </div>
-                                <Progress value={89} className="mt-2 h-1" />
-                              </CardContent>
-                            </Card>
-
-                            {/* Analytics Dashboard */}
-                            <Card className="border-cyan-200 bg-cyan-50">
-                              <CardContent className="p-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <BarChart3 className="h-4 w-4 text-cyan-600" />
-                                    <span className="text-sm font-medium text-cyan-800">Analytics Dashboard</span>
-                                  </div>
-                                  <Badge className="bg-cyan-600 text-white text-xs">73%</Badge>
-                                </div>
-                                <div className="text-xs text-cyan-600 mt-1">
-                                  Platform metrics, user engagement, trends
-                                </div>
-                                <Progress value={73} className="mt-2 h-1" />
-                              </CardContent>
-                            </Card>
-
-                            {/* Content Moderation */}
-                            <Card className="border-yellow-200 bg-yellow-50">
-                              <CardContent className="p-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Shield className="h-4 w-4 text-yellow-600" />
-                                    <span className="text-sm font-medium text-yellow-800">Content Moderation</span>
-                                  </div>
-                                  <Badge className="bg-yellow-600 text-white text-xs">68%</Badge>
-                                </div>
-                                <div className="text-xs text-yellow-600 mt-1">
-                                  Auto-moderation, reporting, review workflows
-                                </div>
-                                <Progress value={68} className="mt-2 h-1" />
-                              </CardContent>
-                            </Card>
-
-                            {/* System Health */}
-                            <Card className="border-emerald-200 bg-emerald-50">
-                              <CardContent className="p-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Monitor className="h-4 w-4 text-emerald-600" />
-                                    <span className="text-sm font-medium text-emerald-800">System Health</span>
-                                  </div>
-                                  <Badge className="bg-emerald-600 text-white text-xs">82%</Badge>
-                                </div>
-                                <div className="text-xs text-emerald-600 mt-1">
-                                  Uptime monitoring, performance, logs
-                                </div>
-                                <Progress value={82} className="mt-2 h-1" />
-                              </CardContent>
-                            </Card>
-
-                            {/* 11L Project Tracker */}
-                            <Card className="border-violet-200 bg-violet-50">
-                              <CardContent className="p-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Layers className="h-4 w-4 text-violet-600" />
-                                    <span className="text-sm font-medium text-violet-800">11L Project Tracker</span>
-                                  </div>
-                                  <Badge className="bg-violet-600 text-white text-xs">75%</Badge>
-                                </div>
-                                <div className="text-xs text-violet-600 mt-1">
-                                  Feature tracking, layer analysis, completion
-                                </div>
-                                <Progress value={75} className="mt-2 h-1" />
-                              </CardContent>
-                            </Card>
-
-                            {/* Compliance Center */}
-                            <Card className="border-rose-200 bg-rose-50">
-                              <CardContent className="p-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Scale className="h-4 w-4 text-rose-600" />
-                                    <span className="text-sm font-medium text-rose-800">Compliance Center</span>
-                                  </div>
-                                  <Badge className="bg-rose-600 text-white text-xs">71%</Badge>
-                                </div>
-                                <div className="text-xs text-rose-600 mt-1">
-                                  GDPR compliance, audit logs, privacy controls
-                                </div>
-                                <Progress value={71} className="mt-2 h-1" />
-                              </CardContent>
-                            </Card>
-
-                          </div>
-                        </CollapsibleContent>
-                      </Collapsible>
-
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Layer Distribution & Health */}
+          {/* Layer Distribution & Health - Original Hierarchical Themes */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1567,83 +1558,26 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
                   const Icon = layerInfo.icon;
                   
                   return (
-                    <Collapsible key={layer.name} defaultOpen={false}>
-                      <CollapsibleTrigger className="w-full hover:bg-gray-50 p-3 rounded-lg transition-colors border border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <ChevronRight className="h-4 w-4 text-gray-500 group-data-[state=open]:rotate-90 transition-transform" />
-                            <div className={`p-2 rounded-full ${layerInfo.color} bg-opacity-20`}>
-                              <Icon className={`h-4 w-4 ${layerInfo.color.replace('bg-', 'text-')}`} />
-                            </div>
-                            <span className="text-sm font-medium">{layer.name}</span>
+                    <div key={layer.name} className="p-4 bg-gray-50 rounded-lg border">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-full ${layerInfo.color} bg-opacity-20`}>
+                            <Icon className={`h-4 w-4 ${layerInfo.color.replace('bg-', 'text-')}`} />
                           </div>
-                          <div className="flex items-center gap-3">
-                            <Badge variant="outline" className="text-xs">
-                              {layer.completedItems}/{layer.totalItems}
-                            </Badge>
-                            <div className="text-lg font-bold">{layer.avgCompletion}%</div>
-                          </div>
+                          <span className="text-sm font-medium">{layer.name}</span>
                         </div>
-                      </CollapsibleTrigger>
-                      
-                      <CollapsibleContent className="px-2 pb-2">
-                        <div className="ml-8 mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {layer.items.map((item: any) => (
-                            <Card 
-                              key={item.id} 
-                              className="cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 border-l-4"
-                              style={{ borderLeftColor: layerInfo.color.includes('blue') ? '#3B82F6' : 
-                                      layerInfo.color.includes('green') ? '#10B981' : 
-                                      layerInfo.color.includes('purple') ? '#8B5CF6' : 
-                                      layerInfo.color.includes('red') ? '#EF4444' : 
-                                      layerInfo.color.includes('yellow') ? '#F59E0B' : 
-                                      layerInfo.color.includes('pink') ? '#EC4899' : 
-                                      layerInfo.color.includes('orange') ? '#F97316' : '#6B7280' }}
-                              onClick={() => handleCardClick(item)}
-                            >
-                              <CardContent className="p-4">
-                                <div className="space-y-3">
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                      <div className="font-medium text-sm line-clamp-2">{item.title}</div>
-                                      <div className="text-xs text-gray-500 mt-1">{item.type}</div>
-                                    </div>
-                                    <Badge className={`${getStatusColor(item.mvpStatus)} text-white text-xs ml-2`}>
-                                      {item.mvpStatus}
-                                    </Badge>
-                                  </div>
-                                  
-                                  <div className="space-y-2">
-                                    <div className="flex items-center justify-between text-xs">
-                                      <span>Completion</span>
-                                      <span className="font-medium">{item.completionPercentage}%</span>
-                                    </div>
-                                    <Progress value={item.completionPercentage} className="h-1" />
-                                  </div>
-                                  
-                                  <div className="flex items-center justify-between text-xs text-gray-500">
-                                    <span>{item.actualHours}h / {item.estimatedHours}h</span>
-                                    <Badge 
-                                      variant="outline" 
-                                      className={`${getRiskColor(item.riskLevel)} text-white text-xs`}
-                                    >
-                                      {item.riskLevel}
-                                    </Badge>
-                                  </div>
-                                  
-                                  {item.blockers.length > 0 && (
-                                    <div className="flex items-center gap-1 text-xs text-red-600">
-                                      <AlertTriangle className="h-3 w-3" />
-                                      <span>{item.blockers.length} blocker{item.blockers.length > 1 ? 's' : ''}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
+                        <div className="flex items-center gap-3">
+                          <Badge variant="outline" className="text-xs">
+                            {layer.completedItems}/{layer.totalItems}
+                          </Badge>
+                          <div className="text-lg font-bold">{layer.avgCompletion}%</div>
                         </div>
-                      </CollapsibleContent>
-                    </Collapsible>
+                      </div>
+                      <Progress value={layer.avgCompletion} className="h-2" />
+                      <div className="mt-2 text-xs text-gray-600">
+                        {layer.items.map((item: any) => item.title).join(', ')}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
