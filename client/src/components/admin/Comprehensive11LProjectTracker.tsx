@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Activity, 
   BarChart3, 
@@ -36,7 +37,9 @@ import {
   Eye,
   BookOpen,
   Scale,
-  Briefcase
+  Briefcase,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 
 // 11L Layer Definitions with Icons and Colors
@@ -679,6 +682,20 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
   const [view, setView] = useState<'overview' | 'detailed' | 'analytics'>('overview');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [expandedLayers, setExpandedLayers] = useState<Set<string>>(new Set());
+
+  // Layer expansion toggle with analytics tracking
+  const toggleLayerExpansion = (layerId: string) => {
+    const newExpandedLayers = new Set(expandedLayers);
+    if (newExpandedLayers.has(layerId)) {
+      newExpandedLayers.delete(layerId);
+      console.log('📈 Analytics: Layer collapsed', { layerId, timestamp: new Date().toISOString() });
+    } else {
+      newExpandedLayers.add(layerId);
+      console.log('📈 Analytics: Layer expanded', { layerId, timestamp: new Date().toISOString() });
+    }
+    setExpandedLayers(newExpandedLayers);
+  };
 
   // Functional action handlers
   const handleStatusUpdate = async (itemId: string, newStatus: string) => {
@@ -920,6 +937,11 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper function to get tasks by layer
+  const getTasksByLayer = (layerId: string) => {
+    return COMPREHENSIVE_PLATFORM_INVENTORY.filter(item => item.layer === layerId);
   };
 
   // Calculate summary statistics
@@ -1170,7 +1192,7 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
       {/* View Content */}
       {view === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Layer Distribution */}
+          {/* Layer Distribution with Collapsible Sections */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1179,25 +1201,74 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {layerDistribution.map(layer => {
                   const Icon = layer.icon;
+                  const isExpanded = expandedLayers.has(layer.id);
+                  const layerTasks = getTasksByLayer(layer.id);
+                  
                   return (
-                    <div key={layer.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full ${layer.color}`}></div>
-                        <Icon className="h-4 w-4" />
-                        <span className="text-sm font-medium">{layer.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {layer.completed}/{layer.count}
-                        </Badge>
-                        <div className="w-20 text-right text-sm text-gray-600">
-                          {Math.round(layer.avgCompletion)}%
+                    <Collapsible key={layer.id} open={isExpanded}>
+                      <CollapsibleTrigger 
+                        className="w-full hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                        onClick={() => toggleLayerExpansion(layer.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {isExpanded ? (
+                              <ChevronDown className="h-4 w-4 text-gray-500" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-gray-500" />
+                            )}
+                            <div className={`w-3 h-3 rounded-full ${layer.color}`}></div>
+                            <Icon className="h-4 w-4" />
+                            <span className="text-sm font-medium">{layer.name}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              {layer.completed}/{layer.count}
+                            </Badge>
+                            <div className="w-20 text-right text-sm text-gray-600">
+                              {Math.round(layer.avgCompletion)}%
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      </CollapsibleTrigger>
+                      
+                      <CollapsibleContent className="px-2 pb-2">
+                        <div className="ml-8 space-y-2 mt-2">
+                          {layerTasks.map(task => (
+                            <div key={task.id} className="p-2 bg-gray-50 rounded border-l-2 border-gray-300">
+                              <div className="flex items-center justify-between">
+                                <div className="text-sm font-medium">{task.title}</div>
+                                <div className="flex items-center gap-2">
+                                  <Badge 
+                                    variant={task.mvpStatus === 'Signed Off' ? 'default' : 'outline'}
+                                    className="text-xs"
+                                  >
+                                    {task.mvpStatus}
+                                  </Badge>
+                                  <div className="text-xs text-gray-600">
+                                    {task.completionPercentage}%
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">{task.description}</div>
+                              {task.blockers.length > 0 && (
+                                <div className="mt-1">
+                                  <div className="text-xs text-red-600">
+                                    🚨 Blockers: {task.blockers.join(', ')}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                          {layerTasks.length === 0 && (
+                            <div className="text-xs text-gray-500 italic">No tasks in this layer</div>
+                          )}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
                   );
                 })}
               </div>
