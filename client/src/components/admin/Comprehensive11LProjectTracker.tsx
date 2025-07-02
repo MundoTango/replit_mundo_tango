@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -933,6 +934,8 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
   const [editValues, setEditValues] = useState<any>({});
   const [showDependencies, setShowDependencies] = useState<boolean>(false);
   const [completionHistory, setCompletionHistory] = useState<any[]>([]);
+  const [taskCards, setTaskCards] = useState<any[]>([]);
+  const [showJiraModal, setShowJiraModal] = useState<boolean>(false);
 
   // Edit functionality handlers
   const handleFieldEdit = (field: string, value: any) => {
@@ -990,12 +993,80 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
     };
   };
 
+  // Automatic task tracking system - Enhanced 11L Framework
+  const createTaskCard = (layerCompleted: string, item: any, testResults: any) => {
+    const newCard = {
+      id: `task-${Date.now()}`,
+      title: `${layerCompleted} Implementation Complete`,
+      layer: item.layer,
+      type: 'Task Card',
+      status: 'Completed',
+      createdAt: new Date().toISOString(),
+      completionData: {
+        layer: layerCompleted,
+        itemTitle: item.title,
+        testResults,
+        responsiveValidation: {
+          mobile: testResults.mobile || true,
+          tablet: testResults.tablet || true,
+          desktop: testResults.desktop || true
+        },
+        codeReferences: item.codeRefs || [],
+        humanReviewRequired: layerCompleted.includes('Layer 5') || layerCompleted.includes('Security')
+      }
+    };
+    
+    setTaskCards(prev => [...prev, newCard]);
+    
+    // Analytics tracking for task creation
+    if (typeof window !== 'undefined' && window.plausible) {
+      window.plausible('11L Task Card Created', {
+        props: {
+          layer: layerCompleted,
+          itemTitle: item.title,
+          testsPassed: testResults.passed || true
+        }
+      });
+    }
+    
+    return newCard;
+  };
+
+  // Sign-off functionality for human reviews
+  const handleSignOff = (reviewArea: string) => {
+    console.log(`Human sign-off requested for: ${reviewArea}`);
+    
+    // Update the selected item's review status
+    if (selectedItem) {
+      const updatedItem = {
+        ...selectedItem,
+        humanReviewed: true,
+        lastReviewDate: new Date().toISOString().split('T')[0],
+        reviewer: 'Scott Boddye' // In real implementation, would get from user context
+      };
+      setSelectedItem(updatedItem);
+    }
+    
+    // Create task card for completed review
+    createTaskCard(`${reviewArea} Review`, selectedItem, { passed: true, signedOff: true });
+    
+    // Analytics tracking
+    if (typeof window !== 'undefined' && window.plausible) {
+      window.plausible('Human Review Signed Off', {
+        props: {
+          reviewArea,
+          itemTitle: selectedItem?.title || 'Unknown'
+        }
+      });
+    }
+  };
+
   // Handle card click for detailed view
   const handleCardClick = (item: any) => {
     const enhancedItem = enhanceItemWithMetadata(item);
     setSelectedItem(enhancedItem);
     setEditValues(enhancedItem);
-    setShowItemModal(true);
+    setShowJiraModal(true); // Use new Jira-style modal
     setIsEditMode(false);
     
     // Check if this is a platform component that needs hierarchical breakdown
@@ -1520,6 +1591,30 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
             disabled={isLoading}
           >
             Analytics
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              // Demo the automatic task tracking system
+              const demoItem = {
+                title: 'Jira-Style Modal Integration',
+                layer: 'Layer 6: UI/Graphics',
+                codeRefs: ['JiraStyleItemDetailModal.tsx', 'Comprehensive11LProjectTracker.tsx']
+              };
+              const testResults = {
+                passed: true,
+                mobile: true,
+                tablet: true,
+                desktop: true,
+                signedOff: false
+              };
+              createTaskCard('Layer 6: UI/Graphics', demoItem, testResults);
+            }}
+            className="border-green-600 text-green-700 hover:bg-green-50"
+          >
+            <TestTube className="h-4 w-4 mr-1" />
+            Demo Task Tracking
           </Button>
           <Button 
             variant="outline"
@@ -4048,6 +4143,47 @@ app.post('/api/auth/login',
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Jira-Style Item Detail Modal */}
+      {showJiraModal && selectedItem && (
+        <JiraStyleItemDetailModal
+          selectedItem={selectedItem}
+          onClose={() => setShowJiraModal(false)}
+          onSignOff={handleSignOff}
+        />
+      )}
+
+      {/* Task Cards Display - Enhanced 11L Framework */}
+      {taskCards.length > 0 && (
+        <div className="fixed bottom-4 right-4 max-w-md z-50">
+          <Card className="border-green-200 bg-green-50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-green-800 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                Automatic Task Tracking ({taskCards.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {taskCards.slice(-3).map((card) => (
+                  <div key={card.id} className="text-xs p-2 bg-white rounded border">
+                    <div className="font-medium text-gray-900">{card.title}</div>
+                    <div className="text-gray-600">
+                      Layer: {card.completionData.layer} | 
+                      {card.completionData.testResults.signedOff && ' ✓ Signed Off'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {taskCards.length > 3 && (
+                <div className="text-xs text-gray-500 mt-2">
+                  +{taskCards.length - 3} more tasks completed
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>

@@ -13,7 +13,7 @@ Implement → Complete → Move to Next Layer
 
 ### Enhanced 11L Process
 ```
-Implement → Test → Validate → Fix → Re-test → Sign-off → Move to Next Layer
+Implement → Test → Validate → Responsive Check → Task Card Creation → Fix → Re-test → Sign-off → Move to Next Layer
 ```
 
 ## 11-Layer Validation Requirements
@@ -22,12 +22,16 @@ Implement → Test → Validate → Fix → Re-test → Sign-off → Move to Nex
 - **Implementation**: Create component/interface
 - **Test**: Visual rendering, responsive design, user interactions
 - **Validate**: Browser testing, accessibility compliance
+- **Responsive Check**: Mobile (375px), Tablet (768px), Desktop (1024px+) validation
+- **Task Card Creation**: Auto-generate tracking card with completion status
 - **Sign-off**: Screenshot validation + user flow confirmation
 
 ### Layer 2: Frontend Logic
 - **Implementation**: React components, state management, hooks
 - **Test**: Component functionality, state changes, event handling
 - **Validate**: Console error-free operation, proper data flow
+- **Responsive Check**: Component behavior across all breakpoints
+- **Task Card Creation**: Component implementation tracking card
 - **Sign-off**: Live component interaction validation
 
 ### Layer 3: Backend API
@@ -46,7 +50,35 @@ Implement → Test → Validate → Fix → Re-test → Sign-off → Move to Nex
 - **Implementation**: Auth middleware, permission systems
 - **Test**: Login/logout flows, role-based access, security policies
 - **Validate**: Unauthorized access prevention, token validation
+- **Responsive Check**: Authentication flows across all devices
+- **Task Card Creation**: Security implementation tracking
 - **Sign-off**: Security audit and penetration testing
+
+## Mandatory Steps For Each Layer
+
+### 1. Operational Testing
+- **Layer 1-2**: Visual/functional testing across mobile, tablet, desktop
+- **Layer 3-4**: API endpoint testing with various request scenarios
+- **Layer 5-11**: Integration testing with dependent systems
+
+### 2. Responsive Design Validation
+- **Mobile**: 375px width minimum - touch targets, readable text
+- **Tablet**: 768px width - optimized layouts, proper spacing
+- **Desktop**: 1024px+ width - full feature utilization
+
+### 3. Automatic Task Card Creation
+- Generate tracking card with:
+  - Layer completion status
+  - Test results summary
+  - Responsive validation checklist
+  - Code references and implementation details
+  - Human review requirements
+
+### 4. Stability Verification
+- No console errors during operation
+- Graceful error handling
+- Performance within acceptable thresholds
+- Cross-browser compatibility validation
 
 ### Layer 6: External Services
 - **Implementation**: Third-party integrations, API connections
