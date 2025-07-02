@@ -6245,10 +6245,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get event category breakdown
       const eventQuery = await db.execute(`
-        SELECT type, COUNT(*) as count 
+        SELECT event_type as type, COUNT(*) as count 
         FROM events 
-        WHERE type IS NOT NULL
-        GROUP BY type 
+        WHERE event_type IS NOT NULL
+        GROUP BY event_type 
         ORDER BY count DESC
       `);
 

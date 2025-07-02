@@ -1,110 +1,80 @@
 import React from 'react';
-import { 
-  Shield, Users, Settings, Crown, GraduationCap, Music, UserCheck, 
-  Camera, Palette, MapPin, Heart, ShoppingBag, Hotel, Building,
-  Plane, Star, Mic, MonitorSpeaker, Home, Scissors, Bed, Book,
-  Calendar, Disc, Flag, Bot
-} from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface RoleBadgeProps {
   role: string;
   size?: 'sm' | 'md' | 'lg';
-  showIcon?: boolean;
   className?: string;
 }
 
-const roleIcons: Record<string, any> = {
-  // Community roles
-  dancer: Music,
-  performer: Star,
-  teacher: GraduationCap,
-  learning_source: Book,
-  dj: MonitorSpeaker,
-  musician: Mic,
-  organizer: Calendar,
-  host: Home,
-  photographer: Camera,
-  content_creator: Palette,
-  choreographer: Scissors,
-  tango_traveler: MapPin,
-  tour_operator: Plane,
-  vendor: ShoppingBag,
-  wellness_provider: Heart,
-  tango_school: Building,
-  tango_hotel: Bed,
+// Emoji-only role display with descriptive hover text
+const roleEmojiMapping: Record<string, { emoji: string; description: string }> = {
+  // Community roles - emoji only
+  dancer: { emoji: '💃', description: 'Dancer: Passionate about tango dancing' },
+  performer: { emoji: '🌟', description: 'Performer: Professional tango performer' },
+  teacher: { emoji: '📚', description: 'Teacher: Tango instructor and educator' },
+  learning_source: { emoji: '📖', description: 'Learning Source: Educational content creator' },
+  dj: { emoji: '🎧', description: 'DJ: Music curator and event DJ' },
+  musician: { emoji: '🎵', description: 'Musician: Tango musician and composer' },
+  organizer: { emoji: '📅', description: 'Organizer: Event organizer and community builder' },
+  host: { emoji: '🏠', description: 'Host: Offers accommodation to travelers' },
+  guide: { emoji: '🗺️', description: 'Guide: Willing to show visitors around' },
+  photographer: { emoji: '📸', description: 'Photographer: Captures tango moments' },
+  content_creator: { emoji: '🎨', description: 'Content Creator: Creates tango-related content' },
+  choreographer: { emoji: '✂️', description: 'Choreographer: Creates tango choreography' },
+  tango_traveler: { emoji: '🌍', description: 'Tango Traveler: Travels for tango events' },
+  tour_operator: { emoji: '✈️', description: 'Tour Operator: Organizes tango tours' },
+  vendor: { emoji: '🛍️', description: 'Vendor: Sells tango-related products' },
+  wellness_provider: { emoji: '💚', description: 'Wellness Provider: Health and wellness services' },
+  tango_school: { emoji: '🏢', description: 'Tango School: Educational institution' },
+  tango_hotel: { emoji: '🛏️', description: 'Tango Hotel: Tango-friendly accommodation' },
   
-  // Platform roles
-  guest: UserCheck,
-  super_admin: Crown,
-  admin: Shield,
-  moderator: Flag,
-  curator: Star,
-  bot: Bot
-};
-
-const roleColors: Record<string, string> = {
-  // Community roles - various colors
-  dancer: 'bg-purple-100 text-purple-800 border-purple-200',
-  performer: 'bg-pink-100 text-pink-800 border-pink-200',
-  teacher: 'bg-green-100 text-green-800 border-green-200',
-  learning_source: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-  dj: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-  musician: 'bg-violet-100 text-violet-800 border-violet-200',
-  organizer: 'bg-blue-100 text-blue-800 border-blue-200',
-  host: 'bg-rose-100 text-rose-800 border-rose-200',
-  photographer: 'bg-amber-100 text-amber-800 border-amber-200',
-  content_creator: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  choreographer: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
-  tango_traveler: 'bg-teal-100 text-teal-800 border-teal-200',
-  tour_operator: 'bg-sky-100 text-sky-800 border-sky-200',
-  vendor: 'bg-orange-100 text-orange-800 border-orange-200',
-  wellness_provider: 'bg-lime-100 text-lime-800 border-lime-200',
-  tango_school: 'bg-slate-100 text-slate-800 border-slate-200',
-  tango_hotel: 'bg-stone-100 text-stone-800 border-stone-200',
-  
-  // Platform roles - administrative colors
-  guest: 'bg-gray-100 text-gray-800 border-gray-200',
-  super_admin: 'bg-red-100 text-red-800 border-red-200',
-  admin: 'bg-red-100 text-red-800 border-red-200',
-  moderator: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  curator: 'bg-purple-100 text-purple-800 border-purple-200',
-  bot: 'bg-gray-100 text-gray-800 border-gray-200'
+  // Platform roles - administrative
+  guest: { emoji: '👤', description: 'Guest: Platform visitor' },
+  super_admin: { emoji: '👑', description: 'Super Admin: Full platform access' },
+  admin: { emoji: '🛡️', description: 'Admin: Administrative privileges' },
+  moderator: { emoji: '🚩', description: 'Moderator: Content moderation' },
+  curator: { emoji: '⭐', description: 'Curator: Content curation specialist' },
+  bot: { emoji: '🤖', description: 'Bot: Automated system account' }
 };
 
 const sizeClasses = {
-  sm: 'px-2 py-1 text-xs',
-  md: 'px-3 py-1 text-sm',
-  lg: 'px-4 py-2 text-base'
+  sm: 'text-sm w-6 h-6',
+  md: 'text-base w-8 h-8',
+  lg: 'text-lg w-10 h-10'
 };
 
-const iconSizes = {
-  sm: 'h-3 w-3',
-  md: 'h-4 w-4',
-  lg: 'h-5 w-5'
-};
-
-export default function RoleBadge({ 
+export const RoleBadge: React.FC<RoleBadgeProps> = ({ 
   role, 
   size = 'md', 
-  showIcon = true, 
   className = '' 
-}: RoleBadgeProps) {
-  const IconComponent = roleIcons[role] || UserCheck;
-  const colorClass = roleColors[role] || roleColors.guest;
-  const sizeClass = sizeClasses[size];
-  const iconSize = iconSizes[size];
+}) => {
+  const roleData = roleEmojiMapping[role];
   
-  const displayName = role.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+  if (!roleData) {
+    return (
+      <span className={`inline-flex items-center justify-center rounded-full bg-gray-100 ${sizeClasses[size]} ${className}`}>
+        ❓
+      </span>
+    );
+  }
 
   return (
-    <span className={`
-      inline-flex items-center gap-1 rounded-full border font-medium
-      ${colorClass}
-      ${sizeClass}
-      ${className}
-    `}>
-      {showIcon && <IconComponent className={iconSize} />}
-      <span>{displayName}</span>
-    </span>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span 
+            className={`inline-flex items-center justify-center rounded-full bg-white/90 hover:bg-white shadow-sm border border-gray-200 hover:border-gray-300 cursor-help transition-all duration-200 ${sizeClasses[size]} ${className}`}
+          >
+            {roleData.emoji}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-sm font-medium">{roleData.description}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
-}
+};
+
+export default RoleBadge;

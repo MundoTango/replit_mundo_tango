@@ -677,6 +677,114 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
   const [selectedRisk, setSelectedRisk] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [view, setView] = useState<'overview' | 'detailed' | 'analytics'>('overview');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+  // Functional action handlers
+  const handleStatusUpdate = async (itemId: string, newStatus: string) => {
+    setIsLoading(true);
+    try {
+      // Simulate API call to update item status
+      console.log(`Updating item ${itemId} status to ${newStatus}`);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Update local state
+      const itemIndex = COMPREHENSIVE_PLATFORM_INVENTORY.findIndex(item => item.id === itemId);
+      if (itemIndex !== -1) {
+        COMPREHENSIVE_PLATFORM_INVENTORY[itemIndex].mvpStatus = newStatus as any;
+        setLastUpdated(new Date());
+      }
+    } catch (error) {
+      console.error('Failed to update status:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRiskUpdate = async (itemId: string, newRisk: string) => {
+    setIsLoading(true);
+    try {
+      console.log(`Updating item ${itemId} risk level to ${newRisk}`);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const itemIndex = COMPREHENSIVE_PLATFORM_INVENTORY.findIndex(item => item.id === itemId);
+      if (itemIndex !== -1) {
+        COMPREHENSIVE_PLATFORM_INVENTORY[itemIndex].riskLevel = newRisk as any;
+        setLastUpdated(new Date());
+      }
+    } catch (error) {
+      console.error('Failed to update risk level:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleExportData = () => {
+    const exportData = {
+      summary: {
+        totalItems,
+        completedItems,
+        mvpSignedOff,
+        highRiskItems,
+        blockedItems,
+        lastUpdated
+      },
+      layerDistribution,
+      items: filteredItems,
+      generatedAt: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `11L-project-tracker-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleGenerateReport = () => {
+    const reportContent = `
+# 11L Project Tracker Report
+Generated: ${new Date().toISOString()}
+
+## Summary Statistics
+- Total Items: ${totalItems}
+- Completed Items: ${completedItems} (${Math.round((completedItems/totalItems)*100)}%)
+- MVP Signed Off: ${mvpSignedOff}
+- High Risk Items: ${highRiskItems}
+- Blocked Items: ${blockedItems}
+
+## Layer Distribution
+${layerDistribution.map(layer => 
+  `- ${layer.name}: ${layer.completed}/${layer.count} (${Math.round(layer.avgCompletion)}%)`
+).join('\n')}
+
+## Critical Issues (High Risk)
+${COMPREHENSIVE_PLATFORM_INVENTORY
+  .filter(item => item.riskLevel === 'High')
+  .map(item => `- ${item.title}: ${item.description}`)
+  .join('\n')}
+
+## Blocked Items
+${COMPREHENSIVE_PLATFORM_INVENTORY
+  .filter(item => item.blockers.length > 0)
+  .map(item => `- ${item.title}: ${item.blockers.join(', ')}`)
+  .join('\n')}
+    `.trim();
+
+    const blob = new Blob([reportContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `11L-project-report-${new Date().toISOString().split('T')[0]}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   // Calculate summary statistics
   const totalItems = COMPREHENSIVE_PLATFORM_INVENTORY.length;
@@ -756,20 +864,41 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
           <Button 
             variant={view === 'overview' ? 'default' : 'outline'}
             onClick={() => setView('overview')}
+            disabled={isLoading}
           >
             Overview
           </Button>
           <Button 
             variant={view === 'detailed' ? 'default' : 'outline'}
             onClick={() => setView('detailed')}
+            disabled={isLoading}
           >
             Detailed View
           </Button>
           <Button 
             variant={view === 'analytics' ? 'default' : 'outline'}
             onClick={() => setView('analytics')}
+            disabled={isLoading}
           >
             Analytics
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={handleExportData}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <Database className="h-4 w-4" />
+            Export Data
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={handleGenerateReport}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            Generate Report
           </Button>
         </div>
       </div>
