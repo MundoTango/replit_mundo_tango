@@ -24,7 +24,7 @@ interface ProjectItem {
   mobileNextSteps?: string[];
 }
 
-// Minimal working project data structure
+// Comprehensive project data structure using 11L methodology with full hierarchical nesting
 const projectData: ProjectItem[] = [
   {
     id: 'mundo-tango-platform',
@@ -51,13 +51,85 @@ const projectData: ProjectItem[] = [
         actualHours: 180,
         assignee: 'Backend Team',
         tags: ['Security', 'OAuth', 'JWT'],
-        children: []
+        children: [
+          {
+            id: 'replit-oauth-integration',
+            title: 'Replit OAuth Integration',
+            description: 'OAuth authentication flow with Replit identity provider',
+            type: 'Feature',
+            status: 'Completed',
+            completion: 100,
+            priority: 'High',
+            estimatedHours: 40,
+            actualHours: 35,
+            assignee: 'Scott Boddye',
+            tags: ['OAuth', 'Replit', 'Identity'],
+            children: [
+              {
+                id: 'oauth-strategy-setup',
+                title: 'OAuth Strategy Configuration',
+                description: 'Passport.js strategy setup for Replit OAuth',
+                type: 'Project',
+                status: 'Completed',
+                completion: 100,
+                priority: 'High',
+                estimatedHours: 15,
+                actualHours: 12,
+                assignee: 'Scott Boddye',
+                tags: ['Passport.js', 'Strategy'],
+                children: [
+                  {
+                    id: 'passport-strategy-impl',
+                    title: 'Passport Strategy Implementation',
+                    description: 'Configure OpenID Connect strategy for Replit authentication',
+                    type: 'Task',
+                    status: 'Completed',
+                    completion: 100,
+                    priority: 'High',
+                    estimatedHours: 8,
+                    actualHours: 6,
+                    assignee: 'Scott Boddye',
+                    tags: ['OpenID Connect', 'Implementation'],
+                    children: [
+                      {
+                        id: 'strategy-registration',
+                        title: 'Strategy Registration Logic',
+                        description: 'Dynamic strategy registration based on domain',
+                        type: 'Sub-task',
+                        status: 'Completed',
+                        completion: 100,
+                        priority: 'Medium',
+                        estimatedHours: 3,
+                        actualHours: 2,
+                        assignee: 'Scott Boddye',
+                        tags: ['Dynamic Registration']
+                      },
+                      {
+                        id: 'callback-handling',
+                        title: 'OAuth Callback Handler',
+                        description: 'Process OAuth callback and extract user claims',
+                        type: 'Sub-task',
+                        status: 'Completed',
+                        completion: 100,
+                        priority: 'High',
+                        estimatedHours: 5,
+                        actualHours: 4,
+                        assignee: 'Scott Boddye',
+                        tags: ['Callback', 'Claims Processing']
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       {
-        id: 'project-tracker',
-        title: '11L Project Tracker',
-        description: 'Comprehensive hierarchical project management system',
-        type: 'Feature',
+        id: 'project-tracker-system',
+        title: '11L Project Tracker System',
+        description: 'Comprehensive hierarchical project management with true nested design',
+        type: 'Section',
         status: 'In Progress',
         completion: 90,
         priority: 'High',
@@ -77,7 +149,442 @@ const projectData: ProjectItem[] = [
           'Create offline-capable data synchronization',
           'Build native mobile performance optimizations'
         ],
-        children: []
+        children: [
+          {
+            id: 'hierarchical-tree-view',
+            title: 'Enhanced Hierarchical Tree View',
+            description: 'Multi-level expandable tree component with Jira-style detail modals',
+            type: 'Feature',
+            status: 'In Progress',
+            completion: 85,
+            priority: 'High',
+            estimatedHours: 60,
+            actualHours: 54,
+            assignee: 'Scott Boddye',
+            tags: ['Tree View', 'Hierarchical', 'React Component'],
+            children: [
+              {
+                id: 'tree-rendering-engine',
+                title: 'Tree Rendering Engine',
+                description: 'Recursive component rendering with dynamic depth support',
+                type: 'Project',
+                status: 'Completed',
+                completion: 100,
+                priority: 'High',
+                estimatedHours: 25,
+                actualHours: 22,
+                assignee: 'Scott Boddye',
+                tags: ['Recursive Rendering', 'Dynamic Depth'],
+                children: [
+                  {
+                    id: 'recursive-tree-algorithm',
+                    title: 'Recursive Tree Algorithm',
+                    description: 'Core algorithm for rendering nested project items',
+                    type: 'Task',
+                    status: 'Completed',
+                    completion: 100,
+                    priority: 'High',
+                    estimatedHours: 12,
+                    actualHours: 10,
+                    assignee: 'Scott Boddye',
+                    tags: ['Algorithm', 'Recursion'],
+                    children: [
+                      {
+                        id: 'depth-calculation',
+                        title: 'Depth Calculation Logic',
+                        description: 'Calculate and apply appropriate indentation for each level',
+                        type: 'Sub-task',
+                        status: 'Completed',
+                        completion: 100,
+                        priority: 'Medium',
+                        estimatedHours: 4,
+                        actualHours: 3,
+                        assignee: 'Scott Boddye',
+                        tags: ['Indentation', 'CSS Classes']
+                      },
+                      {
+                        id: 'expand-collapse-state',
+                        title: 'Expand/Collapse State Management',
+                        description: 'React state management for tree expansion',
+                        type: 'Sub-task',
+                        status: 'Completed',
+                        completion: 100,
+                        priority: 'High',
+                        estimatedHours: 8,
+                        actualHours: 7,
+                        assignee: 'Scott Boddye',
+                        tags: ['React State', 'Set Management']
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                id: 'detail-modal-system',
+                title: 'Jira-Style Detail Modal',
+                description: 'Comprehensive item detail view with all metadata',
+                type: 'Project',
+                status: 'In Progress',
+                completion: 80,
+                priority: 'High',
+                estimatedHours: 35,
+                actualHours: 32,
+                assignee: 'Scott Boddye',
+                tags: ['Modal', 'Detail View', 'Metadata'],
+                children: [
+                  {
+                    id: 'modal-component-structure',
+                    title: 'Modal Component Architecture',
+                    description: 'Responsive modal with tabbed interface and comprehensive data display',
+                    type: 'Task',
+                    status: 'Completed',
+                    completion: 100,
+                    priority: 'High',
+                    estimatedHours: 20,
+                    actualHours: 18,
+                    assignee: 'Scott Boddye',
+                    tags: ['Component Architecture', 'Responsive Design']
+                  },
+                  {
+                    id: 'web-mobile-handoff-display',
+                    title: 'Web-to-Mobile Handoff Display',
+                    description: 'Show web development prerequisites and mobile next steps',
+                    type: 'Task',
+                    status: 'In Progress',
+                    completion: 60,
+                    priority: 'Medium',
+                    estimatedHours: 15,
+                    actualHours: 14,
+                    assignee: 'Scott Boddye',
+                    tags: ['Handoff Criteria', 'Mobile Development']
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'timeline-teams-management',
+            title: 'Timeline & Teams Management',
+            description: 'Comprehensive project timeline and team assignment tracking',
+            type: 'Feature',
+            status: 'In Progress',
+            completion: 75,
+            priority: 'High',
+            estimatedHours: 40,
+            actualHours: 30,
+            assignee: 'Scott Boddye',
+            tags: ['Timeline', 'Team Management', 'Project Tracking'],
+            children: [
+              {
+                id: 'development-timeline',
+                title: 'Development Phase Timeline',
+                description: 'Visual timeline showing 5 major development phases',
+                type: 'Project',
+                status: 'Completed',
+                completion: 100,
+                priority: 'Medium',
+                estimatedHours: 20,
+                actualHours: 15,
+                assignee: 'Scott Boddye',
+                tags: ['Visual Timeline', 'Phase Tracking']
+              },
+              {
+                id: 'team-assignment-system',
+                title: 'Team Assignment Cards',
+                description: 'Interactive team cards with performance metrics and click-through details',
+                type: 'Project',
+                status: 'In Progress',
+                completion: 50,
+                priority: 'High',
+                estimatedHours: 20,
+                actualHours: 15,
+                assignee: 'Scott Boddye',
+                tags: ['Team Cards', 'Performance Metrics']
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'posts-feed-system',
+        title: 'Enhanced Posts Feed System',
+        description: 'Modern social media feed with rich content creation and real-time engagement',
+        type: 'Section',
+        status: 'Completed',
+        completion: 95,
+        priority: 'High',
+        estimatedHours: 300,
+        actualHours: 285,
+        assignee: 'Full Stack Team',
+        tags: ['Social Media', 'Real-time', 'Content Creation'],
+        children: [
+          {
+            id: 'modern-post-composer',
+            title: 'Modern Post Composer',
+            description: 'Rich text editor with mentions, media uploads, and location integration',
+            type: 'Feature',
+            status: 'Completed',
+            completion: 100,
+            priority: 'High',
+            estimatedHours: 80,
+            actualHours: 75,
+            assignee: 'Scott Boddye',
+            tags: ['Rich Text', 'Mentions', 'Media Upload'],
+            children: [
+              {
+                id: 'rich-text-editor',
+                title: 'Rich Text Editor Integration',
+                description: 'React Quill integration with custom toolbar and formatting',
+                type: 'Project',
+                status: 'Completed',
+                completion: 100,
+                priority: 'High',
+                estimatedHours: 25,
+                actualHours: 22,
+                assignee: 'Scott Boddye',
+                tags: ['React Quill', 'Rich Text']
+              },
+              {
+                id: 'mention-system',
+                title: 'User Mention System',
+                description: 'Real-time @ autocomplete with user, event, and group mentions',
+                type: 'Project',
+                status: 'Completed',
+                completion: 100,
+                priority: 'High',
+                estimatedHours: 30,
+                actualHours: 28,
+                assignee: 'Scott Boddye',
+                tags: ['Mentions', 'Autocomplete', 'Real-time']
+              },
+              {
+                id: 'media-upload-integration',
+                title: 'Media Upload Integration',
+                description: 'Drag-drop media upload with progress tracking and metadata',
+                type: 'Project',
+                status: 'Completed',
+                completion: 100,
+                priority: 'Medium',
+                estimatedHours: 25,
+                actualHours: 25,
+                assignee: 'Scott Boddye',
+                tags: ['Media Upload', 'Drag Drop', 'Progress Tracking']
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'event-management-system',
+        title: 'Event Management System',
+        description: 'Comprehensive event creation, RSVP management, and role assignment',
+        type: 'Section',
+        status: 'Completed',
+        completion: 100,
+        priority: 'High',
+        estimatedHours: 250,
+        actualHours: 240,
+        assignee: 'Full Stack Team',
+        tags: ['Events', 'RSVP', 'Role Assignment'],
+        children: [
+          {
+            id: 'event-creation-workflow',
+            title: 'Event Creation Workflow',
+            description: 'Complete event creation with Google Maps integration and role assignments',
+            type: 'Feature',
+            status: 'Completed',
+            completion: 100,
+            priority: 'High',
+            estimatedHours: 120,
+            actualHours: 115,
+            assignee: 'Scott Boddye',
+            tags: ['Event Creation', 'Google Maps', 'Role Assignment'],
+            children: [
+              {
+                id: 'google-maps-integration',
+                title: 'Google Maps Location Picker',
+                description: 'Advanced location selection with Places API and embedded map display',
+                type: 'Project',
+                status: 'Completed',
+                completion: 100,
+                priority: 'High',
+                estimatedHours: 40,
+                actualHours: 38,
+                assignee: 'Scott Boddye',
+                tags: ['Google Maps', 'Places API', 'Location']
+              },
+              {
+                id: 'role-assignment-system',
+                title: 'Event Role Assignment',
+                description: 'Dynamic role assignment for DJs, Teachers, Performers, etc.',
+                type: 'Project',
+                status: 'Completed',
+                completion: 100,
+                priority: 'High',
+                estimatedHours: 35,
+                actualHours: 32,
+                assignee: 'Scott Boddye',
+                tags: ['Role Assignment', 'Event Participants']
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'community-groups-system',
+        title: 'Community & Groups System',
+        description: 'Automated city group creation and comprehensive community management',
+        type: 'Section',
+        status: 'Completed',
+        completion: 100,
+        priority: 'High',
+        estimatedHours: 180,
+        actualHours: 175,
+        assignee: 'Backend Team',
+        tags: ['Community', 'Groups', 'Automation'],
+        children: [
+          {
+            id: 'automated-city-groups',
+            title: 'Automated City Group Creation',
+            description: 'Intelligent city group creation during user registration with photo automation',
+            type: 'Feature',
+            status: 'Completed',
+            completion: 100,
+            priority: 'High',
+            estimatedHours: 90,
+            actualHours: 88,
+            assignee: 'Scott Boddye',
+            tags: ['Automation', 'City Groups', 'Photo Integration'],
+            children: [
+              {
+                id: 'city-photo-automation',
+                title: 'City Photo Automation',
+                description: 'Pexels API integration for authentic city photography',
+                type: 'Project',
+                status: 'Completed',
+                completion: 100,
+                priority: 'Medium',
+                estimatedHours: 35,
+                actualHours: 33,
+                assignee: 'Scott Boddye',
+                tags: ['Pexels API', 'Photo Automation']
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'analytics-infrastructure',
+        title: 'Analytics & Infrastructure',
+        description: 'Comprehensive analytics system with performance monitoring and compliance',
+        type: 'Section',
+        status: 'In Progress',
+        completion: 85,
+        priority: 'Medium',
+        estimatedHours: 200,
+        actualHours: 170,
+        assignee: 'Infrastructure Team',
+        tags: ['Analytics', 'Performance', 'Compliance'],
+        children: [
+          {
+            id: 'plausible-analytics',
+            title: 'Plausible Analytics Integration',
+            description: 'Privacy-first analytics with comprehensive event tracking',
+            type: 'Feature',
+            status: 'Completed',
+            completion: 100,
+            priority: 'Medium',
+            estimatedHours: 40,
+            actualHours: 35,
+            assignee: 'Scott Boddye',
+            tags: ['Plausible', 'Privacy', 'Event Tracking']
+          },
+          {
+            id: 'compliance-monitoring',
+            title: 'Automated Compliance Monitoring',
+            description: 'GDPR, SOC2, and enterprise compliance automation',
+            type: 'Feature',
+            status: 'In Progress',
+            completion: 80,
+            priority: 'High',
+            estimatedHours: 80,
+            actualHours: 68,
+            assignee: 'Scott Boddye',
+            tags: ['GDPR', 'SOC2', 'Compliance']
+          }
+        ]
+      },
+      {
+        id: 'mobile-development-pipeline',
+        title: 'Mobile Development Pipeline',
+        description: 'Web-to-mobile development roadmap with comprehensive handoff criteria',
+        type: 'Section',
+        status: 'Planned',
+        completion: 15,
+        priority: 'Medium',
+        estimatedHours: 400,
+        actualHours: 60,
+        assignee: 'Mobile Team',
+        tags: ['Mobile', 'iOS', 'Android', 'React Native'],
+        webDevPrerequisites: [
+          'Complete API stabilization and documentation',
+          'Finalize all responsive design patterns',
+          'Implement comprehensive error handling',
+          'Complete authentication system testing',
+          'Optimize performance for mobile data usage',
+          'Standardize component library for reuse'
+        ],
+        mobileNextSteps: [
+          'Create React Native project structure',
+          'Implement native navigation patterns',
+          'Build offline-first data synchronization',
+          'Integrate native device capabilities',
+          'Design mobile-specific user flows',
+          'Implement push notification system'
+        ],
+        children: [
+          {
+            id: 'web-platform-stabilization',
+            title: 'Web Platform Stabilization',
+            description: '248 hours of web development work required before mobile handoff',
+            type: 'Feature',
+            status: 'In Progress',
+            completion: 60,
+            priority: 'High',
+            estimatedHours: 248,
+            actualHours: 149,
+            assignee: 'Web Development Team',
+            tags: ['Platform Stabilization', 'API Documentation', 'Performance'],
+            children: [
+              {
+                id: 'api-documentation-completion',
+                title: 'Complete API Documentation',
+                description: 'Comprehensive API documentation for mobile team handoff',
+                type: 'Project',
+                status: 'In Progress',
+                completion: 40,
+                priority: 'High',
+                estimatedHours: 80,
+                actualHours: 32,
+                assignee: 'Backend Team',
+                tags: ['API Documentation', 'Handoff']
+              },
+              {
+                id: 'responsive-design-finalization',
+                title: 'Responsive Design Finalization',
+                description: 'Complete responsive design implementation across all components',
+                type: 'Project',
+                status: 'In Progress',
+                completion: 70,
+                priority: 'High',
+                estimatedHours: 120,
+                actualHours: 84,
+                assignee: 'Frontend Team',
+                tags: ['Responsive Design', 'Mobile-First']
+              }
+            ]
+          }
+        ]
       }
     ]
   }
