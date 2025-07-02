@@ -298,7 +298,11 @@ const LifeCEOPortalNew: React.FC = () => {
                             <Button variant="ghost" size="sm">
                               {agent.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => window.location.href = `/life-ceo/agent/${agent.id}`}
+                            >
                               <Settings className="w-4 h-4" />
                             </Button>
                           </div>

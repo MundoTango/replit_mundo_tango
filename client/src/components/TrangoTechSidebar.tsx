@@ -13,7 +13,8 @@ import {
   BarChart3,
   Sparkles,
   MapPin,
-  Shield
+  Shield,
+  Crown
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -74,9 +75,16 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     link: "/admin",
   };
 
+  // Add Life CEO Portal route for admins
+  const lifeCEORoute = {
+    icon: <Crown className="w-5 h-5" />,
+    title: "Life CEO Portal",
+    link: "/life-ceo",
+  };
+
   // Combine routes with conditional admin access
   const allRoutes = hasAdminAccess 
-    ? [...sidebarRoutes, adminRoute] 
+    ? [...sidebarRoutes, adminRoute, lifeCEORoute] 
     : sidebarRoutes;
 
   // Mundo Tango Global Statistics
