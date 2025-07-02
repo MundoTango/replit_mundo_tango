@@ -719,71 +719,207 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
     }
   };
 
-  const handleExportData = () => {
-    const exportData = {
-      summary: {
-        totalItems,
-        completedItems,
-        mvpSignedOff,
-        highRiskItems,
-        blockedItems,
-        lastUpdated
-      },
-      layerDistribution,
-      items: filteredItems,
-      generatedAt: new Date().toISOString()
-    };
+  const handleExportData = async () => {
+    console.log('🔄 Export Data button clicked - starting export process...');
     
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `11L-project-tracker-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Layer 8: Analytics tracking for button usage
+    console.log('📈 Analytics: Export Data button clicked', {
+      timestamp: new Date().toISOString(),
+      totalItems,
+      filteredItems: filteredItems.length,
+      selectedLayer,
+      selectedStatus,
+      selectedRisk,
+      searchQuery
+    });
+    
+    setIsLoading(true);
+    
+    try {
+      const exportData = {
+        summary: {
+          totalItems,
+          completedItems,
+          mvpSignedOff,
+          highRiskItems,
+          blockedItems,
+          lastUpdated: lastUpdated.toISOString()
+        },
+        layerDistribution,
+        items: filteredItems,
+        metadata: {
+          generatedAt: new Date().toISOString(),
+          generatedBy: 'Comprehensive 11L Project Tracker',
+          version: '1.0.0',
+          totalLayers: LAYER_DEFINITIONS.length
+        }
+      };
+      
+      console.log('📊 Export data prepared:', { 
+        totalItems: exportData.summary.totalItems,
+        filteredItems: exportData.items.length,
+        layers: exportData.metadata.totalLayers
+      });
+      
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { 
+        type: 'application/json' 
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `11L-project-tracker-${new Date().toISOString().split('T')[0]}.json`;
+      a.style.display = 'none';
+      
+      document.body.appendChild(a);
+      console.log('📁 Triggering download...');
+      a.click();
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        console.log('✅ Export completed successfully');
+      }, 100);
+      
+    } catch (error) {
+      console.error('❌ Export failed:', error);
+      alert('Export failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGenerateReport = () => {
-    const reportContent = `
-# 11L Project Tracker Report
-Generated: ${new Date().toISOString()}
+  const handleGenerateReport = async () => {
+    console.log('📋 Generate Report button clicked - starting report generation...');
+    
+    // Layer 8: Analytics tracking for button usage
+    console.log('📈 Analytics: Generate Report button clicked', {
+      timestamp: new Date().toISOString(),
+      totalItems,
+      completedItems,
+      highRiskItems,
+      blockedItems,
+      selectedFilters: { selectedLayer, selectedStatus, selectedRisk, searchQuery },
+      platformHealth: Math.round((completedItems/totalItems)*100)
+    });
+    
+    setIsLoading(true);
+    
+    try {
+      const timestamp = new Date().toISOString();
+      const dateString = timestamp.split('T')[0];
+      
+      const criticalIssues = COMPREHENSIVE_PLATFORM_INVENTORY.filter(item => item.riskLevel === 'High');
+      const blockedItemsList = COMPREHENSIVE_PLATFORM_INVENTORY.filter(item => item.blockers.length > 0);
+      
+      const reportContent = `# 📊 Comprehensive 11L Project Tracker Report
 
-## Summary Statistics
-- Total Items: ${totalItems}
-- Completed Items: ${completedItems} (${Math.round((completedItems/totalItems)*100)}%)
-- MVP Signed Off: ${mvpSignedOff}
-- High Risk Items: ${highRiskItems}
-- Blocked Items: ${blockedItems}
+**Generated:** ${timestamp}  
+**Report Version:** 1.0.0  
+**Platform:** Mundo Tango  
 
-## Layer Distribution
-${layerDistribution.map(layer => 
-  `- ${layer.name}: ${layer.completed}/${layer.count} (${Math.round(layer.avgCompletion)}%)`
-).join('\n')}
+---
 
-## Critical Issues (High Risk)
-${COMPREHENSIVE_PLATFORM_INVENTORY
-  .filter(item => item.riskLevel === 'High')
-  .map(item => `- ${item.title}: ${item.description}`)
-  .join('\n')}
+## 📈 Executive Summary
 
-## Blocked Items
-${COMPREHENSIVE_PLATFORM_INVENTORY
-  .filter(item => item.blockers.length > 0)
-  .map(item => `- ${item.title}: ${item.blockers.join(', ')}`)
-  .join('\n')}
-    `.trim();
+- **Total Items:** ${totalItems}
+- **Completed Items:** ${completedItems} (${Math.round((completedItems/totalItems)*100)}%)
+- **MVP Signed Off:** ${mvpSignedOff}
+- **High Risk Items:** ${highRiskItems}
+- **Blocked Items:** ${blockedItems}
+- **Overall Platform Health:** ${Math.round((completedItems/totalItems)*100)}%
 
-    const blob = new Blob([reportContent], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `11L-project-report-${new Date().toISOString().split('T')[0]}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+---
+
+## 🏗️ Layer Distribution & Analysis
+
+${layerDistribution.map((layer, index) => 
+  `### ${layer.emoji} Layer ${index + 1}: ${layer.name}
+- **Items:** ${layer.count}
+- **Completed:** ${layer.completed}/${layer.count} (${Math.round(layer.avgCompletion)}%)
+- **Status:** ${layer.avgCompletion >= 90 ? '✅ Excellent' : layer.avgCompletion >= 70 ? '⚠️ Good' : '🚨 Needs Attention'}`
+).join('\n\n')}
+
+---
+
+## 🚨 Critical Issues (High Risk)
+
+${criticalIssues.length > 0 ? criticalIssues.map(item => 
+  `### ${item.title}
+- **Layer:** ${item.layer}
+- **Status:** ${item.mvpStatus}
+- **Description:** ${item.description}
+- **Risk Level:** ${item.riskLevel}
+${item.blockers.length > 0 ? `- **Blockers:** ${item.blockers.join(', ')}` : ''}
+- **Progress:** ${item.completionPercentage}%`
+).join('\n\n') : 'No critical issues identified. ✅'}
+
+---
+
+## 🔒 Blocked Items Analysis
+
+${blockedItemsList.length > 0 ? blockedItemsList.map(item => 
+  `### ${item.title}
+- **Layer:** ${item.layer}
+- **Blockers:** ${item.blockers.join(', ')}
+- **Impact:** ${item.riskLevel} Risk
+- **Current Progress:** ${item.completionPercentage}%`
+).join('\n\n') : 'No blocked items. ✅'}
+
+---
+
+## 📋 Next Steps & Recommendations
+
+${criticalIssues.length > 0 || blockedItemsList.length > 0 ? `
+### Immediate Actions Required:
+${criticalIssues.length > 0 ? `- Address ${criticalIssues.length} high-risk items` : ''}
+${blockedItemsList.length > 0 ? `- Resolve ${blockedItemsList.length} blocked items` : ''}
+
+### Priority Focus Areas:
+${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${Math.round(l.avgCompletion)}% complete)`).join('\n')}
+` : `
+### System Health: Excellent ✅
+- All layers performing well
+- No critical issues identified
+- Continue current development pace
+`}
+
+---
+
+**Report Generated by:** Comprehensive 11L Project Tracker  
+**Last Updated:** ${lastUpdated.toISOString()}  
+**Platform Version:** Mundo Tango v1.0.0`.trim();
+
+      console.log('📄 Report content generated:', { 
+        contentLength: reportContent.length,
+        criticalIssues: criticalIssues.length,
+        blockedItems: blockedItemsList.length
+      });
+      
+      const blob = new Blob([reportContent], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `11L-project-report-${dateString}.md`;
+      a.style.display = 'none';
+      
+      document.body.appendChild(a);
+      console.log('📁 Triggering report download...');
+      a.click();
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        console.log('✅ Report generated successfully');
+      }, 100);
+      
+    } catch (error) {
+      console.error('❌ Report generation failed:', error);
+      alert('Report generation failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Calculate summary statistics
@@ -886,19 +1022,19 @@ ${COMPREHENSIVE_PLATFORM_INVENTORY
             variant="outline"
             onClick={handleExportData}
             disabled={isLoading}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
           >
-            <Database className="h-4 w-4" />
-            Export Data
+            <Database className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            {isLoading ? 'Exporting...' : 'Export Data'}
           </Button>
           <Button 
             variant="outline"
             onClick={handleGenerateReport}
             disabled={isLoading}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 hover:bg-green-50 hover:border-green-300 transition-all duration-200"
           >
-            <FileText className="h-4 w-4" />
-            Generate Report
+            <FileText className={`h-4 w-4 ${isLoading ? 'animate-pulse' : ''}`} />
+            {isLoading ? 'Generating...' : 'Generate Report'}
           </Button>
         </div>
       </div>
