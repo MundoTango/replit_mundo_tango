@@ -22,6 +22,11 @@ import {
   Users,
   Zap,
   AlertTriangle,
+  Edit,
+  Save,
+  X,
+  UserCheck,
+  Network,
   Database,
   Shield,
   Settings,
@@ -862,11 +867,77 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
   const [showItemModal, setShowItemModal] = useState<boolean>(false);
   const [hierarchicalBreakdown, setHierarchicalBreakdown] = useState<any>(null);
   const [expandedHierarchy, setExpandedHierarchy] = useState<Set<string>>(new Set());
+  
+  // Enhanced editable functionality
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<any>({});
+  const [showDependencies, setShowDependencies] = useState<boolean>(false);
+  const [completionHistory, setCompletionHistory] = useState<any[]>([]);
+
+  // Edit functionality handlers
+  const handleFieldEdit = (field: string, value: any) => {
+    setEditValues(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSaveEdit = () => {
+    if (selectedItem) {
+      // In a real implementation, this would save to the backend
+      const updatedItem = { ...selectedItem, ...editValues };
+      setSelectedItem(updatedItem);
+      
+      // Update the item in the main data array
+      // This would typically trigger a re-fetch or update the state management
+      console.log('Saving updates:', editValues);
+      
+      setIsEditMode(false);
+      setEditValues({});
+    }
+  };
+
+  const handleShowDependencies = () => {
+    setShowDependencies(true);
+  };
+
+  // Enhanced metadata with team assignments and completion rollups
+  const enhanceItemWithMetadata = (item: any) => {
+    // Calculate completion rollup from subtasks
+    const calculateCompletionRollup = (item: any) => {
+      if (!item.subtasks || item.subtasks.length === 0) {
+        return item.completionPercentage;
+      }
+      
+      const subtaskAverage = item.subtasks.reduce((sum: number, subtask: any) => {
+        return sum + (subtask.completionPercentage || 0);
+      }, 0) / item.subtasks.length;
+      
+      // Weight: 70% individual completion, 30% subtask rollup
+      return Math.round((item.completionPercentage * 0.7) + (subtaskAverage * 0.3));
+    };
+
+    return {
+      ...item,
+      rollupCompletion: calculateCompletionRollup(item),
+      assignedTeam: item.assignedTeam || ['Frontend Team'],
+      humanReviewed: item.humanReviewed || false,
+      lastReviewDate: item.lastReviewDate || '2025-01-01',
+      reviewer: item.reviewer || 'Scott Boddye',
+      subtasks: item.subtasks || [],
+      dependencyCount: item.dependencies?.length || 0,
+      riskFactors: item.riskFactors || []
+    };
+  };
 
   // Handle card click for detailed view
   const handleCardClick = (item: any) => {
-    setSelectedItem(item);
+    const enhancedItem = enhanceItemWithMetadata(item);
+    setSelectedItem(enhancedItem);
+    setEditValues(enhancedItem);
     setShowItemModal(true);
+    setIsEditMode(false);
     
     // Check if this is a platform component that needs hierarchical breakdown
     if (item.title === 'Mundo Tango Platform' || item.title === 'Platform Components') {
@@ -888,6 +959,8 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
       });
     }
   }
+
+
 
   // Toggle hierarchy expansion
   const toggleHierarchyExpansion = (key: string) => {
@@ -2109,38 +2182,223 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
                   <p className="text-gray-600 mt-2">{selectedItem.description}</p>
                 </div>
 
-                {/* Progress Section */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="text-sm font-medium text-blue-800">Completion</div>
-                    <div className="text-2xl font-bold text-blue-900">{selectedItem.completionPercentage}%</div>
-                    <Progress value={selectedItem.completionPercentage} className="mt-2" />
-                  </div>
+                {/* Enhanced Progress Section with Editable Fields */}
+                <div className="space-y-6">
                   
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <div className="text-sm font-medium text-green-800">Hours Progress</div>
-                    <div className="text-2xl font-bold text-green-900">
-                      {selectedItem.actualHours} / {selectedItem.estimatedHours}
+                  {/* Editable Header */}
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">Project Metrics & Team Assignment</h3>
+                    <div className="flex gap-2">
+                      {!isEditMode ? (
+                        <Button
+                          onClick={() => setIsEditMode(true)}
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-2"
+                        >
+                          <Edit className="h-4 w-4" />
+                          Edit
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            onClick={handleSaveEdit}
+                            size="sm"
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                          >
+                            <Save className="h-4 w-4" />
+                            Save
+                          </Button>
+                          <Button
+                            onClick={() => setIsEditMode(false)}
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-2"
+                          >
+                            <X className="h-4 w-4" />
+                            Cancel
+                          </Button>
+                        </>
+                      )}
                     </div>
-                    <Progress 
-                      value={Math.min((selectedItem.actualHours / selectedItem.estimatedHours) * 100, 100)} 
-                      className="mt-2" 
-                    />
                   </div>
-                  
-                  <div className={`p-4 rounded-lg ${
-                    selectedItem.riskLevel === 'High' ? 'bg-red-50' :
-                    selectedItem.riskLevel === 'Medium' ? 'bg-yellow-50' : 'bg-green-50'
-                  }`}>
-                    <div className={`text-sm font-medium ${
-                      selectedItem.riskLevel === 'High' ? 'text-red-800' :
-                      selectedItem.riskLevel === 'Medium' ? 'text-yellow-800' : 'text-green-800'
-                    }`}>Risk Level</div>
-                    <div className={`text-2xl font-bold ${
-                      selectedItem.riskLevel === 'High' ? 'text-red-900' :
-                      selectedItem.riskLevel === 'Medium' ? 'text-yellow-900' : 'text-green-900'
-                    }`}>{selectedItem.riskLevel}</div>
+
+                  {/* Progress Metrics Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    
+                    {/* Individual Completion */}
+                    <div className="bg-blue-50 p-4 rounded-lg border">
+                      <div className="text-sm font-medium text-blue-800 mb-2">Individual Completion</div>
+                      {isEditMode ? (
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={editValues.completionPercentage || 0}
+                          onChange={(e) => handleFieldEdit('completionPercentage', parseInt(e.target.value))}
+                          className="w-full text-2xl font-bold bg-white border rounded px-2 py-1"
+                        />
+                      ) : (
+                        <div className="text-2xl font-bold text-blue-900">{selectedItem.completionPercentage}%</div>
+                      )}
+                      <Progress value={selectedItem.completionPercentage} className="mt-2" />
+                    </div>
+
+                    {/* Rollup Completion */}
+                    <div className="bg-purple-50 p-4 rounded-lg border">
+                      <div className="text-sm font-medium text-purple-800 mb-2">Rollup Completion</div>
+                      <div className="text-2xl font-bold text-purple-900">{selectedItem.rollupCompletion}%</div>
+                      <Progress value={selectedItem.rollupCompletion} className="mt-2" />
+                      <div className="text-xs text-purple-600 mt-1">
+                        Includes {selectedItem.subtasks?.length || 0} subtasks
+                      </div>
+                    </div>
+                    
+                    {/* Hours Progress */}
+                    <div className="bg-green-50 p-4 rounded-lg border">
+                      <div className="text-sm font-medium text-green-800 mb-2">Hours Progress</div>
+                      {isEditMode ? (
+                        <div className="space-y-1">
+                          <input
+                            type="number"
+                            value={editValues.actualHours || 0}
+                            onChange={(e) => handleFieldEdit('actualHours', parseInt(e.target.value))}
+                            className="w-full text-lg font-bold bg-white border rounded px-2 py-1"
+                            placeholder="Actual"
+                          />
+                          <input
+                            type="number"
+                            value={editValues.estimatedHours || 0}
+                            onChange={(e) => handleFieldEdit('estimatedHours', parseInt(e.target.value))}
+                            className="w-full text-sm bg-white border rounded px-2 py-1"
+                            placeholder="Estimated"
+                          />
+                        </div>
+                      ) : (
+                        <div className="text-2xl font-bold text-green-900">
+                          {selectedItem.actualHours} / {selectedItem.estimatedHours}
+                        </div>
+                      )}
+                      <Progress 
+                        value={Math.min((selectedItem.actualHours / selectedItem.estimatedHours) * 100, 100)} 
+                        className="mt-2" 
+                      />
+                    </div>
+                    
+                    {/* Risk Level */}
+                    <div className={`p-4 rounded-lg border ${
+                      selectedItem.riskLevel === 'High' ? 'bg-red-50' :
+                      selectedItem.riskLevel === 'Moderate' ? 'bg-yellow-50' : 'bg-green-50'
+                    }`}>
+                      <div className={`text-sm font-medium mb-2 ${
+                        selectedItem.riskLevel === 'High' ? 'text-red-800' :
+                        selectedItem.riskLevel === 'Moderate' ? 'text-yellow-800' : 'text-green-800'
+                      }`}>
+                        Risk Level
+                      </div>
+                      {isEditMode ? (
+                        <select
+                          value={editValues.riskLevel || 'Low'}
+                          onChange={(e) => handleFieldEdit('riskLevel', e.target.value)}
+                          className="w-full text-lg font-bold bg-white border rounded px-2 py-1"
+                        >
+                          <option value="Low">Low</option>
+                          <option value="Moderate">Moderate</option>
+                          <option value="High">High</option>
+                        </select>
+                      ) : (
+                        <div className={`text-2xl font-bold ${
+                          selectedItem.riskLevel === 'High' ? 'text-red-900' :
+                          selectedItem.riskLevel === 'Moderate' ? 'text-yellow-900' : 'text-green-900'
+                        }`}>
+                          {selectedItem.riskLevel}
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Team Assignment & Review Status */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    {/* Assigned Team */}
+                    <div className="bg-gray-50 p-4 rounded-lg border">
+                      <div className="text-sm font-medium text-gray-800 mb-3 flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Responsible Team
+                      </div>
+                      {isEditMode ? (
+                        <textarea
+                          value={editValues.assignedTeam?.join(', ') || ''}
+                          onChange={(e) => handleFieldEdit('assignedTeam', e.target.value.split(', '))}
+                          className="w-full bg-white border rounded px-3 py-2"
+                          placeholder="Frontend Team, Backend Team, QA Team"
+                          rows={2}
+                        />
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {selectedItem.assignedTeam?.map((team: string, index: number) => (
+                            <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-800">
+                              {team}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Human Review Status */}
+                    <div className="bg-gray-50 p-4 rounded-lg border">
+                      <div className="text-sm font-medium text-gray-800 mb-3 flex items-center gap-2">
+                        <UserCheck className="h-4 w-4" />
+                        Human Review Status
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full ${selectedItem.humanReviewed ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                          <span className="font-medium">
+                            {selectedItem.humanReviewed ? 'Reviewed' : 'Pending Review'}
+                          </span>
+                          {isEditMode && (
+                            <input
+                              type="checkbox"
+                              checked={editValues.humanReviewed || false}
+                              onChange={(e) => handleFieldEdit('humanReviewed', e.target.checked)}
+                              className="ml-auto"
+                            />
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          Last review: {selectedItem.lastReviewDate} by {selectedItem.reviewer}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dependencies Section */}
+                  {selectedItem.dependencies && selectedItem.dependencies.length > 0 && (
+                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-sm font-medium text-orange-800 flex items-center gap-2">
+                          <Network className="h-4 w-4" />
+                          Dependencies ({selectedItem.dependencyCount})
+                        </div>
+                        <Button
+                          onClick={handleShowDependencies}
+                          variant="outline"
+                          size="sm"
+                          className="text-orange-700 border-orange-300 hover:bg-orange-100"
+                        >
+                          View Dependency Map
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedItem.dependencies.map((dep: string, index: number) => (
+                          <Badge key={index} variant="outline" className="text-orange-700 border-orange-300">
+                            {dep}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Metadata Grid */}
@@ -2268,6 +2526,81 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
                   >
                     View Full Details
                   </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dependencies Detail Modal */}
+      {showDependencies && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[102] p-4">
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Network className="h-5 w-5 text-orange-600" />
+                Dependency Map: {selectedItem.title}
+              </h2>
+              <button
+                onClick={() => setShowDependencies(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* Dependency Overview */}
+                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                  <h3 className="font-semibold text-orange-800 mb-2">Dependency Analysis</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium">Total Dependencies:</span> {selectedItem.dependencyCount}
+                    </div>
+                    <div>
+                      <span className="font-medium">Critical Path Impact:</span> High
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dependency List with Details */}
+                <div className="space-y-4">
+                  {selectedItem.dependencies?.map((dep: string, index: number) => (
+                    <div key={index} className="border rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-gray-900">{dep}</h4>
+                        <Badge variant="outline" className="text-red-600 border-red-300">
+                          Blocking
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <div>Status: Pending completion of upstream task</div>
+                        <div>Impact: Direct blocking dependency - cannot proceed without this</div>
+                        <div>Estimated Resolution: Based on upstream task timeline</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Dependency Actions */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-gray-900 mb-3">Recommended Actions</h4>
+                  <ul className="space-y-2 text-sm text-gray-700">
+                    <li className="flex items-start gap-2">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                      <span>Monitor upstream task completion status daily</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                      <span>Identify parallel work streams to maintain velocity</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                      <span>Escalate to project management if delays exceed 2 days</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
