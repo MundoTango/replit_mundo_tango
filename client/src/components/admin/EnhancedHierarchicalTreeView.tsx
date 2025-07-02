@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronRight, Eye, Clock, CheckCircle2, Users, Code2, Smartphone, Monitor } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { ChevronDown, ChevronRight, Eye, Clock, CheckCircle2, Users, Code2, Smartphone, Monitor, Globe, Circle, Zap, Target, CheckSquare, FileText, Folder, FolderOpen } from 'lucide-react';
+import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
 
 interface ProjectItem {
   id: string;
@@ -11,6 +13,7 @@ interface ProjectItem {
   type: 'Platform' | 'Section' | 'Feature' | 'Project' | 'Task' | 'Sub-task';
   status: 'Completed' | 'In Progress' | 'Planned' | 'Blocked' | 'Under Review';
   completion: number;
+  mobileCompletion?: number;
   priority: 'High' | 'Medium' | 'Low';
   assignee?: string;
   estimatedHours?: number;
@@ -512,6 +515,70 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['mundo-tango-org']));
 
+  // Get icon based on item type
+  const getItemIcon = (type: string, isExpanded?: boolean) => {
+    switch (type) {
+      case 'Platform': return <Globe className="h-5 w-5 text-blue-500" />;
+      case 'Section': return isExpanded ? <FolderOpen className="h-5 w-5 text-green-500" /> : <Folder className="h-5 w-5 text-green-500" />;
+      case 'Feature': return <Zap className="h-5 w-5 text-purple-500" />;
+      case 'Project': return <Target className="h-5 w-5 text-orange-500" />;
+      case 'Task': return <CheckSquare className="h-5 w-5 text-indigo-500" />;
+      case 'Sub-task': return <FileText className="h-5 w-5 text-gray-500" />;
+      default: return <Circle className="h-5 w-5" />;
+    }
+  };
+
+  // Calculate status rollup from children to parent
+  const calculateRollupStatus = (item: ProjectItem): { 
+    overallStatus: string; 
+    webCompletion: number; 
+    mobileCompletion: number;
+    childStatusCount: { [key: string]: number };
+  } => {
+    if (!item.children || item.children.length === 0) {
+      return {
+        overallStatus: item.status,
+        webCompletion: item.completion || 0,
+        mobileCompletion: item.mobileCompletion || 0,
+        childStatusCount: { [item.status]: 1 }
+      };
+    }
+
+    let totalWebCompletion = 0;
+    let totalMobileCompletion = 0;
+    const statusCounts: { [key: string]: number } = {};
+    let totalChildren = 0;
+
+    const processChildren = (children: ProjectItem[]) => {
+      children.forEach(child => {
+        if (child.children && child.children.length > 0) {
+          processChildren(child.children);
+        } else {
+          totalChildren++;
+          totalWebCompletion += child.completion || 0;
+          totalMobileCompletion += child.mobileCompletion || 0;
+          statusCounts[child.status] = (statusCounts[child.status] || 0) + 1;
+        }
+      });
+    };
+
+    processChildren(item.children);
+
+    // Determine overall status based on child statuses
+    let overallStatus = 'In Progress';
+    if (statusCounts['Blocked'] > 0) overallStatus = 'Blocked';
+    else if (statusCounts['Completed'] === totalChildren) overallStatus = 'Completed';
+    else if (statusCounts['Planned'] === totalChildren) overallStatus = 'Planned';
+    else if (statusCounts['Under Review'] > 0) overallStatus = 'Under Review';
+
+    return {
+      overallStatus,
+      webCompletion: Math.round(totalWebCompletion / totalChildren),
+      mobileCompletion: Math.round(totalMobileCompletion / totalChildren),
+      childStatusCount: statusCounts
+    };
+  };
+
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems);
     if (newExpanded.has(id)) {
@@ -542,173 +609,79 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
     }
   };
 
-  const renderTreeItem = (item: ProjectItem, depth: number = 0) => {
+  // Render simplified tree item
+  const renderSimpleTreeItem = (item: ProjectItem, depth: number = 0) => {
     const isExpanded = expandedItems.has(item.id);
     const hasChildren = item.children && item.children.length > 0;
-    const indentClass = `ml-${depth * 4}`;
-
+    
+    // Calculate rolled up status and completion from children
+    const rollupData = useMemo(() => calculateRollupStatus(item), [item]);
+    const isCompleted = rollupData.overallStatus === 'Completed';
+    
     return (
       <div key={item.id} className="space-y-2">
-        <Card className={`${indentClass} border-l-4 border-l-blue-500 hover:shadow-md transition-shadow`}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3 flex-1">
-                {hasChildren && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleExpanded(item.id)}
-                    className="p-1"
-                  >
-                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </Button>
-                )}
-                
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h3 className="font-semibold text-lg">{item.title}</h3>
-                    <Badge variant="outline" className={getStatusColor(item.status)}>
-                      {item.status}
-                    </Badge>
-                    <Badge variant="outline" className={getPriorityColor(item.priority)}>
-                      {item.priority}
-                    </Badge>
-                  </div>
-                  
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                    {item.description}
-                  </p>
-                  
-                  {/* Progress Bar */}
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full" 
-                      style={{ width: `${item.completion}%` }}
-                    ></div>
-                  </div>
-                  
-                  {/* Comprehensive Metadata Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm">
-                        <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" />
-                        <span className="font-medium">{item.completion}% Complete</span>
-                      </div>
-                      {item.assignee && (
-                        <div className="flex items-center text-sm">
-                          <Users className="h-4 w-4 mr-2 text-green-500" />
-                          <span>{item.assignee}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center text-sm">
-                        <Badge variant="secondary" className="text-xs">
-                          {item.type}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      {item.estimatedHours && (
-                        <div className="flex items-center text-sm">
-                          <Clock className="h-4 w-4 mr-2 text-orange-500" />
-                          <span>{item.actualHours || 0}h / {item.estimatedHours}h</span>
-                        </div>
-                      )}
-                      {item.startDate && (
-                        <div className="text-sm text-gray-600">
-                          <strong>Start:</strong> {item.startDate}
-                        </div>
-                      )}
-                      {item.endDate && (
-                        <div className="text-sm text-gray-600">
-                          <strong>End:</strong> {item.endDate}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-2">
-                      {item.dependencies && item.dependencies.length > 0 && (
-                        <div className="text-sm">
-                          <strong className="text-purple-600">Dependencies:</strong>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {item.dependencies.map(dep => (
-                              <Badge key={dep} variant="outline" className="text-xs">
-                                {dep}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Tags */}
-                  {item.tags && item.tags.length > 0 && (
-                    <div className="mb-4">
-                      <div className="flex flex-wrap gap-2">
-                        {item.tags.map(tag => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Web Dev Prerequisites */}
-                  {item.webDevPrerequisites && item.webDevPrerequisites.length > 0 && (
-                    <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <div className="flex items-center mb-2">
-                        <Code2 className="h-4 w-4 mr-2 text-blue-600" />
-                        <span className="font-medium text-blue-800 dark:text-blue-300">Web Dev Prerequisites</span>
-                      </div>
-                      <ul className="space-y-1">
-                        {item.webDevPrerequisites.map((prereq, index) => (
-                          <li key={index} className="text-sm text-blue-700 dark:text-blue-400 flex items-start">
-                            <span className="mr-2">•</span>
-                            <span>{prereq}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {/* Mobile Next Steps */}
-                  {item.mobileNextSteps && item.mobileNextSteps.length > 0 && (
-                    <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                      <div className="flex items-center mb-2">
-                        <Smartphone className="h-4 w-4 mr-2 text-green-600" />
-                        <span className="font-medium text-green-800 dark:text-green-300">Mobile Next Steps</span>
-                      </div>
-                      <ul className="space-y-1">
-                        {item.mobileNextSteps.map((step, index) => (
-                          <li key={index} className="text-sm text-green-700 dark:text-green-400 flex items-start">
-                            <span className="mr-2">•</span>
-                            <span>{step}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedItem(item)}
-                  className="ml-auto"
-                >
-                  <Eye className="h-4 w-4 mr-1" />
-                  Details
-                </Button>
-              </div>
+        {/* Simple Tree Item */}
+        <div
+          className={`flex items-center space-x-2 py-2 px-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer rounded-md`}
+          style={{ marginLeft: `${depth * 24}px` }}
+          onClick={() => toggleExpanded(item.id)}
+        >
+          {/* Expand/Collapse Icon */}
+          {hasChildren && (
+            <div className="w-5">
+              {isExpanded ? 
+                <ChevronDown className="h-4 w-4 text-gray-600" /> : 
+                <ChevronRight className="h-4 w-4 text-gray-600" />
+              }
             </div>
-          </CardContent>
-        </Card>
-
+          )}
+          {!hasChildren && <div className="w-5" />}
+          
+          {/* Item Icon */}
+          {getItemIcon(item.type, isExpanded)}
+          
+          {/* Title */}
+          <span className="flex-1 font-medium text-sm">{item.title}</span>
+          
+          {/* Status Badge */}
+          <Badge className={`${getStatusColor(rollupData.overallStatus)} text-xs`}>
+            {rollupData.overallStatus}
+          </Badge>
+          
+          {/* Priority Badge */}
+          <Badge className={`${getPriorityColor(item.priority)} text-xs`}>
+            {item.priority}
+          </Badge>
+          
+          {/* Web Completion */}
+          <div className="flex items-center space-x-1 text-xs">
+            <Monitor className="h-3 w-3 text-gray-500" />
+            <span className="text-gray-600">{rollupData.webCompletion}%</span>
+          </div>
+          
+          {/* Mobile Completion */}
+          <div className="flex items-center space-x-1 text-xs">
+            <Smartphone className="h-3 w-3 text-gray-500" />
+            <span className="text-gray-600">{rollupData.mobileCompletion}%</span>
+          </div>
+          
+          {/* Completion Checkmark */}
+          {isCompleted && (
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
+          )}
+        </div>
+        
+        {/* Detailed Card (shown when expanded) */}
+        {isExpanded && (
+          <div style={{ marginLeft: `${depth * 24}px` }}>
+            <DetailedCard item={item} onClose={() => toggleExpanded(item.id)} />
+          </div>
+        )}
+        
+        {/* Render children */}
         {isExpanded && hasChildren && (
-          <div className="space-y-2">
-            {item.children?.map(child => renderTreeItem(child, depth + 1))}
+          <div>
+            {item.children?.map(child => renderSimpleTreeItem(child, depth + 1))}
           </div>
         )}
       </div>
@@ -796,7 +769,7 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
 
   return (
     <div className="w-full space-y-2">
-      {projectData.map(item => renderTreeItem(item))}
+      {projectData.map(item => renderSimpleTreeItem(item))}
       
       {selectedItem && (
         <DetailedCard 
