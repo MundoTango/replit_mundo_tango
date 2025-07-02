@@ -28,8 +28,8 @@ interface ProjectItem {
   id: string;
   title: string;
   description?: string;
-  type: 'Platform' | 'Section' | 'Feature' | 'Project' | 'Task';
-  status: 'Complete' | 'In Progress' | 'Planning' | 'Blocked';
+  type: 'Platform' | 'Section' | 'Feature' | 'Project' | 'Task' | 'Sub-task';
+  status: 'Complete' | 'In Progress' | 'Planning' | 'Blocked' | 'Not Started';
   completion: number;
   team?: string[];
   originalFiles?: string[];
@@ -39,6 +39,9 @@ interface ProjectItem {
   actualHours?: number;
   priority: 'High' | 'Medium' | 'Low';
   layer?: string;
+  webStatus?: string;
+  mobileStatus?: string;
+  mobileNextSteps?: string[];
   children?: ProjectItem[];
 }
 
@@ -327,17 +330,155 @@ const projectData: ProjectItem[] = [
             actualHours: 45,
             children: [
               {
-                id: 'user-registration',
+                id: 'MT-001-USER-REG',
                 title: 'User Registration & Onboarding',
                 type: 'Project',
                 status: 'Complete',
                 completion: 100,
                 priority: 'High',
+                team: ['Authentication Team', 'Mobile UI Team', 'Backend Integration Team'],
                 originalFiles: ['TT-Frontend/pages/auth/register.tsx'],
                 changesFrom: 'Enhanced from basic TT registration to comprehensive multi-step onboarding with location picker, role selection, and code of conduct acceptance.',
                 currentState: 'Complete onboarding flow with city-based group assignment, tango role selection from 23 options, and automatic community integration.',
                 estimatedHours: 15,
-                actualHours: 18
+                actualHours: 18,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                children: [
+                  {
+                    id: 'MT-001-001-FORM',
+                    title: 'Registration Form Components',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 100,
+                    priority: 'High',
+                    team: ['Frontend Team', 'Mobile UI Team'],
+                    originalFiles: ['client/src/components/auth/RegisterForm.tsx'],
+                    changesFrom: 'Built comprehensive multi-step form with validation, location picker, and role selection.',
+                    currentState: 'Web: Complete form system with React Hook Form validation. Mobile: Needs native form components with platform-specific validation.',
+                    estimatedHours: 8,
+                    actualHours: 10,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Create native iOS registration screens using SwiftUI forms with validation',
+                      'Build Android registration flow with Jetpack Compose form components',
+                      'Implement native location picker using MapKit (iOS) and Google Maps SDK (Android)',
+                      'Add biometric authentication setup during registration'
+                    ],
+                    children: [
+                      {
+                        id: 'MT-001-001-001-VALID',
+                        title: 'Form Validation Logic',
+                        type: 'Sub-task',
+                        status: 'Complete',
+                        completion: 100,
+                        priority: 'Medium',
+                        team: ['Frontend Team', 'Mobile Validation Team'],
+                        originalFiles: ['client/src/utils/validationSchemas.ts'],
+                        changesFrom: 'Implemented Zod validation schemas for all registration fields.',
+                        currentState: 'Web: Complete Zod validation. Mobile: Need native validation patterns.',
+                        estimatedHours: 4,
+                        actualHours: 5,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Implement iOS native validation using Combine framework',
+                          'Create Android validation using LiveData and ViewModel patterns',
+                          'Add real-time form validation feedback'
+                        ]
+                      },
+                      {
+                        id: 'MT-001-001-002-LOC',
+                        title: 'Location Selection Integration',
+                        type: 'Sub-task',
+                        status: 'Complete',
+                        completion: 100,
+                        priority: 'High',
+                        team: ['Location Services Team', 'Mobile Location Team'],
+                        originalFiles: ['client/src/components/GoogleMapsLocationPicker.tsx'],
+                        changesFrom: 'Integrated Google Maps Platform for city selection during registration.',
+                        currentState: 'Web: Google Maps autocomplete working. Mobile: Need native location services.',
+                        estimatedHours: 6,
+                        actualHours: 8,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Integrate MapKit location search for iOS with Core Location',
+                          'Implement Android location services with Google Places SDK',
+                          'Add permission handling for location access',
+                          'Create offline location database for app-only access'
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    id: 'MT-001-002-ONBOARD',
+                    title: 'Onboarding Flow Management',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 100,
+                    priority: 'High',
+                    team: ['UX Team', 'Mobile Navigation Team'],
+                    originalFiles: ['client/src/components/auth/OnboardingFlow.tsx'],
+                    changesFrom: 'Created multi-step onboarding with progress tracking and role-based routing.',
+                    currentState: 'Web: Complete step-by-step onboarding. Mobile: Need native navigation patterns.',
+                    estimatedHours: 10,
+                    actualHours: 12,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Design native iOS onboarding with UIPageViewController',
+                      'Create Android onboarding using ViewPager2 and Fragments',
+                      'Implement swipe gestures and progress indicators',
+                      'Add onboarding skip functionality with user consent tracking'
+                    ],
+                    children: [
+                      {
+                        id: 'MT-001-002-001-PROG',
+                        title: 'Progress Tracking System',
+                        type: 'Sub-task',
+                        status: 'Complete',
+                        completion: 100,
+                        priority: 'Medium',
+                        team: ['Frontend Team', 'Mobile State Team'],
+                        originalFiles: ['client/src/hooks/useOnboardingProgress.ts'],
+                        changesFrom: 'Built progress tracking with step completion validation.',
+                        currentState: 'Web: React state management for progress. Mobile: Need native state persistence.',
+                        estimatedHours: 4,
+                        actualHours: 5,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Implement iOS progress persistence using UserDefaults',
+                          'Create Android progress tracking with SharedPreferences',
+                          'Add progress recovery for app termination scenarios'
+                        ]
+                      },
+                      {
+                        id: 'MT-001-002-002-ROUTE',
+                        title: 'Role-Based Routing Logic',
+                        type: 'Sub-task',
+                        status: 'Complete',
+                        completion: 100,
+                        priority: 'High',
+                        team: ['Authentication Team', 'Mobile Navigation Team'],
+                        originalFiles: ['client/src/utils/roleBasedRouting.ts'],
+                        changesFrom: 'Implemented automatic routing based on selected tango roles.',
+                        currentState: 'Web: Complete role-based navigation. Mobile: Need native navigation controllers.',
+                        estimatedHours: 6,
+                        actualHours: 7,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Create iOS navigation controller with role-based tab configuration',
+                          'Implement Android navigation component with conditional destinations',
+                          'Add deep linking support for role-specific features'
+                        ]
+                      }
+                    ]
+                  }
+                ]
               },
               {
                 id: 'role-system',
@@ -355,7 +496,7 @@ const projectData: ProjectItem[] = [
             ]
           },
           {
-            id: 'posts-feed',
+            id: 'MT-002-POSTS',
             title: 'Posts & Feed System',
             description: 'Enhanced post creation with rich media and real-time features',
             type: 'Feature',
@@ -363,7 +504,7 @@ const projectData: ProjectItem[] = [
             completion: 90,
             priority: 'High',
             layer: 'Layer 2: Content Management',
-            team: ['Scott Boddye', 'Frontend Team'],
+            team: ['Content Management Team', 'Mobile Media Team', 'Real-time Systems Team'],
             originalFiles: [
               'TT-Backend/controllers/PostController.php',
               'TT-Frontend/components/PostCreator.tsx',
@@ -373,13 +514,283 @@ const projectData: ProjectItem[] = [
             currentState: 'Comprehensive post system with TrangoTechPostComposer, media library reuse, tag-based filtering, Google Maps integration, and real-time comment/reaction system.',
             estimatedHours: 60,
             actualHours: 75,
+            webStatus: 'Complete',
+            mobileStatus: 'Not Started',
             children: [
               {
-                id: 'post-creation',
+                id: 'MT-002-001-CREATE',
                 title: 'Enhanced Post Creation',
                 type: 'Project',
                 status: 'Complete',
                 completion: 95,
+                priority: 'High',
+                team: ['Content Creation Team', 'Mobile Camera Team', 'Rich Text Team'],
+                originalFiles: ['client/src/components/TrangoTechPostComposer.tsx'],
+                changesFrom: 'Enhanced from basic TT text posts to comprehensive rich content creation with media, mentions, and location.',
+                currentState: 'Web: Advanced post composer with rich text, media uploads, mentions. Mobile: Need native camera integration and rich text editing.',
+                estimatedHours: 30,
+                actualHours: 35,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Implement native iOS camera integration with AVFoundation',
+                  'Create Android camera functionality with CameraX',
+                  'Build native rich text editor for iOS using UITextView',
+                  'Implement Android rich text with EditText and spans',
+                  'Add native photo/video picker with permission handling'
+                ],
+                children: [
+                  {
+                    id: 'MT-002-001-001-RICH',
+                    title: 'Rich Text Editor',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 100,
+                    priority: 'High',
+                    team: ['Rich Text Team', 'Mobile Text Input Team'],
+                    originalFiles: ['client/src/components/ui/rich-text-editor.tsx'],
+                    changesFrom: 'Built comprehensive rich text editor with formatting, mentions, and emoji support.',
+                    currentState: 'Web: React Quill-based rich editor. Mobile: Need native text formatting.',
+                    estimatedHours: 15,
+                    actualHours: 18,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Create iOS rich text editor with NSAttributedString',
+                      'Build Android rich text with SpannableString',
+                      'Implement formatting toolbar for mobile'
+                    ],
+                    children: [
+                      {
+                        id: 'MT-002-001-001-001-FORMAT',
+                        title: 'Text Formatting Controls',
+                        type: 'Sub-task',
+                        status: 'Complete',
+                        completion: 100,
+                        priority: 'Medium',
+                        team: ['UI Components Team', 'Mobile Input Team'],
+                        originalFiles: ['client/src/components/ui/text-formatting-toolbar.tsx'],
+                        changesFrom: 'Added bold, italic, link formatting with keyboard shortcuts.',
+                        currentState: 'Web: Complete formatting toolbar. Mobile: Need native formatting UI.',
+                        estimatedHours: 8,
+                        actualHours: 10,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Design iOS formatting toolbar above keyboard',
+                          'Create Android formatting toolbar with Material Design',
+                          'Add haptic feedback for formatting actions'
+                        ]
+                      },
+                      {
+                        id: 'MT-002-001-001-002-MENTION',
+                        title: 'Mentions Integration',
+                        type: 'Sub-task',
+                        status: 'Complete',
+                        completion: 100,
+                        priority: 'High',
+                        team: ['Mentions Team', 'Mobile Search Team'],
+                        originalFiles: ['client/src/components/SimpleMentionsInput.tsx'],
+                        changesFrom: 'Implemented @mention functionality with real-time user search.',
+                        currentState: 'Web: Complete mentions with autocomplete. Mobile: Need native mention UI.',
+                        estimatedHours: 12,
+                        actualHours: 15,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Implement iOS mentions with UITableView autocomplete',
+                          'Create Android mentions with RecyclerView suggestions',
+                          'Add mention highlighting and tap-to-profile navigation'
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    id: 'MT-002-001-002-MEDIA',
+                    title: 'Media Upload System',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 90,
+                    priority: 'High',
+                    team: ['Media Upload Team', 'Mobile Camera Team', 'Storage Team'],
+                    originalFiles: ['client/src/components/UploadMedia.tsx'],
+                    changesFrom: 'Integrated Supabase Storage with drag-drop upload, progress tracking, and metadata.',
+                    currentState: 'Web: Complete Supabase integration. Mobile: Need native camera and gallery access.',
+                    estimatedHours: 20,
+                    actualHours: 25,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Implement iOS camera capture with AVCaptureSession',
+                      'Build Android camera with CameraX and Camera2 API',
+                      'Add video recording with compression and upload progress',
+                      'Create photo gallery picker with multi-selection'
+                    ],
+                    children: [
+                      {
+                        id: 'MT-002-001-002-001-CAM',
+                        title: 'Camera Integration',
+                        type: 'Sub-task',
+                        status: 'Not Started',
+                        completion: 0,
+                        priority: 'High',
+                        team: ['Mobile Camera Team', 'iOS Development Team', 'Android Development Team'],
+                        originalFiles: ['N/A - Mobile Only'],
+                        changesFrom: 'New mobile feature - native camera integration for post creation.',
+                        currentState: 'Web: N/A. Mobile: Need complete camera implementation.',
+                        estimatedHours: 16,
+                        actualHours: 0,
+                        webStatus: 'N/A',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Setup iOS camera permissions in Info.plist',
+                          'Configure Android camera permissions in manifest',
+                          'Implement camera preview with flash and focus controls',
+                          'Add photo capture with EXIF data preservation'
+                        ]
+                      },
+                      {
+                        id: 'MT-002-001-002-002-GALLERY',
+                        title: 'Photo Gallery Access',
+                        type: 'Sub-task',
+                        status: 'Not Started',
+                        completion: 0,
+                        priority: 'High',
+                        team: ['Mobile Gallery Team', 'Permissions Team'],
+                        originalFiles: ['N/A - Mobile Only'],
+                        changesFrom: 'New mobile feature - native photo library access for post media.',
+                        currentState: 'Web: File picker available. Mobile: Need native gallery integration.',
+                        estimatedHours: 12,
+                        actualHours: 0,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Implement iOS photo library with PHPhotoLibrary',
+                          'Create Android gallery access with MediaStore',
+                          'Add multi-selection with preview thumbnails',
+                          'Implement image compression before upload'
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                id: 'MT-002-002-FEED',
+                title: 'Real-time Feed System',
+                type: 'Project',
+                status: 'Complete',
+                completion: 85,
+                priority: 'High',
+                team: ['Feed Algorithm Team', 'Mobile Pagination Team', 'Real-time Team'],
+                originalFiles: ['client/src/components/PostFeed.tsx'],
+                changesFrom: 'Enhanced from basic TT chronological feed to advanced feed with filtering, real-time updates, and engagement tracking.',
+                currentState: 'Web: Real-time feed with tag filtering and infinite scroll. Mobile: Need native list performance and background updates.',
+                estimatedHours: 25,
+                actualHours: 30,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Implement iOS feed with UICollectionView and prefetching',
+                  'Create Android feed using RecyclerView with view pooling',
+                  'Add pull-to-refresh and infinite scrolling',
+                  'Implement background feed updates with push notifications'
+                ],
+                children: [
+                  {
+                    id: 'MT-002-002-001-INFINITE',
+                    title: 'Infinite Scroll Implementation',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 100,
+                    priority: 'Medium',
+                    team: ['Pagination Team', 'Mobile List Team'],
+                    originalFiles: ['client/src/hooks/useInfiniteScroll.ts'],
+                    changesFrom: 'Built infinite scroll with React Query for seamless feed loading.',
+                    currentState: 'Web: Intersection Observer-based infinite scroll. Mobile: Need native pagination.',
+                    estimatedHours: 8,
+                    actualHours: 10,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Implement iOS pagination with UICollectionView scrollViewDidScroll',
+                      'Create Android pagination with RecyclerView OnScrollListener',
+                      'Add loading indicators and error retry mechanisms'
+                    ],
+                    children: [
+                      {
+                        id: 'MT-002-002-001-001-LOADING',
+                        title: 'Loading State Management',
+                        type: 'Sub-task',
+                        status: 'Complete',
+                        completion: 100,
+                        priority: 'Low',
+                        team: ['State Management Team', 'Mobile UI Team'],
+                        originalFiles: ['client/src/components/ui/loading-spinner.tsx'],
+                        changesFrom: 'Added skeleton loading states and spinner components.',
+                        currentState: 'Web: React loading states with suspense. Mobile: Need native loading UI.',
+                        estimatedHours: 4,
+                        actualHours: 5,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Create iOS skeleton loading with CAShapeLayer animations',
+                          'Build Android skeleton loading with Shimmer effect',
+                          'Add network connectivity indicators'
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    id: 'MT-002-002-002-REALTIME',
+                    title: 'Real-time Updates',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 80,
+                    priority: 'High',
+                    team: ['Real-time Team', 'Mobile Push Team', 'WebSocket Team'],
+                    originalFiles: ['client/src/services/realtimeService.ts'],
+                    changesFrom: 'Implemented Supabase Realtime for live feed updates and notifications.',
+                    currentState: 'Web: WebSocket real-time updates working. Mobile: Need push notifications and background sync.',
+                    estimatedHours: 15,
+                    actualHours: 18,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Setup iOS push notifications with APNs',
+                      'Configure Android push with Firebase Cloud Messaging',
+                      'Implement background sync for offline scenarios',
+                      'Add local notifications for real-time events'
+                    ],
+                    children: [
+                      {
+                        id: 'MT-002-002-002-001-PUSH',
+                        title: 'Push Notification System',
+                        type: 'Sub-task',
+                        status: 'Not Started',
+                        completion: 0,
+                        priority: 'High',
+                        team: ['Mobile Push Team', 'Backend Notifications Team'],
+                        originalFiles: ['N/A - Mobile Only'],
+                        changesFrom: 'New mobile feature - push notifications for real-time engagement.',
+                        currentState: 'Web: Browser notifications available. Mobile: Need native push system.',
+                        estimatedHours: 20,
+                        actualHours: 0,
+                        webStatus: 'Partial',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Register iOS app with Apple Push Notification service',
+                          'Setup Android app with Firebase Console',
+                          'Implement push token registration and management',
+                          'Create notification payload handling and display'
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
                 priority: 'High',
                 originalFiles: ['TT-Frontend/components/PostCreator.tsx'],
                 changesFrom: 'Upgraded from basic text posts to rich multimedia posts with media uploads, location tagging, user mentions, and visibility controls.',
