@@ -1307,8 +1307,8 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
       const timestamp = new Date().toISOString();
       const dateString = timestamp.split('T')[0];
       
-      const criticalIssues = COMPREHENSIVE_PLATFORM_INVENTORY.filter(item => item.riskLevel === 'High');
-      const blockedItemsList = COMPREHENSIVE_PLATFORM_INVENTORY.filter(item => item.blockers.length > 0);
+      const criticalIssues = hierarchicalFilteredItems.filter(item => item.riskLevel === 'High');
+      const blockedItemsList = hierarchicalFilteredItems.filter(item => item.blockers?.length > 0);
       
       const reportContent = `# 📊 Comprehensive 11L Project Tracker Report
 
@@ -2043,7 +2043,7 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
                   {getLayerStats().map((layer, index) => {
                     const layerInfo = getLayerInfo(layer.name);
                     const Icon = layerInfo.icon;
-                    const layerItems = COMPREHENSIVE_PLATFORM_INVENTORY.filter(item => item.layer === layer.name);
+                    const layerItems = hierarchicalFilteredItems.filter(item => item.layer === layer.name);
                     
                     return (
                       <div key={layer.name} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
