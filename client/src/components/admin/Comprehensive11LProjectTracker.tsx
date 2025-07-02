@@ -1224,7 +1224,7 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
     console.log('📈 Analytics: Export Data button clicked', {
       timestamp: new Date().toISOString(),
       totalItems,
-      filteredItems: filteredItems.length,
+      filteredItems: hierarchicalFilteredItems.length,
       selectedLayer,
       selectedStatus,
       selectedRisk,
@@ -1244,7 +1244,7 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
           lastUpdated: lastUpdated.toISOString()
         },
         layerDistribution,
-        items: filteredItems,
+        items: hierarchicalFilteredItems,
         metadata: {
           generatedAt: new Date().toISOString(),
           generatedBy: 'Comprehensive 11L Project Tracker',
@@ -1664,7 +1664,7 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
             </Select>
 
             <div className="flex items-center text-sm text-gray-600">
-              {filteredItems.length} of {totalItems} items
+              {hierarchicalFilteredItems.length} of {totalItems} items
             </div>
           </div>
         </CardContent>
