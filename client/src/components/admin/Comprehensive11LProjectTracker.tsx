@@ -683,7 +683,7 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
   const [view, setView] = useState<'overview' | 'detailed' | 'analytics'>('overview');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  const [expandedLayers, setExpandedLayers] = useState<Set<string>>(new Set());
+  const [expandedLayers, setExpandedLayers] = useState<Set<string>>(new Set(['platform', 'app', 'admin']));
 
   // Layer expansion toggle with analytics tracking
   const toggleLayerExpansion = (layerId: string) => {
@@ -1008,7 +1008,7 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
             <Layers className="h-8 w-8" />
             Comprehensive 11L Platform Tracker
           </h2>
-          <p className="text-gray-600 mt-1">100% Complete Platform Inventory Across All 11 Layers</p>
+          <p className="text-gray-600 mt-1">Hierarchical Platform Structure with Layer Distribution & Health Analytics</p>
           <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
             <span>{totalItems} Total Items</span>
             <span>•</span>
