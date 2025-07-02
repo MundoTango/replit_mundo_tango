@@ -39,7 +39,8 @@ import {
   Scale,
   Briefcase,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 
 // 11L Layer Definitions with Icons and Colors
@@ -1192,85 +1193,309 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
       {/* View Content */}
       {view === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Layer Distribution with Collapsible Sections */}
+          {/* Mundo Tango Platform Structure */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
-                Layer Distribution & Health
+                Mundo Tango Platform Structure
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {layerDistribution.map(layer => {
-                  const Icon = layer.icon;
-                  const isExpanded = expandedLayers.has(layer.id);
-                  const layerTasks = getTasksByLayer(layer.id);
+              <div className="space-y-4">
+                {/* Level 1: Mundo Tango Platform */}
+                <Collapsible open={expandedLayers.has('platform')} >
+                  <CollapsibleTrigger 
+                    className="w-full hover:bg-gray-50 p-3 rounded-lg transition-colors border-2 border-blue-200 bg-blue-50"
+                    onClick={() => toggleLayerExpansion('platform')}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {expandedLayers.has('platform') ? (
+                          <ChevronDown className="h-5 w-5 text-blue-600" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-blue-600" />
+                        )}
+                        <Globe className="h-5 w-5 text-blue-600" />
+                        <span className="text-lg font-bold text-blue-800">Mundo Tango Platform</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-blue-600 text-white">82%</Badge>
+                        <div className="text-sm text-blue-700 font-semibold">Platform Complete</div>
+                      </div>
+                    </div>
+                  </CollapsibleTrigger>
                   
-                  return (
-                    <Collapsible key={layer.id} open={isExpanded}>
-                      <CollapsibleTrigger 
-                        className="w-full hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                        onClick={() => toggleLayerExpansion(layer.id)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            {isExpanded ? (
-                              <ChevronDown className="h-4 w-4 text-gray-500" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4 text-gray-500" />
-                            )}
-                            <div className={`w-3 h-3 rounded-full ${layer.color}`}></div>
-                            <Icon className="h-4 w-4" />
-                            <span className="text-sm font-medium">{layer.name}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">
-                              {layer.completed}/{layer.count}
-                            </Badge>
-                            <div className="w-20 text-right text-sm text-gray-600">
-                              {Math.round(layer.avgCompletion)}%
-                            </div>
-                          </div>
-                        </div>
-                      </CollapsibleTrigger>
+                  <CollapsibleContent className="px-4 pb-2">
+                    <div className="ml-6 space-y-3 mt-3">
                       
-                      <CollapsibleContent className="px-2 pb-2">
-                        <div className="ml-8 space-y-2 mt-2">
-                          {layerTasks.map(task => (
-                            <div key={task.id} className="p-2 bg-gray-50 rounded border-l-2 border-gray-300">
-                              <div className="flex items-center justify-between">
-                                <div className="text-sm font-medium">{task.title}</div>
-                                <div className="flex items-center gap-2">
-                                  <Badge 
-                                    variant={task.mvpStatus === 'Signed Off' ? 'default' : 'outline'}
-                                    className="text-xs"
-                                  >
-                                    {task.mvpStatus}
-                                  </Badge>
-                                  <div className="text-xs text-gray-600">
-                                    {task.completionPercentage}%
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="text-xs text-gray-500 mt-1">{task.description}</div>
-                              {task.blockers.length > 0 && (
-                                <div className="mt-1">
-                                  <div className="text-xs text-red-600">
-                                    🚨 Blockers: {task.blockers.join(', ')}
-                                  </div>
-                                </div>
+                      {/* Level 2: Mundo Tango App */}
+                      <Collapsible open={expandedLayers.has('app')} >
+                        <CollapsibleTrigger 
+                          className="w-full hover:bg-gray-50 p-2 rounded-lg transition-colors border border-green-200 bg-green-50"
+                          onClick={() => toggleLayerExpansion('app')}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              {expandedLayers.has('app') ? (
+                                <ChevronDown className="h-4 w-4 text-green-600" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-green-600" />
                               )}
+                              <Activity className="h-4 w-4 text-green-600" />
+                              <span className="text-md font-semibold text-green-800">Mundo Tango App</span>
                             </div>
-                          ))}
-                          {layerTasks.length === 0 && (
-                            <div className="text-xs text-gray-500 italic">No tasks in this layer</div>
-                          )}
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  );
-                })}
+                            <div className="flex items-center gap-2">
+                              <Badge className="bg-green-600 text-white text-xs">89%</Badge>
+                              <div className="text-xs text-green-700">App Ready</div>
+                            </div>
+                          </div>
+                        </CollapsibleTrigger>
+                        
+                        <CollapsibleContent className="px-2 pb-2">
+                          <div className="ml-6 space-y-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+                            
+                            {/* Moments Section */}
+                            <Card className="border-purple-200 bg-purple-50">
+                              <CardContent className="p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Eye className="h-4 w-4 text-purple-600" />
+                                    <span className="text-sm font-medium text-purple-800">Moments & Feed</span>
+                                  </div>
+                                  <Badge className="bg-purple-600 text-white text-xs">95%</Badge>
+                                </div>
+                                <div className="text-xs text-purple-600 mt-1">
+                                  Post creation, media, real-time engagement
+                                </div>
+                                <Progress value={95} className="mt-2 h-1" />
+                              </CardContent>
+                            </Card>
+
+                            {/* Events Section */}
+                            <Card className="border-orange-200 bg-orange-50">
+                              <CardContent className="p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <CalendarIcon className="h-4 w-4 text-orange-600" />
+                                    <span className="text-sm font-medium text-orange-800">Events & RSVP</span>
+                                  </div>
+                                  <Badge className="bg-orange-600 text-white text-xs">92%</Badge>
+                                </div>
+                                <div className="text-xs text-orange-600 mt-1">
+                                  Event management, role assignments, RSVPs
+                                </div>
+                                <Progress value={92} className="mt-2 h-1" />
+                              </CardContent>
+                            </Card>
+
+                            {/* Community Section */}
+                            <Card className="border-teal-200 bg-teal-50">
+                              <CardContent className="p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Users className="h-4 w-4 text-teal-600" />
+                                    <span className="text-sm font-medium text-teal-800">Community & Groups</span>
+                                  </div>
+                                  <Badge className="bg-teal-600 text-white text-xs">87%</Badge>
+                                </div>
+                                <div className="text-xs text-teal-600 mt-1">
+                                  City groups, auto-join, member management
+                                </div>
+                                <Progress value={87} className="mt-2 h-1" />
+                              </CardContent>
+                            </Card>
+
+                            {/* Friends Section */}
+                            <Card className="border-pink-200 bg-pink-50">
+                              <CardContent className="p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Users className="h-4 w-4 text-pink-600" />
+                                    <span className="text-sm font-medium text-pink-800">Friends & Social</span>
+                                  </div>
+                                  <Badge className="bg-pink-600 text-white text-xs">85%</Badge>
+                                </div>
+                                <div className="text-xs text-pink-600 mt-1">
+                                  Friend requests, messaging, profiles
+                                </div>
+                                <Progress value={85} className="mt-2 h-1" />
+                              </CardContent>
+                            </Card>
+
+                            {/* Authentication Section */}
+                            <Card className="border-red-200 bg-red-50">
+                              <CardContent className="p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Shield className="h-4 w-4 text-red-600" />
+                                    <span className="text-sm font-medium text-red-800">Auth & Onboarding</span>
+                                  </div>
+                                  <Badge className="bg-red-600 text-white text-xs">93%</Badge>
+                                </div>
+                                <div className="text-xs text-red-600 mt-1">
+                                  Registration, roles, code of conduct
+                                </div>
+                                <Progress value={93} className="mt-2 h-1" />
+                              </CardContent>
+                            </Card>
+
+                            {/* Media System */}
+                            <Card className="border-indigo-200 bg-indigo-50">
+                              <CardContent className="p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Database className="h-4 w-4 text-indigo-600" />
+                                    <span className="text-sm font-medium text-indigo-800">Media & Storage</span>
+                                  </div>
+                                  <Badge className="bg-indigo-600 text-white text-xs">91%</Badge>
+                                </div>
+                                <div className="text-xs text-indigo-600 mt-1">
+                                  File uploads, Supabase integration, tagging
+                                </div>
+                                <Progress value={91} className="mt-2 h-1" />
+                              </CardContent>
+                            </Card>
+
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+
+                      {/* Level 2: Admin Center */}
+                      <Collapsible open={expandedLayers.has('admin')} >
+                        <CollapsibleTrigger 
+                          className="w-full hover:bg-gray-50 p-2 rounded-lg transition-colors border border-blue-200 bg-blue-50"
+                          onClick={() => toggleLayerExpansion('admin')}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              {expandedLayers.has('admin') ? (
+                                <ChevronDown className="h-4 w-4 text-blue-600" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-blue-600" />
+                              )}
+                              <Settings className="h-4 w-4 text-blue-600" />
+                              <span className="text-md font-semibold text-blue-800">Mundo Tango Admin Center</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge className="bg-blue-600 text-white text-xs">76%</Badge>
+                              <div className="text-xs text-blue-700">Admin Portal</div>
+                            </div>
+                          </div>
+                        </CollapsibleTrigger>
+                        
+                        <CollapsibleContent className="px-2 pb-2">
+                          <div className="ml-6 space-y-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+                            
+                            {/* User Management */}
+                            <Card className="border-gray-200 bg-gray-50">
+                              <CardContent className="p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Users className="h-4 w-4 text-gray-600" />
+                                    <span className="text-sm font-medium text-gray-800">User Management</span>
+                                  </div>
+                                  <Badge className="bg-gray-600 text-white text-xs">89%</Badge>
+                                </div>
+                                <div className="text-xs text-gray-600 mt-1">
+                                  Role assignment, moderation, bulk operations
+                                </div>
+                                <Progress value={89} className="mt-2 h-1" />
+                              </CardContent>
+                            </Card>
+
+                            {/* Analytics Dashboard */}
+                            <Card className="border-cyan-200 bg-cyan-50">
+                              <CardContent className="p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <BarChart3 className="h-4 w-4 text-cyan-600" />
+                                    <span className="text-sm font-medium text-cyan-800">Analytics Dashboard</span>
+                                  </div>
+                                  <Badge className="bg-cyan-600 text-white text-xs">73%</Badge>
+                                </div>
+                                <div className="text-xs text-cyan-600 mt-1">
+                                  Platform metrics, user engagement, trends
+                                </div>
+                                <Progress value={73} className="mt-2 h-1" />
+                              </CardContent>
+                            </Card>
+
+                            {/* Content Moderation */}
+                            <Card className="border-yellow-200 bg-yellow-50">
+                              <CardContent className="p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Shield className="h-4 w-4 text-yellow-600" />
+                                    <span className="text-sm font-medium text-yellow-800">Content Moderation</span>
+                                  </div>
+                                  <Badge className="bg-yellow-600 text-white text-xs">68%</Badge>
+                                </div>
+                                <div className="text-xs text-yellow-600 mt-1">
+                                  Auto-moderation, reporting, review workflows
+                                </div>
+                                <Progress value={68} className="mt-2 h-1" />
+                              </CardContent>
+                            </Card>
+
+                            {/* System Health */}
+                            <Card className="border-emerald-200 bg-emerald-50">
+                              <CardContent className="p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Monitor className="h-4 w-4 text-emerald-600" />
+                                    <span className="text-sm font-medium text-emerald-800">System Health</span>
+                                  </div>
+                                  <Badge className="bg-emerald-600 text-white text-xs">82%</Badge>
+                                </div>
+                                <div className="text-xs text-emerald-600 mt-1">
+                                  Uptime monitoring, performance, logs
+                                </div>
+                                <Progress value={82} className="mt-2 h-1" />
+                              </CardContent>
+                            </Card>
+
+                            {/* 11L Project Tracker */}
+                            <Card className="border-violet-200 bg-violet-50">
+                              <CardContent className="p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Layers className="h-4 w-4 text-violet-600" />
+                                    <span className="text-sm font-medium text-violet-800">11L Project Tracker</span>
+                                  </div>
+                                  <Badge className="bg-violet-600 text-white text-xs">75%</Badge>
+                                </div>
+                                <div className="text-xs text-violet-600 mt-1">
+                                  Feature tracking, layer analysis, completion
+                                </div>
+                                <Progress value={75} className="mt-2 h-1" />
+                              </CardContent>
+                            </Card>
+
+                            {/* Compliance Center */}
+                            <Card className="border-rose-200 bg-rose-50">
+                              <CardContent className="p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Scale className="h-4 w-4 text-rose-600" />
+                                    <span className="text-sm font-medium text-rose-800">Compliance Center</span>
+                                  </div>
+                                  <Badge className="bg-rose-600 text-white text-xs">71%</Badge>
+                                </div>
+                                <div className="text-xs text-rose-600 mt-1">
+                                  GDPR compliance, audit logs, privacy controls
+                                </div>
+                                <Progress value={71} className="mt-2 h-1" />
+                              </CardContent>
+                            </Card>
+
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             </CardContent>
           </Card>
