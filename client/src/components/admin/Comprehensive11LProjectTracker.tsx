@@ -684,6 +684,58 @@ export const Comprehensive11LProjectTracker: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [expandedLayers, setExpandedLayers] = useState<Set<string>>(new Set(['platform', 'app', 'admin']));
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [showItemModal, setShowItemModal] = useState<boolean>(false);
+
+  // Handle card click for detailed view
+  const handleCardClick = (item: any) => {
+    setSelectedItem(item);
+    setShowItemModal(true);
+    // Analytics tracking
+    if (typeof window !== 'undefined' && window.plausible) {
+      window.plausible('11L Card Clicked', {
+        props: {
+          layer: item.layer,
+          title: item.title,
+          type: item.type,
+          status: item.mvpStatus
+        }
+      });
+    }
+  };
+
+  // Get layer statistics for Layer Distribution view
+  const getLayerStats = () => {
+    const layerMap = new Map();
+    
+    COMPREHENSIVE_PLATFORM_INVENTORY.forEach(item => {
+      if (!layerMap.has(item.layer)) {
+        layerMap.set(item.layer, {
+          name: item.layer,
+          items: [],
+          totalItems: 0,
+          completedItems: 0,
+          avgCompletion: 0
+        });
+      }
+      
+      const layer = layerMap.get(item.layer);
+      layer.items.push(item);
+      layer.totalItems++;
+      if (item.mvpStatus === 'Complete' || item.completionPercentage >= 90) {
+        layer.completedItems++;
+      }
+    });
+
+    // Calculate average completion for each layer
+    layerMap.forEach((layer, key) => {
+      const totalCompletion = layer.items.reduce((sum: number, item: any) => sum + item.completionPercentage, 0);
+      layer.avgCompletion = Math.round(totalCompletion / layer.items.length);
+      layerMap.set(key, layer);
+    });
+
+    return Array.from(layerMap.values());
+  };
 
   // Layer expansion toggle with analytics tracking
   const toggleLayerExpansion = (layerId: string) => {
@@ -1500,6 +1552,104 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
             </CardContent>
           </Card>
 
+          {/* Layer Distribution & Health */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Layers className="h-5 w-5" />
+                Layer Distribution & Health
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {getLayerStats().map((layer, index) => {
+                  const layerInfo = getLayerInfo(layer.name);
+                  const Icon = layerInfo.icon;
+                  
+                  return (
+                    <Collapsible key={layer.name} defaultOpen={false}>
+                      <CollapsibleTrigger className="w-full hover:bg-gray-50 p-3 rounded-lg transition-colors border border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <ChevronRight className="h-4 w-4 text-gray-500 group-data-[state=open]:rotate-90 transition-transform" />
+                            <div className={`p-2 rounded-full ${layerInfo.color} bg-opacity-20`}>
+                              <Icon className={`h-4 w-4 ${layerInfo.color.replace('bg-', 'text-')}`} />
+                            </div>
+                            <span className="text-sm font-medium">{layer.name}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Badge variant="outline" className="text-xs">
+                              {layer.completedItems}/{layer.totalItems}
+                            </Badge>
+                            <div className="text-lg font-bold">{layer.avgCompletion}%</div>
+                          </div>
+                        </div>
+                      </CollapsibleTrigger>
+                      
+                      <CollapsibleContent className="px-2 pb-2">
+                        <div className="ml-8 mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {layer.items.map((item: any) => (
+                            <Card 
+                              key={item.id} 
+                              className="cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 border-l-4"
+                              style={{ borderLeftColor: layerInfo.color.includes('blue') ? '#3B82F6' : 
+                                      layerInfo.color.includes('green') ? '#10B981' : 
+                                      layerInfo.color.includes('purple') ? '#8B5CF6' : 
+                                      layerInfo.color.includes('red') ? '#EF4444' : 
+                                      layerInfo.color.includes('yellow') ? '#F59E0B' : 
+                                      layerInfo.color.includes('pink') ? '#EC4899' : 
+                                      layerInfo.color.includes('orange') ? '#F97316' : '#6B7280' }}
+                              onClick={() => handleCardClick(item)}
+                            >
+                              <CardContent className="p-4">
+                                <div className="space-y-3">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <div className="font-medium text-sm line-clamp-2">{item.title}</div>
+                                      <div className="text-xs text-gray-500 mt-1">{item.type}</div>
+                                    </div>
+                                    <Badge className={`${getStatusColor(item.mvpStatus)} text-white text-xs ml-2`}>
+                                      {item.mvpStatus}
+                                    </Badge>
+                                  </div>
+                                  
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-xs">
+                                      <span>Completion</span>
+                                      <span className="font-medium">{item.completionPercentage}%</span>
+                                    </div>
+                                    <Progress value={item.completionPercentage} className="h-1" />
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-between text-xs text-gray-500">
+                                    <span>{item.actualHours}h / {item.estimatedHours}h</span>
+                                    <Badge 
+                                      variant="outline" 
+                                      className={`${getRiskColor(item.riskLevel)} text-white text-xs`}
+                                    >
+                                      {item.riskLevel}
+                                    </Badge>
+                                  </div>
+                                  
+                                  {item.blockers.length > 0 && (
+                                    <div className="flex items-center gap-1 text-xs text-red-600">
+                                      <AlertTriangle className="h-3 w-3" />
+                                      <span>{item.blockers.length} blocker{item.blockers.length > 1 ? 's' : ''}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Critical Issues */}
           <Card>
             <CardHeader>
@@ -1664,6 +1814,175 @@ ${layerDistribution.filter(l => l.avgCompletion < 70).map(l => `- ${l.name} (${M
               <p className="text-gray-500">Risk analysis charts coming soon...</p>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {/* Item Detail Modal - Jira Style */}
+      {showItemModal && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Badge className={`${getLayerInfo(selectedItem.layer).color} text-white`}>
+                  {selectedItem.layer}
+                </Badge>
+                <Badge variant="outline">{selectedItem.type}</Badge>
+                <Badge className={`${getStatusColor(selectedItem.mvpStatus)} text-white`}>
+                  {selectedItem.mvpStatus}
+                </Badge>
+              </div>
+              <button
+                onClick={() => setShowItemModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* Header */}
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{selectedItem.title}</h2>
+                  <p className="text-gray-600 mt-2">{selectedItem.description}</p>
+                </div>
+
+                {/* Progress Section */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-sm font-medium text-blue-800">Completion</div>
+                    <div className="text-2xl font-bold text-blue-900">{selectedItem.completionPercentage}%</div>
+                    <Progress value={selectedItem.completionPercentage} className="mt-2" />
+                  </div>
+                  
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="text-sm font-medium text-green-800">Hours Progress</div>
+                    <div className="text-2xl font-bold text-green-900">
+                      {selectedItem.actualHours} / {selectedItem.estimatedHours}
+                    </div>
+                    <Progress 
+                      value={Math.min((selectedItem.actualHours / selectedItem.estimatedHours) * 100, 100)} 
+                      className="mt-2" 
+                    />
+                  </div>
+                  
+                  <div className={`p-4 rounded-lg ${
+                    selectedItem.riskLevel === 'High' ? 'bg-red-50' :
+                    selectedItem.riskLevel === 'Medium' ? 'bg-yellow-50' : 'bg-green-50'
+                  }`}>
+                    <div className={`text-sm font-medium ${
+                      selectedItem.riskLevel === 'High' ? 'text-red-800' :
+                      selectedItem.riskLevel === 'Medium' ? 'text-yellow-800' : 'text-green-800'
+                    }`}>Risk Level</div>
+                    <div className={`text-2xl font-bold ${
+                      selectedItem.riskLevel === 'High' ? 'text-red-900' :
+                      selectedItem.riskLevel === 'Medium' ? 'text-yellow-900' : 'text-green-900'
+                    }`}>{selectedItem.riskLevel}</div>
+                  </div>
+                </div>
+
+                {/* Metadata Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Details</h3>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Review Status:</span>
+                        <Badge variant="outline">{selectedItem.reviewStatus}</Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Version:</span>
+                        <span>{selectedItem.version || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Priority:</span>
+                        <Badge className={selectedItem.riskLevel === 'High' ? 'bg-red-600' : 
+                                         selectedItem.riskLevel === 'Medium' ? 'bg-yellow-600' : 'bg-green-600'}>
+                          {selectedItem.riskLevel}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedItem.tags.map((tag: string, index: number) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Blockers Section */}
+                {selectedItem.blockers.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-red-600" />
+                      Blockers ({selectedItem.blockers.length})
+                    </h3>
+                    <div className="bg-red-50 rounded-lg p-4">
+                      <ul className="space-y-2">
+                        {selectedItem.blockers.map((blocker: string, index: number) => (
+                          <li key={index} className="flex items-start gap-2 text-red-800">
+                            <div className="w-2 h-2 bg-red-600 rounded-full mt-2 flex-shrink-0"></div>
+                            <span>{blocker}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                {/* Dependencies Section */}
+                {selectedItem.dependencies.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      Dependencies ({selectedItem.dependencies.length})
+                    </h3>
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <div className="flex flex-wrap gap-2">
+                        {selectedItem.dependencies.map((dep: string, index: number) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {dep}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <button
+                    onClick={() => setShowItemModal(false)}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    Close
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    onClick={() => {
+                      // Analytics tracking for action
+                      if (typeof window !== 'undefined' && window.plausible) {
+                        window.plausible('11L Item Action', {
+                          props: {
+                            action: 'view_details',
+                            layer: selectedItem.layer,
+                            title: selectedItem.title
+                          }
+                        });
+                      }
+                    }}
+                  >
+                    View Full Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
