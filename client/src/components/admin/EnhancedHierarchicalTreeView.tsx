@@ -223,6 +223,92 @@ const DetailedCard: React.FC<DetailedCardProps> = ({ item, onClose }) => {
           </div>
         </div>
 
+        {/* Web vs Mobile Development Status */}
+        {(item.webStatus || item.mobileStatus || item.mobileNextSteps) && (
+          <div>
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <Smartphone className="h-5 w-5 text-indigo-600" />
+              Web vs Mobile Development Status
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {/* Web Development Status */}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                  <Monitor className="h-4 w-4" />
+                  Web Development
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Status:</span>
+                    <Badge 
+                      variant={item.webStatus === 'Complete' ? 'default' : 'secondary'}
+                      className={item.webStatus === 'Complete' ? 'bg-green-600' : 'bg-orange-500'}
+                    >
+                      {item.webStatus || 'Not Specified'}
+                    </Badge>
+                  </div>
+                  {item.webStatus === 'Complete' && (
+                    <div className="text-sm text-green-700">
+                      ✓ Ready for mobile development handoff
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Mobile Development Status */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                  <Smartphone className="h-4 w-4" />
+                  Mobile Development
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Status:</span>
+                    <Badge 
+                      variant={item.mobileStatus === 'Complete' ? 'default' : 'secondary'}
+                      className={item.mobileStatus === 'Complete' ? 'bg-green-600' : 'bg-red-500'}
+                    >
+                      {item.mobileStatus || 'Not Started'}
+                    </Badge>
+                  </div>
+                  {item.mobileStatus === 'Not Started' && (
+                    <div className="text-sm text-blue-700">
+                      → Requires Senior Mobile Architect
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Development Next Steps */}
+            {item.mobileNextSteps && item.mobileNextSteps.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  Mobile Development Next Steps
+                </h4>
+                <div className="space-y-2">
+                  {item.mobileNextSteps.map((step, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        {index + 1}
+                      </div>
+                      <div className="text-sm text-blue-700 leading-relaxed">{step}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 p-3 bg-blue-100 rounded-lg">
+                  <p className="text-xs text-blue-800 font-medium">
+                    💡 These steps represent what the web development team has prepared for mobile implementation. 
+                    Each step is ready for a Senior Mobile Architect to execute using native iOS (Swift/SwiftUI) 
+                    and Android (Kotlin/Jetpack Compose) technologies.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Handoff Instructions */}
         <div>
           <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
