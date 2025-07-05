@@ -273,6 +273,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
+                  {/* Profile/Project Switcher */}
+                  <div className="px-3 py-2 border-b">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-gray-500 uppercase">Active Profile</span>
+                    </div>
+                    <button 
+                      onClick={() => setLocation('/profile-switcher')}
+                      className="w-full flex items-center justify-between p-2 rounded-lg bg-gradient-to-r from-pink-50 to-blue-50 hover:from-pink-100 hover:to-blue-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">MT</span>
+                        </div>
+                        <span className="text-sm font-medium">Mundo Tango</span>
+                      </div>
+                      <ChevronDown className="h-4 w-4 text-gray-500" />
+                    </button>
+                  </div>
+                  
                   <div className="px-3 py-2">
                     <p className="text-sm font-semibold">{user?.name || user?.username}</p>
                     <p className="text-xs text-gray-500">{user?.email}</p>

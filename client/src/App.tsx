@@ -34,6 +34,8 @@ import { NotionEntryPage } from "@/pages/NotionEntryPage";
 import AdminCenter from "@/pages/AdminCenter";
 import LifeCEOPortal from "@/components/admin/LifeCEOPortal";
 import LifeCEOAgentDetail from "@/components/admin/LifeCEOAgentDetail";
+import ProfileSwitcher from "@/pages/ProfileSwitcher";
+import LifeCEO from "@/pages/LifeCEO";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -104,7 +106,9 @@ function Router() {
       <Route path="/stories" component={NotionHomePage} />
       <Route path="/stories/:slug" component={NotionEntryPage} />
       <Route path="/admin" component={AdminCenter} />
-      <Route path="/life-ceo" component={LifeCEOPortal} />
+      <Route path="/profile-switcher" component={ProfileSwitcher} />
+      <Route path="/life-ceo" component={LifeCEO} />
+      <Route path="/life-ceo-portal" component={LifeCEOPortal} />
       <Route path="/life-ceo/agent/:id" component={LifeCEOAgentDetail} />
       <Route component={NotFound} />
     </Switch>
