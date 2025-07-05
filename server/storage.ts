@@ -2094,7 +2094,8 @@ export class DatabaseStorage implements IStorage {
     try {
       // Use the existing chat_messages table structure with proper slug format
       const messageSlug = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const userSlug = `user_${message.userId}`;
+      // Use different userSlug for assistant messages to distinguish them
+      const userSlug = message.role === 'assistant' ? `assistant_${message.agentId}` : `user_${message.userId}`;
       const chatRoomSlug = `lifeceo_${message.agentId}`;
       
       // Ensure the Life CEO chat room exists
@@ -2146,19 +2147,24 @@ export class DatabaseStorage implements IStorage {
     try {
       // Use the existing chat_messages table structure with slug-based filtering
       const userSlug = `user_${userId}`;
+      const assistantSlug = `assistant_${agentId}`;
       const chatRoomSlug = `lifeceo_${agentId}`;
       
+      // Get messages from both user and assistant
       const messages = await db.query.chatMessages.findMany({
         where: and(
-          eq(chatMessages.userSlug, userSlug),
-          eq(chatMessages.chatRoomSlug, chatRoomSlug)
+          eq(chatMessages.chatRoomSlug, chatRoomSlug),
+          or(
+            eq(chatMessages.userSlug, userSlug),
+            eq(chatMessages.userSlug, assistantSlug)
+          )
         ),
-        orderBy: desc(chatMessages.createdAt),
+        orderBy: asc(chatMessages.createdAt),
         limit: limit
       });
       
       // Transform to expected format
-      return messages.reverse().map(msg => ({
+      return messages.map(msg => ({
         id: msg.slug,
         role: msg.userSlug === userSlug ? 'user' : 'assistant',
         content: msg.message || '',

@@ -82,29 +82,75 @@ export default function LifeCEOEnhanced() {
     });
   }, []);
 
-  // Load conversations and projects from localStorage
+  // Load conversations and projects from localStorage AND database
   useEffect(() => {
-    const savedConversations = localStorage.getItem('life-ceo-conversations');
-    const savedProjects = localStorage.getItem('life-ceo-projects');
-    
-    if (savedConversations) {
-      setConversations(JSON.parse(savedConversations));
-    } else {
-      // Create default conversation
-      const defaultConvo: Conversation = {
-        id: 'default',
-        title: 'New Conversation',
-        messages: [],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      setConversations([defaultConvo]);
-      setActiveConversationId('default');
-    }
-    
-    if (savedProjects) {
-      setProjects(JSON.parse(savedProjects));
-    }
+    const loadConversations = async () => {
+      // First load from localStorage for immediate display
+      const savedConversations = localStorage.getItem('life-ceo-conversations');
+      const savedProjects = localStorage.getItem('life-ceo-projects');
+      
+      if (savedConversations) {
+        setConversations(JSON.parse(savedConversations));
+      } else {
+        // Create default conversation
+        const defaultConvo: Conversation = {
+          id: 'default',
+          title: 'New Conversation',
+          messages: [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        setConversations([defaultConvo]);
+        setActiveConversationId('default');
+      }
+      
+      if (savedProjects) {
+        setProjects(JSON.parse(savedProjects));
+      }
+
+      // Then load from database to get persisted messages
+      try {
+        const response = await fetch('/api/life-ceo/chat/life-ceo/history', {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const { data } = await response.json();
+          console.log('Loaded persisted messages from database:', data);
+          
+          // Update the default conversation with persisted messages
+          if (data && data.length > 0) {
+            setConversations(prevConversations => {
+              const updatedConversations = [...prevConversations];
+              const defaultConvoIndex = updatedConversations.findIndex(c => c.id === 'default');
+              
+              if (defaultConvoIndex !== -1) {
+                // Convert database messages to conversation format
+                const dbMessages = data.map((msg: any) => ({
+                  role: msg.role as 'user' | 'assistant',
+                  content: msg.content,
+                  timestamp: new Date(msg.timestamp)
+                }));
+                
+                updatedConversations[defaultConvoIndex] = {
+                  ...updatedConversations[defaultConvoIndex],
+                  messages: dbMessages,
+                  updatedAt: new Date()
+                };
+              }
+              
+              return updatedConversations;
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading persisted messages:', error);
+      }
+    };
+
+    loadConversations();
   }, []);
 
   // Save conversations and projects to localStorage
