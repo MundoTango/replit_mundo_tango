@@ -1,0 +1,11 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="128" fill="url(#gradient)"/>
+  <path d="M256 106C182.4 106 122 166.4 122 240C122 313.6 182.4 374 256 374C329.6 374 390 313.6 390 240C390 166.4 329.6 106 256 106Z" fill="white" fill-opacity="0.9"/>
+  <text x="256" y="280" font-family="Arial, sans-serif" font-size="96" font-weight="bold" text-anchor="middle" fill="#7C3AED">CEO</text>
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#A855F7"/>
+    </linearGradient>
+  </defs>
+</svg>
