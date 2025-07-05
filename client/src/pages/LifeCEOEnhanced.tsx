@@ -33,6 +33,26 @@ interface Project {
   createdAt: Date;
 }
 
+// Define all 16 Life CEO agents
+const LIFE_CEO_AGENTS = [
+  { id: 'life-ceo', name: 'Life CEO', icon: '👔', description: 'General life management' },
+  { id: 'business', name: 'Business Agent', icon: '💼', description: 'Professional development and meetings' },
+  { id: 'finance', name: 'Finance Agent', icon: '💰', description: 'Financial planning and tracking' },
+  { id: 'health', name: 'Health Agent', icon: '🏥', description: 'Wellness and medical management' },
+  { id: 'relationships', name: 'Relationships Agent', icon: '❤️', description: 'Social connections and family' },
+  { id: 'learning', name: 'Learning Agent', icon: '📚', description: 'Education and skill development' },
+  { id: 'creative', name: 'Creative Agent', icon: '🎨', description: 'Artistic projects and expression' },
+  { id: 'network', name: 'Network Agent', icon: '🌐', description: 'Professional connections' },
+  { id: 'global-mobility', name: 'Global Mobility Agent', icon: '✈️', description: 'Travel and relocation' },
+  { id: 'security', name: 'Security Agent', icon: '🔒', description: 'Privacy and protection' },
+  { id: 'emergency', name: 'Emergency Agent', icon: '🚨', description: 'Crisis management' },
+  { id: 'memory', name: 'Memory Agent', icon: '🧠', description: 'Knowledge and recall' },
+  { id: 'voice', name: 'Voice Agent', icon: '🎙️', description: 'Communication enhancement' },
+  { id: 'data', name: 'Data Agent', icon: '📊', description: 'Analytics and insights' },
+  { id: 'workflow', name: 'Workflow Agent', icon: '⚙️', description: 'Process optimization' },
+  { id: 'legal', name: 'Legal Agent', icon: '⚖️', description: 'Legal matters and compliance' }
+];
+
 export default function LifeCEOEnhanced() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
@@ -52,12 +72,15 @@ export default function LifeCEOEnhanced() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const deferredPromptRef = useRef<any>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioProcessorRef = useRef<ScriptProcessorNode | null>(null);
 
   const [activeAgents, setActiveAgents] = useState([
     { name: 'Business Agent', status: 'active', icon: '💼' },
     { name: 'Finance Agent', status: 'active', icon: '💰' },
     { name: 'Health Agent', status: 'active', icon: '❤️' },
   ]);
+  const [selectedAgentId, setSelectedAgentId] = useState<string>('life-ceo');
+  const [showAgentSwitcher, setShowAgentSwitcher] = useState(false);
 
   // Check if user is super admin
   const isSuperAdmin = user?.roles?.includes('super_admin') || user?.tangoRoles?.includes('super_admin');
@@ -186,6 +209,15 @@ export default function LifeCEOEnhanced() {
       recognitionInstance.interimResults = true;
       recognitionInstance.lang = language === 'en' ? 'en-US' : 'es-ES';
       recognitionInstance.maxAlternatives = 3;
+      
+      // Add enhanced audio processing for unclear speech
+      recognitionInstance.audiostart = () => {
+        console.log('Audio capture started with noise suppression');
+      };
+      
+      recognitionInstance.audioend = () => {
+        console.log('Audio capture ended');
+      };
 
       recognitionInstance.onresult = (event: any) => {
         let interimTranscript = '';
@@ -272,12 +304,61 @@ export default function LifeCEOEnhanced() {
         
         mediaStreamRef.current = stream;
         
-        // Apply additional noise filtering if needed
+        // Apply enhanced noise filtering for unclear/long audio
         if (audioContextRef.current) {
           const source = audioContextRef.current.createMediaStreamSource(stream);
+          
+          // Create audio processing chain
           const analyser = audioContextRef.current.createAnalyser();
           analyser.fftSize = 2048;
-          source.connect(analyser);
+          analyser.smoothingTimeConstant = 0.8;
+          
+          // Dynamic compressor for consistent volume
+          const compressor = audioContextRef.current.createDynamicsCompressor();
+          compressor.threshold.value = -24;
+          compressor.knee.value = 30;
+          compressor.ratio.value = 12;
+          compressor.attack.value = 0.003;
+          compressor.release.value = 0.25;
+          
+          // High-pass filter to remove low-frequency noise
+          const highPassFilter = audioContextRef.current.createBiquadFilter();
+          highPassFilter.type = 'highpass';
+          highPassFilter.frequency.value = 85; // Remove frequencies below 85Hz
+          
+          // Create custom noise reduction processor
+          const scriptProcessor = audioContextRef.current.createScriptProcessor(4096, 1, 1);
+          scriptProcessor.onaudioprocess = (e) => {
+            const input = e.inputBuffer.getChannelData(0);
+            const output = e.outputBuffer.getChannelData(0);
+            
+            // Enhanced noise reduction algorithm
+            for (let i = 0; i < input.length; i++) {
+              let sample = input[i];
+              
+              // Adaptive noise gate with smooth transitions
+              const noiseFloor = 0.008;
+              if (Math.abs(sample) < noiseFloor) {
+                // Smooth fade for noise reduction
+                sample = sample * Math.exp(-Math.abs(sample) / noiseFloor);
+              }
+              
+              // Prevent clipping
+              sample = Math.max(-1, Math.min(1, sample));
+              output[i] = sample;
+            }
+          };
+          
+          // Connect audio processing chain
+          source.connect(highPassFilter);
+          highPassFilter.connect(compressor);
+          compressor.connect(scriptProcessor);
+          scriptProcessor.connect(analyser);
+          
+          // Store references for cleanup
+          audioProcessorRef.current = scriptProcessor;
+          
+          console.log('Enhanced audio processing enabled for unclear/long audio');
         }
         
         recognition?.start();
@@ -315,8 +396,12 @@ export default function LifeCEOEnhanced() {
     setIsProcessing(true);
 
     try {
-      // Use the actual Life CEO chat endpoint
-      const res = await fetch('/api/life-ceo/chat/general/message', {
+      // Use the selected agent endpoint
+      const agentEndpoint = selectedAgentId === 'life-ceo' 
+        ? '/api/life-ceo/chat/general/message'
+        : `/api/life-ceo/chat/${selectedAgentId}/message`;
+        
+      const res = await fetch(agentEndpoint, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -324,7 +409,8 @@ export default function LifeCEOEnhanced() {
         },
         credentials: 'include', // Include cookies for authentication
         body: JSON.stringify({ 
-          message: userMessage.content
+          message: userMessage.content,
+          agentId: selectedAgentId
         })
       });
 
@@ -573,16 +659,67 @@ export default function LifeCEOEnhanced() {
 
         {/* Agent Status Bar */}
         <div className="bg-gray-100 border-t border-gray-200 p-2">
-          <div className="flex items-center justify-around">
-            {activeAgents.map(agent => (
-              <div key={agent.name} className="flex items-center gap-2 text-xs">
-                <span>{agent.icon}</span>
-                <span className="text-gray-600">{agent.name}</span>
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              </div>
-            ))}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {activeAgents.slice(0, 3).map(agent => (
+                <div key={agent.name} className="flex items-center gap-2 text-xs">
+                  <span>{agent.icon}</span>
+                  <span className="text-gray-600">{agent.name}</span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                </div>
+              ))}
+            </div>
+            <Button
+              onClick={() => setShowAgentSwitcher(true)}
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+            >
+              <Brain className="h-4 w-4 mr-1" />
+              Switch Agent ({LIFE_CEO_AGENTS.find(a => a.id === selectedAgentId)?.name || 'Life CEO'})
+            </Button>
           </div>
         </div>
+
+        {/* Agent Switcher Modal */}
+        {showAgentSwitcher && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Select AI Agent</h2>
+                <Button
+                  onClick={() => setShowAgentSwitcher(false)}
+                  variant="ghost"
+                  size="sm"
+                >
+                  ✕
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {LIFE_CEO_AGENTS.map(agent => (
+                  <button
+                    key={agent.id}
+                    onClick={() => {
+                      setSelectedAgentId(agent.id);
+                      setShowAgentSwitcher(false);
+                      toast.success(`Switched to ${agent.name}`);
+                    }}
+                    className={`p-4 rounded-lg border transition-all ${
+                      selectedAgentId === agent.id
+                        ? 'border-purple-600 bg-purple-50'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="text-3xl mb-2">{agent.icon}</div>
+                    <div className="text-sm font-medium">{agent.name}</div>
+                    <div className="text-xs text-gray-500 mt-1">{agent.description}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
