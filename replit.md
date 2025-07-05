@@ -1,12 +1,112 @@
-# Mundo Tango - Social Media Platform with Life CEO Integration
+# Life CEO & Multi-Community Platform
 
 ## Overview
 
-Mundo Tango is an advanced enterprise-grade project management and collaboration platform for tango enthusiasts, featuring a comprehensive administrative ecosystem with intelligent project tracking and multi-tenant management capabilities. The platform now includes a fully integrated Life CEO system - a top-level AI agent managing every aspect of Scott Boddye's life through a hierarchical 12-agent system.
+**IMPORTANT ARCHITECTURAL CHANGE (January 2025)**: System is being restructured from a monolithic platform into separate, independent systems:
 
-## System Architecture
+1. **Life CEO System**: AI-powered life management platform with 16 specialized agents managing all aspects of Scott Boddye's life
+2. **Community Platforms**: Independent social communities (starting with Mundo Tango) with complete data isolation
+3. **Integration Layer**: API-based communication between systems maintaining strict boundaries
 
-The application follows a clean, modern full-stack architecture:
+The new architecture ensures true system independence while enabling optional cross-platform features.
+
+**UPDATE (January 6, 2025)**: Phase 1 Foundation Implementation Complete
+- Created separate database schemas for Life CEO and community template systems
+- Built API gateway infrastructure for secure inter-system communication
+- Implemented base agent architecture with Business Agent as first concrete implementation
+- Developed mobile-first React interface optimized for Scott's primary usage pattern
+- Established complete system separation with API-based communication only
+
+## New System Architecture (January 2025)
+
+### Architecture Overview
+The platform is being separated into three independent systems:
+
+```
+1. Life CEO System (life-ceo/)
+   - 16 AI agents managing different life aspects
+   - Independent PostgreSQL database with vector storage
+   - Mobile-first voice interface
+   - OpenAI integration for agent intelligence
+
+2. Community Platforms (communities/)
+   - mundo-tango/ - Tango community instance
+   - template/ - Reusable community template
+   - Each community has independent database
+   - Complete data isolation between communities
+
+3. Integration Layer (integration/)
+   - API Gateway for routing between systems  
+   - Authentication bridge with SSO support
+   - Data contracts for cross-system communication
+   - Optional unified dashboard (unified-dashboard/)
+```
+
+### Key Architectural Principles
+- **Complete System Independence**: Life CEO and communities run as separate microservices
+- **Data Sovereignty**: Each system owns its data with no shared databases
+- **API-First Communication**: All cross-system interaction via versioned APIs
+- **User Choice**: Users can view systems individually or in unified mode
+- **Buenos Aires Context**: Life CEO agents aware of Scott's location and culture
+
+### Life CEO System Implementation Details
+
+#### Database Schema (life-ceo/database/schema.sql)
+- **life_ceo.users**: Core user table linking to SSO/authentication
+- **life_ceo.agents**: 16 agent configurations with permissions and priorities
+- **life_ceo.agent_memories**: Vector-enabled memory storage for semantic search
+- **life_ceo.tasks**: Agent task management with priorities and due dates
+- **life_ceo.agent_messages**: Inter-agent communication system
+- **life_ceo.voice_commands**: Voice command history with transcripts
+- **life_ceo.insights**: AI-generated insights with confidence scores
+- **life_ceo.user_context**: Location and context-aware data
+- **life_ceo.integrations**: External service connections
+
+#### Agent Architecture
+- **Base Agent (life-ceo/agents/base-agent.ts)**: Abstract base class providing core functionality
+  - Memory management with vector embeddings
+  - Task creation and execution
+  - Inter-agent messaging
+  - Insight generation
+  
+- **Business Agent**: Manages professional life and meetings
+  - Calendar integration
+  - Meeting scheduling
+  - Task prioritization
+  - Network management
+  
+- **Finance Agent**: Financial planning and tracking
+  - Budget monitoring with inflation awareness
+  - Investment tracking (USD/ARS exchange)
+  - Expense alerts and analysis
+  - Buenos Aires cost-of-living adjustments
+  
+- **Health Agent**: Wellness and medical management
+  - Vital signs monitoring
+  - Medication reminders
+  - Appointment scheduling
+  - Buenos Aires seasonal health tips
+
+#### Backend Server (life-ceo/server/index.ts)
+- RESTful API on port 4001
+- Voice command processing endpoint
+- Agent status monitoring
+- Task and insight retrieval
+- Life event integration from communities
+
+#### Mobile Interface (life-ceo/app/components/MobileInterface.tsx)
+- Voice-first design for mobile usage
+- Real-time agent status display
+- Task overview and management
+- Insight notifications
+
+#### API Gateway (integration/api-gateway/index.ts)
+- Centralized routing between systems
+- Authentication context propagation
+- Request/response transformation
+- System health monitoring
+
+### Current System Architecture (Legacy - Being Migrated)
 
 ### Frontend
 - **Framework**: Next.js 14 with App Router
