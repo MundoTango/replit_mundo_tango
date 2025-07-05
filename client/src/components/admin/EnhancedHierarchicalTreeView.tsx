@@ -531,6 +531,23 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['mundo-tango-org']));
 
+  // Pre-calculate rollup data for all items to avoid hooks inside render
+  const itemRollupData = useMemo(() => {
+    const rollupMap = new Map<string, ReturnType<typeof calculateRollupStatus>>();
+    
+    const processItems = (items: ProjectItem[]) => {
+      items.forEach(item => {
+        rollupMap.set(item.id, calculateRollupStatus(item));
+        if (item.children) {
+          processItems(item.children);
+        }
+      });
+    };
+    
+    processItems(projectData);
+    return rollupMap;
+  }, []);
+
   // Get icon based on item type
   const getItemIcon = (type: string, isExpanded?: boolean) => {
     switch (type) {
@@ -630,8 +647,8 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
     const isExpanded = expandedItems.has(item.id);
     const hasChildren = item.children && item.children.length > 0;
     
-    // Calculate rolled up status and completion from children
-    const rollupData = useMemo(() => calculateRollupStatus(item), [item]);
+    // Get pre-calculated rollup data to avoid hooks in render
+    const rollupData = itemRollupData.get(item.id) || calculateRollupStatus(item);
     const isCompleted = rollupData.overallStatus === 'Completed';
     
     return (

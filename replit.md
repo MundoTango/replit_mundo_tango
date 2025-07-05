@@ -327,6 +327,16 @@ The platform features a complete theming system enabling instant site-wide visua
 - **Voice-First Design**: Mobile-optimized natural conversation interface with environmental awareness
 - **Buenos Aires Context**: Cultural sensitivity and local integration for Scott's international lifestyle
 
+## Critical Bug Fix - React Hooks Violation (January 7, 2025)
+- **Issue**: EnhancedHierarchicalTreeView component caused blank page crash due to React hooks violation
+- **Root Cause**: useMemo hook was called inside renderSimpleTreeItem function, violating React's Rules of Hooks
+- **Solution Implemented**:
+  - Pre-calculated rollup data at component level instead of inside render functions
+  - Created ErrorBoundary component for graceful error handling
+  - Wrapped critical components with ErrorBoundary to prevent full page crashes
+- **Prevention Framework**: Created 20L_REACT_HOOKS_PREVENTION_FRAMEWORK.md with comprehensive guidelines
+- **Key Learning**: Hooks must ALWAYS be called at the top level of components, never inside loops, conditions, or nested functions
+
 ## Recent Implementation - Life CEO Enhanced (January 6, 2025)
 
 ### Critical System Fixes (January 5, 2025)

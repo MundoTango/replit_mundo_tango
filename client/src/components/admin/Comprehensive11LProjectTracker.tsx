@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import EnhancedHierarchicalTreeView from './EnhancedHierarchicalTreeView';
+import ErrorBoundary from './ErrorBoundary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -326,7 +327,9 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
               </div>
             </CardHeader>
             <CardContent className="p-6">
-              <EnhancedHierarchicalTreeView onItemClick={handleCardClick} />
+              <ErrorBoundary fallbackMessage="An error occurred while rendering the project hierarchy. Please refresh the page.">
+                <EnhancedHierarchicalTreeView onItemClick={handleCardClick} />
+              </ErrorBoundary>
             </CardContent>
           </Card>
         </TabsContent>
