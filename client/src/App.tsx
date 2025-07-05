@@ -7,6 +7,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SocketProvider } from "@/contexts/socket-context";
 import { useAuth } from "@/hooks/useAuth";
 import { initAnalytics, analytics } from "@/lib/analytics";
+import { ThemeProvider } from "@/lib/theme/theme-provider";
+import ThemeManager from "@/components/theme/ThemeManager";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Onboarding from "@/pages/onboarding";
@@ -117,12 +119,15 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SocketProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </SocketProvider>
+      <ThemeProvider>
+        <SocketProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+            <ThemeManager />
+          </TooltipProvider>
+        </SocketProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
