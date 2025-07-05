@@ -86,6 +86,15 @@ This document outlines the comprehensive 20-Layer (20L) framework for building t
 - Escalation protocols for complex decisions
 - Cross-agent consultation for interdisciplinary issues
 
+### Collaborative Project Review Workflow
+- **Project Card Distribution**: Each new project automatically routed to relevant agents/stakeholders
+- **Review Assignment**: System identifies which agents need to review based on project type and scope
+- **Task Identification Phase**: Each reviewer adds tasks they identify within their expertise area
+- **Consolidation Process**: All suggested tasks compiled and deduplicated by Life CEO agent
+- **Priority Consensus**: Collaborative ranking of tasks based on impact and urgency
+- **Assignment Finalization**: Tasks assigned to appropriate agents with clear ownership
+- **Progress Tracking**: Continuous monitoring of task completion across all stakeholders
+
 ### Real-World Integration
 - Direct API connections to financial institutions
 - Calendar and scheduling system integration
@@ -97,6 +106,13 @@ This document outlines the comprehensive 20-Layer (20L) framework for building t
 - Emergency response coordination
 - Backup and contingency activation
 - Support system notification
+
+### Collaborative Project Management
+- **Project Card Review System**: Each project requires review from relevant stakeholders
+- **Task Assignment Workflow**: Team members can add tasks they identify for each project card
+- **Multi-Agent Input**: Each specialized agent reviews projects within their domain expertise
+- **Consensus Building**: Collaborative decision-making on project priorities and approaches
+- **Stakeholder Notification**: Automatic alerts when projects need review or task input
 
 ## Validation Framework
 
