@@ -9,7 +9,8 @@ import {
   jsonb,
   index,
   uuid,
-  unique
+  unique,
+  real
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -1085,6 +1086,23 @@ export const lifeCeoAgentConfigurations = pgTable("life_ceo_agent_configurations
 }, (table) => [
   index("idx_agent_config_id").on(table.agentId),
   index("idx_agent_config_updated").on(table.lastUpdated),
+]);
+
+// Life CEO Agent Memory Storage
+export const life_ceo_agent_memories = pgTable("life_ceo_agent_memories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  agentType: varchar("agent_type", { length: 50 }).notNull(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  content: jsonb("content").notNull(),
+  importance: real("importance").default(0.5),
+  tags: text("tags").array().default([]),
+  embedding: jsonb("embedding"), // Store as JSONB for now, can be migrated to vector later
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+}, (table) => [
+  index("idx_agent_memory_user_agent").on(table.userId, table.agentType),
+  index("idx_agent_memory_importance").on(table.importance),
+  index("idx_agent_memory_created").on(table.createdAt),
 ]);
 
 export const lifeCeoChatMessages = pgTable("life_ceo_chat_messages", {

@@ -1,5 +1,7 @@
 import OpenAI from 'openai';
 import { storage } from '../storage';
+import { agentMemoryService } from './agentMemoryService';
+import { openaiService } from './openaiService';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 let openai: OpenAI | null = null;
@@ -62,11 +64,21 @@ export class LifeCEOChatService {
       // Get conversation history for context
       const recentMessages = await this.getRecentMessages(userId, agentId, 10);
       
-      // Build conversation context
+      // Build memory-enhanced context
+      const memoryContext = await agentMemoryService.buildContextFromMemories(
+        agentId,
+        userId.toString(),
+        message
+      );
+      
+      // Build conversation context with memory
+      const systemPrompt = await this.buildSystemPrompt(agent, userId);
+      const enhancedSystemPrompt = systemPrompt + '\n\n' + memoryContext;
+      
       const messages = [
         {
           role: 'system' as const,
-          content: this.buildSystemPrompt(agent, userId)
+          content: enhancedSystemPrompt
         },
         ...recentMessages.map(msg => ({
           role: msg.role as 'user' | 'assistant',
@@ -90,6 +102,9 @@ export class LifeCEOChatService {
           response_format: { type: "text" }
         });
         assistantResponse = response.choices[0].message.content || 'I apologize, but I cannot provide a response right now.';
+        
+        // Store important information as memories
+        await this.storeConversationMemory(agentId, userId, message, assistantResponse);
       } else {
         // Fallback response system when OpenAI is not available
         assistantResponse = this.generateFallbackResponse(message, agentId);
@@ -155,7 +170,63 @@ export class LifeCEOChatService {
     }
   }
 
-  private buildSystemPrompt(agent: any, userId: number): string {
+  private async storeConversationMemory(
+    agentId: string, 
+    userId: number, 
+    userMessage: string, 
+    assistantResponse: string
+  ): Promise<void> {
+    try {
+      // Extract important information from the conversation
+      const analysisPrompt = `Analyze this conversation and extract key information worth remembering:
+      
+User: ${userMessage}
+Assistant: ${assistantResponse}
+
+Identify:
+1. Important facts, preferences, or context about the user
+2. Decisions made or actions to be taken
+3. Key dates, names, or specific details mentioned
+4. User goals or intentions expressed
+
+Return a JSON object with:
+{
+  "summary": "Brief summary of the key information",
+  "importance": 0.1-1.0 (how important this is to remember),
+  "tags": ["relevant", "tags"],
+  "shouldStore": true/false
+}`;
+
+      if (openai) {
+        const analysis = await openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [{ role: 'user', content: analysisPrompt }],
+          response_format: { type: "json_object" }
+        });
+        
+        const result = JSON.parse(analysis.choices[0].message.content || '{}');
+        
+        if (result.shouldStore) {
+          await agentMemoryService.storeMemory(
+            agentId,
+            userId.toString(),
+            {
+              userMessage,
+              assistantResponse,
+              summary: result.summary,
+              timestamp: new Date()
+            },
+            result.importance || 0.5,
+            result.tags || []
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error storing conversation memory:', error);
+    }
+  }
+
+  private async buildSystemPrompt(agent: any, userId: number): Promise<string> {
     return `You are the Life CEO, an advanced AI agent managing every aspect of Scott Boddye's life. You are currently operating as the "${agent.name}" agent with the following configuration:
 
 **Agent Role**: ${agent.name}
