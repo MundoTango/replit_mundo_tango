@@ -165,12 +165,12 @@ export class AgentMemoryService {
         agentType: toAgent,
         userId,
         content: {
-          ...originalMemory.content,
+          ...(typeof originalMemory.content === 'object' ? originalMemory.content : {}),
           sharedFrom: fromAgent,
           originalMemoryId: memoryId
         },
-        importance: originalMemory.importance * 0.8, // Slightly reduce importance for shared memories
-        tags: [...originalMemory.tags, 'shared', `from-${fromAgent}`],
+        importance: (originalMemory.importance || 0.5) * 0.8, // Slightly reduce importance for shared memories
+        tags: [...(originalMemory.tags || []), 'shared', `from-${fromAgent}`],
         embedding: originalMemory.embedding,
         createdAt: new Date()
       })

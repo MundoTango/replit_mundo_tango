@@ -36,16 +36,32 @@ interface Suggestion {
   impact: 'low' | 'medium' | 'high';
 }
 
+interface PreventionPattern {
+  id: string;
+  name: string;
+  description: string;
+  filePatterns: RegExp[];
+  syntaxChecks: Array<{
+    pattern: RegExp;
+    message: string;
+    severity: 'error' | 'warning';
+  }>;
+  autoFix?: (content: string) => string;
+  layer: number; // 20L layer this pattern belongs to
+}
+
 class EvolutionService extends EventEmitter {
-  private watcher: chokidar.FSWatcher | null = null;
+  private watcher: any | null = null;
   private metrics: ProjectMetrics[] = [];
   private rules: EvolutionRule[] = [];
   private rootPath: string;
+  private preventionPatterns: Map<string, PreventionPattern> = new Map();
 
   constructor(rootPath: string) {
     super();
     this.rootPath = rootPath;
     this.loadDefaultRules();
+    this.loadPreventionPatterns();
   }
 
   async initialize(): Promise<void> {
@@ -91,9 +107,9 @@ class EvolutionService extends EventEmitter {
     });
 
     this.watcher
-      .on('add', (filePath) => this.handleFileAdd(filePath))
-      .on('unlink', (filePath) => this.handleFileRemove(filePath))
-      .on('change', (filePath) => this.handleFileChange(filePath));
+      .on('add', (filePath: string) => this.handleFileAdd(filePath))
+      .on('unlink', (filePath: string) => this.handleFileRemove(filePath))
+      .on('change', (filePath: string) => this.handleFileChange(filePath));
   }
 
   private async handleFileAdd(filePath: string): Promise<void> {
@@ -118,8 +134,45 @@ class EvolutionService extends EventEmitter {
   }
 
   private async handleFileChange(filePath: string): Promise<void> {
+    // Check prevention patterns
+    await this.checkPreventionPatterns(filePath);
+    
     // Track change frequency for hot/cold module detection
     await this.updateUsageMetrics(filePath);
+  }
+
+  private async checkPreventionPatterns(filePath: string): Promise<void> {
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const relativePath = path.relative(this.rootPath, filePath);
+      
+      for (const [id, pattern] of this.preventionPatterns) {
+        // Check if file matches pattern
+        const matches = pattern.filePatterns.some(regex => regex.test(relativePath));
+        if (!matches) continue;
+        
+        // Run syntax checks
+        for (const check of pattern.syntaxChecks) {
+          if (check.pattern.test(content)) {
+            console.log(`⚠️  Prevention Pattern [${pattern.name}] triggered:`);
+            console.log(`   File: ${relativePath}`);
+            console.log(`   ${check.severity.toUpperCase()}: ${check.message}`);
+            console.log(`   Layer ${pattern.layer} issue detected`);
+            
+            // Auto-fix if available
+            if (pattern.autoFix && check.severity === 'error') {
+              const fixed = pattern.autoFix(content);
+              if (fixed !== content) {
+                await fs.writeFile(filePath, fixed);
+                console.log(`   ✅ Auto-fixed the issue`);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`Error checking prevention patterns for ${filePath}:`, error);
+    }
   }
 
   async analyze(): Promise<ProjectMetrics> {
@@ -380,6 +433,82 @@ class EvolutionService extends EventEmitter {
       new NamingConventionRule(),
       new DirectoryDepthRule()
     ];
+  }
+
+  private loadPreventionPatterns(): void {
+    // Layer 5: Middleware Syntax Prevention
+    this.preventionPatterns.set('middleware-syntax', {
+      id: 'middleware-syntax',
+      name: 'Middleware Syntax Prevention',
+      description: 'Prevents syntax errors in middleware declarations',
+      filePatterns: [/middleware\.(ts|js)$/, /auth\.(ts|js)$/],
+      syntaxChecks: [
+        {
+          pattern: /\}\s*export/,
+          message: 'Missing semicolon or parenthesis before export statement',
+          severity: 'error'
+        },
+        {
+          pattern: /\);\s*\)\s*export/,
+          message: 'Double closing parenthesis detected before export',
+          severity: 'error'
+        },
+        {
+          pattern: /export\s+\{[^}]*\}\s*$/,
+          message: 'Export statement should not be at end of file after middleware definition',
+          severity: 'warning'
+        }
+      ],
+      autoFix: (content: string) => {
+        // Auto-fix double closing parentheses
+        return content.replace(/\);\s*\)\s*export/, '); export');
+      },
+      layer: 5 // Backend implementation layer
+    });
+
+    // Layer 6: Frontend Authentication Consistency
+    this.preventionPatterns.set('frontend-auth', {
+      id: 'frontend-auth',
+      name: 'Frontend Authentication Consistency',
+      description: 'Ensures authentication patterns are consistent across frontend',
+      filePatterns: [/components.*\.(tsx|jsx)$/, /pages.*\.(tsx|jsx)$/],
+      syntaxChecks: [
+        {
+          pattern: /useAuth\(\).*undefined/,
+          message: 'useAuth hook might return undefined - add null checks',
+          severity: 'warning'
+        },
+        {
+          pattern: /localStorage\.(getItem|setItem).*token/,
+          message: 'Direct localStorage access for tokens - use auth service instead',
+          severity: 'warning'
+        }
+      ],
+      layer: 6
+    });
+
+    // Layer 7: API Integration Patterns
+    this.preventionPatterns.set('api-integration', {
+      id: 'api-integration',
+      name: 'API Integration Prevention',
+      description: 'Prevents common API integration mistakes',
+      filePatterns: [/api.*\.(ts|js)$/, /routes.*\.(ts|js)$/],
+      syntaxChecks: [
+        {
+          pattern: /app\.(get|post|put|delete)\s*\([^)]*\)\s*[^{]/,
+          message: 'Route handler missing proper function body',
+          severity: 'error'
+        },
+        {
+          pattern: /async\s+\([^)]*\)\s*=>\s*[^{]/,
+          message: 'Async arrow function missing proper error handling',
+          severity: 'warning'
+        }
+      ],
+      layer: 7
+    });
+
+    console.log(`✅ Loaded ${this.preventionPatterns.size} prevention patterns`);
   }
 
   async stop(): Promise<void> {

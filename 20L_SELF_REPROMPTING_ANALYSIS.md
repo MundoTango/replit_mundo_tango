@@ -1,266 +1,208 @@
-# 20L Self-Reprompting & Continuous Evolution Analysis
+# 20L Self-Reprompting Analysis Framework
 
-## Meta-Analysis: How to Make 20L Framework Self-Updating
+## Purpose
+This framework ensures systematic self-analysis and prevention of recurring issues through the 20-Layer system. It serves as a living document that evolves with each issue encountered.
 
-### Current State Through 20L Lens
+## Self-Reprompting Protocol
 
-#### Technical Layers (L1-12)
-1. **Expertise**: Static documentation approach ⚠️
-2. **Research**: One-time analyses, not continuous ⚠️
-3. **Legal**: Fixed compliance checks ⚠️
-4. **UX**: User feedback not systematically integrated ❌
-5. **Data**: No metrics tracking framework evolution ❌
-6. **Backend**: No automation for updates ❌
-7. **Frontend**: No dashboard for 20L status ❌
-8. **Integration**: Manual process only ⚠️
-9. **Security**: Audit trails exist ✓
-10. **Deployment**: No CI/CD for methodology ❌
-11. **Analytics**: No framework performance metrics ❌
-12. **Continuous**: Ironically, not continuous ❌
-
-#### Advanced Layers (L13-20)
-13. **AI Orchestration**: No AI-driven framework updates ❌
-14. **Context Management**: No memory of framework evolution ❌
-15. **Voice Intelligence**: No voice-driven updates ❌
-16. **Ethics**: No ethical review process ❌
-17. **Emotional Intelligence**: No team morale tracking ❌
-18. **Cultural Awareness**: No adaptation to context ❌
-19. **Energy Management**: No burnout prevention ❌
-20. **Proactive Intelligence**: Reactive, not predictive ❌
-
-## Self-Reprompting: The Living Framework Vision
-
-### Core Insight
-The 20L framework should be a **living organism** that evolves based on:
-- Project outcomes
-- User feedback
-- System performance
-- External changes
-- Team dynamics
-
-### Proposed Evolution Mechanisms
-
-#### 1. Automated Feedback Loops (L11-12)
-**Implementation**:
+### Before Any Change
 ```typescript
-interface FrameworkMetrics {
-  layerEffectiveness: Map<number, number>;
-  implementationSuccess: number;
-  userSatisfaction: number;
-  evolutionVelocity: number;
-  gapIdentification: string[];
+async function beforeChange(change: ProposedChange): Promise<ValidationResult> {
+  const layers = await analyze20Layers(change);
+  
+  // Check each layer for potential issues
+  for (const layer of layers) {
+    const issues = await layer.detectPotentialIssues(change);
+    if (issues.length > 0) {
+      return {
+        proceed: false,
+        issues,
+        preventiveMeasures: layer.getSuggestedPrevention(issues)
+      };
+    }
+  }
+  
+  return { proceed: true };
 }
+```
 
-class FrameworkEvolution {
-  async analyzeProjectOutcome(projectId: string) {
-    const metrics = await this.gatherMetrics(projectId);
-    const gaps = this.identifyGaps(metrics);
-    const updates = this.proposeUpdates(gaps);
-    await this.applyUpdates(updates);
+### During Implementation
+1. **Layer 1-4 (Foundation)**: Verify expertise, research, compliance, and UX
+2. **Layer 5-8 (Architecture)**: Check data, backend, frontend, and API consistency
+3. **Layer 9-12 (Operations)**: Validate security, deployment, monitoring, improvement
+4. **Layer 13-16 (AI/Intelligence)**: Ensure agent coordination and context management
+5. **Layer 17-20 (Human-Centric)**: Consider emotional, cultural, energy, and proactive aspects
+
+### After Implementation
+```typescript
+async function afterChange(change: CompletedChange): Promise<void> {
+  // Document learnings
+  await documentLearnings(change);
+  
+  // Update prevention rules
+  await updatePreventionRules(change);
+  
+  // Run comprehensive validation
+  await runFullSystemValidation();
+  
+  // Update 20L framework if needed
+  if (change.revealedNewPatterns) {
+    await evolve20LFramework(change.learnings);
   }
 }
 ```
 
-#### 2. AI-Driven Analysis (L13-14)
-**Continuous Learning System**:
-- Daily analysis of implementation success
-- Pattern recognition across projects
-- Automatic gap identification
-- Suggested framework enhancements
+## Common Issue Patterns & Prevention
 
-#### 3. Living Documentation (L7)
-**Dynamic 20L Dashboard**:
-```markdown
-## 20L Framework Status
-- Last Updated: Real-time
-- Evolution Score: 87%
-- Active Experiments: 3
-- Success Rate: 92%
-- Next Review: Automated
+### 1. Middleware Evolution Pattern
+**Issue**: Middleware signatures change but consumers aren't updated
+**Prevention**:
+- Always search for all usages before changing middleware
+- Create compatibility layers for gradual migration
+- Use TypeScript strict mode for middleware signatures
+- Document migration paths
 
-### Layer Health
-- L1 Expertise: 95% ✅ (↑5% this week)
-- L2 Research: 78% ⚠️ (needs attention)
-- L20 Proactive: 45% ❌ (major gap)
-```
+### 2. Authentication Inconsistency Pattern
+**Issue**: Different parts of system use different auth approaches
+**Prevention**:
+- Centralize auth logic in single service
+- Create standardized auth interfaces
+- Implement comprehensive auth tests
+- Monitor auth failures in real-time
 
-#### 4. Version Control for Methodology (L9)
-**Framework Versioning**:
-```
-20L Framework v3.2.1
-- Major: Paradigm shifts
-- Minor: New techniques
-- Patch: Refinements
+### 3. Schema Mismatch Pattern
+**Issue**: Database schema doesn't match TypeScript types
+**Prevention**:
+- Generate types from schema automatically
+- Run schema validation on every change
+- Create migration validators
+- Use strict type checking
 
-Changelog:
-- v3.2.1: Added real-time adaptation
-- v3.2.0: Integrated quantum planning
-- v3.1.0: Emotional intelligence layer
-```
+### 4. API Version Drift Pattern
+**Issue**: Frontend expects different API than backend provides
+**Prevention**:
+- Version all APIs explicitly
+- Create API contracts
+- Run contract tests
+- Monitor API compatibility
 
-### Implementation Strategy
+## Self-Analysis Questions
 
-#### Phase 1: Measurement Infrastructure
-1. **Metrics Collection Service**
-   - Track layer usage frequency
-   - Measure implementation success
-   - Monitor user satisfaction
-   - Calculate time-to-value
+### Before Making Changes
+1. **Research**: Have I searched for all usages of what I'm changing?
+2. **Impact**: What systems will be affected by this change?
+3. **Compatibility**: Do I need backward compatibility?
+4. **Testing**: What tests need to be updated or created?
+5. **Documentation**: What documentation needs updating?
 
-2. **Analytics Dashboard**
-   - Real-time framework health
-   - Layer effectiveness heatmap
-   - Evolution timeline
-   - Predictive insights
+### During Implementation
+1. **Consistency**: Am I following established patterns?
+2. **Error Handling**: Have I considered all failure modes?
+3. **Performance**: Will this impact system performance?
+4. **Security**: Are there security implications?
+5. **Monitoring**: How will we know if this breaks?
 
-#### Phase 2: Automation Engine
-1. **Daily Analysis Cron**
-   ```typescript
-   async function dailyFrameworkAnalysis() {
-     const projects = await getActiveProjects();
-     const metrics = await analyzeProjectMetrics(projects);
-     const insights = await generateInsights(metrics);
-     const updates = await proposeFrameworkUpdates(insights);
-     await notifyStakeholders(updates);
-   }
-   ```
+### After Implementation
+1. **Validation**: Did all tests pass?
+2. **Metrics**: Are success metrics in place?
+3. **Rollback**: Can we easily rollback if needed?
+4. **Learning**: What did we learn from this?
+5. **Prevention**: How can we prevent similar issues?
 
-2. **Auto-Update Mechanism**
-   - Minor updates: Automatic
-   - Major updates: Approval required
-   - Emergency updates: Immediate
+## Automated Prevention Rules
 
-#### Phase 3: AI Integration
-1. **GPT-4 Analysis Pipeline**
-   - Review project outcomes
-   - Identify pattern
-   - Suggest improvements
-   - Generate documentation
-
-2. **Predictive Evolution**
-   - Anticipate future needs
-   - Prepare framework adaptations
-   - Test in sandbox projects
-
-### Continuous Evolution Workflow
-
-```mermaid
-graph TD
-    A[Project Implementation] --> B[Metrics Collection]
-    B --> C[Pattern Analysis]
-    C --> D[Gap Identification]
-    D --> E[Update Proposals]
-    E --> F{Approval Needed?}
-    F -->|Minor| G[Auto-Apply]
-    F -->|Major| H[Review Board]
-    G --> I[Update Framework]
-    H --> I
-    I --> J[Notify Teams]
-    J --> A
-```
-
-### Project Plan Updates
-
-#### Immediate Actions
-1. **Create 20L Evolution Service**
-   - Metrics collection API
-   - Analysis engine
-   - Update mechanism
-   - Notification system
-
-2. **Build Framework Dashboard**
-   - Real-time health status
-   - Evolution timeline
-   - Performance metrics
-   - Recommendation engine
-
-3. **Establish Review Cadence**
-   - Daily: Automated analysis
-   - Weekly: Team review
-   - Monthly: Major updates
-   - Quarterly: Paradigm review
-
-#### Long-term Vision
-1. **Self-Healing Framework**
-   - Automatic gap detection
-   - Self-correction mechanisms
-   - Predictive adaptations
-   - Context-aware evolution
-
-2. **Cross-Project Learning**
-   - Share insights between projects
-   - Build pattern library
-   - Create best practices DB
-   - Evolve collectively
-
-### Success Metrics for Evolution
-
-1. **Adaptation Velocity**
-   - Time from insight to implementation
-   - Framework update frequency
-   - User adoption rate
-
-2. **Effectiveness Scores**
-   - Project success correlation
-   - User satisfaction trends
-   - Gap closure rate
-
-3. **Innovation Index**
-   - New techniques discovered
-   - Cross-pollination rate
-   - Breakthrough frequency
-
-### Making 20L Self-Aware
-
-#### Memory System
+### Rule 1: Middleware Change Detection
 ```typescript
-interface FrameworkMemory {
-  pastDecisions: Decision[];
-  outcomeTracking: Map<DecisionId, Outcome>;
-  lessonLearned: Lesson[];
-  evolutionHistory: Evolution[];
+if (file.includes('middleware')) {
+  require(['search_all_usages', 'create_compatibility_layer', 'update_tests']);
 }
 ```
 
-#### Learning Algorithm
-1. Collect outcomes
-2. Analyze patterns
-3. Identify correlations
-4. Propose adaptations
-5. Test in sandbox
-6. Deploy if successful
-7. Monitor results
-8. Repeat
+### Rule 2: Schema Change Validation
+```typescript
+if (file.includes('schema')) {
+  require(['validate_type_generation', 'check_migrations', 'update_storage']);
+}
+```
 
-### Integration with Life CEO & Mundo Tango
+### Rule 3: API Change Protection
+```typescript
+if (file.includes('routes') || file.includes('api')) {
+  require(['version_check', 'contract_validation', 'frontend_compatibility']);
+}
+```
 
-#### Life CEO Feedback Loop
-- Agent performance → Framework updates
-- User satisfaction → Layer refinements
-- Predictive accuracy → Intelligence improvements
+### Rule 4: Auth Change Security
+```typescript
+if (file.includes('auth')) {
+  require(['security_review', 'test_all_roles', 'monitor_failures']);
+}
+```
 
-#### Mundo Tango Community Input
-- Feature adoption → UX layer evolution
-- Cultural feedback → Awareness updates
-- Community health → Framework adaptations
+## Evolution Triggers
 
-## Conclusion: The Living Methodology
+The 20L framework should evolve when:
+1. Same issue occurs twice
+2. New pattern emerges
+3. Framework gap identified
+4. User reports frustration
+5. System complexity increases
 
-Transform the 20L framework from a **static checklist** into a **living, breathing methodology** that:
+## Integration with Evolution Service
 
-1. **Learns** from every implementation
-2. **Adapts** to changing needs
-3. **Predicts** future requirements
-4. **Evolves** continuously
-5. **Improves** autonomously
+```typescript
+// Add to evolution service
+export class SelfRepromptingSystem {
+  private patterns: Map<string, PreventionPattern> = new Map();
+  
+  async analyzeChange(file: string, changes: string[]): Promise<Analysis> {
+    // Apply 20L analysis
+    const layers = await this.apply20Layers(file, changes);
+    
+    // Check known patterns
+    const matchedPatterns = await this.matchPatterns(changes);
+    
+    // Generate prevention measures
+    const preventions = await this.generatePreventions(layers, matchedPatterns);
+    
+    return {
+      risks: layers.flatMap(l => l.risks),
+      preventions,
+      requiredValidations: this.getRequiredValidations(file, changes)
+    };
+  }
+  
+  async learn(issue: Issue, resolution: Resolution): Promise<void> {
+    // Extract pattern
+    const pattern = await this.extractPattern(issue, resolution);
+    
+    // Store for future prevention
+    this.patterns.set(pattern.id, pattern);
+    
+    // Update 20L framework
+    await this.update20LFramework(pattern);
+  }
+}
+```
 
-This isn't just a framework—it's an **evolutionary system** that gets smarter with every project, ensuring we're always using the most effective approach for the current context.
+## Continuous Improvement Metrics
 
-### Next Steps
-1. Implement metrics collection service
-2. Create evolution dashboard
-3. Set up automated analysis
-4. Build AI integration pipeline
-5. Establish feedback loops
+Track these metrics to improve the framework:
+1. **Issue Recurrence Rate**: How often similar issues occur
+2. **Prevention Success Rate**: How often prevention rules work
+3. **Framework Evolution Rate**: How often framework updates
+4. **Developer Satisfaction**: How helpful is the framework
+5. **Time to Resolution**: How quickly issues are resolved
 
-The framework that updates itself is the framework that never becomes obsolete.
+## Living Document Updates
+
+This document should be updated:
+- After every significant issue
+- When new patterns emerge
+- When prevention rules change
+- When 20L framework evolves
+- During monthly reviews
+
+Last Updated: January 2025
+Version: 1.0
+Next Review: February 2025

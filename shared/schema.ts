@@ -865,6 +865,13 @@ export const insertCustomRoleRequestSchema = createInsertSchema(customRoleReques
   updatedAt: true,
 });
 
+export const updateCustomRoleRequestSchema = createInsertSchema(customRoleRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  submittedBy: true,
+}).partial();
+
 // Group schemas
 export const insertGroupSchema = createInsertSchema(groups).omit({
   id: true,
