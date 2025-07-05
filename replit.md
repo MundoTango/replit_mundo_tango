@@ -266,6 +266,26 @@ The platform now includes a comprehensive Life CEO administrative system with th
   - `openaiService.ts`: Manages OpenAI API integration for embeddings and completions
   - Enhanced `lifeCEOChatService.ts`: Integrates memory system for intelligent conversations
 
+### Self-Organizing Hierarchy System (January 7, 2025)
+- **Evolution Service**: Real-time file monitoring with automatic organization suggestions
+- **Hierarchy Analyzer**: Deep code analysis with TypeScript AST parsing and import graphs
+- **Visual Dashboard**: Available at `/hierarchy` (super admin only) showing:
+  - Module cohesion and coupling metrics
+  - File organization suggestions
+  - Misplaced file detection
+  - Dead code identification
+- **Automated Rules Engine**: 
+  - File size monitoring
+  - Dead code detection (30-day threshold)
+  - Coupling analysis
+  - Naming convention enforcement
+  - Directory depth optimization
+- **Implementation Details**:
+  - `evolution/services/evolutionService.ts`: Core monitoring service
+  - `evolution/services/hierarchyAnalyzer.ts`: AST-based code analysis
+  - `client/src/pages/HierarchyDashboard.tsx`: Visual metrics dashboard
+  - `server/routes/evolutionRoutes.ts`: API endpoints for metrics access
+
 ## Enhanced Development Framework
 
 ### 20L Analysis Framework - Living Methodology (Updated January 7, 2025)

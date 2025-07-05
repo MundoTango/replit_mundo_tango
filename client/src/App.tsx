@@ -37,6 +37,7 @@ import LifeCEOAgentDetail from "@/components/admin/LifeCEOAgentDetail";
 import ProfileSwitcher from "@/pages/ProfileSwitcher";
 import LifeCEO from "@/pages/LifeCEO";
 import LifeCEOEnhanced from "@/pages/LifeCEOEnhanced";
+import HierarchyDashboard from "@/pages/HierarchyDashboard";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -111,6 +112,7 @@ function Router() {
       <Route path="/life-ceo" component={LifeCEOEnhanced} />
       <Route path="/life-ceo-portal" component={LifeCEOPortal} />
       <Route path="/life-ceo/agent/:id" component={LifeCEOAgentDetail} />
+      <Route path="/hierarchy" component={HierarchyDashboard} />
       <Route component={NotFound} />
     </Switch>
   );

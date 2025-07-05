@@ -7052,6 +7052,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // RBAC/ABAC Routes Integration
   // ========================================================================
   app.use('/api/rbac', rbacRoutes);
+  
+  // Evolution service routes (super admin only)
+  const evolutionRoutes = await import('./routes/evolutionRoutes.js');
+  app.use('/api/evolution', requireRole(['super_admin']), evolutionRoutes.default);
 
   // ========================================================================
   // Life CEO Chat API Routes
