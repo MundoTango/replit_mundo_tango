@@ -1,0 +1,30 @@
+{
+  "name": "Life CEO Assistant",
+  "short_name": "Life CEO",
+  "description": "AI-powered life management assistant with voice capabilities",
+  "start_url": "/life-ceo",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#7c3aed",
+  "background_color": "#f3f4f6",
+  "icons": [
+    {
+      "src": "/life-ceo-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/life-ceo-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "lifestyle"],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr"
+}

@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { ArrowLeft, Globe, Brain, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuthContext } from '@/auth/useAuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function ProfileSwitcher() {
   const [, setLocation] = useLocation();
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const [activeProfile, setActiveProfile] = useState('mundo-tango');
 
   // Only show Life CEO for super admins

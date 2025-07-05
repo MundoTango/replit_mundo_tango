@@ -1,0 +1,125 @@
+// Life CEO Service Worker v1.0
+const CACHE_NAME = 'life-ceo-v1';
+const urlsToCache = [
+  '/',
+  '/life-ceo',
+  '/manifest.json',
+  '/src/main.tsx',
+  '/src/index.css'
+];
+
+// Install event - cache resources
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Opened cache');
+        return cache.addAll(urlsToCache);
+      })
+  );
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
+// Fetch event - serve from cache when offline
+self.addEventListener('fetch', event => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') return;
+
+  // Skip API requests - always try network first
+  if (event.request.url.includes('/api/')) {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          // Return offline response for API calls
+          return new Response(
+            JSON.stringify({ error: 'Offline - data will sync when reconnected' }),
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+        })
+    );
+    return;
+  }
+
+  // For all other requests, try cache first
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        if (response) {
+          return response;
+        }
+        return fetch(event.request)
+          .then(response => {
+            // Don't cache non-successful responses
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+            // Clone the response for caching
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME)
+              .then(cache => {
+                cache.put(event.request, responseToCache);
+              });
+            return response;
+          });
+      })
+  );
+});
+
+// Background sync for offline voice recordings
+self.addEventListener('sync', event => {
+  if (event.tag === 'sync-voice-recordings') {
+    event.waitUntil(syncVoiceRecordings());
+  }
+});
+
+async function syncVoiceRecordings() {
+  // Get pending voice recordings from IndexedDB
+  const db = await openDB();
+  const tx = db.transaction('pending_recordings', 'readonly');
+  const recordings = await tx.objectStore('pending_recordings').getAll();
+  
+  for (const recording of recordings) {
+    try {
+      await fetch('/api/life-ceo/voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(recording)
+      });
+      
+      // Remove synced recording
+      const deleteTx = db.transaction('pending_recordings', 'readwrite');
+      await deleteTx.objectStore('pending_recordings').delete(recording.id);
+    } catch (error) {
+      console.error('Failed to sync recording:', error);
+    }
+  }
+}
+
+// Helper to open IndexedDB
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('life-ceo-db', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = event => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('pending_recordings')) {
+        db.createObjectStore('pending_recordings', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+  });
+}
