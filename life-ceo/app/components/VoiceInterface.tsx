@@ -11,6 +11,7 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onCommand, onClo
   const [transcript, setTranscript] = useState('');
   const [response, setResponse] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [language, setLanguage] = useState<'en' | 'es'>('en');
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -20,7 +21,7 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onCommand, onClo
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = 'es-AR'; // Buenos Aires Spanish
+      recognitionRef.current.lang = language === 'en' ? 'en-US' : 'es-AR'; // English or Buenos Aires Spanish
 
       recognitionRef.current.onresult = (event: any) => {
         const current = event.resultIndex;
@@ -49,6 +50,13 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onCommand, onClo
     };
   }, []);
 
+  // Update recognition language when language changes
+  useEffect(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.lang = language === 'en' ? 'en-US' : 'es-AR';
+    }
+  }, [language]);
+
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
       setTranscript('');
@@ -74,7 +82,7 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onCommand, onClo
       // Speak response
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(result.response);
-        utterance.lang = 'es-AR';
+        utterance.lang = language === 'en' ? 'en-US' : 'es-AR';
         window.speechSynthesis.speak(utterance);
       }
     } catch (error) {
@@ -88,7 +96,15 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onCommand, onClo
     <div className="voice-interface">
       <div className="voice-header">
         <h2>Life CEO Voice Assistant</h2>
-        <button className="close-btn" onClick={onClose}>×</button>
+        <div className="header-controls">
+          <button 
+            className="language-toggle"
+            onClick={() => setLanguage(language === 'en' ? 'es' : 'en')}
+          >
+            {language === 'en' ? 'EN' : 'ES'}
+          </button>
+          <button className="close-btn" onClick={onClose}>×</button>
+        </div>
       </div>
 
       <div className="voice-content">
