@@ -150,7 +150,7 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onCommand, onClo
         </button>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .voice-interface {
           position: fixed;
           top: 0;

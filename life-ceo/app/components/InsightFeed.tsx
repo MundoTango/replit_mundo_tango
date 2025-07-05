@@ -147,7 +147,7 @@ export const InsightFeed: React.FC<InsightFeedProps> = ({ insights, onBack }) =>
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .insight-feed {
           background: #f5f5f5;
           min-height: 100vh;

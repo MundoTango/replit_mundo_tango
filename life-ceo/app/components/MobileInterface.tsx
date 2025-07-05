@@ -120,7 +120,7 @@ export const MobileInterface: React.FC<MobileInterfaceProps> = ({
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .mobile-interface {
           background: #f5f5f5;
           min-height: 100vh;

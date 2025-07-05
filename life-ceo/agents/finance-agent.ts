@@ -73,7 +73,12 @@ export class FinanceAgent extends BaseAgent {
       new Date(t.date).getTime() > Date.now() - 30 * 24 * 60 * 60 * 1000
     );
 
-    const analysis = {
+    const analysis: {
+      totalSpent: number;
+      categories: any;
+      trends: any;
+      recommendations: string[];
+    } = {
       totalSpent: recentTransactions.reduce((sum, t) => sum + (t.amount < 0 ? -t.amount : 0), 0),
       categories: this.categorizeTransactions(recentTransactions),
       trends: await this.analyzeTrends(recentTransactions),
@@ -242,7 +247,7 @@ export class FinanceAgent extends BaseAgent {
 
   // Helper methods
   private categorizeTransactions(transactions: any[]): Record<string, number> {
-    const categories = {};
+    const categories: Record<string, number> = {};
     
     for (const transaction of transactions) {
       const category = transaction.category || 'Other';
@@ -254,7 +259,7 @@ export class FinanceAgent extends BaseAgent {
 
   private async analyzeTrends(transactions: any[]): Promise<any> {
     // Simple trend analysis
-    const dailySpending = {};
+    const dailySpending: Record<string, number> = {};
     
     for (const transaction of transactions) {
       const date = new Date(transaction.date).toDateString();
@@ -262,11 +267,11 @@ export class FinanceAgent extends BaseAgent {
     }
     
     const values = Object.values(dailySpending);
-    const average = values.reduce((sum: number, val: any) => sum + val, 0) / values.length;
+    const average = values.reduce((sum: number, val: number) => sum + val, 0) / values.length;
     
     return {
       averageDailySpending: average,
-      trend: values[values.length - 1] > average ? 'increasing' : 'decreasing'
+      trend: values.length > 0 && values[values.length - 1] > average ? 'increasing' : 'decreasing'
     };
   }
 

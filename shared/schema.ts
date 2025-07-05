@@ -62,6 +62,10 @@ export const roles = pgTable("roles", {
   name: text("name").unique().notNull(),
   description: text("description").notNull(),
   isPlatformRole: boolean("is_platform_role").default(false),
+  // Permission fields
+  permissions: jsonb("permissions").default({}).notNull(),
+  memoryAccessLevel: text("memory_access_level").default("basic"),
+  emotionalTagAccess: boolean("emotional_tag_access").default(false),
   // Custom role fields
   isCustom: boolean("is_custom").default(false),
   customName: text("custom_name"),
@@ -118,12 +122,15 @@ export const userRoles = pgTable("user_roles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
   roleName: text("role_name").references(() => roles.name).notNull(),
+  roleId: uuid("role_id").references(() => roles.id), // Added for compatibility
+  isPrimary: boolean("is_primary").default(false), // Added for primary role tracking
   assignedAt: timestamp("assigned_at").defaultNow(),
   assignedBy: integer("assigned_by").references(() => users.id),
 }, (table) => [
   unique().on(table.userId, table.roleName),
   index("idx_user_roles_user_id").on(table.userId),
   index("idx_user_roles_role_name").on(table.roleName),
+  index("idx_user_roles_role_id").on(table.roleId),
 ]);
 
 // Enhanced Posts table with rich text and multimedia support

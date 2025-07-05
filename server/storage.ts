@@ -543,12 +543,25 @@ export class DatabaseStorage implements IStorage {
         .select({
           id: posts.id,
           userId: posts.userId,
+          eventId: posts.eventId,
           content: posts.content,
+          richContent: posts.richContent,
+          plainText: posts.plainText,
           imageUrl: posts.imageUrl,
           videoUrl: posts.videoUrl,
+          mediaEmbeds: posts.mediaEmbeds,
+          mentions: posts.mentions,
           hashtags: posts.hashtags,
           location: posts.location,
+          coordinates: posts.coordinates,
+          placeId: posts.placeId,
+          formattedAddress: posts.formattedAddress,
+          visibility: posts.visibility,
+          likesCount: posts.likesCount,
+          commentsCount: posts.commentsCount,
+          sharesCount: posts.sharesCount,
           isPublic: posts.isPublic,
+          isEdited: posts.isEdited,
           createdAt: posts.createdAt,
           updatedAt: posts.updatedAt,
           user: {
@@ -583,12 +596,25 @@ export class DatabaseStorage implements IStorage {
       .select({
         id: posts.id,
         userId: posts.userId,
+        eventId: posts.eventId,
         content: posts.content,
+        richContent: posts.richContent,
+        plainText: posts.plainText,
         imageUrl: posts.imageUrl,
         videoUrl: posts.videoUrl,
+        mediaEmbeds: posts.mediaEmbeds,
+        mentions: posts.mentions,
         hashtags: posts.hashtags,
         location: posts.location,
+        coordinates: posts.coordinates,
+        placeId: posts.placeId,
+        formattedAddress: posts.formattedAddress,
+        visibility: posts.visibility,
+        likesCount: posts.likesCount,
+        commentsCount: posts.commentsCount,
+        sharesCount: posts.sharesCount,
         isPublic: posts.isPublic,
+        isEdited: posts.isEdited,
         createdAt: posts.createdAt,
         updatedAt: posts.updatedAt,
         user: {
@@ -1272,24 +1298,27 @@ export class DatabaseStorage implements IStorage {
 
   async createMemory(memoryData: any): Promise<any> {
     try {
-      const result = await db
-        .insert(sql`memories`)
-        .values({
-          id: sql`gen_random_uuid()::text`,
-          user_id: memoryData.user_id,
-          title: memoryData.title,
-          content: memoryData.content,
-          emotion_tags: memoryData.emotion_tags,
-          emotion_visibility: memoryData.emotion_visibility,
-          trust_circle_level: memoryData.trust_circle_level,
-          location: memoryData.location,
-          media_urls: memoryData.media_urls,
-          co_tagged_users: memoryData.co_tagged_users,
-          consent_required: memoryData.consent_required
-        })
-        .returning();
+      const result = await db.execute(sql`
+        INSERT INTO memories (
+          id, user_id, title, content, emotion_tags, 
+          emotion_visibility, trust_circle_level, location, 
+          media_urls, co_tagged_users, consent_required
+        ) VALUES (
+          gen_random_uuid()::text, 
+          ${memoryData.user_id}, 
+          ${memoryData.title}, 
+          ${memoryData.content}, 
+          ${memoryData.emotion_tags}, 
+          ${memoryData.emotion_visibility}, 
+          ${memoryData.trust_circle_level}, 
+          ${memoryData.location}::jsonb, 
+          ${memoryData.media_urls}, 
+          ${memoryData.co_tagged_users}, 
+          ${memoryData.consent_required}
+        ) RETURNING *
+      `);
       
-      return result[0];
+      return result.rows[0];
     } catch (error) {
       console.error('Error creating memory:', error);
       throw error;
@@ -1298,19 +1327,22 @@ export class DatabaseStorage implements IStorage {
 
   async logMemoryAudit(auditData: any): Promise<void> {
     try {
-      await db
-        .insert(sql`memory_audit_logs`)
-        .values({
-          id: sql`gen_random_uuid()::text`,
-          user_id: auditData.user_id,
-          memory_id: auditData.memory_id || null,
-          action_type: auditData.action_type,
-          result: auditData.result,
-          reason: auditData.reason || null,
-          metadata: JSON.stringify(auditData.metadata || {}),
-          ip_address: auditData.ip_address || null,
-          user_agent: auditData.user_agent || null
-        });
+      await db.execute(sql`
+        INSERT INTO memory_audit_logs (
+          id, user_id, memory_id, action_type, result, 
+          reason, metadata, ip_address, user_agent
+        ) VALUES (
+          gen_random_uuid()::text,
+          ${auditData.user_id},
+          ${auditData.memory_id || null},
+          ${auditData.action_type},
+          ${auditData.result},
+          ${auditData.reason || null},
+          ${JSON.stringify(auditData.metadata || {})}::jsonb,
+          ${auditData.ip_address || null},
+          ${auditData.user_agent || null}
+        )
+      `);
     } catch (error) {
       console.error('Error logging memory audit:', error);
       // Don't throw error for audit logging to avoid breaking main functionality
@@ -1377,27 +1409,23 @@ export class DatabaseStorage implements IStorage {
 
   async createConsentEvent(memoryId: string, userId: number, action: string, reason?: string, metadata?: any): Promise<any> {
     try {
-      const consentEvent = await db
-        .insert(sql`consent_events`)
-        .values({
-          id: sql`gen_random_uuid()::text`,
-          memory_id: memoryId,
-          user_id: userId,
-          action,
-          reason: reason || null,
-          metadata: JSON.stringify(metadata || {}),
-          ip_address: metadata?.ip_address || null,
-          user_agent: metadata?.user_agent || null
-        })
-        .returning({
-          id: sql<string>`id`,
-          memory_id: sql<string>`memory_id`,
-          user_id: sql<number>`user_id`,
-          action: sql<string>`action`,
-          timestamp: sql<string>`timestamp::text`
-        });
+      const result = await db.execute(sql`
+        INSERT INTO consent_events (
+          id, memory_id, user_id, action, reason, 
+          metadata, ip_address, user_agent
+        ) VALUES (
+          gen_random_uuid()::text,
+          ${memoryId},
+          ${userId},
+          ${action},
+          ${reason || null},
+          ${JSON.stringify(metadata || {})}::jsonb,
+          ${metadata?.ip_address || null},
+          ${metadata?.user_agent || null}
+        ) RETURNING id, memory_id, user_id, action, timestamp::text
+      `);
 
-      return consentEvent[0];
+      return result.rows[0];
     } catch (error) {
       console.error('Error creating consent event:', error);
       throw error;
@@ -1419,21 +1447,17 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Update memory consent status
-      const updatedMemory = await db
-        .update(sql`memories`)
-        .set({
-          consent_status: newStatus,
-          approved_consents: JSON.stringify(decisions.approved),
-          denied_consents: JSON.stringify(decisions.denied),
-          pending_consents: JSON.stringify(decisions.pending)
-        })
-        .where(sql`id = ${memoryId}`)
-        .returning({
-          id: sql<string>`id`,
-          consent_status: sql<string>`consent_status`
-        });
+      const result = await db.execute(sql`
+        UPDATE memories
+        SET consent_status = ${newStatus},
+            approved_consents = ${JSON.stringify(decisions.approved)}::jsonb,
+            denied_consents = ${JSON.stringify(decisions.denied)}::jsonb,
+            pending_consents = ${JSON.stringify(decisions.pending)}::jsonb
+        WHERE id = ${memoryId}
+        RETURNING id, consent_status
+      `);
 
-      return updatedMemory[0];
+      return result.rows[0];
     } catch (error) {
       console.error('Error updating memory consent status:', error);
       throw error;
@@ -1679,6 +1703,7 @@ export class DatabaseStorage implements IStorage {
       createdBy: groups.createdBy,
       createdAt: groups.createdAt,
       updatedAt: groups.updatedAt,
+      coverImage: groups.coverImage,
     })
     .from(groups)
     .innerJoin(groupMembers, eq(groups.id, groupMembers.groupId))
@@ -1920,23 +1945,22 @@ export class DatabaseStorage implements IStorage {
     mvpStatus?: string;
     priority?: string;
   }): Promise<ProjectTrackerItem[]> {
-    let query = db.select().from(projectTrackerItems);
+    const conditions = [];
     
     if (filters) {
-      const conditions = [];
       if (filters.layer) conditions.push(eq(projectTrackerItems.layer, filters.layer));
       if (filters.type) conditions.push(eq(projectTrackerItems.type, filters.type));
       if (filters.reviewStatus) conditions.push(eq(projectTrackerItems.reviewStatus, filters.reviewStatus));
       if (filters.mvpScope !== undefined) conditions.push(eq(projectTrackerItems.mvpScope, filters.mvpScope));
       if (filters.mvpStatus) conditions.push(eq(projectTrackerItems.mvpStatus, filters.mvpStatus));
       if (filters.priority) conditions.push(eq(projectTrackerItems.priority, filters.priority));
-      
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
-      }
     }
     
-    return await query.orderBy(desc(projectTrackerItems.lastUpdated));
+    return await db
+      .select()
+      .from(projectTrackerItems)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(projectTrackerItems.lastUpdated));
   }
 
   async deleteProjectTrackerItem(id: string): Promise<void> {
@@ -1964,17 +1988,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLiveAgentActions(sessionId?: string, agentName?: string): Promise<LiveAgentAction[]> {
-    let query = db.select().from(liveAgentActions);
+    const conditions = [];
+    if (sessionId) conditions.push(eq(liveAgentActions.sessionId, sessionId));
+    if (agentName) conditions.push(eq(liveAgentActions.agentName, agentName));
     
-    if (sessionId || agentName) {
-      const conditions = [];
-      if (sessionId) conditions.push(eq(liveAgentActions.sessionId, sessionId));
-      if (agentName) conditions.push(eq(liveAgentActions.agentName, agentName));
-      
-      query = query.where(and(...conditions));
-    }
-    
-    return await query.orderBy(desc(liveAgentActions.timestamp));
+    return await db
+      .select()
+      .from(liveAgentActions)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(liveAgentActions.timestamp));
   }
 
   // Project Tracker Analytics
@@ -2127,10 +2149,11 @@ export class DatabaseStorage implements IStorage {
         // Create the Life CEO chat room
         await db.insert(chatRooms).values({
           slug: chatRoomSlug,
-          name: `Life CEO - ${agentId}`,
+          userId: 3, // Scott Boddye's user ID
+          title: `Life CEO - ${agentId}`,
           description: `Private conversation with Life CEO ${agentId} agent`,
-          isPrivate: true,
-          createdBy: 3, // Scott Boddye's user ID
+          type: 'single',
+          status: 'active',
           createdAt: new Date(),
           updatedAt: new Date()
         });

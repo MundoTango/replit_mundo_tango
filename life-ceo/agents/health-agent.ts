@@ -178,8 +178,10 @@ export class HealthAgent extends BaseAgent {
       title: `Medication: ${medication.name}`,
       description: `Take ${medication.dosage} at ${medication.times.join(', ')}`,
       priority: 'high',
-      recurring: true,
-      recurrencePattern: 'daily'
+      metadata: {
+        recurring: true,
+        recurrencePattern: 'daily'
+      }
     });
 
     await this.storeMemory(medication, 0.8, ['medication', 'reminder']);
@@ -230,7 +232,12 @@ export class HealthAgent extends BaseAgent {
       new Date(v.timestamp).getTime() > Date.now() - 30 * 24 * 60 * 60 * 1000
     );
 
-    const wellness = {
+    const wellness: {
+      physicalHealth: any;
+      medicationAdherence: any;
+      upcomingAppointments: any;
+      recommendations: string[];
+    } = {
       physicalHealth: await this.assessPhysicalHealth(recentVitals),
       medicationAdherence: await this.checkMedicationAdherence(),
       upcomingAppointments: await this.getUpcomingAppointments(),

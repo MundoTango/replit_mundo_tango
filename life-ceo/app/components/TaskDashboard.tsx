@@ -140,7 +140,7 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ tasks, onBack }) =
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .task-dashboard {
           background: #f5f5f5;
           min-height: 100vh;

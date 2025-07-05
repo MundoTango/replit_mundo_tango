@@ -1,18 +1,24 @@
 // API Gateway for Inter-System Communication
-import express from 'express';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import express, { Request, Response, NextFunction } from 'express';
+import { createProxyMiddleware, Options } from 'http-proxy-middleware';
+import { ClientRequest } from 'http';
 
 const app = express();
 
+// Extend Express Request type to include userContext
+interface AuthenticatedRequest extends Request {
+  userContext?: any;
+}
+
 // Service Registry
-const services = {
+const services: Record<string, string> = {
   lifeCeo: process.env.LIFE_CEO_URL || 'http://localhost:4001',
   mundoTango: process.env.MUNDO_TANGO_URL || 'http://localhost:4002',
   // Future communities can be added here
 };
 
 // Authentication Bridge Middleware
-const authBridge = async (req: any, res: any, next: any) => {
+const authBridge = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     // Extract authentication from request
     const token = req.headers.authorization?.split(' ')[1];
@@ -53,32 +59,36 @@ app.use('/api/life-ceo', authBridge, createProxyMiddleware({
   target: services.lifeCeo,
   changeOrigin: true,
   pathRewrite: { '^/api/life-ceo': '/api' },
-  onProxyReq: (proxyReq, req: any) => {
-    // Add user context to proxied request
-    if (req.userContext) {
-      proxyReq.setHeader('X-User-Context', JSON.stringify(req.userContext));
+  on: {
+    proxyReq: (proxyReq: ClientRequest, req: any) => {
+      // Add user context to proxied request
+      if (req.userContext) {
+        proxyReq.setHeader('X-User-Context', JSON.stringify(req.userContext));
+      }
     }
   }
-}));
+} as unknown as Options));
 
 // Route to Mundo Tango
 app.use('/api/mundo-tango', authBridge, createProxyMiddleware({
   target: services.mundoTango,
   changeOrigin: true,
   pathRewrite: { '^/api/mundo-tango': '/api' },
-  onProxyReq: (proxyReq, req: any) => {
-    // Add user context to proxied request
-    if (req.userContext) {
-      proxyReq.setHeader('X-User-Context', JSON.stringify(req.userContext));
+  on: {
+    proxyReq: (proxyReq: ClientRequest, req: any) => {
+      // Add user context to proxied request
+      if (req.userContext) {
+        proxyReq.setHeader('X-User-Context', JSON.stringify(req.userContext));
+      }
     }
   }
-}));
+} as unknown as Options));
 
 // Cross-System Communication Endpoints
 app.post('/api/cross-system/life-event', 
   authBridge, 
   validateDataContract('life-ceo', 'community'),
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Life CEO notifying communities about life events
       const { event, targetCommunities } = req.body;
@@ -100,7 +110,7 @@ app.post('/api/cross-system/life-event',
 app.post('/api/cross-system/community-activity',
   authBridge,
   validateDataContract('community', 'life-ceo'),
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Community notifying Life CEO about user activity
       const { activity, community } = req.body;
@@ -117,7 +127,10 @@ app.post('/api/cross-system/community-activity',
 
 // System Health Check
 app.get('/api/health', async (req, res) => {
-  const health = {
+  const health: {
+    gateway: string;
+    services: Record<string, string>;
+  } = {
     gateway: 'healthy',
     services: {}
   };
