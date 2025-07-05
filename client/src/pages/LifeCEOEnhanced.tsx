@@ -269,39 +269,46 @@ export default function LifeCEOEnhanced() {
     setIsProcessing(true);
 
     try {
-      const res = await fetch('http://localhost:4001/api/voice/command', {
+      // Use the actual Life CEO chat endpoint
+      const res = await fetch('/api/life-ceo/chat/general/message', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify({ 
-          command: userMessage.content,
-          language,
-          conversationId: activeConversationId
+          message: userMessage.content
         })
       });
 
       const data = await res.json();
       
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: data.response || 'I understand. How can I help you further?',
-        timestamp: new Date()
-      };
+      if (data.success && data.data) {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: data.data.response || data.data.content || 'I understand. How can I help you further?',
+          timestamp: new Date()
+        };
 
-      const finalConvo = {
-        ...updatedConvo,
-        messages: [...updatedConvo.messages, assistantMessage],
-        updatedAt: new Date()
-      };
+        const finalConvo = {
+          ...updatedConvo,
+          messages: [...updatedConvo.messages, assistantMessage],
+          updatedAt: new Date()
+        };
 
-      setConversations(conversations.map(c => c.id === activeConversationId ? finalConvo : c));
-      setResponse(assistantMessage.content);
+        setConversations(conversations.map(c => c.id === activeConversationId ? finalConvo : c));
+        setResponse(assistantMessage.content);
 
-      // Speak the response
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(assistantMessage.content);
-        utterance.lang = language === 'en' ? 'en-US' : 'es-ES';
-        window.speechSynthesis.speak(utterance);
+        // Speak the response
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(assistantMessage.content);
+          utterance.lang = language === 'en' ? 'en-US' : 'es-ES';
+          window.speechSynthesis.speak(utterance);
+        }
+      } else {
+        toast.error('Failed to get response from Life CEO');
       }
     } catch (error) {
       toast.error('Failed to process command');
