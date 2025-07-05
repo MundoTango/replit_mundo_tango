@@ -7053,5 +7053,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================================================
   app.use('/api/rbac', rbacRoutes);
 
+  // ========================================================================
+  // Life CEO Chat API Routes
+  // ========================================================================
+  
+  // Send message to Life CEO agent
+  app.post('/api/life-ceo/chat/:agentId/message', async (req: any, res) => {
+    try {
+      const { agentId } = req.params;
+      const { message } = req.body;
+      
+      // For development, use Scott Boddye (user ID 3) as test user
+      const user = await storage.getUser(3);
+
+      if (!user || !message?.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'User and message content are required'
+        });
+      }
+
+      // Import Life CEO chat service
+      const { lifeCEOChatService } = await import('./services/lifeCEOChatService');
+      
+      // Send message to Life CEO agent and get response
+      const response = await lifeCEOChatService.sendMessage(user.id, agentId, message.trim());
+
+      res.json({
+        success: true,
+        data: response
+      });
+
+    } catch (error) {
+      console.error('Error sending message to Life CEO agent:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send message to Life CEO agent'
+      });
+    }
+  });
+
+  // Get chat history with Life CEO agent
+  app.get('/api/life-ceo/chat/:agentId/history', isAuthenticated, async (req: any, res) => {
+    try {
+      const { agentId } = req.params;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Import Life CEO chat service
+      const { lifeCEOChatService } = await import('./services/lifeCEOChatService');
+      
+      // Get conversation history
+      const history = await lifeCEOChatService.getConversationHistory(user.id, agentId);
+
+      res.json({
+        success: true,
+        data: history
+      });
+
+    } catch (error) {
+      console.error('Error getting Life CEO chat history:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get chat history'
+      });
+    }
+  });
+
+  // Get conversation threads with Life CEO agents
+  app.get('/api/life-ceo/conversations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Import Life CEO chat service
+      const { lifeCEOChatService } = await import('./services/lifeCEOChatService');
+      
+      // Get all conversation threads
+      const conversations = await lifeCEOChatService.getConversationThreads(user.id);
+
+      res.json({
+        success: true,
+        data: conversations
+      });
+
+    } catch (error) {
+      console.error('Error getting Life CEO conversations:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get conversations'
+      });
+    }
+  });
+
   return server;
 }

@@ -25,6 +25,9 @@ import {
   projectTrackerItems,
   projectTrackerChangelog,
   liveAgentActions,
+  lifeCeoAgentConfigurations,
+  lifeCeoChatMessages,
+  lifeCeoConversations,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -64,7 +67,13 @@ import {
   type ProjectTrackerChangelog,
   type InsertProjectTrackerChangelog,
   type LiveAgentAction,
-  type InsertLiveAgentAction
+  type InsertLiveAgentAction,
+  type LifeCeoAgentConfiguration,
+  type InsertLifeCeoAgentConfiguration,
+  type LifeCeoChatMessage,
+  type InsertLifeCeoChatMessage,
+  type LifeCeoConversation,
+  type InsertLifeCeoConversation
 } from '../shared/schema';
 import { db, pool } from './db';
 import { eq, desc, asc, sql, and, or, gte, lte, count, ilike, inArray } from 'drizzle-orm';
@@ -250,6 +259,15 @@ export interface IStorage {
   // Project Tracker Changelog
   createProjectTrackerChangelog(changelog: InsertProjectTrackerChangelog): Promise<ProjectTrackerChangelog>;
   getProjectTrackerChangelog(itemId: string): Promise<ProjectTrackerChangelog[]>;
+  
+  // Life CEO Chat System Methods
+  getLifeCEOAgentConfig(agentId: string): Promise<any>;
+  updateLifeCEOAgentConfig(agentId: string, config: any): Promise<any>;
+  saveLifeCEOChatMessage(message: any): Promise<void>;
+  getLifeCEOChatHistory(userId: number, agentId: string, limit: number): Promise<any[]>;
+  createLifeCEOConversation(conversation: any): Promise<void>;
+  getLifeCEOConversations(userId: number): Promise<any[]>;
+  updateLifeCEOConversation(conversationId: string, updates: any): Promise<void>;
   
   // Live Agent Actions
   createLiveAgentAction(action: InsertLiveAgentAction): Promise<LiveAgentAction>;
@@ -2034,6 +2052,196 @@ export class DatabaseStorage implements IStorage {
       missingDocumentation: [],
       suggestionItems: []
     };
+  }
+
+  // Life CEO Chat System Methods
+  async getLifeCEOAgentConfig(agentId: string): Promise<any> {
+    try {
+      const result = await db.query.lifeCeoAgentConfigurations.findFirst({
+        where: eq(lifeCeoAgentConfigurations.agentId, agentId)
+      });
+      return result || null;
+    } catch (error) {
+      console.error('Error getting Life CEO agent config:', error);
+      return null;
+    }
+  }
+
+  async updateLifeCEOAgentConfig(agentId: string, config: any): Promise<any> {
+    try {
+      const [result] = await db.insert(lifeCeoAgentConfigurations)
+        .values({
+          agentId,
+          configurationData: config,
+          lastUpdated: new Date()
+        })
+        .onConflictDoUpdate({
+          target: lifeCeoAgentConfigurations.agentId,
+          set: {
+            configurationData: config,
+            lastUpdated: new Date()
+          }
+        })
+        .returning();
+      return result;
+    } catch (error) {
+      console.error('Error updating Life CEO agent config:', error);
+      throw error;
+    }
+  }
+
+  async saveLifeCEOChatMessage(message: any): Promise<void> {
+    try {
+      // Use the existing chat_messages table structure with proper slug format
+      const messageSlug = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const userSlug = `user_${message.userId}`;
+      const chatRoomSlug = `lifeceo_${message.agentId}`;
+      
+      // Ensure the Life CEO chat room exists
+      await this.ensureLifeCEOChatRoom(chatRoomSlug, message.agentId);
+      
+      await db.insert(chatMessages).values({
+        slug: messageSlug,
+        chatRoomSlug: chatRoomSlug,
+        userSlug: userSlug,
+        messageType: 'text',
+        message: message.content,
+        createdAt: message.timestamp
+      });
+    } catch (error) {
+      console.error('Error saving Life CEO chat message:', error);
+      throw error;
+    }
+  }
+
+  async ensureLifeCEOChatRoom(chatRoomSlug: string, agentId: string): Promise<void> {
+    try {
+      // Check if chat room exists
+      const existingRoom = await db.select()
+        .from(chatRooms)
+        .where(eq(chatRooms.slug, chatRoomSlug))
+        .limit(1);
+      
+      if (existingRoom.length === 0) {
+        // Create the Life CEO chat room
+        await db.insert(chatRooms).values({
+          slug: chatRoomSlug,
+          name: `Life CEO - ${agentId}`,
+          description: `Private conversation with Life CEO ${agentId} agent`,
+          isPrivate: true,
+          createdBy: 3, // Scott Boddye's user ID
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+        
+        console.log(`Created Life CEO chat room: ${chatRoomSlug}`);
+      }
+    } catch (error: any) {
+      console.error('Error ensuring Life CEO chat room:', error);
+      // Don't throw - let message save continue
+    }
+  }
+
+  async getLifeCEOChatHistory(userId: number, agentId: string, limit: number): Promise<any[]> {
+    try {
+      // Use the existing chat_messages table structure with slug-based filtering
+      const userSlug = `user_${userId}`;
+      const chatRoomSlug = `lifeceo_${agentId}`;
+      
+      const messages = await db.query.chatMessages.findMany({
+        where: and(
+          eq(chatMessages.userSlug, userSlug),
+          eq(chatMessages.chatRoomSlug, chatRoomSlug)
+        ),
+        orderBy: desc(chatMessages.createdAt),
+        limit: limit
+      });
+      
+      // Transform to expected format
+      return messages.reverse().map(msg => ({
+        id: msg.slug,
+        role: msg.userSlug === userSlug ? 'user' : 'assistant',
+        content: msg.message || '',
+        timestamp: msg.createdAt,
+        userId: userId,
+        agentId: agentId,
+        metadata: {}
+      }));
+    } catch (error) {
+      console.error('Error getting Life CEO chat history:', error);
+      return [];
+    }
+  }
+
+  async createLifeCEOConversation(conversation: any): Promise<void> {
+    try {
+      await db.insert(lifeCeoConversations).values({
+        id: conversation.id,
+        userId: conversation.userId,
+        agentId: conversation.agentId,
+        title: conversation.title,
+        createdAt: conversation.createdAt,
+        lastMessage: conversation.lastMessage,
+        metadata: conversation.metadata || {}
+      });
+    } catch (error) {
+      console.error('Error creating Life CEO conversation:', error);
+      throw error;
+    }
+  }
+
+  async getLifeCEOConversations(userId: number): Promise<any[]> {
+    try {
+      const conversations = await db.query.lifeCeoConversations.findMany({
+        where: eq(lifeCeoConversations.userId, userId),
+        orderBy: desc(lifeCeoConversations.lastMessage)
+      });
+      return conversations;
+    } catch (error) {
+      console.error('Error getting Life CEO conversations:', error);
+      return [];
+    }
+  }
+
+  async updateLifeCEOConversation(conversationId: string, updates: any): Promise<void> {
+    try {
+      await db.update(lifeCeoConversations)
+        .set(updates)
+        .where(eq(lifeCeoConversations.id, conversationId));
+    } catch (error) {
+      console.error('Error updating Life CEO conversation:', error);
+      throw error;
+    }
+  }
+
+  async getLifeCEOAgentConfiguration(agentId: string): Promise<any> {
+    try {
+      const config = await db.execute(sql`
+        SELECT * FROM life_ceo_agent_configurations 
+        WHERE agent_id = ${agentId}
+        LIMIT 1
+      `);
+      return config.rows[0] || null;
+    } catch (error) {
+      console.error('Error getting Life CEO agent configuration:', error);
+      return null;
+    }
+  }
+
+  async updateLifeCEOAgentConfiguration(agentId: string, configuration: any): Promise<void> {
+    try {
+      await db.execute(sql`
+        INSERT INTO life_ceo_agent_configurations (agent_id, configuration_data, last_updated, created_at)
+        VALUES (${agentId}, ${JSON.stringify(configuration)}, NOW(), NOW())
+        ON CONFLICT (agent_id) 
+        DO UPDATE SET 
+          configuration_data = ${JSON.stringify(configuration)},
+          last_updated = NOW()
+      `);
+    } catch (error) {
+      console.error('Error updating Life CEO agent configuration:', error);
+      throw error;
+    }
   }
 }
 

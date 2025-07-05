@@ -35,8 +35,13 @@ interface ChatMessage {
   isStreaming?: boolean;
 }
 
-const LifeCEOAgentChat: React.FC = () => {
-  const { id: agentId } = useParams();
+interface LifeCEOAgentChatProps {
+  agentId?: string;
+}
+
+const LifeCEOAgentChat: React.FC<LifeCEOAgentChatProps> = ({ agentId: propAgentId }) => {
+  const { id: urlAgentId } = useParams();
+  const agentId = propAgentId || urlAgentId || 'life-manager';
   const { user } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -49,10 +54,10 @@ const LifeCEOAgentChat: React.FC = () => {
   const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  // Agent info - mock data for now
+  // Agent info - real agent data
   const agentInfo = {
-    name: 'Health Agent',
-    type: 'health_wellness',
+    name: agentId === 'life-manager' ? 'Life Manager' : 'Life CEO Agent',
+    type: agentId || 'life-manager',
     status: 'active',
   };
 
@@ -89,34 +94,16 @@ const LifeCEOAgentChat: React.FC = () => {
     }
   }, [toast]);
 
-  // Initialize chat session
+  // Initialize chat session with welcome message
   useEffect(() => {
-    const initSession = async () => {
-      try {
-        const response = await fetch(`/api/life-ceo/agents/${agentId}/chat/session`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
-        const data = await response.json();
-        setSessionId(data.sessionId);
-        
-        // Add welcome message
-        setMessages([{
-          id: 'welcome',
-          role: 'assistant',
-          content: `Hello! I'm your ${agentInfo.name}. I'm here to help you with all aspects of your health and wellness. How can I assist you today?`,
-          timestamp: new Date(),
-        }]);
-      } catch (error) {
-        console.error('Failed to initialize chat session:', error);
-      }
-    };
-
     if (agentId) {
-      initSession();
+      // Add welcome message
+      setMessages([{
+        id: 'welcome',
+        role: 'assistant',
+        content: `Hello Scott! I'm your ${agentInfo.name}. I'm here to help optimize and manage every aspect of your life. How can I assist you today?`,
+        timestamp: new Date(),
+      }]);
     }
   }, [agentId, agentInfo.name]);
 
@@ -159,7 +146,7 @@ const LifeCEOAgentChat: React.FC = () => {
   };
 
   const sendMessage = async () => {
-    if (!inputMessage.trim() || isLoading || !sessionId) return;
+    if (!inputMessage.trim() || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -183,52 +170,39 @@ const LifeCEOAgentChat: React.FC = () => {
     setMessages(prev => [...prev, assistantMessage]);
 
     try {
-      const response = await fetch(`/api/life-ceo/agents/${agentId}/chat`, {
+      const response = await fetch(`/api/life-ceo/chat/${agentId}/message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
         body: JSON.stringify({
-          sessionId,
           message: inputMessage,
         }),
       });
 
       if (!response.ok) throw new Error('Failed to send message');
 
-      // Stream the response
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let fullResponse = '';
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        // Update the assistant message with the response
+        setMessages(prev => prev.map(msg => 
+          msg.id === assistantMessage.id 
+            ? { 
+                ...msg, 
+                content: data.data.content,
+                isStreaming: false 
+              }
+            : msg
+        ));
 
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          
-          const chunk = decoder.decode(value);
-          fullResponse += chunk;
-          
-          // Update the streaming message
-          setMessages(prev => prev.map(msg => 
-            msg.id === assistantMessage.id 
-              ? { ...msg, content: fullResponse }
-              : msg
-          ));
+        // Speak the response if enabled
+        if (isSpeaking) {
+          speakMessage(data.data.content);
         }
-      }
-
-      // Mark message as complete
-      setMessages(prev => prev.map(msg => 
-        msg.id === assistantMessage.id 
-          ? { ...msg, isStreaming: false }
-          : msg
-      ));
-
-      // Optionally speak the response
-      if (isSpeaking) {
-        speakMessage(fullResponse);
+      } else {
+        throw new Error('Failed to get AI response');
       }
     } catch (error) {
       console.error('Error sending message:', error);

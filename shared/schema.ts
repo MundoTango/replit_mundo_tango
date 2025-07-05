@@ -1075,6 +1075,63 @@ export const insertLiveAgentActionSchema = createInsertSchema(liveAgentActions).
   timestamp: true,
 });
 
+// Life CEO Chat System Tables
+export const lifeCeoAgentConfigurations = pgTable("life_ceo_agent_configurations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  agentId: varchar("agent_id", { length: 100 }).notNull().unique(),
+  configurationData: jsonb("configuration_data").notNull().default({}),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_agent_config_id").on(table.agentId),
+  index("idx_agent_config_updated").on(table.lastUpdated),
+]);
+
+export const lifeCeoChatMessages = pgTable("life_ceo_chat_messages", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  agentId: varchar("agent_id", { length: 100 }).notNull(),
+  role: varchar("role", { length: 20 }).notNull(), // 'user', 'assistant', 'system'
+  content: text("content").notNull(),
+  metadata: jsonb("metadata").default({}),
+  timestamp: timestamp("timestamp").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_chat_user_agent").on(table.userId, table.agentId),
+  index("idx_chat_timestamp").on(table.timestamp),
+  index("idx_chat_agent").on(table.agentId),
+]);
+
+export const lifeCeoConversations = pgTable("life_ceo_conversations", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  agentId: varchar("agent_id", { length: 100 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastMessage: timestamp("last_message").defaultNow().notNull(),
+}, (table) => [
+  index("idx_conv_user").on(table.userId),
+  index("idx_conv_agent").on(table.agentId),
+  index("idx_conv_last_message").on(table.lastMessage),
+]);
+
+// Life CEO Chat System Schemas
+export const insertLifeCeoAgentConfigSchema = createInsertSchema(lifeCeoAgentConfigurations).omit({
+  id: true,
+  createdAt: true,
+  lastUpdated: true,
+});
+
+export const insertLifeCeoChatMessageSchema = createInsertSchema(lifeCeoChatMessages).omit({
+  createdAt: true,
+});
+
+export const insertLifeCeoConversationSchema = createInsertSchema(lifeCeoConversations).omit({
+  createdAt: true,
+  lastMessage: true,
+});
+
 // Project Tracker Types
 export type ProjectTrackerItem = typeof projectTrackerItems.$inferSelect;
 export type InsertProjectTrackerItem = z.infer<typeof insertProjectTrackerItemSchema>;
@@ -1082,3 +1139,11 @@ export type ProjectTrackerChangelog = typeof projectTrackerChangelog.$inferSelec
 export type InsertProjectTrackerChangelog = z.infer<typeof insertProjectTrackerChangelogSchema>;
 export type LiveAgentAction = typeof liveAgentActions.$inferSelect;
 export type InsertLiveAgentAction = z.infer<typeof insertLiveAgentActionSchema>;
+
+// Life CEO Chat System Types
+export type LifeCeoAgentConfiguration = typeof lifeCeoAgentConfigurations.$inferSelect;
+export type InsertLifeCeoAgentConfiguration = z.infer<typeof insertLifeCeoAgentConfigSchema>;
+export type LifeCeoChatMessage = typeof lifeCeoChatMessages.$inferSelect;
+export type InsertLifeCeoChatMessage = z.infer<typeof insertLifeCeoChatMessageSchema>;
+export type LifeCeoConversation = typeof lifeCeoConversations.$inferSelect;
+export type InsertLifeCeoConversation = z.infer<typeof insertLifeCeoConversationSchema>;

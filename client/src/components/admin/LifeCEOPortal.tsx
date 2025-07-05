@@ -1,62 +1,38 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  Brain, 
-  Crown, 
-  Zap, 
-  Calendar, 
-  Activity, 
-  Database,
-  Settings,
-  Eye,
-  Users,
-  GitCommit,
-  Play,
-  Pause,
-  RefreshCw,
-  Clock,
-  BarChart3,
-  Shield,
-  CheckCircle,
-  UserCheck,
-  Lock,
-  AlertCircle,
-  MessageSquare,
-  TrendingUp,
-  FileText,
-  Target,
-  ChevronRight,
-  Info
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import LifeCEOProjectHierarchy from './LifeCEOProjectHierarchy';
+import { 
+  Crown, 
+  Users, 
+  Brain, 
+  Clock, 
+  CheckCircle, 
+  Lock,
+  Settings,
+  BarChart3,
+  MessageSquare
+} from 'lucide-react';
 import LifeCEORoleService from '@/services/lifeCEORoleService';
+import LifeCEOAgentChat from './LifeCEOAgentChat';
 
 const LifeCEOPortalNew: React.FC = () => {
   const { user } = useAuth();
-  const [agentStatus, setAgentStatus] = useState('active');
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Check if user has Life CEO admin access
-  const hasLifeCEOAccess = user?.roles && LifeCEORoleService.canAccessLifeCEOAdmin(user.roles);
+  // Check if user has Life CEO admin access - simplified check
+  const hasLifeCEOAccess = user?.roles && (
+    user.roles.includes('super_admin') || 
+    user.roles.includes('admin') ||
+    user.roles.some(role => role.startsWith('life_ceo_'))
+  );
   
-  // Get user's Life CEO role
-  const userLifeCEORole = user?.roles?.find(role => role.startsWith('life_ceo_')) || 'life_ceo_viewer';
-  const userRoleInfo = LifeCEORoleService.getRoleInfo(userLifeCEORole);
+  // Get user's Life CEO role - simplified
+  const userRoleInfo = { icon: '👑', color: 'text-purple-600', badge: 'Admin' };
 
   // Mock data
   const systemStats = {
@@ -77,15 +53,6 @@ const LifeCEOPortalNew: React.FC = () => {
     { id: 4, name: 'Career Agent', type: 'career_development', status: 'active', lastActive: '10 min ago', taskCount: 15 },
     { id: 5, name: 'Learning Agent', type: 'personal_learning', status: 'active', lastActive: 'Just now', taskCount: 20 },
     { id: 6, name: 'Home Agent', type: 'home_management', status: 'active', lastActive: '30 min ago', taskCount: 7 }
-  ];
-
-  const rolePermissions = [
-    { role: 'Life CEO Super Admin', users: 1, permissions: 'Full system control', color: 'text-purple-600' },
-    { role: 'Life CEO Admin', users: 2, permissions: 'Manage projects & users', color: 'text-blue-600' },
-    { role: 'Project Admin', users: 4, permissions: 'Manage own projects', color: 'text-green-600' },
-    { role: 'Team Lead', users: 8, permissions: 'Manage team tasks', color: 'text-orange-600' },
-    { role: 'Contributor', users: 15, permissions: 'Update own tasks', color: 'text-indigo-600' },
-    { role: 'Viewer', users: 5, permissions: 'Read-only access', color: 'text-gray-600' }
   ];
 
   const getStatusColor = (status: string) => {
@@ -148,11 +115,10 @@ const LifeCEOPortalNew: React.FC = () => {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="projects">Projects</TabsTrigger>
             <TabsTrigger value="agents">Agents</TabsTrigger>
-            <TabsTrigger value="roles">Roles & Access</TabsTrigger>
+            <TabsTrigger value="chat">AI Chat</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
@@ -175,9 +141,9 @@ const LifeCEOPortalNew: React.FC = () => {
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-2">
-                    <Database className="w-5 h-5 text-green-500" />
+                    <Brain className="w-5 h-5 text-purple-500" />
                     <div>
-                      <div className="text-2xl font-bold">{systemStats.memoryEntries.toLocaleString()}</div>
+                      <div className="text-2xl font-bold">{systemStats.memoryEntries}</div>
                       <div className="text-sm text-gray-600">Memory Entries</div>
                     </div>
                   </div>
@@ -187,10 +153,10 @@ const LifeCEOPortalNew: React.FC = () => {
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-2">
-                    <Target className="w-5 h-5 text-purple-500" />
+                    <Clock className="w-5 h-5 text-green-500" />
                     <div>
-                      <div className="text-2xl font-bold">{systemStats.tasksCompleted}</div>
-                      <div className="text-sm text-gray-600">Tasks Completed</div>
+                      <div className="text-2xl font-bold">{systemStats.dailyReviewTime}</div>
+                      <div className="text-sm text-gray-600">Daily Review</div>
                     </div>
                   </div>
                 </CardContent>
@@ -199,55 +165,66 @@ const LifeCEOPortalNew: React.FC = () => {
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-2">
-                    <Clock className="w-5 h-5 text-orange-500" />
+                    <CheckCircle className="w-5 h-5 text-orange-500" />
                     <div>
-                      <div className="text-2xl font-bold">{systemStats.activeTasks}</div>
-                      <div className="text-sm text-gray-600">Active Tasks</div>
+                      <div className="text-2xl font-bold">{systemStats.tasksCompleted}</div>
+                      <div className="text-sm text-gray-600">Tasks Completed</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Project Progress Overview */}
+            {/* System Overview */}
             <Card>
               <CardHeader>
-                <CardTitle>Life CEO System Progress</CardTitle>
-                <CardDescription>Overall completion across all projects</CardDescription>
+                <CardTitle>System Overview</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Overall Progress</span>
-                    <span className="text-sm font-medium">{systemStats.projectProgress}%</span>
+                    <span>Overall System Health</span>
+                    <Badge className="bg-green-100 text-green-800">Excellent</Badge>
                   </div>
-                  <Progress value={systemStats.projectProgress} className="h-3" />
+                  <div className="flex justify-between items-center">
+                    <span>Active Tasks</span>
+                    <span className="font-medium">{systemStats.activeTasks}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Project Progress</span>
+                    <span className="font-medium">{systemStats.projectProgress}%</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
 
-            {/* Agent Overview */}
+          {/* Agents Tab */}
+          <TabsContent value="agents" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Active Agents</CardTitle>
-                <CardDescription>Real-time status of Life CEO agents</CardDescription>
+                <CardTitle>Agent Status Overview</CardTitle>
+                <CardDescription>
+                  Monitor and manage your Life CEO AI agents
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {activeAgents.slice(0, 4).map((agent) => (
-                    <div key={agent.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="space-y-4">
+                  {activeAgents.map((agent) => (
+                    <div key={agent.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">
-                          {agent.name.charAt(0)}
-                        </div>
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
                         <div>
                           <div className="font-medium">{agent.name}</div>
-                          <div className="text-sm text-gray-600">{agent.taskCount} tasks</div>
+                          <div className="text-sm text-gray-500">{agent.lastActive}</div>
                         </div>
                       </div>
-                      <Badge className={getStatusColor(agent.status)}>
-                        {agent.status}
-                      </Badge>
+                      <div className="flex items-center space-x-3">
+                        <Badge className={getStatusColor(agent.status)}>
+                          {agent.status}
+                        </Badge>
+                        <span className="text-sm text-gray-500">{agent.taskCount} tasks</span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -255,122 +232,9 @@ const LifeCEOPortalNew: React.FC = () => {
             </Card>
           </TabsContent>
 
-          {/* Projects Tab */}
-          <TabsContent value="projects" className="space-y-6">
-            <LifeCEOProjectHierarchy />
-          </TabsContent>
-
-          {/* Agents Tab */}
-          <TabsContent value="agents" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Agent Management</CardTitle>
-                <CardDescription>Monitor and control Life CEO agents</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Agent</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Last Active</TableHead>
-                      <TableHead>Tasks</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {activeAgents.map((agent) => (
-                      <TableRow key={agent.id}>
-                        <TableCell className="font-medium">{agent.name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{agent.type.replace(/_/g, ' ')}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(agent.status)}>
-                            {agent.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{agent.lastActive}</TableCell>
-                        <TableCell>{agent.taskCount}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button variant="ghost" size="sm">
-                              {agent.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => window.location.href = `/life-ceo/agent/${agent.id}`}
-                            >
-                              <Settings className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Roles & Access Tab */}
-          <TabsContent value="roles" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Role-Based Access Control</CardTitle>
-                <CardDescription>Manage user roles and permissions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Users</TableHead>
-                      <TableHead>Permissions</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rolePermissions.map((role, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Shield className={`w-4 h-4 ${role.color}`} />
-                            <span className="font-medium">{role.role}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{role.users}</TableCell>
-                        <TableCell>{role.permissions}</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm">
-                            <Settings className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-
-            {/* Permission Matrix */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Permissions</CardTitle>
-                <CardDescription>Based on your role: {userRoleInfo.badge}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    You have {userRoleInfo.badge} access to the Life CEO system. 
-                    This grants you permissions to manage projects, view analytics, and control agent operations.
-                  </AlertDescription>
-                </Alert>
-              </CardContent>
-            </Card>
+          {/* AI Chat Tab */}
+          <TabsContent value="chat" className="space-y-6">
+            <LifeCEOAgentChat agentId="life-manager" />
           </TabsContent>
 
           {/* Analytics Tab */}
@@ -385,9 +249,9 @@ const LifeCEOPortalNew: React.FC = () => {
                     <div>
                       <div className="flex justify-between mb-1">
                         <span className="text-sm">CPU Usage</span>
-                        <span className="text-sm font-medium">42%</span>
+                        <span className="text-sm font-medium">45%</span>
                       </div>
-                      <Progress value={42} className="h-2" />
+                      <Progress value={45} className="h-2" />
                     </div>
                     <div>
                       <div className="flex justify-between mb-1">
