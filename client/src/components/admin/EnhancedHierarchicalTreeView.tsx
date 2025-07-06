@@ -27,8 +27,8 @@ interface ProjectItem {
   mobileNextSteps?: string[];
 }
 
-// 11L Framework: Proper Organizational Hierarchy with Card Templates
-const projectData: ProjectItem[] = [
+// Move large data structure outside component to prevent initialization errors
+const createProjectData = (): ProjectItem[] => [
   {
     id: 'mundo-tango-org',
     title: 'Mundo Tango Organization',
@@ -530,6 +530,9 @@ const projectData: ProjectItem[] = [
 const EnhancedHierarchicalTreeView: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['mundo-tango-org']));
+
+  // Initialize project data using factory function
+  const projectData = useMemo(() => createProjectData(), []);
 
   // Pre-calculate rollup data for all items to avoid hooks inside render
   const itemRollupData = useMemo(() => {

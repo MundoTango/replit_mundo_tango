@@ -6,6 +6,7 @@ import Comprehensive11LProjectTracker from '@/components/admin/Comprehensive11LP
 import EnhancedHierarchicalTreeView from '@/components/admin/EnhancedHierarchicalTreeView';
 import { PlatformFeatureDeepDive } from '@/components/admin/PlatformFeatureDeepDive';
 import LifeCEOPortal from '@/components/admin/LifeCEOPortal';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { 
   Users, 
   Activity, 
@@ -1365,7 +1366,11 @@ const AdminCenter: React.FC = () => {
     switch (selectedTab) {
       case 'life-ceo': return <LifeCEOPortal />;
       case 'overview': return renderOverview();
-      case 'project-tracker': return <EnhancedHierarchicalTreeView />;
+      case 'project-tracker': return (
+        <ErrorBoundary fallback={<div className="p-6 text-center text-red-600">Error loading project hierarchy. Please refresh the page.</div>}>
+          <EnhancedHierarchicalTreeView />
+        </ErrorBoundary>
+      );
       case 'feature-deep-dive': return <PlatformFeatureDeepDive />;
       case 'users': return renderUserManagement();
       case 'content': return renderContentModeration();
