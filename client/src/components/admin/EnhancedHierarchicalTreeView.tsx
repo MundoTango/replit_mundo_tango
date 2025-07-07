@@ -47,10 +47,14 @@ const createProjectData = (): ProjectItem[] => [
     estimatedHours: 3500,
     actualHours: 2980,
     assignee: 'Scott Boddye',
+    team: ['Executive Team', 'Platform Architecture'],
+    reviewers: ['CTO', 'Lead Architect'],
     startDate: '2025-06-27',
     endDate: '2025-08-15',
     dependencies: [],
     tags: ['Organization', 'Tango Community', 'Digital Platform'],
+    budget: 250000,
+    actualCost: 198000,
     webDevPrerequisites: [
       'Complete organizational structure implementation',
       'Finalize all core platform components',
@@ -76,10 +80,14 @@ const createProjectData = (): ProjectItem[] => [
         estimatedHours: 1800,
         actualHours: 1620,
         assignee: 'Frontend Development Team',
+        team: ['Frontend Team', 'UI/UX Design', 'Mobile Development'],
+        reviewers: ['Lead Frontend Developer', 'UX Director'],
         startDate: '2025-06-27',
         endDate: '2025-07-30',
         dependencies: ['mundo-tango-admin'],
         tags: ['Social Media', 'User Interface', 'Community Features'],
+        budget: 120000,
+        actualCost: 108000,
         webDevPrerequisites: [
           'Complete all React component optimizations',
           'Finalize responsive design implementation', 
@@ -107,10 +115,14 @@ const createProjectData = (): ProjectItem[] => [
             estimatedHours: 450,
             actualHours: 427,
             assignee: 'Scott Boddye',
+            team: ['Frontend Team', 'Backend Team', 'QA Team'],
+            reviewers: ['Tech Lead', 'Product Manager'],
             startDate: '2025-06-28',
             endDate: '2025-07-15',
             dependencies: ['authentication-system'],
             tags: ['Social Media', 'User Engagement', 'Real-time'],
+            budget: 80000,
+            actualCost: 76000,
             webDevPrerequisites: [
               'Optimize React Query caching strategies',
               'Implement advanced error boundary patterns',
@@ -231,10 +243,14 @@ const createProjectData = (): ProjectItem[] => [
         estimatedHours: 800,
         actualHours: 680,
         assignee: 'Backend Development Team',
+        team: ['Backend Team', 'DevOps', 'Security Team'],
+        reviewers: ['CTO', 'Security Officer'],
         startDate: '2025-06-27',
         endDate: '2025-07-25',
         dependencies: [],
         tags: ['Administration', 'Analytics', 'User Management'],
+        budget: 95000,
+        actualCost: 80750,
         webDevPrerequisites: [
           'Complete all admin API endpoints',
           'Implement comprehensive role-based access control',
@@ -349,10 +365,14 @@ const createProjectData = (): ProjectItem[] => [
                         estimatedHours: 12,
                         actualHours: 11,
                         assignee: 'Scott Boddye',
+                        team: ['Backend Team', 'Security Team'],
+                        reviewers: ['Security Officer', 'Backend Lead'],
                         startDate: '2025-07-03',
                         endDate: '2025-07-04',
                         dependencies: [],
                         tags: ['Permission Matrix', 'Access Control', 'Role Inheritance'],
+                        budget: 15000,
+                        actualCost: 13800,
                         webDevPrerequisites: [
                           'Complete permission caching system',
                           'Add real-time permission updates',
@@ -386,6 +406,8 @@ const createProjectData = (): ProjectItem[] => [
         estimatedHours: 900,
         actualHours: 720,
         assignee: 'Project Management Team',
+        team: ['Product Team', 'Platform Architecture', 'Community Management'],
+        reviewers: ['Product Owner', 'Platform Lead'],
         startDate: '2025-07-01',
         endDate: '2025-08-15',
         dependencies: ['mundo-tango-admin'],
@@ -618,6 +640,26 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
     return rollupMap;
   }, [projectData]);
 
+  // Extract all unique teams from the project data
+  const getAllTeams = useMemo(() => {
+    const teams = new Set<string>();
+    teams.add('all'); // Add 'all' option
+    
+    const extractTeams = (items: ProjectItem[]) => {
+      items.forEach(item => {
+        if (item.team) {
+          item.team.forEach(team => teams.add(team));
+        }
+        if (item.children) {
+          extractTeams(item.children);
+        }
+      });
+    };
+    
+    extractTeams(projectData);
+    return Array.from(teams);
+  }, [projectData]);
+
   // Get icon based on item type
   const getItemIcon = (type: string, isExpanded?: boolean) => {
     switch (type) {
@@ -641,6 +683,25 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
     setExpandedItems(newExpanded);
   };
 
+  // Expand/Collapse all functionality
+  const expandAll = () => {
+    const allIds = new Set<string>();
+    const collectIds = (items: ProjectItem[]) => {
+      items.forEach(item => {
+        allIds.add(item.id);
+        if (item.children) collectIds(item.children);
+      });
+    };
+    collectIds(projectData);
+    setExpandedItems(allIds);
+  };
+
+  const collapseAll = () => {
+    setExpandedItems(new Set());
+  };
+
+
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Completed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
@@ -659,6 +720,82 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
       case 'Low': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
     }
+  };
+
+  // Render card view for an item and its children
+  const renderCardView = (item: ProjectItem, depth: number = 0): React.ReactNode => {
+    const rollupData = itemRollupData.get(item.id) || calculateRollupStatus(item);
+    
+    return (
+      <div key={item.id} className="space-y-2">
+        <Card 
+          className={`cursor-pointer hover:shadow-lg transition-shadow ${
+            depth > 0 ? 'ml-' + (depth * 4) : ''
+          }`}
+          onClick={() => setSelectedItem(item)}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex items-center gap-2">
+                {getItemIcon(item.type)}
+                <h3 className="font-semibold text-lg">{item.title}</h3>
+              </div>
+              <Badge className={getStatusColor(rollupData.overallStatus)}>
+                {rollupData.overallStatus}
+              </Badge>
+            </div>
+            
+            <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+            
+            {/* Team Badges */}
+            {item.team && item.team.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-2">
+                {item.team.map(team => (
+                  <Badge key={team} variant="secondary" className="text-xs">
+                    <Users className="h-3 w-3 mr-1" />
+                    {team}
+                  </Badge>
+                ))}
+              </div>
+            )}
+            
+            {/* Progress Bars */}
+            <div className="space-y-2">
+              <div>
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>Web Progress</span>
+                  <span>{rollupData.webCompletion}%</span>
+                </div>
+                <Progress value={rollupData.webCompletion} className="h-2" />
+              </div>
+              {item.mobileCompletion !== undefined && (
+                <div>
+                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                    <span>Mobile Progress</span>
+                    <span>{rollupData.mobileCompletion}%</span>
+                  </div>
+                  <Progress value={rollupData.mobileCompletion} className="h-2" />
+                </div>
+              )}
+            </div>
+            
+            {/* Metadata */}
+            <div className="flex justify-between items-center mt-3 text-xs text-gray-500">
+              <span>{item.assignee}</span>
+              {item.estimatedHours && (
+                <span>
+                  <Clock className="h-3 w-3 inline mr-1" />
+                  {item.actualHours || 0}/{item.estimatedHours}h
+                </span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Render children recursively */}
+        {item.children && item.children.map(child => renderCardView(child, depth + 1))}
+      </div>
+    );
   };
 
   // Render simplified tree item
@@ -704,6 +841,19 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
           <Badge className={`${getPriorityColor(item.priority)} text-xs`}>
             {item.priority}
           </Badge>
+          
+          {/* Team Badges */}
+          {item.team && item.team.length > 0 && (
+            <>
+              <Badge variant="secondary" className="text-xs">
+                <Users className="h-3 w-3 mr-1" />
+                {item.team[0]}
+              </Badge>
+              {item.team.length > 1 && (
+                <span className="text-xs text-gray-500">+{item.team.length - 1}</span>
+              )}
+            </>
+          )}
           
           {/* Web Completion */}
           <div className="flex items-center space-x-1 text-xs">
@@ -758,15 +908,50 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
                 <div>Priority: <Badge className={getPriorityColor(item.priority)}>{item.priority}</Badge></div>
                 <div>Completion: {item.completion}%</div>
                 <div>Assignee: {item.assignee || 'Unassigned'}</div>
+                {item.team && item.team.length > 0 && (
+                  <div>Teams: 
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {item.team.map(team => (
+                        <Badge key={team} variant="secondary" className="text-xs">
+                          <Users className="h-3 w-3 mr-1" />
+                          {team}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {item.reviewers && item.reviewers.length > 0 && (
+                  <div>Reviewers: 
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {item.reviewers.map(reviewer => (
+                        <Badge key={reviewer} variant="outline" className="text-xs">
+                          {reviewer}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div>
-              <h3 className="font-semibold mb-2">Time Tracking</h3>
+              <h3 className="font-semibold mb-2">Time & Budget</h3>
               <div className="space-y-2 text-sm">
                 <div>Estimated Hours: {item.estimatedHours || 'Not set'}</div>
                 <div>Actual Hours: {item.actualHours || 0}</div>
                 <div>Start Date: {item.startDate || 'Not set'}</div>
                 <div>End Date: {item.endDate || 'Not set'}</div>
+                {item.budget && (
+                  <div>Budget: ${item.budget.toLocaleString()}</div>
+                )}
+                {item.actualCost && (
+                  <div>Actual Cost: ${item.actualCost.toLocaleString()}</div>
+                )}
+                {item.lastReviewDate && (
+                  <div>Last Review: {item.lastReviewDate}</div>
+                )}
+                {item.nextReviewDate && (
+                  <div>Next Review: {item.nextReviewDate}</div>
+                )}
               </div>
             </div>
           </div>
@@ -819,9 +1004,114 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
     </div>
   );
 
+  // Filter items based on team and completion status
+  const filterItems = (items: ProjectItem[]): ProjectItem[] => {
+    return items.map(item => ({
+      ...item,
+      children: item.children ? filterItems(item.children) : undefined
+    })).filter(item => {
+      const teamMatch = filterTeam === 'all' || item.team?.includes(filterTeam);
+      const statusMatch = showCompleted || item.status !== 'Completed';
+      return teamMatch && statusMatch;
+    });
+  };
+
+  const filteredData = useMemo(() => filterItems(projectData), [filterTeam, showCompleted]);
+
   return (
-    <div className="w-full space-y-2">
-      {projectData.map(item => renderSimpleTreeItem(item))}
+    <div className="w-full space-y-4">
+      {/* Toolbar */}
+      <Card className="p-4">
+        <div className="flex flex-wrap gap-4 items-center">
+          {/* View Mode Toggle */}
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === 'tree' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('tree')}
+            >
+              <FolderOpen className="h-4 w-4 mr-1" />
+              Tree View
+            </Button>
+            <Button
+              variant={viewMode === 'cards' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('cards')}
+            >
+              <Code2 className="h-4 w-4 mr-1" />
+              Cards View
+            </Button>
+            <Button
+              variant={viewMode === 'dual' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('dual')}
+            >
+              <Monitor className="h-4 w-4 mr-1" />
+              Dual View
+            </Button>
+          </div>
+
+          {/* Expand/Collapse Controls */}
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={expandAll}>
+              <ChevronDown className="h-4 w-4 mr-1" />
+              Expand All
+            </Button>
+            <Button variant="outline" size="sm" onClick={collapseAll}>
+              <ChevronRight className="h-4 w-4 mr-1" />
+              Collapse All
+            </Button>
+          </div>
+
+          {/* Team Filter */}
+          <select
+            className="px-3 py-1 border rounded-md"
+            value={filterTeam}
+            onChange={(e) => setFilterTeam(e.target.value)}
+          >
+            {getAllTeams.map(team => (
+              <option key={team} value={team}>
+                {team === 'all' ? 'All Teams' : team}
+              </option>
+            ))}
+          </select>
+
+          {/* Show Completed Toggle */}
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={showCompleted}
+              onChange={(e) => setShowCompleted(e.target.checked)}
+              className="rounded"
+            />
+            Show Completed
+          </label>
+
+          {/* Summary Stats */}
+          <div className="ml-auto flex gap-4 text-sm">
+            <span className="text-gray-600">
+              Total Items: <strong>{filteredData.length}</strong>
+            </span>
+          </div>
+        </div>
+      </Card>
+
+      {/* Main Content Area */}
+      <div className={viewMode === 'dual' ? 'grid grid-cols-2 gap-4' : ''}>
+        {/* Tree View */}
+        {(viewMode === 'tree' || viewMode === 'dual') && (
+          <div className="space-y-2">
+            {filteredData.map(item => renderSimpleTreeItem(item))}
+          </div>
+        )}
+
+        {/* Cards View */}
+        {(viewMode === 'cards' || viewMode === 'dual') && (
+          <div className="space-y-2">
+            {filteredData.map(item => renderCardView(item))}
+          </div>
+        )}
+      </div>
       
       {selectedItem && (
         <DetailedCard 
