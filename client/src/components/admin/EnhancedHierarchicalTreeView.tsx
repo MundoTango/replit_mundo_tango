@@ -527,6 +527,64 @@ const createProjectData = (): ProjectItem[] => [
   }
 ];
 
+// Calculate status rollup from children to parent
+const calculateRollupStatus = (item: ProjectItem): { 
+  overallStatus: string; 
+  webCompletion: number; 
+  mobileCompletion: number;
+  childStatusCount: { [key: string]: number };
+} => {
+  if (!item.children || item.children.length === 0) {
+    return {
+      overallStatus: item.status,
+      webCompletion: item.completion || 0,
+      mobileCompletion: item.mobileCompletion || 0,
+      childStatusCount: { [item.status]: 1 }
+    };
+  }
+
+  let totalWebCompletion = 0;
+  let totalMobileCompletion = 0;
+  const statusCounts: { [key: string]: number } = {};
+  let totalChildren = 0;
+
+  const processChildren = (children: ProjectItem[]) => {
+    children.forEach(child => {
+      if (child.children && child.children.length > 0) {
+        processChildren(child.children);
+      } else {
+        totalChildren++;
+        totalWebCompletion += child.completion || 0;
+        totalMobileCompletion += child.mobileCompletion || 0;
+        statusCounts[child.status] = (statusCounts[child.status] || 0) + 1;
+      }
+    });
+  };
+
+  processChildren(item.children);
+
+  const avgWebCompletion = totalChildren > 0 ? Math.round(totalWebCompletion / totalChildren) : 0;
+  const avgMobileCompletion = totalChildren > 0 ? Math.round(totalMobileCompletion / totalChildren) : 0;
+
+  let overallStatus = 'Planned';
+  if (statusCounts['Completed'] === totalChildren) {
+    overallStatus = 'Completed';
+  } else if (statusCounts['Blocked'] > 0) {
+    overallStatus = 'Blocked';
+  } else if (statusCounts['In Progress'] > 0 || (statusCounts['Completed'] > 0 && statusCounts['Completed'] < totalChildren)) {
+    overallStatus = 'In Progress';
+  } else if (statusCounts['Under Review'] > 0) {
+    overallStatus = 'Under Review';
+  }
+
+  return {
+    overallStatus,
+    webCompletion: avgWebCompletion,
+    mobileCompletion: avgMobileCompletion,
+    childStatusCount: statusCounts
+  };
+};
+
 const EnhancedHierarchicalTreeView: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['mundo-tango-org']));
@@ -549,7 +607,7 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
     
     processItems(projectData);
     return rollupMap;
-  }, []);
+  }, [projectData]);
 
   // Get icon based on item type
   const getItemIcon = (type: string, isExpanded?: boolean) => {
@@ -562,57 +620,6 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
       case 'Sub-task': return <FileText className="h-5 w-5 text-gray-500" />;
       default: return <Circle className="h-5 w-5" />;
     }
-  };
-
-  // Calculate status rollup from children to parent
-  const calculateRollupStatus = (item: ProjectItem): { 
-    overallStatus: string; 
-    webCompletion: number; 
-    mobileCompletion: number;
-    childStatusCount: { [key: string]: number };
-  } => {
-    if (!item.children || item.children.length === 0) {
-      return {
-        overallStatus: item.status,
-        webCompletion: item.completion || 0,
-        mobileCompletion: item.mobileCompletion || 0,
-        childStatusCount: { [item.status]: 1 }
-      };
-    }
-
-    let totalWebCompletion = 0;
-    let totalMobileCompletion = 0;
-    const statusCounts: { [key: string]: number } = {};
-    let totalChildren = 0;
-
-    const processChildren = (children: ProjectItem[]) => {
-      children.forEach(child => {
-        if (child.children && child.children.length > 0) {
-          processChildren(child.children);
-        } else {
-          totalChildren++;
-          totalWebCompletion += child.completion || 0;
-          totalMobileCompletion += child.mobileCompletion || 0;
-          statusCounts[child.status] = (statusCounts[child.status] || 0) + 1;
-        }
-      });
-    };
-
-    processChildren(item.children);
-
-    // Determine overall status based on child statuses
-    let overallStatus = 'In Progress';
-    if (statusCounts['Blocked'] > 0) overallStatus = 'Blocked';
-    else if (statusCounts['Completed'] === totalChildren) overallStatus = 'Completed';
-    else if (statusCounts['Planned'] === totalChildren) overallStatus = 'Planned';
-    else if (statusCounts['Under Review'] > 0) overallStatus = 'Under Review';
-
-    return {
-      overallStatus,
-      webCompletion: Math.round(totalWebCompletion / totalChildren),
-      mobileCompletion: Math.round(totalMobileCompletion / totalChildren),
-      childStatusCount: statusCounts
-    };
   };
 
   const toggleExpanded = (id: string) => {
