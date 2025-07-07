@@ -16,6 +16,7 @@ interface ProjectItem {
   mobileCompletion?: number;
   priority: 'High' | 'Medium' | 'Low';
   assignee?: string;
+  team?: string[];
   estimatedHours?: number;
   actualHours?: number;
   startDate?: string;
@@ -25,6 +26,11 @@ interface ProjectItem {
   children?: ProjectItem[];
   webDevPrerequisites?: string[];
   mobileNextSteps?: string[];
+  reviewers?: string[];
+  lastReviewDate?: string;
+  nextReviewDate?: string;
+  budget?: number;
+  actualCost?: number;
 }
 
 // Move large data structure outside component to prevent initialization errors
@@ -588,6 +594,9 @@ const calculateRollupStatus = (item: ProjectItem): {
 const EnhancedHierarchicalTreeView: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['mundo-tango-org']));
+  const [viewMode, setViewMode] = useState<'tree' | 'cards' | 'dual'>('dual');
+  const [showCompleted, setShowCompleted] = useState(true);
+  const [filterTeam, setFilterTeam] = useState<string>('all');
 
   // Initialize project data using factory function
   const projectData = useMemo(() => createProjectData(), []);
