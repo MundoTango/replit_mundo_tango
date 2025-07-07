@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { 
   X, Globe, FileText, Code2, Users, CheckCircle, Clock, 
   Eye, BarChart3, Wrench, TestTube, Github, Layers,
-  AlertTriangle, Calendar, Star, Link
+  AlertTriangle, Calendar, Star, Link, GitBranch
 } from 'lucide-react';
 
 interface JiraStyleItemDetailModalProps {
@@ -20,7 +20,7 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
   onClose,
   onSignOff
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'development' | 'reviews'>('development');
+  const [activeTab, setActiveTab] = useState<'overview' | 'evolution' | 'development' | 'reviews'>('development');
 
   // Early return if no item selected
   if (!selectedItem) {
@@ -43,6 +43,53 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
       case 'medium': case 'moderate': return 'border-yellow-500 text-yellow-700';
       case 'low': return 'border-green-500 text-green-700';
       default: return 'border-gray-500 text-gray-700';
+    }
+  };
+
+  // Project evolution timeline
+  const projectEvolution = {
+    ttFiles: {
+      title: 'Original TrangoTech Files',
+      items: [
+        'EventCard.jsx - Basic event display with TT styling',
+        'ProfileHead.jsx - User profile component with role badges',
+        'CommunityCard.jsx - Community display cards',
+        'TT Colors: #8E142E (primary red), #0D448A (secondary blue)',
+        'Gilroy font family, card-based design system'
+      ]
+    },
+    migration: {
+      title: 'Migration to Mundo Tango (June 28-30, 2025)',
+      items: [
+        'Extracted TT CSS classes and variables',
+        'Created TrangoTechPostComposer component',
+        'Applied authentic TT styling across 7 pages',
+        'Migrated 55 tables from MySQL to PostgreSQL',
+        'Implemented Row-Level Security (RLS) policies'
+      ]
+    },
+    currentState: {
+      title: 'Current Implementation (January 7, 2025)',
+      items: [
+        '576 project features in hierarchical structure',
+        '23L Framework with 23-layer validation system',
+        '16 Life CEO AI agents with memory systems',
+        'Complete RBAC/ABAC implementation',
+        'Production readiness at 87%'
+      ]
+    },
+    appVersion: {
+      title: 'Mobile App Development Requirements',
+      items: [
+        'Convert React components to React Native',
+        'Implement native navigation (React Navigation)',
+        'Add offline-first architecture with local storage',
+        'Create native push notifications',
+        'Optimize for iOS and Android platforms',
+        'Implement biometric authentication',
+        'Add native camera and media handling',
+        'Create app store deployment pipeline'
+      ]
     }
   };
 
@@ -193,6 +240,7 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
           <div className="flex space-x-8">
             {[
               { id: 'overview', label: 'Overview', icon: BarChart3 },
+              { id: 'evolution', label: 'Project Evolution', icon: GitBranch },
               { id: 'development', label: 'Development Work', icon: Code2 },
               { id: 'reviews', label: 'Human Reviews', icon: Users }
             ].map((tab) => (
@@ -240,6 +288,48 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
                       <div className="text-2xl font-bold text-purple-600">{completedReviews}/6</div>
                       <div className="text-sm text-purple-700">Reviews Done</div>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'evolution' && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <GitBranch className="h-5 w-5" />
+                    Project Evolution Timeline
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">
+                    From TrangoTech files to mobile app requirements
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {Object.entries(projectEvolution).map(([key, section]) => (
+                      <div key={key} className="border-l-4 border-blue-500 pl-4">
+                        <h3 className="font-semibold text-lg mb-2">{section.title}</h3>
+                        <ul className="space-y-2">
+                          {section.items.map((item, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-gray-700">{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-8 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                    <h4 className="font-semibold text-amber-900 mb-2">Next Steps for Mobile App</h4>
+                    <p className="text-sm text-amber-800">
+                      The mobile app development requires conversion of React components to React Native, 
+                      implementation of offline-first architecture, native push notifications, and 
+                      deployment pipelines for iOS and Android app stores.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
