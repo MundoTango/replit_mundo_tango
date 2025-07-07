@@ -156,21 +156,25 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 uppercase tracking-wide font-medium">
-                    {selectedItem.layer} • {selectedItem.type}
+                    {selectedItem.layer || 'Platform'} • {selectedItem.type || 'Feature'}
                   </div>
-                  <h1 className="text-2xl font-bold text-gray-900">{selectedItem.title}</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">{selectedItem.title || 'Untitled'}</h1>
                 </div>
               </div>
               <div className="flex items-center gap-3 flex-wrap">
-                <Badge className={getStatusColor(selectedItem.mvpStatus || 'In Progress')}>
-                  {selectedItem.mvpStatus || 'In Progress'}
+                <Badge className={getStatusColor(selectedItem.status || selectedItem.mvpStatus || 'In Progress')}>
+                  {selectedItem.status || selectedItem.mvpStatus || 'In Progress'}
                 </Badge>
-                <Badge variant="outline" className={getRiskColor(selectedItem.riskLevel || 'Medium')}>
-                  {selectedItem.riskLevel || 'Medium'} Risk
-                </Badge>
-                <Badge variant="outline" className="text-purple-600 border-purple-300">
-                  {selectedItem.reviewStatus || 'Pending Review'}
-                </Badge>
+                {selectedItem.riskLevel && (
+                  <Badge variant="outline" className={getRiskColor(selectedItem.riskLevel)}>
+                    {selectedItem.riskLevel} Risk
+                  </Badge>
+                )}
+                {selectedItem.priority && (
+                  <Badge variant="outline" className="text-purple-600 border-purple-300">
+                    {selectedItem.priority} Priority
+                  </Badge>
+                )}
               </div>
             </div>
             <Button
