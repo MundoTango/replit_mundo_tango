@@ -1064,17 +1064,26 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
           </div>
 
           {/* Team Filter */}
-          <select
-            className="px-3 py-1 border rounded-md"
-            value={filterTeam}
-            onChange={(e) => setFilterTeam(e.target.value)}
-          >
-            {getAllTeams.map(team => (
-              <option key={team} value={team}>
-                {team === 'all' ? 'All Teams' : team}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">Team:</span>
+            <select
+              className="px-3 py-1 border rounded-md bg-white dark:bg-gray-800"
+              value={filterTeam}
+              onChange={(e) => setFilterTeam(e.target.value)}
+            >
+              {getAllTeams.map(team => (
+                <option key={team} value={team}>
+                  {team === 'all' ? 'All Teams' : team}
+                </option>
+              ))}
+            </select>
+            {filterTeam !== 'all' && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                {filterTeam}
+              </Badge>
+            )}
+          </div>
 
           {/* Show Completed Toggle */}
           <label className="flex items-center gap-2">
