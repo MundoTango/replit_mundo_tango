@@ -339,14 +339,24 @@ The platform features a complete theming system enabling instant site-wide visua
 - **Buenos Aires Context**: Cultural sensitivity and local integration for Scott's international lifestyle
 
 ## Critical Bug Fix - React Hooks Violation (January 7, 2025)
-- **Issue**: EnhancedHierarchicalTreeView component caused blank page crash due to React hooks violation
-- **Root Cause**: useMemo hook was called inside renderSimpleTreeItem function, violating React's Rules of Hooks
+- **Issue**: AdminCenter 23L Framework tab caused blank page crash due to React hooks violation
+- **Root Cause**: useState hooks were called inside render23LFramework function, violating React's Rules of Hooks
 - **Solution Implemented**:
-  - Pre-calculated rollup data at component level instead of inside render functions
-  - Created ErrorBoundary component for graceful error handling
-  - Wrapped critical components with ErrorBoundary to prevent full page crashes
-- **Prevention Framework**: Created 20L_REACT_HOOKS_PREVENTION_FRAMEWORK.md with comprehensive guidelines
+  - Moved all useState declarations (frameworkData, selectedLayer, frameworkEditMode) to AdminCenter component level
+  - Fixed all editMode references to use frameworkEditMode throughout the render function
+  - Used sed command for bulk replacement: `sed -i 's/{editMode ?/{frameworkEditMode ?/g'`
+- **Prevention Framework**: Created 23L_REACT_HOOKS_DEBUGGING_ANALYSIS.md using 23L framework methodology
 - **Key Learning**: Hooks must ALWAYS be called at the top level of components, never inside loops, conditions, or nested functions
+
+## TTFiles Evolution Documentation Updates (January 7, 2025)
+- **User Request**: Add missing TTFiles evolution information to project cards
+- **Updates Made**:
+  - Enhanced Authentication & User Management description with ProfileHead.jsx evolution
+  - Updated Event Management System with EventCard.jsx evolution details
+  - Enhanced Post Creation System with TrangoTechPostComposer evolution
+  - Updated Community Features with CommunityCard.jsx evolution
+- **Evolution Tracked**: From original TT components (#8E142E red, #0D448A blue) to current comprehensive features
+- **Documentation**: All evolution information now embedded directly in COMPREHENSIVE_PROJECT_DATA.ts
 
 ## Recent Implementation - Life CEO Enhanced (January 6, 2025)
 

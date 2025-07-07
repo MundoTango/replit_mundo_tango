@@ -116,6 +116,50 @@ const AdminCenter: React.FC = () => {
     action: '',
     result: null as any
   });
+  
+  // 23L Framework state - moved to component level to fix hooks error
+  const [frameworkData, setFrameworkData] = useState<any>({
+    layers: [
+      // Foundation Layers (1-4)
+      { id: 1, name: 'Expertise & Technical Proficiency', status: 'active', progress: 95 },
+      { id: 2, name: 'Research & Discovery', status: 'active', progress: 90 },
+      { id: 3, name: 'Legal & Compliance', status: 'active', progress: 85 },
+      { id: 4, name: 'UX/UI Design', status: 'active', progress: 88 },
+      
+      // Architecture Layers (5-8)
+      { id: 5, name: 'Data Architecture', status: 'active', progress: 92 },
+      { id: 6, name: 'Backend Development', status: 'active', progress: 94 },
+      { id: 7, name: 'Frontend Development', status: 'active', progress: 91 },
+      { id: 8, name: 'API & Integration', status: 'active', progress: 89 },
+      
+      // Operational Layers (9-12)
+      { id: 9, name: 'Security & Authentication', status: 'active', progress: 93 },
+      { id: 10, name: 'Deployment & Infrastructure', status: 'active', progress: 87 },
+      { id: 11, name: 'Analytics & Monitoring', status: 'active', progress: 82 },
+      { id: 12, name: 'Continuous Improvement', status: 'active', progress: 78 },
+      
+      // AI & Intelligence Layers (13-16)
+      { id: 13, name: 'AI Agent Orchestration', status: 'active', progress: 85 },
+      { id: 14, name: 'Context & Memory Management', status: 'active', progress: 88 },
+      { id: 15, name: 'Voice & Environmental Intelligence', status: 'active', progress: 76 },
+      { id: 16, name: 'Ethics & Behavioral Alignment', status: 'active', progress: 90 },
+      
+      // Human-Centric Layers (17-20)
+      { id: 17, name: 'Emotional Intelligence', status: 'active', progress: 83 },
+      { id: 18, name: 'Cultural Awareness', status: 'active', progress: 87 },
+      { id: 19, name: 'Energy Management', status: 'active', progress: 79 },
+      { id: 20, name: 'Proactive Intelligence', status: 'active', progress: 81 },
+      
+      // Production Engineering Layers (21-23)
+      { id: 21, name: 'Production Resilience Engineering', status: 'partial', progress: 65 },
+      { id: 22, name: 'User Safety Net', status: 'partial', progress: 58 },
+      { id: 23, name: 'Business Continuity', status: 'partial', progress: 52 }
+    ],
+    overallProgress: 87
+  });
+  
+  const [selectedLayer, setSelectedLayer] = useState<any>(null);
+  const [frameworkEditMode, setFrameworkEditMode] = useState(false);
 
   // Fetch admin statistics
   const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
@@ -1048,49 +1092,6 @@ const AdminCenter: React.FC = () => {
   );
 
   const render23LFramework = () => {
-    const [frameworkData, setFrameworkData] = useState<any>({
-      layers: [
-        // Foundation Layers (1-4)
-        { id: 1, name: 'Expertise & Technical Proficiency', status: 'active', progress: 95 },
-        { id: 2, name: 'Research & Discovery', status: 'active', progress: 90 },
-        { id: 3, name: 'Legal & Compliance', status: 'active', progress: 85 },
-        { id: 4, name: 'UX/UI Design', status: 'active', progress: 88 },
-        
-        // Architecture Layers (5-8)
-        { id: 5, name: 'Data Architecture', status: 'active', progress: 92 },
-        { id: 6, name: 'Backend Development', status: 'active', progress: 94 },
-        { id: 7, name: 'Frontend Development', status: 'active', progress: 91 },
-        { id: 8, name: 'API & Integration', status: 'active', progress: 89 },
-        
-        // Operational Layers (9-12)
-        { id: 9, name: 'Security & Authentication', status: 'active', progress: 93 },
-        { id: 10, name: 'Deployment & Infrastructure', status: 'active', progress: 87 },
-        { id: 11, name: 'Analytics & Monitoring', status: 'active', progress: 82 },
-        { id: 12, name: 'Continuous Improvement', status: 'active', progress: 78 },
-        
-        // AI & Intelligence Layers (13-16)
-        { id: 13, name: 'AI Agent Orchestration', status: 'active', progress: 85 },
-        { id: 14, name: 'Context & Memory Management', status: 'active', progress: 88 },
-        { id: 15, name: 'Voice & Environmental Intelligence', status: 'active', progress: 76 },
-        { id: 16, name: 'Ethics & Behavioral Alignment', status: 'active', progress: 90 },
-        
-        // Human-Centric Layers (17-20)
-        { id: 17, name: 'Emotional Intelligence', status: 'active', progress: 83 },
-        { id: 18, name: 'Cultural Awareness', status: 'active', progress: 87 },
-        { id: 19, name: 'Energy Management', status: 'active', progress: 79 },
-        { id: 20, name: 'Proactive Intelligence', status: 'active', progress: 81 },
-        
-        // Production Engineering Layers (21-23)
-        { id: 21, name: 'Production Resilience Engineering', status: 'partial', progress: 65 },
-        { id: 22, name: 'User Safety Net', status: 'partial', progress: 58 },
-        { id: 23, name: 'Business Continuity', status: 'partial', progress: 52 }
-      ],
-      overallProgress: 87
-    });
-    
-    const [selectedLayer, setSelectedLayer] = useState<any>(null);
-    const [editMode, setEditMode] = useState(false);
-    
     const updateLayerProgress = (layerId: number, newProgress: number) => {
       setFrameworkData((prev: any) => ({
         ...prev,
@@ -1120,10 +1121,10 @@ const AdminCenter: React.FC = () => {
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() => setEditMode(!editMode)}
-                className={`px-4 py-2 ${editMode ? 'bg-red-600' : 'bg-blue-600'} text-white rounded-lg hover:opacity-90 transition-colors`}
+                onClick={() => setFrameworkEditMode(!frameworkEditMode)}
+                className={`px-4 py-2 ${frameworkEditMode ? 'bg-red-600' : 'bg-blue-600'} text-white rounded-lg hover:opacity-90 transition-colors`}
               >
-                {editMode ? 'Save Changes' : 'Edit Mode'}
+                {frameworkEditMode ? 'Save Changes' : 'Edit Mode'}
               </button>
             </div>
           </div>
@@ -1153,7 +1154,7 @@ const AdminCenter: React.FC = () => {
                       <span className="text-sm font-medium">
                         {layer.id}. {layer.name}
                       </span>
-                      {editMode ? (
+                      {frameworkEditMode ? (
                         <input
                           type="number"
                           min="0"
@@ -1184,7 +1185,7 @@ const AdminCenter: React.FC = () => {
                       <span className="text-sm font-medium">
                         {layer.id}. {layer.name}
                       </span>
-                      {editMode ? (
+                      {frameworkEditMode ? (
                         <input
                           type="number"
                           min="0"
@@ -1217,7 +1218,7 @@ const AdminCenter: React.FC = () => {
                       <span className="text-sm font-medium">
                         {layer.id}. {layer.name}
                       </span>
-                      {editMode ? (
+                      {frameworkEditMode ? (
                         <input
                           type="number"
                           min="0"
