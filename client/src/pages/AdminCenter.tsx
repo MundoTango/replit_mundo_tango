@@ -38,6 +38,12 @@ import {
   GitCommit,
   Brain
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
+import { Layers } from 'lucide-react';
 
 interface AdminStats {
   // User Management
@@ -204,7 +210,7 @@ const AdminCenter: React.FC = () => {
   const tabs = [
     { id: 'life-ceo', label: 'Life CEO Portal', icon: <Brain className="w-4 h-4" /> },
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'daily-activity', label: 'Daily Activity', icon: <Calendar className="w-4 h-4" /> },
+    { id: 'daily-activity', label: 'Daily Activity', icon: <Calendar className="w-4 h-4" />, isNew: true },
     { id: 'project-tracker', label: '11L Project Tracker', icon: <GitCommit className="w-4 h-4" /> },
     { id: 'feature-deep-dive', label: 'Feature Deep Dive', icon: <Database className="w-4 h-4" /> },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
@@ -215,6 +221,7 @@ const AdminCenter: React.FC = () => {
     { id: 'compliance', label: 'Compliance Center', icon: <Shield className="w-4 h-4" /> },
     { id: 'rbac', label: 'RBAC/ABAC Manager', icon: <Lock className="w-4 h-4" /> },
     { id: 'system', label: 'System Health', icon: <Activity className="w-4 h-4" /> },
+    { id: '23l-framework', label: '23L Framework', icon: <Layers className="w-4 h-4" />, isNew: true },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
   ];
 
@@ -1040,6 +1047,260 @@ const AdminCenter: React.FC = () => {
     </div>
   );
 
+  const render23LFramework = () => {
+    const [frameworkData, setFrameworkData] = useState<any>({
+      layers: [
+        // Foundation Layers (1-4)
+        { id: 1, name: 'Expertise & Technical Proficiency', status: 'active', progress: 95 },
+        { id: 2, name: 'Research & Discovery', status: 'active', progress: 90 },
+        { id: 3, name: 'Legal & Compliance', status: 'active', progress: 85 },
+        { id: 4, name: 'UX/UI Design', status: 'active', progress: 88 },
+        
+        // Architecture Layers (5-8)
+        { id: 5, name: 'Data Architecture', status: 'active', progress: 92 },
+        { id: 6, name: 'Backend Development', status: 'active', progress: 94 },
+        { id: 7, name: 'Frontend Development', status: 'active', progress: 91 },
+        { id: 8, name: 'API & Integration', status: 'active', progress: 89 },
+        
+        // Operational Layers (9-12)
+        { id: 9, name: 'Security & Authentication', status: 'active', progress: 93 },
+        { id: 10, name: 'Deployment & Infrastructure', status: 'active', progress: 87 },
+        { id: 11, name: 'Analytics & Monitoring', status: 'active', progress: 82 },
+        { id: 12, name: 'Continuous Improvement', status: 'active', progress: 78 },
+        
+        // AI & Intelligence Layers (13-16)
+        { id: 13, name: 'AI Agent Orchestration', status: 'active', progress: 85 },
+        { id: 14, name: 'Context & Memory Management', status: 'active', progress: 88 },
+        { id: 15, name: 'Voice & Environmental Intelligence', status: 'active', progress: 76 },
+        { id: 16, name: 'Ethics & Behavioral Alignment', status: 'active', progress: 90 },
+        
+        // Human-Centric Layers (17-20)
+        { id: 17, name: 'Emotional Intelligence', status: 'active', progress: 83 },
+        { id: 18, name: 'Cultural Awareness', status: 'active', progress: 87 },
+        { id: 19, name: 'Energy Management', status: 'active', progress: 79 },
+        { id: 20, name: 'Proactive Intelligence', status: 'active', progress: 81 },
+        
+        // Production Engineering Layers (21-23)
+        { id: 21, name: 'Production Resilience Engineering', status: 'partial', progress: 65 },
+        { id: 22, name: 'User Safety Net', status: 'partial', progress: 58 },
+        { id: 23, name: 'Business Continuity', status: 'partial', progress: 52 }
+      ],
+      overallProgress: 87
+    });
+    
+    const [selectedLayer, setSelectedLayer] = useState<any>(null);
+    const [editMode, setEditMode] = useState(false);
+    
+    const updateLayerProgress = (layerId: number, newProgress: number) => {
+      setFrameworkData((prev: any) => ({
+        ...prev,
+        layers: prev.layers.map((layer: any) => 
+          layer.id === layerId ? { ...layer, progress: newProgress } : layer
+        ),
+        overallProgress: Math.round(
+          prev.layers.reduce((acc: number, l: any) => acc + (l.id === layerId ? newProgress : l.progress), 0) / prev.layers.length
+        )
+      }));
+    };
+    
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="bg-white rounded-xl p-6 border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
+                <Layers className="w-6 h-6 text-purple-600" />
+                23L Framework Management
+                <Badge className="bg-purple-100 text-purple-800 text-xs">V4.0</Badge>
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Comprehensive 23-Layer production validation system for continuous improvement
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setEditMode(!editMode)}
+                className={`px-4 py-2 ${editMode ? 'bg-red-600' : 'bg-blue-600'} text-white rounded-lg hover:opacity-90 transition-colors`}
+              >
+                {editMode ? 'Save Changes' : 'Edit Mode'}
+              </button>
+            </div>
+          </div>
+          
+          {/* Overall Progress */}
+          <div className="mt-4">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="font-medium">Overall Production Readiness</span>
+              <span className="font-bold text-purple-600">{frameworkData.overallProgress}%</span>
+            </div>
+            <Progress value={frameworkData.overallProgress} className="h-3" />
+          </div>
+        </div>
+        
+        {/* Layer Categories */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Foundation & Architecture */}
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Foundation & Architecture (Layers 1-8)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {frameworkData.layers.slice(0, 8).map((layer: any) => (
+                  <div key={layer.id} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">
+                        {layer.id}. {layer.name}
+                      </span>
+                      {editMode ? (
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={layer.progress}
+                          onChange={(e) => updateLayerProgress(layer.id, parseInt(e.target.value))}
+                          className="w-16 px-2 py-1 border rounded text-sm"
+                        />
+                      ) : (
+                        <span className="text-sm font-bold">{layer.progress}%</span>
+                      )}
+                    </div>
+                    <Progress value={layer.progress} className="h-2" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+            
+            {/* Human-Centric & Production */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Human-Centric & Production (Layers 17-23)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {frameworkData.layers.slice(16, 23).map((layer: any) => (
+                  <div key={layer.id} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">
+                        {layer.id}. {layer.name}
+                      </span>
+                      {editMode ? (
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={layer.progress}
+                          onChange={(e) => updateLayerProgress(layer.id, parseInt(e.target.value))}
+                          className="w-16 px-2 py-1 border rounded text-sm"
+                        />
+                      ) : (
+                        <span className="text-sm font-bold">{layer.progress}%</span>
+                      )}
+                    </div>
+                    <Progress value={layer.progress} className="h-2" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Operational & AI */}
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Operational & AI Intelligence (Layers 9-16)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {frameworkData.layers.slice(8, 16).map((layer: any) => (
+                  <div key={layer.id} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">
+                        {layer.id}. {layer.name}
+                      </span>
+                      {editMode ? (
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={layer.progress}
+                          onChange={(e) => updateLayerProgress(layer.id, parseInt(e.target.value))}
+                          className="w-16 px-2 py-1 border rounded text-sm"
+                        />
+                      ) : (
+                        <span className="text-sm font-bold">{layer.progress}%</span>
+                      )}
+                    </div>
+                    <Progress value={layer.progress} className="h-2" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+            
+            {/* Framework Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Framework Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button className="w-full" variant="outline">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Generate 23L Analysis Report
+                </Button>
+                <Button className="w-full" variant="outline">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Run Self-Reprompting Analysis
+                </Button>
+                <Button className="w-full" variant="outline">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  View Historical Progress
+                </Button>
+                <Button className="w-full" variant="outline">
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  Identify Critical Gaps
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        
+        {/* Documentation Links */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">23L Framework Documentation</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <a href="#" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <h4 className="font-semibold mb-1">Master Document V4</h4>
+                <p className="text-sm text-gray-600">Complete 23-layer framework guide</p>
+              </a>
+              <a href="#" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <h4 className="font-semibold mb-1">Implementation Checklist</h4>
+                <p className="text-sm text-gray-600">Step-by-step validation guide</p>
+              </a>
+              <a href="#" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <h4 className="font-semibold mb-1">Prevention Patterns</h4>
+                <p className="text-sm text-gray-600">Common issues and solutions</p>
+              </a>
+              <a href="#" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <h4 className="font-semibold mb-1">Evolution Summary</h4>
+                <p className="text-sm text-gray-600">24-hour framework evolution</p>
+              </a>
+              <a href="#" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <h4 className="font-semibold mb-1">TypeScript Methodology</h4>
+                <p className="text-sm text-gray-600">Error resolution patterns</p>
+              </a>
+              <a href="#" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <h4 className="font-semibold mb-1">React Hooks Prevention</h4>
+                <p className="text-sm text-gray-600">Best practices guide</p>
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
   const renderSettings = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -1383,6 +1644,7 @@ const AdminCenter: React.FC = () => {
       case 'compliance': return renderCompliance();
       case 'rbac': return renderRbacManager();
       case 'system': return renderSystemHealth();
+      case '23l-framework': return render23LFramework();
       case 'settings': return renderSettings();
       default: return renderOverview();
     }
@@ -1458,6 +1720,9 @@ const AdminCenter: React.FC = () => {
               >
                 {tab.icon}
                 {tab.label}
+                {tab.isNew && (
+                  <Badge className="bg-green-100 text-green-800 text-xs ml-1">NEW</Badge>
+                )}
               </button>
             ))}
           </nav>

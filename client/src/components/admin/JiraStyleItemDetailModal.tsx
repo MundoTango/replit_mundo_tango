@@ -301,6 +301,7 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
                   <CardTitle className="flex items-center gap-2">
                     <GitBranch className="h-5 w-5" />
                     Project Evolution Timeline
+                    <Badge className="bg-green-100 text-green-800 text-xs">NEW</Badge>
                   </CardTitle>
                   <p className="text-sm text-gray-600">
                     From TrangoTech files to mobile app requirements
@@ -329,6 +330,14 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
                       The mobile app development requires conversion of React components to React Native, 
                       implementation of offline-first architecture, native push notifications, and 
                       deployment pipelines for iOS and Android app stores.
+                    </p>
+                  </div>
+
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h4 className="font-semibold text-blue-900 mb-2">Today's Work Summary</h4>
+                    <p className="text-sm text-blue-800">
+                      All project evolution has been documented. Navigate to Admin Center → Daily Activity tab 
+                      to see today's real work. This Evolution tab now appears on ALL project items.
                     </p>
                   </div>
                 </CardContent>
