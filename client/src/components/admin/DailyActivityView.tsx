@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Calendar, Clock, Activity, CheckCircle2, AlertCircle, Code2, Users, Monitor, Smartphone, FileText } from 'lucide-react';
-import { comprehensiveProjectData, ProjectItem } from '../../../../COMPREHENSIVE_PROJECT_DATA';
+import { comprehensiveProjectData, ProjectItem } from '@/../../COMPREHENSIVE_PROJECT_DATA';
 import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
 
 interface ActivityItem {
@@ -22,34 +22,58 @@ const DailyActivityView: React.FC = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // Ensure data exists before accessing
+    if (!comprehensiveProjectData || comprehensiveProjectData.length === 0) {
+      return [];
+    }
+
     // Simulate activities based on recent work
-    const recentItems: { item: ProjectItem; type: ActivityItem['type']; changes?: string[] }[] = [
-      {
-        item: comprehensiveProjectData[0], // Life CEO System
+    const recentItems: { item: ProjectItem; type: ActivityItem['type']; changes?: string[] }[] = [];
+
+    // Add Life CEO System activity
+    if (comprehensiveProjectData[0]) {
+      recentItems.push({
+        item: comprehensiveProjectData[0],
         type: 'updated',
         changes: ['Added 23L Framework documentation', 'Enhanced project hierarchy visualization']
-      },
-      {
-        item: comprehensiveProjectData[0].children![0].children![0], // Business Agent
-        type: 'reviewed',
-        changes: ['Reviewed agent intelligence implementation', 'Validated memory system integration']
-      },
-      {
-        item: comprehensiveProjectData[1].children![0].children![0], // Multi-step Registration
+      });
+
+      // Add Business Agent activity
+      if (comprehensiveProjectData[0].children?.[0]?.children?.[0]) {
+        recentItems.push({
+          item: comprehensiveProjectData[0].children[0].children[0],
+          type: 'reviewed',
+          changes: ['Reviewed agent intelligence implementation', 'Validated memory system integration']
+        });
+      }
+    }
+
+    // Add Multi-step Registration activity
+    if (comprehensiveProjectData[1]?.children?.[0]?.children?.[0]) {
+      recentItems.push({
+        item: comprehensiveProjectData[1].children[0].children[0],
         type: 'completed',
         changes: ['Fixed infinite re-render bug', 'Enhanced role selection UI']
-      },
-      {
-        item: comprehensiveProjectData[0].children![3], // Voice Processing
+      });
+    }
+
+    // Add Voice Processing activity
+    if (comprehensiveProjectData[0]?.children?.[3]) {
+      recentItems.push({
+        item: comprehensiveProjectData[0].children[3],
         type: 'updated',
         changes: ['Enhanced audio processing pipeline', 'Added noise suppression']
-      },
-      {
-        item: comprehensiveProjectData[2].children![2], // TypeScript Infrastructure
+      });
+    }
+
+    // Add TypeScript Infrastructure activity
+    if (comprehensiveProjectData[2]?.children?.[2]) {
+      recentItems.push({
+        item: comprehensiveProjectData[2].children[2],
         type: 'completed',
         changes: ['Resolved all 83 TypeScript errors', 'Enhanced type safety']
-      }
-    ];
+      });
+    }
 
     // Add timestamps
     recentItems.forEach((activity, index) => {
