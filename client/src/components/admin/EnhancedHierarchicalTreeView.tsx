@@ -1161,20 +1161,8 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
       </Card>
 
       {/* Main Content Area */}
-      <div className={viewMode === 'dual' ? 'grid grid-cols-2 gap-4' : ''}>
-        {/* Tree View */}
-        {(viewMode === 'tree' || viewMode === 'dual') && (
-          <div className="space-y-2">
-            {filteredData.map(item => renderSimpleTreeItem(item))}
-          </div>
-        )}
-
-        {/* Cards View */}
-        {(viewMode === 'cards' || viewMode === 'dual') && (
-          <div className="space-y-2">
-            {filteredData.map(item => renderCardView(item))}
-          </div>
-        )}
+      <div className="space-y-2">
+        {filteredData.map(item => renderSimpleTreeItem(item))}
       </div>
       
       {selectedItem && (
