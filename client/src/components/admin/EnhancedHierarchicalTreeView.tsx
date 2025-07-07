@@ -1047,32 +1047,10 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
       {/* Toolbar */}
       <Card className="p-4">
         <div className="flex flex-wrap gap-4 items-center">
-          {/* View Mode Toggle */}
-          <div className="flex gap-2">
-            <Button
-              variant={viewMode === 'tree' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('tree')}
-            >
-              <FolderOpen className="h-4 w-4 mr-1" />
-              Tree View
-            </Button>
-            <Button
-              variant={viewMode === 'cards' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('cards')}
-            >
-              <Code2 className="h-4 w-4 mr-1" />
-              Cards View
-            </Button>
-            <Button
-              variant={viewMode === 'dual' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('dual')}
-            >
-              <Monitor className="h-4 w-4 mr-1" />
-              Dual View
-            </Button>
+          {/* Tree View Only */}
+          <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+            <FolderOpen className="h-4 w-4 text-gray-500" />
+            <span>Tree View</span>
           </div>
 
           {/* Expand/Collapse Controls */}
