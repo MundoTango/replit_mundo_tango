@@ -6,6 +6,7 @@ import Comprehensive11LProjectTracker from '@/components/admin/Comprehensive11LP
 import EnhancedHierarchicalTreeView from '@/components/admin/EnhancedHierarchicalTreeView';
 import { PlatformFeatureDeepDive } from '@/components/admin/PlatformFeatureDeepDive';
 import LifeCEOPortal from '@/components/admin/LifeCEOPortal';
+import DailyActivityView from '@/components/admin/DailyActivityView';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { 
   Users, 
@@ -203,6 +204,7 @@ const AdminCenter: React.FC = () => {
   const tabs = [
     { id: 'life-ceo', label: 'Life CEO Portal', icon: <Brain className="w-4 h-4" /> },
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
+    { id: 'daily-activity', label: 'Daily Activity', icon: <Calendar className="w-4 h-4" /> },
     { id: 'project-tracker', label: '11L Project Tracker', icon: <GitCommit className="w-4 h-4" /> },
     { id: 'feature-deep-dive', label: 'Feature Deep Dive', icon: <Database className="w-4 h-4" /> },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
@@ -1366,6 +1368,7 @@ const AdminCenter: React.FC = () => {
     switch (selectedTab) {
       case 'life-ceo': return <LifeCEOPortal />;
       case 'overview': return renderOverview();
+      case 'daily-activity': return <DailyActivityView />;
       case 'project-tracker': return (
         <ErrorBoundary fallback={<div className="p-6 text-center text-red-600">Error loading project hierarchy. Please refresh the page.</div>}>
           <EnhancedHierarchicalTreeView />

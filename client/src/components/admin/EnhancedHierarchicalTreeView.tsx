@@ -287,12 +287,19 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
           style={{ marginLeft: `${depth * 24}px` }}
           onClick={(e) => {
             e.stopPropagation();
-            toggleExpanded(item.id);
+            // If clicking on the expand/collapse area, toggle expansion
+            const target = e.target as HTMLElement;
+            if (target.closest('.expand-area')) {
+              toggleExpanded(item.id);
+            } else {
+              // Otherwise show the modal
+              setSelectedItem(item);
+            }
           }}
         >
           {/* Expand/Collapse Icon */}
           {hasChildren && (
-            <div className="w-5">
+            <div className="w-5 expand-area">
               {isExpanded ? 
                 <ChevronDown className="h-4 w-4 text-gray-600" /> : 
                 <ChevronRight className="h-4 w-4 text-gray-600" />
