@@ -56,10 +56,10 @@ const createProjectData = (): ProjectItem[] => [
     budget: 250000,
     actualCost: 198000,
     webDevPrerequisites: [
-      'Complete organizational structure implementation',
-      'Finalize all core platform components',
-      'Establish enterprise-grade infrastructure',
-      'Implement comprehensive testing frameworks'
+      '✅ Complete organizational structure implementation',
+      '✅ Finalize all core platform components',
+      '⏳ Establish enterprise-grade infrastructure - Missing: Production deployment, CDN setup',
+      '⏳ Implement comprehensive testing frameworks - Missing: E2E tests, Load testing'
     ],
     mobileNextSteps: [
       'Design mobile organizational management interface',
@@ -89,11 +89,11 @@ const createProjectData = (): ProjectItem[] => [
         budget: 120000,
         actualCost: 108000,
         webDevPrerequisites: [
-          'Complete all React component optimizations',
-          'Finalize responsive design implementation', 
-          'Implement comprehensive state management',
-          'Add advanced real-time synchronization',
-          'Complete API integration testing'
+          '✅ Complete all React component optimizations',
+          '✅ Finalize responsive design implementation', 
+          '✅ Implement comprehensive state management',
+          '✅ Add advanced real-time synchronization',
+          '⏳ Complete API integration testing - Missing: Load tests, Error boundary tests'
         ],
         mobileNextSteps: [
           'Design React Native component architecture',
@@ -124,10 +124,10 @@ const createProjectData = (): ProjectItem[] => [
             budget: 80000,
             actualCost: 76000,
             webDevPrerequisites: [
-              'Optimize React Query caching strategies',
-              'Implement advanced error boundary patterns',
-              'Add comprehensive loading state management',
-              'Complete accessibility compliance testing'
+              '✅ Optimize React Query caching strategies',
+              '✅ Implement advanced error boundary patterns',
+              '✅ Add comprehensive loading state management',
+              '⏳ Complete accessibility compliance testing - Missing: WCAG AA certification, Screen reader testing'
             ],
             mobileNextSteps: [
               'Design mobile gesture-based interactions',
@@ -211,10 +211,10 @@ const createProjectData = (): ProjectItem[] => [
                         dependencies: [],
                         tags: ['Custom Toolbar', 'Emoji Integration', 'UI Components'],
                         webDevPrerequisites: [
-                          'Finalize toolbar design system',
-                          'Add accessibility compliance',
-                          'Implement keyboard navigation',
-                          'Create hover state animations'
+                          '✅ Finalize toolbar design system',
+                          '✅ Add accessibility compliance',
+                          '✅ Implement keyboard navigation',
+                          '✅ Create hover state animations'
                         ],
                         mobileNextSteps: [
                           'Design mobile toolbar interface',
@@ -252,11 +252,11 @@ const createProjectData = (): ProjectItem[] => [
         budget: 95000,
         actualCost: 80750,
         webDevPrerequisites: [
-          'Complete all admin API endpoints',
-          'Implement comprehensive role-based access control',
-          'Add advanced analytics dashboard',
-          'Create automated content moderation',
-          'Finalize compliance monitoring systems'
+          '✅ Complete all admin API endpoints',
+          '✅ Implement comprehensive role-based access control',
+          '✅ Add advanced analytics dashboard',
+          '⏳ Create automated content moderation - Missing: AI integration, Flagging system',
+          '⏳ Finalize compliance monitoring systems - Missing: GDPR reports, Audit trails'
         ],
         mobileNextSteps: [
           'Design mobile admin interface',
@@ -374,10 +374,10 @@ const createProjectData = (): ProjectItem[] => [
                         budget: 15000,
                         actualCost: 13800,
                         webDevPrerequisites: [
-                          'Complete permission caching system',
-                          'Add real-time permission updates',
-                          'Implement permission audit trail',
-                          'Create permission testing framework'
+                          '✅ Complete permission caching system',
+                          '✅ Add real-time permission updates',
+                          '✅ Implement permission audit trail',
+                          '✅ Create permission testing framework'
                         ],
                         mobileNextSteps: [
                           'Design mobile permission interface',
@@ -473,10 +473,10 @@ const createProjectData = (): ProjectItem[] => [
                 dependencies: ['card-template-system'],
                 tags: ['React Component', 'Tree View', 'Card Rendering'],
                 webDevPrerequisites: [
-                  'Optimize component re-rendering performance',
-                  'Add advanced keyboard navigation',
-                  'Implement comprehensive accessibility',
-                  'Create responsive card layouts'
+                  '✅ Optimize component re-rendering performance',
+                  '⏳ Add advanced keyboard navigation - Missing: Arrow key navigation, Tab support',
+                  '⏳ Implement comprehensive accessibility - Missing: ARIA labels, Screen reader support',
+                  '✅ Create responsive card layouts'
                 ],
                 mobileNextSteps: [
                   'Design mobile tree navigation patterns',
@@ -502,10 +502,10 @@ const createProjectData = (): ProjectItem[] => [
                     dependencies: [],
                     tags: ['Card Template', 'Metadata Display', 'Progress Tracking'],
                     webDevPrerequisites: [
-                      'Complete card layout optimization',
-                      'Add interactive progress elements',
-                      'Implement comprehensive metadata display',
-                      'Create responsive card design'
+                      '✅ Complete card layout optimization',
+                      '✅ Add interactive progress elements',
+                      '✅ Implement comprehensive metadata display',
+                      '✅ Create responsive card design'
                     ],
                     mobileNextSteps: [
                       'Design mobile card template',
@@ -531,10 +531,10 @@ const createProjectData = (): ProjectItem[] => [
                         dependencies: [],
                         tags: ['Metadata Display', 'Time Tracking', 'Dependencies', 'Handoff Criteria'],
                         webDevPrerequisites: [
-                          'Finalize metadata grid layout',
-                          'Add interactive metadata elements',
-                          'Implement real-time data updates',
-                          'Create comprehensive tooltip system'
+                          '✅ Finalize metadata grid layout',
+                          '✅ Add interactive metadata elements',
+                          '⏳ Implement real-time data updates - Missing: WebSocket integration',
+                          '✅ Create comprehensive tooltip system'
                         ],
                         mobileNextSteps: [
                           'Design mobile metadata layout',
@@ -615,7 +615,17 @@ const calculateRollupStatus = (item: ProjectItem): {
 
 const EnhancedHierarchicalTreeView: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['mundo-tango-org']));
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set([
+    'mundo-tango-org',
+    'mundo-tango-app',
+    'social-engagement-system',
+    'enhanced-post-creation',
+    'rich-text-editor-integration',
+    'mundo-tango-admin',
+    'user-management-system',
+    'life-ceo-system',
+    'agent-architecture'
+  ]));
   const [viewMode, setViewMode] = useState<'tree' | 'cards' | 'dual'>('dual');
   const [showCompleted, setShowCompleted] = useState(true);
   const [filterTeam, setFilterTeam] = useState<string>('all');
@@ -681,6 +691,7 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
       newExpanded.add(id);
     }
     setExpandedItems(newExpanded);
+    console.log('Toggled item:', id, 'Expanded:', !expandedItems.has(id));
   };
 
   // Expand/Collapse all functionality
@@ -811,9 +822,19 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
       <div key={item.id} className="space-y-2">
         {/* Simple Tree Item */}
         <div
-          className={`flex items-center space-x-2 py-2 px-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer rounded-md`}
+          className={`flex items-center space-x-2 py-2 px-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer rounded-md border-l-2 ${
+            depth === 0 ? 'border-blue-500' : 
+            depth === 1 ? 'border-green-500' : 
+            depth === 2 ? 'border-purple-500' : 
+            depth === 3 ? 'border-orange-500' : 
+            depth === 4 ? 'border-indigo-500' : 
+            'border-gray-500'
+          }`}
           style={{ marginLeft: `${depth * 24}px` }}
-          onClick={() => toggleExpanded(item.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleExpanded(item.id);
+          }}
         >
           {/* Expand/Collapse Icon */}
           {hasChildren && (
@@ -831,6 +852,16 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
           
           {/* Title */}
           <span className="flex-1 font-medium text-sm">{item.title}</span>
+          
+          {/* Depth Level Indicator */}
+          <span className="text-xs text-gray-400 font-mono px-2">L{depth + 1}</span>
+          
+          {/* Child Count */}
+          {hasChildren && (
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+              {item.children?.length} items
+            </span>
+          )}
           
           {/* Status Badge */}
           <Badge className={`${getStatusColor(rollupData.overallStatus)} text-xs`}>
@@ -872,13 +903,6 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
             <CheckCircle2 className="h-4 w-4 text-green-500" />
           )}
         </div>
-        
-        {/* Detailed Card (shown when expanded) */}
-        {isExpanded && (
-          <div style={{ marginLeft: `${depth * 24}px` }}>
-            <DetailedCard item={item} onClose={() => toggleExpanded(item.id)} />
-          </div>
-        )}
         
         {/* Render children */}
         {isExpanded && hasChildren && (
@@ -1101,6 +1125,37 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
             <span className="text-gray-600">
               Total Items: <strong>{filteredData.length}</strong>
             </span>
+          </div>
+        </div>
+      </Card>
+
+      {/* Hierarchy Legend */}
+      <Card className="p-4 mb-4">
+        <h3 className="text-sm font-semibold mb-2">6-Level Hierarchy Structure:</h3>
+        <div className="flex flex-wrap gap-3 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-l-4 border-blue-500"></div>
+            <span>Level 1: Platform</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-l-4 border-green-500"></div>
+            <span>Level 2: Section</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-l-4 border-purple-500"></div>
+            <span>Level 3: Feature</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-l-4 border-orange-500"></div>
+            <span>Level 4: Project</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-l-4 border-indigo-500"></div>
+            <span>Level 5: Task</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-l-4 border-gray-500"></div>
+            <span>Level 6: Sub-task</span>
           </div>
         </div>
       </Card>
