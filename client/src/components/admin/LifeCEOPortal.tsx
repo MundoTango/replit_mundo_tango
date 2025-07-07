@@ -26,9 +26,9 @@ const LifeCEOPortalNew: React.FC = () => {
 
   // Check if user has Life CEO admin access - simplified check
   const hasLifeCEOAccess = user?.roles && (
-    user.roles.includes('super_admin') || 
-    user.roles.includes('admin') ||
-    user.roles.some(role => role.startsWith('life_ceo_'))
+    user.roles.some(role => role.roleName === 'super_admin') || 
+    user.roles.some(role => role.roleName === 'admin') ||
+    user.roles.some(role => role.roleName.startsWith('life_ceo_'))
   );
   
   // Get user's Life CEO role - simplified

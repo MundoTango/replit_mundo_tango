@@ -27,6 +27,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
   await setupAuth(app);
 
+  // Development auth bypass middleware for Life CEO testing
+  const devAuthBypass = async (req: any, res: any, next: any) => {
+    if (!req.isAuthenticated() && process.env.NODE_ENV === 'development') {
+      // Use Scott Boddye's account for development testing
+      const user = await storage.getUserByReplitId('44164221');
+      if (user) {
+        req.user = { claims: { sub: user.replitId } };
+        req.isAuthenticated = () => true;
+      }
+    }
+    next();
+  };
+
+  // Apply dev auth bypass to all routes in development
+  if (process.env.NODE_ENV === 'development') {
+    app.use(devAuthBypass);
+  }
+
   // Public endpoints (accessible during onboarding) - MUST come before setUserContext middleware
   
   // Get community roles for registration - accessible during onboarding
