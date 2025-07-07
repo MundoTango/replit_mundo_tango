@@ -22,6 +22,11 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'development' | 'reviews'>('development');
 
+  // Early return if no item selected
+  if (!selectedItem) {
+    return null;
+  }
+
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'completed': return 'bg-green-600 text-white';

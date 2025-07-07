@@ -233,11 +233,13 @@ const DailyActivityView: React.FC = () => {
       </Card>
 
       {/* Modal */}
-      <JiraStyleItemDetailModal
-        item={selectedItem}
-        isOpen={!!selectedItem}
-        onClose={() => setSelectedItem(null)}
-      />
+      {selectedItem && (
+        <JiraStyleItemDetailModal
+          selectedItem={selectedItem}
+          onClose={() => setSelectedItem(null)}
+          onSignOff={() => {}}
+        />
+      )}
     </div>
   );
 };
