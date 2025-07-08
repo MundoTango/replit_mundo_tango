@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Heart, Search, X, Tag, Filter, Sparkles, Users, Globe, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import CleanMemoryCard from './CleanMemoryCard';
+import EnhancedMemoryCard from '../memories/EnhancedMemoryCard';
 
 interface Post {
   id: number;
@@ -32,6 +32,10 @@ interface Post {
     display: string;
   }>;
   emotionTags?: string[];
+  reactions?: Record<string, number>;
+  userReaction?: string;
+  commentCount?: number;
+  shareCount?: number;
 }
 
 export default function EnhancedPostFeed() {
@@ -268,12 +272,23 @@ export default function EnhancedPostFeed() {
             {/* Posts List */}
             <div className="space-y-6">
               {posts.map((post: Post) => (
-                <CleanMemoryCard
+                <EnhancedMemoryCard
                   key={post.id}
-                  post={post}
-                  onLike={() => handleLike(post.id)}
-                  onComment={() => {}}
-                  onShare={() => handleShare(post.id)}
+                  memory={{
+                    id: post.id.toString(),
+                    content: post.content,
+                    userId: post.userId,
+                    createdAt: post.createdAt,
+                    userName: post.user?.name,
+                    userUsername: post.user?.username,
+                    userProfileImage: post.user?.profileImage,
+                    emotionTags: post.emotionTags,
+                    location: post.location,
+                    reactions: post.reactions || {},
+                    userReaction: post.userReaction,
+                    commentCount: post.commentCount || 0,
+                    shareCount: post.shareCount || 0
+                  }}
                 />
               ))}
             </div>

@@ -7197,6 +7197,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Evolution service routes (super admin only)
   const evolutionRoutes = await import('./routes/evolutionRoutes.js');
   app.use('/api/evolution', requireRole({ roles: ['super_admin'] }), evolutionRoutes.default);
+  
+  // Test data routes for development
+  const testDataRoutes = await import('./routes/testDataRoutes.js');
+  app.use('/', testDataRoutes.default);
 
   // ========================================================================
   // Life CEO Chat API Routes
