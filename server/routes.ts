@@ -2207,19 +2207,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Note: /api/auth/user endpoint is defined earlier in the file (line 68) without isAuthenticated middleware
 
   // Onboarding endpoint with role assignment
-  app.post('/api/onboarding', isAuthenticated, async (req: any, res) => {
+  app.post('/api/onboarding', async (req: any, res) => {
     try {
+      // Manual authentication check for Replit OAuth
+      if (!req.session || !req.session.claims) {
+        console.error("No session or claims found in onboarding request");
+        return res.status(401).json({ message: "Unauthorized - please log in again" });
+      }
+      
       // Debug logging for authentication
       console.log("Onboarding request auth debug:", {
-        isAuthenticated: req.isAuthenticated(),
+        isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : 'N/A',
         sessionExists: !!req.session,
+        sessionClaims: req.session?.claims,
         passportUser: req.session?.passport?.user,
         userClaims: req.session?.passport?.user?.claims,
         reqUser: req.user
       });
 
-      const userId = req.session?.passport?.user?.claims?.sub || req.user?.claims?.sub;
-      console.log("Extracted userId for onboarding:", userId);
+      // Handle both Replit OAuth and standard auth structures
+      const userId = req.session?.claims?.sub || 
+                     req.session?.passport?.user?.claims?.sub || 
+                     req.user?.claims?.sub ||
+                     req.user?.id;
+      console.log("Extracted userId for onboarding:", userId, "Session structure:", {
+        hasClaims: !!req.session?.claims,
+        hasPassport: !!req.session?.passport,
+        hasUser: !!req.user
+      });
       
       if (!userId) {
         return res.status(401).json({ message: "Authentication required" });
