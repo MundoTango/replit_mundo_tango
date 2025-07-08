@@ -5,6 +5,7 @@ import { Heart, Search, X, Tag, Filter, Sparkles, Users, Globe, MapPin } from 'l
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import EnhancedPostItem from './EnhancedPostItem';
+import FacebookInspiredMemoryCard from './FacebookInspiredMemoryCard';
 
 interface Post {
   id: number;
@@ -41,6 +42,7 @@ export default function EnhancedPostFeed() {
   const [filterBy, setFilterBy] = useState<'all' | 'following' | 'nearby'>('all');
   const [filterTags, setFilterTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [viewMode, setViewMode] = useState<'classic' | 'facebook'>('facebook');
 
   // Fetch posts
   const { data: posts, isLoading } = useQuery({
@@ -261,15 +263,47 @@ export default function EnhancedPostFeed() {
               </div>
             </div>
 
+            {/* View Mode Toggle */}
+            <div className="mb-6 flex justify-end">
+              <div className="inline-flex items-center gap-2 p-1 bg-gray-100 rounded-lg">
+                <button
+                  onClick={() => setViewMode('facebook')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+                    viewMode === 'facebook' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Clean
+                </button>
+                <button
+                  onClick={() => setViewMode('classic')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+                    viewMode === 'classic' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Classic
+                </button>
+              </div>
+            </div>
+
             {/* Posts List */}
-            <div className="space-y-8">
+            <div className={viewMode === 'facebook' ? 'space-y-2' : 'space-y-8'}>
               {posts.map((post: Post) => (
-                <EnhancedPostItem
-                  key={post.id}
-                  post={post}
-                  onLike={handleLike}
-                  onShare={handleShare}
-                />
+                viewMode === 'facebook' ? (
+                  <FacebookInspiredMemoryCard
+                    key={post.id}
+                    post={post}
+                    onLike={() => handleLike(post.id)}
+                    onComment={() => {}}
+                    onShare={() => handleShare(post.id)}
+                  />
+                ) : (
+                  <EnhancedPostItem
+                    key={post.id}
+                    post={post}
+                    onLike={handleLike}
+                    onShare={handleShare}
+                  />
+                )
               ))}
             </div>
           </>
