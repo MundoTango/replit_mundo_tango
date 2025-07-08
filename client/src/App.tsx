@@ -42,6 +42,35 @@ import TestModal from "@/pages/TestModal";
 import ModalDebugTest from "@/pages/ModalDebugTest";
 import TestAdminPage from "@/pages/TestAdminPage";
 
+// Simple error boundary component
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error('Error caught by boundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', color: 'red' }}>
+          <h1>Something went wrong</h1>
+          <pre>{this.state.error?.toString()}</pre>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
 
@@ -130,20 +159,7 @@ function App() {
     initAnalytics();
   }, []);
 
-  // Temporary test to isolate blank screen issue
-  const testMode = window.location.pathname === '/debug-test';
-  
-  if (testMode) {
-    return (
-      <div style={{ padding: '20px', backgroundColor: 'white', color: 'black' }}>
-        <h1>Debug Test Page</h1>
-        <p>If you can see this text, React is working.</p>
-        <button style={{ padding: '10px', backgroundColor: 'blue', color: 'white' }}>
-          Test Button
-        </button>
-      </div>
-    );
-  }
+  // Remove debug mode - React is confirmed working
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -151,7 +167,9 @@ function App() {
         <SocketProvider>
           <TooltipProvider>
             <Toaster />
-            <Router />
+            <ErrorBoundary>
+              <Router />
+            </ErrorBoundary>
             <ThemeManager />
           </TooltipProvider>
         </SocketProvider>

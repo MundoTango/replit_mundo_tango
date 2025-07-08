@@ -28,7 +28,7 @@ const LifeCEOPortal: React.FC = () => {
   const hasLifeCEOAccess = user?.roles && (
     user.roles.includes('super_admin') || 
     user.roles.includes('admin') ||
-    user.roles.some(role => role.startsWith('life_ceo_'))
+    user.roles.some(role => typeof role === 'string' && role.startsWith('life_ceo_'))
   );
   
   // Get user's Life CEO role - simplified
