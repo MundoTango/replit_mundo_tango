@@ -235,7 +235,7 @@ export default function FacebookInspiredMemoryCard({ post, onLike, onComment, on
             )}
             
             {/* Music playing */}
-            {post.content?.toLowerCase().includes('tanda') || post.content?.toLowerCase().includes('music') && (
+            {(post.content?.toLowerCase().includes('tanda') || post.content?.toLowerCase().includes('music')) && (
               <div className="flex items-center gap-1">
                 <Music className="h-3 w-3" />
                 <span>Tango music</span>
