@@ -1,0 +1,285 @@
+add to the 23ls for the database section that it should be a Supabase. com expert. I asked supabase what it would improve and it said:
+
+“-- Identify tables without primary keys and add them
+-- Example:
+ALTER TABLE [table_name] ADD PRIMARY KEY (id);”
+
+“-- Enable RLS on tables
+ALTER TABLE public.[table_name] ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for each access pattern
+CREATE POLICY "Users can view their own data" 
+ON public.[table_name] FOR SELECT 
+USING ((auth.uid() = user_id));
+
+CREATE POLICY "Users can insert their own data" 
+ON public.[table_name] FOR INSERT 
+WITH CHECK ((auth.uid() = user_id));
+
+CREATE POLICY "Users can update their own data" 
+ON public.[table_name] FOR UPDATE 
+USING ((auth.uid() = user_id))
+WITH CHECK ((auth.uid() = user_id));
+
+CREATE POLICY "Users can delete their own data" 
+ON public.[table_name] FOR DELETE 
+USING ((auth.uid() = user_id));”
+
+“-- Add indexes on foreign keys
+CREATE INDEX IF NOT EXISTS idx_posts_user_id ON public.posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_posts_activity_id ON public.posts(activity_id);
+CREATE INDEX IF NOT EXISTS idx_post_comments_post_id ON public.post_comments(post_id);
+
+-- Add indexes for frequently filtered columns
+CREATE INDEX IF NOT EXISTS idx_events_start_date ON public.events(start_date);
+CREATE INDEX IF NOT EXISTS idx_users_location ON public.users USING GIST(location);
+CREATE INDEX IF NOT EXISTS idx_posts_visibility ON public.posts(visibility);”
+“-- Create trigger function
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Add trigger to tables
+CREATE TRIGGER set_updated_at
+BEFORE UPDATE ON public.[table_name]
+FOR EACH ROW
+EXECUTE FUNCTION public.update_updated_at_column();”
+
+“-- Merge profiles and user_profiles tables
+CREATE TABLE public.unified_profiles AS
+SELECT 
+    p.id,
+    p.role,
+    p.display_name,
+    p.avatar_url,
+    p.created_at
+FROM public.profiles p;
+
+-- Add missing data from user_profiles
+UPDATE public.unified_profiles up
+SET 
+    role = COALESCE(up.role, up2.role),
+    display_name = COALESCE(up.display_name, up2.display_name),
+    avatar_url = COALESCE(up.avatar_url, up2.avatar_url)
+FROM public.user_profiles up2
+WHERE up.id = up2.id;”
+“-- Use pgcrypto for sensitive data
+ALTER TABLE public.users 
+ADD COLUMN encrypted_sensitive_data text;
+
+-- Create encryption function
+CREATE OR REPLACE FUNCTION encrypt_sensitive_data() 
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.encrypted_sensitive_data = pgp_sym_encrypt(
+        NEW.sensitive_data,
+        current_setting('app.encryption_key')
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger for encryption
+CREATE TRIGGER encrypt_data
+BEFORE INSERT OR UPDATE ON public.users
+FOR EACH ROW
+EXECUTE FUNCTION encrypt_sensitive_data();”
+“-- Create function to verify user ownership
+CREATE OR REPLACE FUNCTION public.check_user_owns_resource(
+    resource_table text,
+    resource_id uuid,
+    user_id uuid
+) RETURNS boolean AS $$
+DECLARE
+    result boolean;
+BEGIN
+    EXECUTE format('SELECT EXISTS(SELECT 1 FROM %I WHERE id = $1 AND user_id = $2)', resource_table)
+    INTO result
+    USING resource_id, user_id;
+    
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;”
+“-- Create monitoring schema
+CREATE SCHEMA IF NOT EXISTS monitoring;
+
+-- Create table for query performance tracking
+CREATE TABLE monitoring.query_stats (
+    id bigserial PRIMARY KEY,
+    query_text text,
+    execution_time interval,
+    rows_returned bigint,
+    captured_at timestamp with time zone DEFAULT now()
+);
+
+-- Enable pg_stat_statements extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements WITH SCHEMA extensions;”
+“-- Configure connection pooling parameters
+ALTER SYSTEM SET max_connections = '100';
+ALTER SYSTEM SET superuser_reserved_connections = '3';”
+
+“-- Create view for user engagement metrics
+CREATE OR REPLACE VIEW analytics.user_engagement AS
+SELECT
+    u.id AS user_id,
+    COUNT(DISTINCT p.id) AS post_count,
+    COUNT(DISTINCT pc.id) AS comment_count,
+    COUNT(DISTINCT pl.id) AS like_count,
+    COUNT(DISTINCT f.id) AS friend_count,
+    COUNT(DISTINCT ep.id) FILTER (WHERE ep.status = 'going') AS events_attended
+FROM
+    public.users u
+    LEFT JOIN public.posts p ON u.id = p.user_id
+    LEFT JOIN public.post_comments pc ON u.id = pc.user_id
+    LEFT JOIN public.post_likes pl ON u.id = pl.user_id
+    LEFT JOIN public.friends f ON u.id = f.requester_id AND f.status = 'accepted'
+    LEFT JOIN public.event_participants ep ON u.id = ep.user_id
+GROUP BY
+    u.id;”
+“-- Add check constraints for data validation
+ALTER TABLE public.users
+ADD CONSTRAINT valid_email CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
+
+ALTER TABLE public.events
+ADD CONSTRAINT valid_dates CHECK (start_date <= end_date);
+
+ALTER TABLE public.post_likes
+ADD CONSTRAINT unique_post_like UNIQUE (post_id, user_id);”
+“-- Create health check function
+CREATE OR REPLACE FUNCTION public.db_health_check()
+RETURNS TABLE (
+    check_name text,
+    status text,
+    details jsonb
+) AS $$
+BEGIN
+    -- Check database size
+    RETURN QUERY
+    SELECT 
+        'database_size' AS check_name,
+        'ok' AS status,
+        jsonb_build_object(
+            'size_bytes', pg_database_size(current_database()),
+            'size_pretty', pg_size_pretty(pg_database_size(current_database()))
+        ) AS details;
+    
+    -- Check connection count
+    RETURN QUERY
+    SELECT 
+        'connection_count' AS check_name,
+        CASE WHEN count(*) > 80 THEN 'warning' ELSE 'ok' END AS status,
+        jsonb_build_object('count', count(*)) AS details
+    FROM 
+        pg_stat_activity;
+    
+    -- Check table bloat
+    RETURN QUERY
+    SELECT 
+        'table_bloat' AS check_name,
+        'info' AS status,
+        jsonb_build_object(
+            'table_name', schemaname || '.' || tablename,
+            'bloat_factor', round(bloat_factor::numeric, 2),
+            'wasted_bytes', pg_size_pretty(wasted_bytes::numeric)
+        ) AS details
+    FROM (
+        SELECT
+            schemaname,
+            tablename,
+            current_setting('block_size')::numeric AS bs,
+            CASE WHEN pgstattuple.tuple_percent IS NOT NULL
+                THEN pgstattuple.tuple_percent
+                ELSE (100 * (1 - (pg_stat_all_tables.n_live_tup::numeric / GREATEST(1, reltuples))))
+            END AS bloat_factor,
+            CASE WHEN pgstattuple.tuple_percent IS NOT NULL
+                THEN pg_relation_size(pgclass.oid) * (100 - pgstattuple.tuple_percent) / 100
+                ELSE pg_relation_size(pgclass.oid) * (1 - (pg_stat_all_tables.n_live_tup::numeric / GREATEST(1, reltuples)))
+            END AS wasted_bytes
+        FROM pg_class AS pgclass
+        JOIN pg_namespace ON pg_namespace.oid = pgclass.relnamespace
+        JOIN pg_stat_all_tables ON pgclass.oid = pg_stat_all_tables.relid
+        LEFT JOIN pgstattuple ON pgclass.oid = pgstattuple.relid
+        WHERE
+            pgclass.relkind = 'r'
+            AND pg_namespace.nspname NOT IN ('pg_catalog', 'information_schema')
+            AND pg_relation_size(pgclass.oid) > 8192
+        ORDER BY wasted_bytes DESC
+        LIMIT 5
+    ) AS bloat_info;
+END;
+$$ LANGUAGE plpgsql;”
+“-- Create function to export user data
+CREATE OR REPLACE FUNCTION public.export_user_data(user_uuid uuid)
+RETURNS jsonb AS $$
+DECLARE
+    user_data jsonb;
+BEGIN
+    SELECT jsonb_build_object(
+        'user_profile', row_to_json(u),
+        'posts', (
+            SELECT jsonb_agg(row_to_json(p))
+            FROM public.posts p
+            WHERE p.user_id = user_uuid
+        ),
+        'comments', (
+            SELECT jsonb_agg(row_to_json(c))
+            FROM public.post_comments c
+            WHERE c.user_id = user_uuid
+        ),
+        'events', (
+            SELECT jsonb_agg(row_to_json(e))
+            FROM public.events e
+            WHERE e.organizer_id = user_uuid
+        )
+    ) INTO user_data
+    FROM public.users u
+    WHERE u.id = user_uuid;
+    
+    RETURN user_data;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;”
+“-- Create function for GDPR data deletion
+CREATE OR REPLACE FUNCTION public.delete_user_data(user_uuid uuid)
+RETURNS void AS $$
+BEGIN
+    -- Delete user content
+    DELETE FROM public.post_likes WHERE user_id = user_uuid;
+    DELETE FROM public.post_comments WHERE user_id = user_uuid;
+    DELETE FROM public.post_shares WHERE user_id = user_uuid;
+    DELETE FROM public.posts WHERE user_id = user_uuid;
+    
+    -- Anonymize user data
+    UPDATE public.users
+    SET 
+        first_name = 'Deleted',
+        last_name = 'User',
+        email = 'deleted_' || id || '@example.com',
+        username = 'deleted_' || id,
+        profile_image_url = NULL,
+        bio = NULL,
+        deleted_at = now()
+    WHERE id = user_uuid;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;”
+“-- Create backup function
+CREATE OR REPLACE FUNCTION admin.create_backup()
+RETURNS text AS $$
+DECLARE
+    backup_path text;
+    backup_name text;
+BEGIN
+    backup_name := 'backup_' || to_char(now(), 'YYYY_MM_DD_HH24_MI_SS');
+    backup_path := '/var/lib/postgresql/backups/' || backup_name;
+    
+    EXECUTE format('COPY (SELECT 1) TO PROGRAM ''pg_dump -Fc -f %s %s''', 
+                  backup_path, current_database());
+                  
+    RETURN backup_path;
+END;
+$$ LANGUAGE plpgsql;”
+
+Use the 23ls to analyze this and then use the 23ls to reprompt yourself to complete the work. Make sure to do tests along the way to make sure the work has been done properly.
