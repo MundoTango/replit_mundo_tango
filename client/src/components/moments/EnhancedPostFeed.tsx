@@ -36,6 +36,7 @@ interface Post {
 
 export default function EnhancedPostFeed() {
   const { user } = useAuth();
+  console.log('[EnhancedPostFeed] Component mounted at', new Date().toISOString());
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [filterBy, setFilterBy] = useState<'all' | 'following' | 'nearby'>('all');
@@ -265,16 +266,23 @@ export default function EnhancedPostFeed() {
             </div>
 
             {/* Posts List */}
+            <div className="bg-blue-100 border-4 border-blue-600 p-4 rounded-lg mb-4">
+              <h2 className="text-xl font-bold text-blue-800 mb-2">🆕 NEW FACEBOOK-INSPIRED DESIGN ACTIVE 🆕</h2>
+              <p className="text-blue-700">If you're still seeing the old design, please hard refresh (Ctrl+Shift+R or Cmd+Shift+R)</p>
+            </div>
             <div className="space-y-2">
-              {posts.map((post: Post) => (
-                <FacebookInspiredMemoryCard
-                  key={post.id}
-                  post={post}
-                  onLike={() => handleLike(post.id)}
-                  onComment={() => {}}
-                  onShare={() => handleShare(post.id)}
-                />
-              ))}
+              {posts.map((post: Post) => {
+                console.log(`Rendering FacebookInspiredMemoryCard for post ${post.id}`);
+                return (
+                  <FacebookInspiredMemoryCard
+                    key={post.id}
+                    post={post}
+                    onLike={() => handleLike(post.id)}
+                    onComment={() => {}}
+                    onShare={() => handleShare(post.id)}
+                  />
+                );
+              })}
             </div>
           </>
         ) : (
