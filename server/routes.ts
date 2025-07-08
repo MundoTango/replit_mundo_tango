@@ -1649,7 +1649,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         comments: 0,
         isLiked: false,
         hashtags: [],
-        location: memory.location,
+        location: (() => {
+          try {
+            const loc = JSON.parse(memory.location);
+            return loc.name || loc.formatted_address || memory.location;
+          } catch {
+            return memory.location;
+          }
+        })(),
         hasConsent: true,
         mentions: [],
         emotionTags: memory.emotionTags || []
