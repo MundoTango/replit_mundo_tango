@@ -12,7 +12,7 @@ import { SocketService } from "./services/socketService";
 import { WebSocketServer } from "ws";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { uploadMedia, uploadMediaWithMetadata, deleteMedia, deleteMediaWithMetadata, getSignedUrl, initializeStorageBucket } from "./services/uploadService";
 import { setUserContext, auditSecurityEvent, checkResourcePermission, rateLimit } from "./middleware/security";
 import { authService, UserRole } from "./services/authService";
@@ -1601,8 +1601,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const offset = parseInt(req.query.offset as string) || 0;
       const filterTags = req.query.tags ? (Array.isArray(req.query.tags) ? req.query.tags : [req.query.tags]) : [];
 
-      const posts = await storage.getFeedPosts(user.id, limit, offset, filterTags);
-      res.json({ success: true, data: posts });
+      // Query memories directly from database
+      const memories = await db
+        .select({
+          id: sql<string>`m.id`,
+          content: sql<string>`m.content`,
+          userId: sql<number>`m.user_id`,
+          createdAt: sql<string>`m.created_at::text`,
+          emotionTags: sql<string[]>`m.emotion_tags`,
+          location: sql<string>`m.location::text`,
+          userName: sql<string>`u.name`,
+          userUsername: sql<string>`u.username`,
+          userProfileImage: sql<string>`u.profile_image`
+        })
+        .from(sql`memories m`)
+        .leftJoin(sql`users u`, sql`u.id = m.user_id`)
+        .orderBy(sql`m.created_at DESC`)
+        .limit(limit)
+        .offset(offset);
+      
+      // Transform memories to match the expected post format
+      const posts = memories.map((memory: any) => ({
+        id: parseInt(memory.id),
+        content: memory.content || '',
+        imageUrl: null,
+        videoUrl: null,
+        userId: memory.userId,
+        createdAt: memory.createdAt,
+        user: {
+          id: memory.userId,
+          name: memory.userName || 'Unknown User',
+          username: memory.userUsername || 'user',
+          profileImage: memory.userProfileImage || null,
+          tangoRoles: []
+        },
+        likes: 0,
+        comments: 0,
+        isLiked: false,
+        hashtags: [],
+        location: memory.location,
+        hasConsent: true,
+        mentions: [],
+        emotionTags: memory.emotionTags || []
+      }));
+      
+      res.json({ success: true, data: paginatedPosts });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
     }
