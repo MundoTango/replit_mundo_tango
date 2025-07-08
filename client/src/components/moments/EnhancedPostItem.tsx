@@ -92,6 +92,28 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [showShareOptions, setShowShareOptions] = useState(false);
   const [currentUserReaction, setCurrentUserReaction] = useState(post.currentUserReaction);
+  const [comments, setComments] = useState(post.comments || []);
+
+  // Fetch comments when section is opened
+  const { data: fetchedComments } = useQuery({
+    queryKey: [`/api/posts/${post.id}/comments`],
+    queryFn: async () => {
+      const response = await fetch(`/api/posts/${post.id}/comments`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch comments');
+      const result = await response.json();
+      return result.data || [];
+    },
+    enabled: showComments && post.id != null
+  });
+
+  // Update comments when fetched
+  React.useEffect(() => {
+    if (fetchedComments) {
+      setComments(fetchedComments);
+    }
+  }, [fetchedComments]);
 
   // Calculate age-based opacity for gradual fade effect
   const postAge = useMemo(() => {
@@ -162,8 +184,25 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/posts/${post.id}/comments`] });
+      
+      // Add new comment to local state
+      const newComment = {
+        id: Date.now(),
+        content: data.comment || data.content,
+        userId: user?.id || 0,
+        user: {
+          id: user?.id || 0,
+          name: user?.name || 'Anonymous',
+          profileImage: user?.profileImage
+        },
+        createdAt: new Date().toISOString(),
+        mentions: data.mentions || []
+      };
+      setComments(prev => [...prev, newComment]);
+      
       setShowComments(true);
       toast({ title: "Comment posted successfully!" });
     }
@@ -467,7 +506,7 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
               className="flex items-center gap-2 px-3 py-2 rounded-xl font-medium text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
             >
               <MessageCircle className="h-5 w-5" />
-              <span>{post.commentsCount || 0}</span>
+              <span>{comments.length || 0}</span>
             </button>
 
             {/* Share button */}
@@ -492,8 +531,13 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
 
             {/* Expand button */}
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => {
+                // Open post in new window
+                const postUrl = `/posts/${post.id}`;
+                window.open(postUrl, '_blank', 'width=800,height=900,menubar=no,toolbar=no,location=no,status=no');
+              }}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200"
+              title="Open in new window"
             >
               <Expand className="h-5 w-5" />
             </button>
@@ -511,9 +555,9 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
             />
 
             {/* Existing Comments */}
-            {post.comments && post.comments.length > 0 && (
+            {comments && comments.length > 0 && (
               <div className="space-y-3">
-                {post.comments.map((comment) => (
+                {comments.map((comment) => (
                   <div key={comment.id} className="flex gap-3 p-3 bg-gray-50 rounded-xl">
                     <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
                       {getAvatarFallback(comment.user.name)}
