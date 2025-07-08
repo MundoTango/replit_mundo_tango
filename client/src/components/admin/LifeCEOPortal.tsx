@@ -18,7 +18,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import LifeCEORoleService from '@/services/lifeCEORoleService';
-import LifeCEOAgentChat from './LifeCEOAgentChat';
+// import LifeCEOAgentChat from './LifeCEOAgentChat';
 
 const LifeCEOPortal: React.FC = () => {
   const { user } = useAuth();
@@ -234,7 +234,10 @@ const LifeCEOPortal: React.FC = () => {
 
           {/* AI Chat Tab */}
           <TabsContent value="chat" className="space-y-6">
-            <LifeCEOAgentChat agentId="life-manager" />
+            {/* <LifeCEOAgentChat agentId="life-manager" /> */}
+            <div className="text-center py-8 text-gray-500">
+              Chat component temporarily disabled for debugging
+            </div>
           </TabsContent>
 
           {/* Analytics Tab */}
