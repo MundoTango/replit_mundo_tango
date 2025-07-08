@@ -1590,7 +1590,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/posts/feed", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      console.log('📊 /api/posts/feed - User authenticated:', req.isAuthenticated());
+      console.log('📊 /api/posts/feed - User data:', req.user);
+      
+      const userId = req.user?.claims?.sub;
       const user = await storage.getUserByReplitId(userId);
 
       if (!user) {
