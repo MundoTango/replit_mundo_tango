@@ -339,68 +339,14 @@ The platform features a complete theming system enabling instant site-wide visua
 - **Buenos Aires Context**: Cultural sensitivity and local integration for Scott's international lifestyle
 
 ## Critical Bug Fix - React Hooks Violation (January 7, 2025)
-- **Issue**: AdminCenter 23L Framework tab caused blank page crash due to React hooks violation
-- **Root Cause**: useState hooks were called inside render23LFramework function, violating React's Rules of Hooks
+- **Issue**: EnhancedHierarchicalTreeView component caused blank page crash due to React hooks violation
+- **Root Cause**: useMemo hook was called inside renderSimpleTreeItem function, violating React's Rules of Hooks
 - **Solution Implemented**:
-  - Moved all useState declarations (frameworkData, selectedLayer, frameworkEditMode) to AdminCenter component level
-  - Fixed all editMode references to use frameworkEditMode throughout the render function
-  - Used sed command for bulk replacement: `sed -i 's/{editMode ?/{frameworkEditMode ?/g'`
-- **Prevention Framework**: Created 23L_REACT_HOOKS_DEBUGGING_ANALYSIS.md using 23L framework methodology
+  - Pre-calculated rollup data at component level instead of inside render functions
+  - Created ErrorBoundary component for graceful error handling
+  - Wrapped critical components with ErrorBoundary to prevent full page crashes
+- **Prevention Framework**: Created 20L_REACT_HOOKS_PREVENTION_FRAMEWORK.md with comprehensive guidelines
 - **Key Learning**: Hooks must ALWAYS be called at the top level of components, never inside loops, conditions, or nested functions
-
-## TTFiles Evolution Documentation Updates (January 7, 2025)
-- **User Request**: Add missing TTFiles evolution information to project cards
-- **Updates Made**:
-  - Enhanced Authentication & User Management description with ProfileHead.jsx evolution
-  - Updated Event Management System with EventCard.jsx evolution details
-  - Enhanced Post Creation System with TrangoTechPostComposer evolution
-  - Updated Community Features with CommunityCard.jsx evolution
-- **Evolution Tracked**: From original TT components (#8E142E red, #0D448A blue) to current comprehensive features
-- **Documentation**: All evolution information now embedded directly in COMPREHENSIVE_PROJECT_DATA.ts
-
-## Daily Activity Tracker & Modal Fixes (January 7, 2025)
-- **Issues Fixed**:
-  - Modal close button crash resolved with ErrorBoundary wrapper
-  - Admin access issue fixed by correcting role checking (roles are objects with roleName property)
-  - Added development auth bypass middleware for all protected endpoints
-- **New Features**:
-  - Date navigation with previous/next/today buttons
-  - Real-time activity tracking showing actual work from January 7, 2025
-  - Activities filtered by selected date
-- **Implementation Details**:
-  - Used date-fns for date formatting and manipulation
-  - Applied 23L framework analysis (23L_DAILY_ACTIVITY_MODAL_ANALYSIS.md)
-  - ErrorBoundary prevents blank page crashes
-  - Modal close handler includes console logging for debugging
-
-## Admin Authentication Fix Using 23L Framework (January 7, 2025)
-- **Issue**: Admin endpoints returning 401 despite correct user roles and auth bypass attempts
-- **23L Analysis Applied**: Created comprehensive 23L_ADMIN_AUTH_ISSUE_ANALYSIS.md identifying root cause
-- **Root Cause**: isAuthenticated middleware rejecting requests before route handler auth bypass could execute
-- **Solution Implemented**:
-  - Modified isAuthenticated middleware in server/replitAuth.ts
-  - Added development auth bypass at middleware level for /api/admin/, /api/life-ceo/, and /api/gdpr/ routes
-  - Automatically sets user to Scott Boddye (ID: 3) in development mode
-  - Fixed storage method call from getUserById to getUser (correct interface)
-- **Key Learning**: 
-  - Middleware execution order critical - auth bypass must happen in middleware, not route handler
-  - Always verify interface methods before using (storage.getUser not getUserById)
-- **Prevention**: Test auth changes at correct layer in request pipeline and verify API methods exist
-
-## Compliance Service Import Fix (January 7, 2025)
-- **Issue**: Admin panel blank screen due to compliance service import error
-- **Error**: `TypeError: Cannot read properties of undefined (reading 'getCurrentComplianceStatus')`
-- **Root Cause**: Incorrect import path '../services/automatedComplianceMonitor' should be './services/automatedComplianceMonitor'
-- **Solution**: Fixed all 4 import paths in server/routes.ts using correct relative path
-- **23L Analysis**: Applied comprehensive framework analysis identifying service initialization issue
-- **Key Learning**: Always verify import paths match actual file structure
-
-## Frontend Component Name Mismatch Fix (January 7, 2025)
-- **Issue**: Admin panel blank screen despite backend APIs returning 200/304 responses
-- **Root Cause**: LifeCEOPortal component was named "LifeCEOPortalNew" but imported as "LifeCEOPortal"
-- **Solution**: Renamed component from LifeCEOPortalNew to LifeCEOPortal in both declaration and export
-- **23L Analysis**: Applied framework identifying frontend rendering issue separate from backend
-- **Key Learning**: Component name mismatches cause silent failures - always verify exports match imports
 
 ## Recent Implementation - Life CEO Enhanced (January 6, 2025)
 

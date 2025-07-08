@@ -88,7 +88,7 @@ export const comprehensiveProjectData: ProjectItem[] = [
           {
             id: 'authentication-user-management',
             title: 'Authentication & User Management',
-            description: 'Complete authentication system with multi-step registration, 19 community roles, and RBAC. Evolved from TrangoTech ProfileHead.jsx role badge system to comprehensive multi-role authentication with JWT tokens and RLS policies.',
+            description: 'Complete authentication system with multi-step registration, 19 community roles, and RBAC',
             type: 'Feature',
             status: 'Completed',
             completion: 100,
@@ -222,7 +222,7 @@ export const comprehensiveProjectData: ProjectItem[] = [
               {
                 id: 'post-system',
                 title: 'Enhanced Post Creation System',
-                description: 'ModernPostCreator evolved from TrangoTechPostComposer. Original TT component had "What\'s on your mind?" placeholder with basic text input. Now enhanced with rich text editor, @mentions, #hashtags, media drag-drop, Google Maps integration, and emoji picker. Preserves TT gradient backgrounds and card styling.',
+                description: 'ModernPostCreator with rich text, mentions, hashtags, media, and Google Maps',
                 type: 'Project',
                 status: 'Completed',
                 completion: 100,
@@ -389,7 +389,7 @@ export const comprehensiveProjectData: ProjectItem[] = [
           {
             id: 'event-management',
             title: 'Event Management System',
-            description: 'Comprehensive event system evolved from TrangoTech EventCard.jsx. Original TT component showed basic event info with date/location/attendees. Now supports 9 event types, RSVP statuses, role assignments (DJ/Teacher/Performer), location-based discovery, and real-time updates. Maintains TT card design with rounded corners, shadows, and hover effects.',
+            description: 'Comprehensive event system with 9 types, RSVPs, roles, and discovery',
             type: 'Feature',
             status: 'Completed',
             completion: 98,
@@ -465,7 +465,7 @@ export const comprehensiveProjectData: ProjectItem[] = [
           {
             id: 'community-features',
             title: 'Community Features',
-            description: 'Groups, friends, networking evolved from TrangoTech CommunityCard.jsx. Original TT component displayed community cards with member counts and join buttons. Now enhanced with city-based auto-assignment, interest groups, friend networks, and real-time member presence. Preserves TT card-based UI patterns.',
+            description: 'Groups, friends, networking, and city-based communities',
             type: 'Feature',
             status: 'In Progress',
             completion: 85,

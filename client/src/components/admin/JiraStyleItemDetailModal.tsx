@@ -227,16 +227,7 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Modal close button clicked');
-                try {
-                  onClose();
-                } catch (error) {
-                  console.error('Error closing modal:', error);
-                }
-              }}
+              onClick={onClose}
               className="text-gray-500 hover:text-gray-700"
             >
               <X className="h-5 w-5" />

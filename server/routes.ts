@@ -27,24 +27,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
   await setupAuth(app);
 
-  // Development auth bypass middleware for Life CEO testing
-  const devAuthBypass = async (req: any, res: any, next: any) => {
-    if (!req.isAuthenticated() && process.env.NODE_ENV === 'development') {
-      // Use Scott Boddye's account for development testing
-      const user = await storage.getUserByReplitId('44164221');
-      if (user) {
-        req.user = { claims: { sub: user.replitId } };
-        req.isAuthenticated = () => true;
-      }
-    }
-    next();
-  };
-
-  // Apply dev auth bypass to all routes in development
-  if (process.env.NODE_ENV === 'development') {
-    app.use(devAuthBypass);
-  }
-
   // Public endpoints (accessible during onboarding) - MUST come before setUserContext middleware
   
   // Get community roles for registration - accessible during onboarding
@@ -6229,21 +6211,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { storage } = await import('./storage');
       
       // Get database user from Replit OAuth session
-      let user;
       const replitId = req.session?.passport?.user?.claims?.sub;
       if (!replitId) {
-        // Auth bypass for development
-        console.log('🔧 Auth bypass - using default admin user for stats');
-        user = await storage.getUserById(3); // Scott Boddye
-        req.user = user;
-      } else {
-        user = await storage.getUserByReplitId(replitId);
-        if (!user) {
-          return res.status(404).json({
-            success: false,
-            message: 'User not found.'
-          });
-        }
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required.'
+        });
+      }
+
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found.'
+        });
       }
 
       // Debug user object
@@ -6396,21 +6377,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { storage } = await import('./storage');
       
       // Get database user from Replit OAuth session
-      let user;
       const replitId = req.session?.passport?.user?.claims?.sub;
       if (!replitId) {
-        // Auth bypass for development
-        console.log('🔧 Auth bypass - using default admin user for compliance');
-        user = await storage.getUserById(3); // Scott Boddye
-        req.user = user;
-      } else {
-        user = await storage.getUserByReplitId(replitId);
-        if (!user) {
-          return res.status(404).json({
-            success: false,
-            message: 'User not found.'
-          });
-        }
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required.'
+        });
+      }
+
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found.'
+        });
       }
 
       // Debug user object
@@ -6440,7 +6420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get current compliance status from automated monitoring
       try {
-        const { automatedComplianceMonitor } = await import('./services/automatedComplianceMonitor');
+        const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
         const currentStatus = automatedComplianceMonitor.getCurrentComplianceStatus();
         
         if (currentStatus) {
@@ -6701,7 +6681,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { automatedComplianceMonitor } = await import('./services/automatedComplianceMonitor');
+      const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
       const auditResult = await automatedComplianceMonitor.refreshCompliance(user.username);
       
       res.json({
@@ -6741,7 +6721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { automatedComplianceMonitor } = await import('./services/automatedComplianceMonitor');
+      const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
       const limit = parseInt(req.query.limit as string) || 20;
       const auditHistory = await automatedComplianceMonitor.getAuditHistory(limit);
       
@@ -6770,7 +6750,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { automatedComplianceMonitor } = await import('./services/automatedComplianceMonitor');
+      const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
       const monitoringStatus = automatedComplianceMonitor.getMonitoringStatus();
       
       res.json({
