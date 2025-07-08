@@ -605,9 +605,13 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
       </div>
       
       {selectedItem && (
-        <DetailedCard 
-          item={selectedItem} 
-          onClose={() => setSelectedItem(null)} 
+        <JiraStyleItemDetailModal 
+          selectedItem={selectedItem} 
+          onClose={() => setSelectedItem(null)}
+          onSignOff={(reviewArea) => {
+            console.log('Sign off:', reviewArea);
+            // TODO: Implement sign-off functionality
+          }} 
         />
       )}
     </div>
