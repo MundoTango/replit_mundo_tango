@@ -6440,7 +6440,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get current compliance status from automated monitoring
       try {
-        const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
+        const { automatedComplianceMonitor } = await import('./services/automatedComplianceMonitor');
         const currentStatus = automatedComplianceMonitor.getCurrentComplianceStatus();
         
         if (currentStatus) {
@@ -6701,7 +6701,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
+      const { automatedComplianceMonitor } = await import('./services/automatedComplianceMonitor');
       const auditResult = await automatedComplianceMonitor.refreshCompliance(user.username);
       
       res.json({
@@ -6741,7 +6741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
+      const { automatedComplianceMonitor } = await import('./services/automatedComplianceMonitor');
       const limit = parseInt(req.query.limit as string) || 20;
       const auditHistory = await automatedComplianceMonitor.getAuditHistory(limit);
       
@@ -6770,7 +6770,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
+      const { automatedComplianceMonitor } = await import('./services/automatedComplianceMonitor');
       const monitoringStatus = automatedComplianceMonitor.getMonitoringStatus();
       
       res.json({
