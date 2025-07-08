@@ -1607,6 +1607,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filterTags = req.query.tags ? (Array.isArray(req.query.tags) ? req.query.tags : [req.query.tags]) : [];
 
       // Query memories directly from database
+      console.log('📊 Querying memories with limit:', limit, 'offset:', offset);
+      
       const memories = await db
         .select({
           id: sql<string>`m.id`,
@@ -1624,6 +1626,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .orderBy(sql`m.created_at DESC`)
         .limit(limit)
         .offset(offset);
+      
+      console.log('📊 Memories fetched:', memories.length);
+      console.log('📊 First memory:', memories[0]);
       
       // Transform memories to match the expected post format
       const posts = memories.map((memory: any) => ({
@@ -1650,7 +1655,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         emotionTags: memory.emotionTags || []
       }));
       
-      res.json({ success: true, data: paginatedPosts });
+      res.json({ success: true, data: posts });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
     }
