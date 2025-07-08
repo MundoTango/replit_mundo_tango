@@ -117,26 +117,26 @@ export const ReactionSelector: React.FC<ReactionSelectorProps> = ({
             setTimeout(() => setShowReactions(false), 200);
           }}
         >
-          <div className="grid grid-cols-6 gap-2 max-w-xs">
+          <div className="flex gap-1">
             {REACTION_TYPES.map((reaction) => (
               <button
                 key={reaction.id}
                 className={`
-                  flex flex-col items-center p-2 rounded-xl transition-all duration-200
-                  hover:bg-gray-50 hover:scale-110 group
-                  ${currentReaction === reaction.id ? 'bg-pink-50 ring-2 ring-pink-200' : ''}
+                  relative flex items-center justify-center w-12 h-12 rounded-full
+                  transition-all duration-200 hover:scale-110
+                  ${currentReaction === reaction.id 
+                    ? 'bg-gradient-to-br from-pink-100 to-indigo-100 ring-2 ring-pink-300 shadow-md' 
+                    : 'hover:bg-gray-100'
+                  }
                 `}
                 onClick={() => handleReactionClick(reaction.id)}
                 title={reaction.label}
               >
-                <span className="text-2xl mb-1 transition-transform group-hover:scale-125">
+                <span className="text-xl transition-transform">
                   {reaction.emoji}
                 </span>
-                <span className="text-xs text-gray-600 font-medium">
-                  {reaction.label}
-                </span>
-                {reactions[reaction.id] && (
-                  <span className="text-xs text-gray-400 mt-1">
+                {reactions[reaction.id] > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-gray-800 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium shadow-sm">
                     {reactions[reaction.id]}
                   </span>
                 )}
