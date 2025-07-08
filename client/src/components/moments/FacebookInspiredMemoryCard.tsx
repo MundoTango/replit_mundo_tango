@@ -38,7 +38,10 @@ export default function FacebookInspiredMemoryCard({ post, onLike, onComment, on
   };
 
   return (
-    <article className="bg-white rounded-lg shadow-sm mb-4">
+    <article className="bg-white rounded-lg shadow-sm mb-4 border-2 border-blue-500">
+      {/* Debug indicator */}
+      <div className="bg-blue-500 text-white text-xs px-2 py-1">Facebook-inspired Clean View</div>
+      
       {/* Header */}
       <div className="p-4">
         <div className="flex items-start justify-between">

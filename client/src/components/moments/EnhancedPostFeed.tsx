@@ -43,6 +43,9 @@ export default function EnhancedPostFeed() {
   const [filterTags, setFilterTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [viewMode, setViewMode] = useState<'classic' | 'facebook'>('facebook');
+  
+  // Debug logging for view mode
+  console.log('Current view mode:', viewMode);
 
   // Fetch posts
   const { data: posts, isLoading } = useQuery({
@@ -242,10 +245,44 @@ export default function EnhancedPostFeed() {
 
       {/* Enhanced Posts Feed */}
       <section className="space-y-8">
+        {/* Prominent View Toggle at Top */}
+        <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 text-center">
+          <p className="text-lg font-bold mb-2">Choose Your View Mode:</p>
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={() => {
+                console.log('TOP TOGGLE: Switching to facebook view');
+                setViewMode('facebook');
+              }}
+              className={`px-6 py-3 text-lg font-bold rounded-lg transition-all ${
+                viewMode === 'facebook' 
+                  ? 'bg-blue-600 text-white transform scale-105' 
+                  : 'bg-white text-blue-600 border-2 border-blue-300'
+              }`}
+            >
+              🆕 Clean Facebook View
+            </button>
+            <button
+              onClick={() => {
+                console.log('TOP TOGGLE: Switching to classic view');
+                setViewMode('classic');
+              }}
+              className={`px-6 py-3 text-lg font-bold rounded-lg transition-all ${
+                viewMode === 'classic' 
+                  ? 'bg-blue-600 text-white transform scale-105' 
+                  : 'bg-white text-blue-600 border-2 border-blue-300'
+              }`}
+            >
+              📋 Classic View
+            </button>
+          </div>
+          <p className="text-sm text-gray-600 mt-2">Current mode: <strong>{viewMode === 'facebook' ? 'Clean Facebook View' : 'Classic View'}</strong></p>
+        </div>
+        
         {posts && posts.length > 0 ? (
           <>
-            {/* Feed Header */}
-            <div className="flex items-center justify-between">
+            {/* Feed Header with View Toggle */}
+            <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl">
                   <Sparkles className="h-5 w-5 text-white" />
@@ -261,27 +298,38 @@ export default function EnhancedPostFeed() {
                   </p>
                 </div>
               </div>
-            </div>
-
-            {/* View Mode Toggle */}
-            <div className="mb-6 flex justify-end">
-              <div className="inline-flex items-center gap-2 p-1 bg-gray-100 rounded-lg">
-                <button
-                  onClick={() => setViewMode('facebook')}
-                  className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
-                    viewMode === 'facebook' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Clean
-                </button>
-                <button
-                  onClick={() => setViewMode('classic')}
-                  className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
-                    viewMode === 'classic' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Classic
-                </button>
+              
+              {/* View Mode Toggle - More Prominent */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 mr-2">View:</span>
+                <div className="inline-flex items-center gap-1 p-1 bg-white border-2 border-gray-200 rounded-lg shadow-sm">
+                  <button
+                    onClick={() => {
+                      console.log('Switching to facebook view');
+                      setViewMode('facebook');
+                    }}
+                    className={`px-4 py-2 text-sm font-medium rounded transition-all ${
+                      viewMode === 'facebook' 
+                        ? 'bg-blue-500 text-white shadow-md' 
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    Clean View
+                  </button>
+                  <button
+                    onClick={() => {
+                      console.log('Switching to classic view');
+                      setViewMode('classic');
+                    }}
+                    className={`px-4 py-2 text-sm font-medium rounded transition-all ${
+                      viewMode === 'classic' 
+                        ? 'bg-blue-500 text-white shadow-md' 
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    Classic View
+                  </button>
+                </div>
               </div>
             </div>
 
