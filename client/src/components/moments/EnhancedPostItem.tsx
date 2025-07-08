@@ -276,7 +276,16 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
             {post.location && (
               <div className="flex items-center gap-2 text-indigo-600">
                 <MapPin className="h-4 w-4" />
-                <span className="text-sm font-medium">{post.location}</span>
+                <span className="text-sm font-medium">
+                  {(() => {
+                    try {
+                      const loc = typeof post.location === 'string' ? JSON.parse(post.location) : post.location;
+                      return loc.name || loc.formatted_address || 'Unknown location';
+                    } catch {
+                      return post.location;
+                    }
+                  })()}
+                </span>
               </div>
             )}
           </section>
