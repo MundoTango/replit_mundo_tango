@@ -130,6 +130,21 @@ function App() {
     initAnalytics();
   }, []);
 
+  // Temporary test to isolate blank screen issue
+  const testMode = window.location.pathname === '/debug-test';
+  
+  if (testMode) {
+    return (
+      <div style={{ padding: '20px', backgroundColor: 'white', color: 'black' }}>
+        <h1>Debug Test Page</h1>
+        <p>If you can see this text, React is working.</p>
+        <button style={{ padding: '10px', backgroundColor: 'blue', color: 'white' }}>
+          Test Button
+        </button>
+      </div>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
