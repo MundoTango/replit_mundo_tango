@@ -40,6 +40,7 @@ import LifeCEOEnhanced from "@/pages/LifeCEOEnhanced";
 import HierarchyDashboard from "@/pages/HierarchyDashboard";
 import TestModal from "@/pages/TestModal";
 import ModalDebugTest from "@/pages/ModalDebugTest";
+import TestAdminPage from "@/pages/TestAdminPage";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -117,6 +118,7 @@ function Router() {
       <Route path="/hierarchy" component={HierarchyDashboard} />
       <Route path="/test-modal" component={TestModal} />
       <Route path="/modal-debug" component={ModalDebugTest} />
+      <Route path="/test-admin" component={TestAdminPage} />
       <Route component={NotFound} />
     </Switch>
   );
