@@ -27,7 +27,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface Post {
-  id: number;
+  id: string; // Changed from number to string
   content: string;
   imageUrl?: string;
   videoUrl?: string;
@@ -76,7 +76,7 @@ interface Post {
 
 interface PostItemProps {
   post: Post;
-  onLike: (postId: number) => void;
+  onLike: (postId: string) => void;
   onShare: (post: Post) => void;
 }
 
@@ -171,7 +171,7 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
   });
 
   const commentMutation = useMutation({
-    mutationFn: async ({ postId, content, mentions }: { postId: number; content: string; mentions: string[] }) => {
+    mutationFn: async ({ postId, content, mentions }: { postId: string; content: string; mentions: string[] }) => {
       const response = await fetch(`/api/post-comment/store`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -209,7 +209,7 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
   });
 
   const reportMutation = useMutation({
-    mutationFn: async ({ postId, reason, description }: { postId: number; reason: string; description: string }) => {
+    mutationFn: async ({ postId, reason, description }: { postId: string; reason: string; description: string }) => {
       const response = await fetch(`/api/post-report/store`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -232,7 +232,7 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
   });
 
   const shareToWallMutation = useMutation({
-    mutationFn: async ({ postId, comment }: { postId: number; comment?: string }) => {
+    mutationFn: async ({ postId, comment }: { postId: string; comment?: string }) => {
       const response = await fetch(`/api/post-share/store`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

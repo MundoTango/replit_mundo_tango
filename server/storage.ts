@@ -97,7 +97,7 @@ export interface IStorage {
   
   // Posts operations
   createPost(post: InsertPost): Promise<Post>;
-  getPostById(id: number): Promise<Post | undefined>;
+  getPostById(id: number | string): Promise<Post | undefined>;
   getUserPosts(userId: number, limit?: number, offset?: number): Promise<Post[]>;
   getFeedPosts(userId: number, limit?: number, offset?: number, filterTags?: string[]): Promise<Post[]>;
   likePost(postId: number, userId: number): Promise<void>;
@@ -523,7 +523,29 @@ export class DatabaseStorage implements IStorage {
     return newPost;
   }
 
-  async getPostById(id: number): Promise<Post | undefined> {
+  async getPostById(id: number | string): Promise<Post | undefined> {
+    // Handle string memory IDs
+    if (typeof id === 'string') {
+      const memory = await this.getMemoryById(id);
+      if (!memory) return undefined;
+      
+      // Convert memory to post format
+      return {
+        id: memory.id,
+        content: memory.content,
+        userId: memory.userId,
+        createdAt: memory.createdAt,
+        updatedAt: memory.updatedAt,
+        imageUrl: null,
+        videoUrl: null,
+        isPublic: true,
+        likes: 0,
+        commentsCount: 0,
+        shares: 0
+      } as any;
+    }
+    
+    // Handle numeric post IDs
     const result = await db.select().from(posts).where(eq(posts.id, id)).limit(1);
     return result[0];
   }
@@ -1051,7 +1073,13 @@ export class DatabaseStorage implements IStorage {
     return this.commentOnPost(comment.postId, comment.userId, comment.content);
   }
 
-  async getCommentsByPostId(postId: number): Promise<PostComment[]> {
+  async getCommentsByPostId(postId: number | string): Promise<PostComment[]> {
+    // Handle string memory IDs
+    if (typeof postId === 'string') {
+      // For now, return empty array for memory comments
+      // TODO: Implement memory comment system
+      return [];
+    }
     return this.getPostComments(postId);
   }
 

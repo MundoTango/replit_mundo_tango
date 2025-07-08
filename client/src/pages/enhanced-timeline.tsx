@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 
 interface Post {
-  id: number;
+  id: string; // Changed from number to string
   content: string;
   imageUrl?: string;
   videoUrl?: string;
@@ -67,6 +67,9 @@ const EnhancedTimeline = () => {
   });
 
   const posts: Post[] = postsData?.data || [];
+  
+  // Debug log to check post IDs
+  console.log('📊 Posts received:', posts.map(p => ({ id: p.id, content: p.content.substring(0, 50) })));
 
   // Create post mutation
   const createPostMutation = useMutation({
@@ -163,7 +166,7 @@ const EnhancedTimeline = () => {
 
   // Like post mutation
   const likePostMutation = useMutation({
-    mutationFn: async (postId: number) => {
+    mutationFn: async (postId: string) => {
       const response = await fetch(`/api/posts/${postId}/like`, {
         method: "POST",
         credentials: "include",
@@ -175,11 +178,11 @@ const EnhancedTimeline = () => {
     },
   });
 
-  const handleLikePost = (postId: number) => {
+  const handleLikePost = (postId: string) => {
     likePostMutation.mutate(postId);
   };
 
-  const handleSharePost = (postId: number) => {
+  const handleSharePost = (postId: string) => {
     const postUrl = `${window.location.origin}/posts/${postId}`;
     
     if (navigator.share) {

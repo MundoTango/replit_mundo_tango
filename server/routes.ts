@@ -1632,7 +1632,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Transform memories to match the expected post format
       const posts = memories.map((memory: any) => ({
-        id: parseInt(memory.id),
+        id: memory.id, // Keep as string ID
         content: memory.content || '',
         imageUrl: null,
         videoUrl: null,
@@ -1725,8 +1725,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get post comments - Updated path to match modal expectations
   app.get("/api/posts/:postId/comments", isAuthenticated, async (req, res) => {
     try {
-      const postId = parseInt(req.params.postId);
-      const comments = await storage.getPostComments(postId);
+      const postId = req.params.postId; // Keep as string
+      const comments = await storage.getCommentsByPostId(postId);
       res.json({ 
         success: true, 
         data: comments
@@ -1744,7 +1744,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create post comment - New endpoint for modal
   app.post("/api/posts/:postId/comments", isAuthenticated, async (req, res) => {
     try {
-      const postId = parseInt(req.params.postId);
+      const postId = req.params.postId; // Keep as string for memory IDs
       const { content } = req.body;
       const userId = (req as any).user.id;
 
@@ -4072,7 +4072,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/posts/:postId/comments', async (req, res) => {
     try {
       const { postId } = req.params;
-      const comments = await storage.getCommentsByPostId(parseInt(postId));
+      const comments = await storage.getCommentsByPostId(postId); // Pass string ID directly
       
       return res.json({
         code: 1,
@@ -4106,7 +4106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const reaction = await storage.createReaction({
         userId,
-        postId: parseInt(postId),
+        postId: postId, // Keep as string for memory IDs
         type
       });
 
@@ -4138,7 +4138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      await storage.removeReaction(userId, parseInt(postId), type);
+      await storage.removeReaction(userId, postId, type); // Keep as string for memory IDs
 
       return res.json({
         code: 1,
@@ -4171,7 +4171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const report = await storage.createReport({
-        postId: parseInt(postId),
+        postId: postId, // Keep as string for memory IDs
         reporterId: userId,
         reason,
         description: description || null
@@ -4210,7 +4210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a share entry (in a real app, this would create a new post)
       const share = await storage.createShare({
         userId,
-        postId: parseInt(postId),
+        postId: postId, // Keep as string for memory IDs
         comment: comment || null
       });
 
