@@ -22,6 +22,7 @@ import {
   X,
   Loader2
 } from "lucide-react";
+import DashboardLayout from "@/layouts/DashboardLayout";
 
 interface Post {
   id: string; // Changed from number to string
@@ -47,6 +48,9 @@ const EnhancedTimeline = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Debug log to confirm page is loading
+  console.log("🎯 EnhancedTimeline page loaded!");
   
   const [visibility, setVisibility] = useState("Public");
   const [createPostModal, setCreatePostModal] = useState(false);
@@ -208,9 +212,10 @@ const EnhancedTimeline = () => {
   }, [editingPost]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 px-4">
-        <div className="grid grid-cols-12 gap-6">
+    <DashboardLayout>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto py-6 px-4">
+          <div className="grid grid-cols-12 gap-6">
           {/* Main Timeline */}
           <div className="col-span-12 lg:col-span-9">
             <div className="space-y-6">
@@ -418,7 +423,8 @@ const EnhancedTimeline = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };
 

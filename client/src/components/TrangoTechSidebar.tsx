@@ -253,6 +253,30 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             </div>
           </div>
 
+          {/* Debug Navigation Button - TEMPORARY */}
+          <div className="px-4 mb-4 space-y-2">
+            <button
+              onClick={() => {
+                console.log("🔍 DEBUG: Current location:", location);
+                console.log("🔍 DEBUG: Attempting navigation to /enhanced-timeline");
+                console.log("🔍 DEBUG: Using handleLinkClick");
+                handleLinkClick('/enhanced-timeline');
+              }}
+              className="w-full p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-sm"
+            >
+              🐛 DEBUG: Navigate via handleLinkClick
+            </button>
+            <button
+              onClick={() => {
+                console.log("🔍 DEBUG: Force navigation with window.location");
+                window.location.href = '/enhanced-timeline';
+              }}
+              className="w-full p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-sm"
+            >
+              🔧 FORCE: window.location
+            </button>
+          </div>
+
           {/* Footer */}
           <div className="px-4 mb-4">
             <div className="p-3 rounded-xl bg-gradient-to-r from-pink-500 to-blue-500 text-white text-center">

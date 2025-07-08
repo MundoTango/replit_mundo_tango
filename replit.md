@@ -2,9 +2,13 @@
 
 ## Overview
 
-**UPDATE (January 8, 2025)**: Fixed social features on enhanced timeline
-- Fixed wrong component usage: Timeline was using FacebookInspiredMemoryCard, not EnhancedPostItem
-- Completely rebuilt FacebookInspiredMemoryCard component with all missing features:
+**UPDATE (January 8, 2025)**: Enhanced Timeline Navigation and Social Features
+- **Navigation Issue**: Debugging Timeline button not navigating to /enhanced-timeline route
+  - Added debug buttons in sidebar for testing navigation methods
+  - Route is properly configured in App.tsx
+  - Component wrapped with DashboardLayout
+  - Applied 23L framework analysis (23L_TIMELINE_NAVIGATION_ISSUE_ANALYSIS.md)
+- **Social Features Fixed**: Completely rebuilt FacebookInspiredMemoryCard component
   - FacebookReactionSelector integration for Facebook-style reactions
   - RichTextCommentEditor for rich text comments with mentions
   - PostContextMenu for edit/delete/report/share actions
