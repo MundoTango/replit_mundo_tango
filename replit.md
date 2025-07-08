@@ -381,8 +381,11 @@ The platform features a complete theming system enabling instant site-wide visua
   - Modified isAuthenticated middleware in server/replitAuth.ts
   - Added development auth bypass at middleware level for /api/admin/, /api/life-ceo/, and /api/gdpr/ routes
   - Automatically sets user to Scott Boddye (ID: 3) in development mode
-- **Key Learning**: Middleware execution order critical - auth bypass must happen in middleware, not route handler
-- **Prevention**: Test auth changes at correct layer in request pipeline
+  - Fixed storage method call from getUserById to getUser (correct interface)
+- **Key Learning**: 
+  - Middleware execution order critical - auth bypass must happen in middleware, not route handler
+  - Always verify interface methods before using (storage.getUser not getUserById)
+- **Prevention**: Test auth changes at correct layer in request pipeline and verify API methods exist
 
 ## Recent Implementation - Life CEO Enhanced (January 6, 2025)
 

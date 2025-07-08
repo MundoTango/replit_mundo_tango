@@ -147,7 +147,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     console.log('🔧 Dev auth bypass for:', req.path);
     // Set default admin user for development
     const { storage } = await import('./storage');
-    const defaultUser = await storage.getUserById(3); // Scott Boddye
+    const defaultUser = await storage.getUser(3); // Scott Boddye
     if (defaultUser) {
       req.user = defaultUser;
       return next();
