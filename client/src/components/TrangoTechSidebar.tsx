@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { 
   Heart, 
   UsersRound, 
@@ -116,7 +116,16 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   };
 
   const handleLinkClick = (link: string) => {
+    console.log("🔍 DEBUG: handleLinkClick called with:", link);
+    console.log("🔍 DEBUG: Current location before:", location);
     setLocation(link);
+    console.log("🔍 DEBUG: Called setLocation with:", link);
+    
+    // Force a small delay to ensure navigation happens
+    setTimeout(() => {
+      console.log("🔍 DEBUG: Location after timeout:", window.location.pathname);
+    }, 100);
+    
     if (window.innerWidth < 1024) {
       setIsOpen(false);
     }
@@ -210,22 +219,30 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             <div className="text-xs uppercase font-semibold text-gray-500 tracking-wide mb-3">Menu</div>
             <div className="space-y-1">
               {allRoutes.map(({ icon, title, link }, index) => (
-                <div
+                <Link
                   key={index}
-                  onClick={() => handleLinkClick(link)}
-                  className={`group flex items-center gap-3 py-2 px-4 rounded-xl cursor-pointer transition-all hover:bg-gray-100 ${
-                    isActive(link)
-                      ? "bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg"
-                      : "text-gray-700"
-                  }`}
+                  href={link}
+                  onClick={() => {
+                    if (window.innerWidth < 1024) {
+                      setIsOpen(false);
+                    }
+                  }}
                 >
-                  <div className={`${isActive(link) ? "text-white" : "text-gray-500 group-hover:text-gray-700"}`}>
-                    {icon}
+                  <div
+                    className={`group flex items-center gap-3 py-2 px-4 rounded-xl cursor-pointer transition-all hover:bg-gray-100 ${
+                      isActive(link)
+                        ? "bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    <div className={`${isActive(link) ? "text-white" : "text-gray-500 group-hover:text-gray-700"}`}>
+                      {icon}
+                    </div>
+                    <div className={`text-sm font-semibold ${isActive(link) ? "text-white" : "group-hover:text-gray-900"} tracking-wide`}>
+                      {title}
+                    </div>
                   </div>
-                  <div className={`text-sm font-semibold ${isActive(link) ? "text-white" : "group-hover:text-gray-900"} tracking-wide`}>
-                    {title}
-                  </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -255,17 +272,13 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
           {/* Debug Navigation Button - TEMPORARY */}
           <div className="px-4 mb-4 space-y-2">
-            <button
-              onClick={() => {
-                console.log("🔍 DEBUG: Current location:", location);
-                console.log("🔍 DEBUG: Attempting navigation to /enhanced-timeline");
-                console.log("🔍 DEBUG: Using handleLinkClick");
-                handleLinkClick('/enhanced-timeline');
-              }}
-              className="w-full p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-sm"
-            >
-              🐛 DEBUG: Navigate via handleLinkClick
-            </button>
+            <Link href="/enhanced-timeline">
+              <button
+                className="w-full p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-sm"
+              >
+                🐛 DEBUG: Link Component Navigation
+              </button>
+            </Link>
             <button
               onClick={() => {
                 console.log("🔍 DEBUG: Force navigation with window.location");

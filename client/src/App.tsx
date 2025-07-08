@@ -42,6 +42,8 @@ import TestModal from "@/pages/TestModal";
 import ModalDebugTest from "@/pages/ModalDebugTest";
 import TestAdminPage from "@/pages/TestAdminPage";
 import EnhancedTimeline from "@/pages/enhanced-timeline";
+import SimpleEnhancedTimeline from "@/pages/simple-enhanced-timeline";
+import RouteTest from "@/pages/route-test";
 
 // Simple error boundary component
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -121,6 +123,12 @@ function Router() {
 
   // If authenticated and fully onboarded, show main app
   console.log("Showing main app");
+  
+  // DEBUG: Log all route matches
+  const currentPath = window.location.pathname;
+  console.log("🔍 Current path:", currentPath);
+  console.log("🔍 Should match enhanced-timeline:", currentPath === '/enhanced-timeline');
+  
   return (
     <Switch>
       <Route path="/" component={Moments} />
@@ -149,12 +157,8 @@ function Router() {
       <Route path="/test-modal" component={TestModal} />
       <Route path="/modal-debug" component={ModalDebugTest} />
       <Route path="/test-admin" component={TestAdminPage} />
-      <Route path="/enhanced-timeline">
-        {() => {
-          console.log("🎯 Route matched: /enhanced-timeline");
-          return <EnhancedTimeline />;
-        }}
-      </Route>
+      <Route path="/enhanced-timeline" component={SimpleEnhancedTimeline} />
+      <Route path="/route-test" component={RouteTest} />
       <Route component={NotFound} />
     </Switch>
   );

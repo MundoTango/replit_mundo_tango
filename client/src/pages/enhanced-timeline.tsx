@@ -432,4 +432,7 @@ const EnhancedTimeline = () => {
   );
 };
 
+// Add display name for debugging
+EnhancedTimeline.displayName = 'EnhancedTimeline';
+
 export default EnhancedTimeline;
