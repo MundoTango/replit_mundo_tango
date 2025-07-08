@@ -20,7 +20,7 @@ import {
 import LifeCEORoleService from '@/services/lifeCEORoleService';
 import LifeCEOAgentChat from './LifeCEOAgentChat';
 
-const LifeCEOPortalNew: React.FC = () => {
+const LifeCEOPortal: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -304,4 +304,4 @@ const LifeCEOPortalNew: React.FC = () => {
   );
 };
 
-export default LifeCEOPortalNew;
+export default LifeCEOPortal;

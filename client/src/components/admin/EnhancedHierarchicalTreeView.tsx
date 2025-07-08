@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ChevronDown, ChevronRight, Eye, Clock, CheckCircle2, Users, Code2, Smartphone, Monitor, Globe, Circle, Zap, Target, CheckSquare, FileText, Folder, FolderOpen } from 'lucide-react';
-import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
+import SafeModalWrapper from './SafeModalWrapper';
 import { comprehensiveProjectData, ProjectItem, getAllTeams, getProjectStats } from '../../../../COMPREHENSIVE_PROJECT_DATA';
 
 // Move large data structure outside component to prevent initialization errors
@@ -69,6 +69,7 @@ const calculateRollupStatus = (item: ProjectItem): {
 
 const EnhancedHierarchicalTreeView: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
+  const [modalKey, setModalKey] = useState(0); // Force re-render key
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set([
     'mundo-tango-org',
     'mundo-tango-app',
@@ -292,8 +293,9 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
             if (target.closest('.expand-area')) {
               toggleExpanded(item.id);
             } else {
-              // Otherwise show the modal
-              setSelectedItem(item);
+              // Otherwise show the modal with defensive state management
+              console.log(`Opening modal for item: ${item.title}`);
+              setSelectedItem({...item}); // Clone to prevent reference issues
             }
           }}
         >
@@ -605,16 +607,18 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
       </div>
       
       {selectedItem && (
-        <JiraStyleItemDetailModal 
-          selectedItem={selectedItem} 
+        <SafeModalWrapper
+          key={`modal-${selectedItem.id}-${modalKey}`}
+          selectedItem={selectedItem}
           onClose={() => {
-            console.log('Closing modal, resetting selectedItem');
+            console.log('Modal close requested, safely resetting state');
             setSelectedItem(null);
+            setModalKey(prev => prev + 1);
           }}
           onSignOff={(reviewArea) => {
             console.log('Sign off:', reviewArea);
             // TODO: Implement sign-off functionality
-          }} 
+          }}
         />
       )}
     </div>
