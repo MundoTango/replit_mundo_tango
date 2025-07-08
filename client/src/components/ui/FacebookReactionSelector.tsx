@@ -80,13 +80,18 @@ export const FacebookReactionSelector: React.FC<FacebookReactionSelectorProps> =
 
       {/* Reaction Count Display */}
       {totalReactions > 0 && (
-        <div className="flex items-center gap-1">
-          {topReactions.map((reaction, idx) => (
-            <span key={reaction!.id} className="text-lg" style={{ marginLeft: idx > 0 ? '-8px' : 0 }}>
-              {reaction!.emoji}
-            </span>
-          ))}
-          <span className="ml-1 text-sm text-gray-600">{totalReactions}</span>
+        <div className="flex items-center">
+          <div className="flex -space-x-2">
+            {topReactions.map((reaction) => (
+              <span 
+                key={reaction!.id} 
+                className="inline-flex items-center justify-center w-6 h-6 bg-white rounded-full shadow-sm text-sm border border-gray-100"
+              >
+                {reaction!.emoji}
+              </span>
+            ))}
+          </div>
+          <span className="ml-2 text-sm text-gray-600">{totalReactions}</span>
         </div>
       )}
 

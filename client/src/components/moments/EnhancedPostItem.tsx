@@ -172,13 +172,12 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
 
   const commentMutation = useMutation({
     mutationFn: async ({ postId, content, mentions }: { postId: string; content: string; mentions: string[] }) => {
-      const response = await fetch(`/api/post-comment/store`, {
+      const response = await fetch(`/api/posts/${postId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ 
-          post_id: postId,
-          comment: content,
+          content,
           mentions 
         })
       });
@@ -210,12 +209,11 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
 
   const reportMutation = useMutation({
     mutationFn: async ({ postId, reason, description }: { postId: string; reason: string; description: string }) => {
-      const response = await fetch(`/api/post-report/store`, {
+      const response = await fetch(`/api/posts/${postId}/reports`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ 
-          post_id: postId,
           reason,
           description 
         })
@@ -233,12 +231,11 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
 
   const shareToWallMutation = useMutation({
     mutationFn: async ({ postId, comment }: { postId: string; comment?: string }) => {
-      const response = await fetch(`/api/post-share/store`, {
+      const response = await fetch(`/api/posts/${postId}/share`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ 
-          post_id: postId,
           comment: comment || ''
         })
       });
