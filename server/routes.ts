@@ -663,7 +663,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/user/code-of-conduct', isAuthenticated, async (req: any, res) => {
+  app.post('/api/code-of-conduct/accept', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
@@ -676,6 +676,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Validate that all agreements are true
+      const agreements = req.body;
+      const allAgreed = Object.values(agreements).every(value => value === true);
+      
+      if (!allAgreed) {
+        return res.status(400).json({
+          code: 400,
+          message: 'All agreements must be accepted',
+          data: {}
+        });
+      }
+
+      // Get IP and user agent for legal tracking
+      const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      const userAgent = req.headers['user-agent'];
+
+      // Save individual agreements for legal compliance
+      await storage.saveCodeOfConductAgreements(user.id, agreements, ipAddress, userAgent);
+
+      // Update user status
       const updatedUser = await storage.updateUser(user.id, {
         codeOfConductAccepted: true,
         isOnboardingComplete: true,

@@ -133,6 +133,24 @@ export const userRoles = pgTable("user_roles", {
   index("idx_user_roles_role_id").on(table.roleId),
 ]);
 
+// Code of Conduct Agreements table for legal compliance tracking
+export const codeOfConductAgreements = pgTable("code_of_conduct_agreements", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  guidelineType: varchar("guideline_type", { length: 50 }).notNull(),
+  guidelineTitle: varchar("guideline_title", { length: 255 }).notNull(),
+  guidelineDescription: text("guideline_description").notNull(),
+  agreed: boolean("agreed").notNull().default(true),
+  agreementVersion: varchar("agreement_version", { length: 10 }).notNull().default("1.0"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  unique().on(table.userId, table.guidelineType, table.agreementVersion),
+  index("idx_coc_agreements_user_id").on(table.userId),
+  index("idx_coc_agreements_created_at").on(table.createdAt),
+]);
+
 // Enhanced Posts table with rich text and multimedia support
 export const posts = pgTable("posts", {
   id: serial("id").primaryKey(),
@@ -994,6 +1012,15 @@ export type InsertEventSeries = typeof eventSeries.$inferInsert;
 export type CustomRoleRequest = typeof customRoleRequests.$inferSelect;
 export type InsertCustomRoleRequest = z.infer<typeof insertCustomRoleRequestSchema>;
 export type UpdateCustomRoleRequest = z.infer<typeof updateCustomRoleRequestSchema>;
+
+// Code of Conduct Agreement types
+export const insertCodeOfConductAgreementSchema = createInsertSchema(codeOfConductAgreements).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type CodeOfConductAgreement = typeof codeOfConductAgreements.$inferSelect;
+export type InsertCodeOfConductAgreement = z.infer<typeof insertCodeOfConductAgreementSchema>;
 
 // 11L Project Tracker System - Master tracking for all Mundo Tango features
 export const projectTrackerItems = pgTable("project_tracker_items", {

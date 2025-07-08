@@ -28,6 +28,7 @@ import {
   lifeCeoAgentConfigurations,
   lifeCeoChatMessages,
   lifeCeoConversations,
+  codeOfConductAgreements,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -142,6 +143,18 @@ export interface IStorage {
   getUserByReplitId(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateOnboardingStatus(id: number, formStatus: number, isComplete: boolean): Promise<User>;
+  
+  // Code of Conduct Agreement operations
+  saveCodeOfConductAgreements(userId: number, agreements: {
+    respectfulBehavior: boolean;
+    friendlyEnvironment: boolean;
+    consentRequired: boolean;
+    appropriateContent: boolean;
+    reportingPolicy: boolean;
+    communityValues: boolean;
+    termsOfService: boolean;
+  }, ipAddress?: string, userAgent?: string): Promise<void>;
+  getUserCodeOfConductAgreements(userId: number): Promise<any[]>;
   
   // Media operations
   createMediaAsset(mediaAsset: InsertMediaAsset): Promise<MediaAsset>;
@@ -2324,6 +2337,48 @@ export class DatabaseStorage implements IStorage {
       console.error('Error updating Life CEO agent configuration:', error);
       throw error;
     }
+  }
+
+  // Code of Conduct Agreement methods
+  async saveCodeOfConductAgreements(userId: number, agreements: {
+    respectfulBehavior: boolean;
+    friendlyEnvironment: boolean;
+    consentRequired: boolean;
+    appropriateContent: boolean;
+    reportingPolicy: boolean;
+    communityValues: boolean;
+    termsOfService: boolean;
+  }, ipAddress?: string, userAgent?: string): Promise<void> {
+    const agreementEntries = [
+      { type: 'respectful_behavior', title: 'Be Respectful', description: 'Treat others the way you\'d like to be treated. Don\'t be rude, aggressive, or dismissive — in words, comments, or behavior.', agreed: agreements.respectfulBehavior },
+      { type: 'friendly_environment', title: 'Keep It Friendly', description: 'This isn\'t the place for political arguments, personal attacks, or divisive topics. Focus on what brings us together: dance, music, events, and memory.', agreed: agreements.friendlyEnvironment },
+      { type: 'consent_required', title: 'Share With Consent', description: 'Only tag, post, or share photos or videos that others have agreed to. Respect people\'s privacy and comfort.', agreed: agreements.consentRequired },
+      { type: 'appropriate_content', title: 'Don\'t Be Foul', description: 'No bullying, hate speech, threats, or inappropriate language. Keep it clean and decent for all ages and regions.', agreed: agreements.appropriateContent },
+      { type: 'reporting_policy', title: 'Report Problems Gently', description: 'If something doesn\'t feel right, let us know. Reporting is confidential and reviewed with care.', agreed: agreements.reportingPolicy },
+      { type: 'community_values', title: 'Let\'s Build Something Good', description: 'Whether you\'re dancing, organizing, teaching, or just exploring — bring your best self, and let others do the same.', agreed: agreements.communityValues },
+      { type: 'terms_of_service', title: 'Terms of Service', description: 'I agree to the Terms of Service, Privacy Policy, and Code of Conduct', agreed: agreements.termsOfService },
+    ];
+
+    for (const agreement of agreementEntries) {
+      await db.insert(codeOfConductAgreements).values({
+        userId,
+        guidelineType: agreement.type,
+        guidelineTitle: agreement.title,
+        guidelineDescription: agreement.description,
+        agreed: agreement.agreed,
+        agreementVersion: '1.0',
+        ipAddress,
+        userAgent,
+      }).onConflictDoNothing();
+    }
+  }
+
+  async getUserCodeOfConductAgreements(userId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(codeOfConductAgreements)
+      .where(eq(codeOfConductAgreements.userId, userId))
+      .orderBy(desc(codeOfConductAgreements.createdAt));
   }
 }
 
