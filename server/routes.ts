@@ -2210,47 +2210,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/onboarding', async (req: any, res) => {
     try {
       // Manual authentication check for Replit OAuth
-      if (!req.session || !req.session.claims) {
-        console.error("No session or claims found in onboarding request");
-        return res.status(401).json({ message: "Unauthorized - please log in again" });
+      // Check multiple possible locations for user data
+      // Get user ID from various possible locations
+      let replitId = null;
+      
+      // Try different session structures
+      if (req.session?.passport?.user?.claims?.sub) {
+        replitId = req.session.passport.user.claims.sub;
+      } else if (req.session?.claims?.sub) {
+        replitId = req.session.claims.sub;
+      } else if (req.user?.claims?.sub) {
+        replitId = req.user.claims.sub;
       }
       
-      // Debug logging for authentication
-      console.log("Onboarding request auth debug:", {
-        isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : 'N/A',
-        sessionExists: !!req.session,
-        sessionClaims: req.session?.claims,
-        passportUser: req.session?.passport?.user,
-        userClaims: req.session?.passport?.user?.claims,
-        reqUser: req.user
-      });
-
-      // Handle both Replit OAuth and standard auth structures
-      const userId = req.session?.claims?.sub || 
-                     req.session?.passport?.user?.claims?.sub || 
-                     req.user?.claims?.sub ||
-                     req.user?.id;
-      console.log("Extracted userId for onboarding:", userId, "Session structure:", {
-        hasClaims: !!req.session?.claims,
-        hasPassport: !!req.session?.passport,
-        hasUser: !!req.user
+      // Debug logging
+      console.log("Onboarding auth check:", {
+        replitId,
+        sessionStructure: {
+          hasSession: !!req.session,
+          hasPassport: !!req.session?.passport,
+          hasUser: !!req.session?.passport?.user,
+          hasClaims: !!req.session?.passport?.user?.claims
+        }
       });
       
-      if (!userId) {
-        return res.status(401).json({ message: "Authentication required" });
+      if (!replitId) {
+        return res.status(401).json({ message: "Please log in to continue" });
       }
 
-      const user = await storage.getUserByReplitId(userId);
+      const user = await storage.getUserByReplitId(replitId);
       console.log("Found user in database:", !!user, user?.id);
 
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const { nickname, languages, selectedRoles, location } = req.body;
+      const { email, nickname, languages, selectedRoles, location, acceptTerms, acceptPrivacy } = req.body;
 
       // Update user profile with basic information
       const updatedUser = await storage.updateUser(user.id, {
+        email,
         nickname,
         name: nickname || user.name || user.username, // Use nickname as display name
         languages,
@@ -2265,7 +2264,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         yearsOfDancing: req.body.yearsOfDancing,
         startedDancingYear: req.body.startedDancingYear,
         isOnboardingComplete: false,
-        formStatus: 1
+        formStatus: 1,
+        termsAccepted: acceptTerms,
+        privacyAccepted: acceptPrivacy
       });
 
       // Auto-create city group if city is provided and doesn't exist
