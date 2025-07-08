@@ -185,6 +185,20 @@ export const comprehensiveProjectData: ProjectItem[] = [
                     priority: 'High',
                     estimatedHours: 40,
                     actualHours: 40
+                  },
+                  {
+                    id: 'code-of-conduct-fix',
+                    title: 'Code of Conduct Registration Fix',
+                    description: 'Fixed registration flow with individual checkbox tracking and legal compliance',
+                    type: 'Task',
+                    status: 'Completed',
+                    completion: 100,
+                    priority: 'High',
+                    estimatedHours: 8,
+                    actualHours: 8,
+                    startDate: '2025-01-08',
+                    endDate: '2025-01-08',
+                    tags: ['Registration', 'Legal', 'UX']
                   }
                 ]
               },
@@ -874,10 +888,54 @@ export const comprehensiveProjectData: ProjectItem[] = [
                 description: 'PostgreSQL RLS policies for data protection',
                 type: 'Project',
                 status: 'Completed',
-                completion: 90,
+                completion: 100,
                 priority: 'High',
                 estimatedHours: 70,
-                actualHours: 63
+                actualHours: 70,
+                endDate: '2025-01-08',
+                tags: ['Security', 'Database', 'RLS']
+              },
+              {
+                id: 'health-check-functions',
+                title: 'Database Health Check Functions',
+                description: '3 monitoring functions for database health analysis and cache hit ratios',
+                type: 'Project',
+                status: 'Completed',
+                completion: 100,
+                priority: 'High',
+                estimatedHours: 16,
+                actualHours: 16,
+                startDate: '2025-01-08',
+                endDate: '2025-01-08',
+                tags: ['Monitoring', 'Database', 'Performance']
+              },
+              {
+                id: 'audit-logging-system',
+                title: 'Comprehensive Audit Logging',
+                description: 'Audit triggers on 7 critical tables with field-level change tracking',
+                type: 'Project',
+                status: 'Completed',
+                completion: 100,
+                priority: 'High',
+                estimatedHours: 24,
+                actualHours: 24,
+                startDate: '2025-01-08',
+                endDate: '2025-01-08',
+                tags: ['Security', 'Compliance', 'Database']
+              },
+              {
+                id: 'database-sync-verification',
+                title: 'Database Sync Verification System',
+                description: 'Automated script to verify database changes are pushed to production',
+                type: 'Project',
+                status: 'Completed',
+                completion: 100,
+                priority: 'High',
+                estimatedHours: 8,
+                actualHours: 8,
+                startDate: '2025-01-08',
+                endDate: '2025-01-08',
+                tags: ['DevOps', 'Database', 'Automation']
               }
             ]
           },
