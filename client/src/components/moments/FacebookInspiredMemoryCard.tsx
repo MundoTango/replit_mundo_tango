@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
-import { Heart, MessageCircle, Share2, MoreHorizontal, MapPin, Smile, ThumbsUp, BookmarkIcon, Eye, Calendar, Music, Flag } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Heart, MessageCircle, Share2, MoreVertical, MapPin, 
+  Clock, CheckCircle, Users, BookmarkIcon, Music
+} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { ReportModal } from '@/components/ui/ReportModal';
+import { FacebookReactionSelector } from '@/components/ui/FacebookReactionSelector';
+import { RichTextCommentEditor } from '@/components/ui/RichTextCommentEditor';
+import { PostContextMenu } from '@/components/ui/PostContextMenu';
+import { RoleEmojiDisplay } from '@/components/ui/RoleEmojiDisplay';
+import { formatUserLocation } from '@/utils/locationUtils';
 
 interface MemoryCardProps {
   post: any;
@@ -18,16 +26,44 @@ export default function FacebookInspiredMemoryCard({ post, onLike, onComment, on
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const [showReactions, setShowReactions] = useState(false);
-  const [userReaction, setUserReaction] = useState<string | null>(post.currentUserReaction || null);
-  const [showCommentBox, setShowCommentBox] = useState(false);
-  const [comment, setComment] = useState('');
+  const [currentUserReaction, setCurrentUserReaction] = useState<string>(post.currentUserReaction || '');
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState<any[]>([]);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [showShareOptions, setShowShareOptions] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
-  const [comments, setComments] = useState(post.comments || []);
 
-  const reactions = ['👍', '❤️', '😊', '😢', '😡', '😮'];
+  // Helper functions
+  const getAvatarFallback = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const getLocationName = (location: any) => {
+    if (typeof location === 'string') {
+      try {
+        const parsed = JSON.parse(location);
+        return parsed.name || parsed.formatted_address || location;
+      } catch {
+        return location;
+      }
+    }
+    return location?.name || location?.formatted_address || 'Unknown location';
+  };
+
+  // Load comments
+  const { data: commentsData } = useQuery({
+    queryKey: [`/api/posts/${post.id}/comments`],
+    queryFn: async () => {
+      const response = await fetch(`/api/posts/${post.id}/comments`);
+      return response.json();
+    },
+    enabled: showComments
+  });
+
+  useEffect(() => {
+    if (commentsData?.data) {
+      setComments(commentsData.data);
+    }
+  }, [commentsData]);
   
   // API Mutations
   const reactionMutation = useMutation({
@@ -41,34 +77,39 @@ export default function FacebookInspiredMemoryCard({ post, onLike, onComment, on
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
     }
   });
 
   const commentMutation = useMutation({
-    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
+    mutationFn: async ({ postId, content, mentions }: { postId: string; content: string; mentions: string[] }) => {
       const response = await fetch(`/api/posts/${postId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ content })
+        body: JSON.stringify({ content, mentions })
       });
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/posts/${post.id}/comments`] });
+      
+      // Add new comment to local state
       const newComment = {
         id: Date.now(),
-        content: data.comment || data.content || comment,
+        content: data.comment || data.content,
+        userId: user?.id || 0,
         user: {
           id: user?.id || 0,
           name: user?.name || 'Anonymous',
           profileImage: user?.profileImage
         },
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        mentions: data.mentions || []
       };
       setComments(prev => [...prev, newComment]);
-      setComment('');
+      
+      setShowComments(true);
       toast({ title: "Comment posted successfully!" });
     }
   });
@@ -107,140 +148,122 @@ export default function FacebookInspiredMemoryCard({ post, onLike, onComment, on
       setShowShareOptions(false);
     }
   });
-  
-  const handleReaction = (reaction: string) => {
-    setUserReaction(reaction);
-    setShowReactions(false);
-    reactionMutation.mutate({ postId: post.id, reaction });
+
+  // Handler functions
+  const handleReaction = (reactionId: string) => {
+    setCurrentUserReaction(reactionId === currentUserReaction ? '' : reactionId);
+    reactionMutation.mutate({ postId: post.id, reaction: reactionId });
+  };
+
+  const handleComment = (content: string, mentions: string[]) => {
+    commentMutation.mutate({ postId: post.id, content, mentions });
+  };
+
+  const handleEdit = () => {
+    toast({ 
+      title: "Edit feature coming soon",
+      description: "This feature is being implemented."
+    });
+  };
+
+  const handleDelete = () => {
+    if (confirm('Are you sure you want to delete this post?')) {
+      toast({ 
+        title: "Delete feature coming soon",
+        description: "This feature is being implemented."
+      });
+    }
   };
 
   const handleReport = (reason: string, description: string) => {
     reportMutation.mutate({ postId: post.id, reason, description });
   };
 
+  const handleShare = () => {
+    setShowShareOptions(true);
+  };
+
   const handleShareToWall = (comment?: string) => {
     shareToWallMutation.mutate({ postId: post.id, comment });
   };
 
-  const handleComment = () => {
-    if (comment.trim()) {
-      commentMutation.mutate({ postId: post.id, content: comment });
-    }
-  };
-
-  const getAvatarFallback = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  };
-
-  // Parse location if it's JSON
-  const getLocationName = (location: any) => {
-    if (!location) return null;
-    try {
-      const loc = typeof location === 'string' ? JSON.parse(location) : location;
-      return loc.name || loc.formatted_address || location;
-    } catch {
-      return location;
-    }
-  };
+  const isOwner = post.userId === user?.id;
 
   return (
-    <article className="bg-white rounded-lg shadow-sm mb-4">
+    <article className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       {/* Header */}
       <div className="p-4">
         <div className="flex items-start justify-between">
-          <div className="flex gap-3">
+          <div className="flex items-start gap-3">
             {/* Avatar */}
             {post.user?.profileImage ? (
               <img
                 src={post.user.profileImage}
-                alt={post.user.name}
-                className="w-10 h-10 rounded-full object-cover"
+                alt={post.user.name || 'User'}
+                className="w-12 h-12 rounded-full object-cover"
               />
             ) : (
-              <div className="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                {getAvatarFallback(post.user?.name || 'U')}
+              <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                {getAvatarFallback(post.user?.name || 'Anonymous')}
               </div>
             )}
             
             {/* User info */}
             <div>
-              <h3 className="font-medium text-[15px] text-gray-900 hover:underline cursor-pointer">
+              <h3 className="font-semibold text-gray-900">
                 {post.user?.name || 'Anonymous'}
               </h3>
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <span>{formatDistanceToNow(new Date(post.createdAt))}</span>
+              
+              {/* Role emoji display */}
+              <RoleEmojiDisplay
+                tangoRoles={post.user?.tangoRoles}
+                leaderLevel={post.user?.leaderLevel}
+                followerLevel={post.user?.followerLevel}
+                size="sm"
+                maxRoles={5}
+                className="mt-1"
+              />
+              
+              {/* Timestamp and location */}
+              <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                <Clock className="h-4 w-4" />
+                <time>{formatDistanceToNow(new Date(post.createdAt))} ago</time>
                 {post.location && (
                   <>
                     <span>·</span>
-                    <span className="flex items-center gap-0.5">
-                      <MapPin className="h-3 w-3" />
-                      {getLocationName(post.location)}
-                    </span>
+                    <MapPin className="h-4 w-4" />
+                    <span>{getLocationName(post.location)}</span>
                   </>
                 )}
               </div>
             </div>
           </div>
           
-          {/* Menu button */}
-          <div className="relative">
-            <button 
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              onClick={() => setShowMenu(!showMenu)}
-            >
-              <MoreHorizontal className="h-5 w-5 text-gray-500" />
-            </button>
-            
-            {/* Dropdown menu */}
-            {showMenu && (
-              <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-                <button
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                  onClick={() => {
-                    setIsReportModalOpen(true);
-                    setShowMenu(false);
-                  }}
-                >
-                  <Flag className="h-4 w-4" />
-                  Report post
-                </button>
-              </div>
-            )}
-          </div>
+          {/* Menu */}
+          <PostContextMenu
+            postId={post.id}
+            isOwner={isOwner}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onReport={() => setIsReportModalOpen(true)}
+            onShare={handleShare}
+          />
         </div>
       </div>
 
       {/* Content */}
-      <div className="px-4 pb-3">
-        <p className="text-[15px] text-gray-900 whitespace-pre-wrap">{post.content}</p>
+      <div className="px-4 pb-4">
+        <p className="text-gray-800 whitespace-pre-wrap">{post.content}</p>
         
-        {/* Emotion tags - subtle display */}
-        {post.emotionTags?.length > 0 && (
-          <div className="mt-2 text-sm text-gray-500">
-            Feeling {post.emotionTags.join(', ')}
-          </div>
+        {/* Media */}
+        {post.imageUrl && (
+          <img
+            src={post.imageUrl}
+            alt="Post content"
+            className="mt-3 rounded-lg w-full"
+          />
         )}
       </div>
-
-      {/* Media */}
-      {(post.imageUrl || post.videoUrl) && (
-        <div className="relative">
-          {post.imageUrl && (
-            <img
-              src={post.imageUrl}
-              alt=""
-              className="w-full object-cover"
-            />
-          )}
-          {post.videoUrl && (
-            <video
-              src={post.videoUrl}
-              controls
-              className="w-full"
-            />
-          )}
-        </div>
-      )}
 
       {/* Engagement stats */}
       <div className="px-4 py-2 flex items-center justify-between text-sm text-gray-500">
@@ -263,12 +286,6 @@ export default function FacebookInspiredMemoryCard({ post, onLike, onComment, on
             </div>
           )}
           <span className="hover:underline cursor-pointer">{post.likes || 0}</span>
-          {post.views && (
-            <>
-              <span>·</span>
-              <span>{post.views} views</span>
-            </>
-          )}
         </div>
         <div className="flex items-center gap-3">
           <span className="hover:underline cursor-pointer">{comments.length || 0} comments</span>
@@ -276,107 +293,65 @@ export default function FacebookInspiredMemoryCard({ post, onLike, onComment, on
         </div>
       </div>
 
+      <div className="border-t border-gray-200"></div>
+
       {/* Action buttons */}
-      <div className="px-4 py-1 border-t border-b border-gray-200">
-        <div className="flex items-center justify-around">
-          {/* Like/React button */}
-          <button
-            className="relative flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded transition-colors"
-            onMouseEnter={() => setShowReactions(true)}
-            onMouseLeave={() => setTimeout(() => setShowReactions(false), 300)}
-            onClick={() => !userReaction && handleReaction('👍')}
-          >
-            {userReaction ? (
-              <>
-                <span className="text-lg">{userReaction}</span>
-                <span className={`text-sm font-medium ${userReaction === '👍' ? 'text-blue-600' : 'text-gray-700'}`}>
-                  {userReaction === '👍' ? 'Like' : 'React'}
-                </span>
-              </>
-            ) : (
-              <>
-                <ThumbsUp className="h-5 w-5 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Like</span>
-              </>
-            )}
-            
-            {/* Reaction picker */}
-            {showReactions && (
-              <div 
-                className="absolute bottom-full left-0 mb-2 bg-white rounded-full shadow-lg border border-gray-200 px-2 py-1 flex items-center gap-1"
-                onMouseEnter={() => setShowReactions(true)}
-              >
-                {reactions.map(reaction => (
-                  <button
-                    key={reaction}
-                    className="p-1.5 hover:scale-125 transition-transform"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleReaction(reaction);
-                    }}
-                  >
-                    <span className="text-xl">{reaction}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </button>
+      <div className="px-2 py-1 flex items-center">
+        {/* Facebook-style Reaction System */}
+        <FacebookReactionSelector
+          postId={parseInt(post.id, 10)}
+          currentReaction={currentUserReaction}
+          reactions={post.reactions}
+          onReact={handleReaction}
+        />
 
-          {/* Comment button */}
-          <button
-            className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded transition-colors"
-            onClick={() => setShowCommentBox(!showCommentBox)}
-          >
-            <MessageCircle className="h-5 w-5 text-gray-600" />
-            <span className="text-sm font-medium text-gray-700">Comment</span>
-          </button>
+        {/* Comment button */}
+        <button
+          className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded transition-colors"
+          onClick={() => setShowComments(!showComments)}
+        >
+          <MessageCircle className="h-5 w-5 text-gray-600" />
+          <span className="text-sm font-medium text-gray-700">Comment</span>
+        </button>
 
-          {/* Share button */}
-          <button
-            className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded transition-colors"
-            onClick={() => setShowShareOptions(true)}
-          >
-            <Share2 className="h-5 w-5 text-gray-600" />
-            <span className="text-sm font-medium text-gray-700">Share</span>
-          </button>
-        </div>
+        {/* Share button */}
+        <button
+          className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded transition-colors"
+          onClick={() => setShowShareOptions(true)}
+        >
+          <Share2 className="h-5 w-5 text-gray-600" />
+          <span className="text-sm font-medium text-gray-700">Share</span>
+        </button>
       </div>
 
-      {/* Comment box */}
-      {showCommentBox && (
-        <div className="p-4 flex gap-2">
-          <div className="w-8 h-8 bg-gray-400 rounded-full flex-shrink-0"></div>
-          <div className="flex-1">
-            <input
-              type="text"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Write a comment..."
-              className="w-full px-3 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-gray-300"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && comment.trim()) {
-                  handleComment();
-                }
-              }}
+      {/* Comments Section */}
+      {showComments && (
+        <div className="border-t border-gray-200">
+          {/* Comment Editor */}
+          <div className="p-4">
+            <RichTextCommentEditor
+              postId={parseInt(post.id, 10)}
+              onSubmit={handleComment}
+              placeholder="Write a thoughtful comment..."
             />
           </div>
-        </div>
-      )}
 
-      {/* Show existing comments */}
-      {showCommentBox && comments.length > 0 && (
-        <div className="px-4 pb-4 space-y-3">
-          {comments.map((comment: any) => (
-            <div key={comment.id} className="flex gap-3">
-              <div className="w-8 h-8 bg-gray-400 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
-                {getAvatarFallback(comment.user?.name || 'U')}
-              </div>
-              <div className="flex-1 bg-gray-100 rounded-2xl px-3 py-2">
-                <p className="text-sm font-medium text-gray-900">{comment.user?.name || 'Anonymous'}</p>
-                <p className="text-sm text-gray-700">{comment.content}</p>
-              </div>
+          {/* Existing Comments */}
+          {comments.length > 0 && (
+            <div className="px-4 pb-4 space-y-3">
+              {comments.map((comment: any) => (
+                <div key={comment.id} className="flex gap-3">
+                  <div className="w-8 h-8 bg-gray-400 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
+                    {getAvatarFallback(comment.user?.name || 'U')}
+                  </div>
+                  <div className="flex-1 bg-gray-100 rounded-2xl px-3 py-2">
+                    <p className="text-sm font-medium text-gray-900">{comment.user?.name || 'Anonymous'}</p>
+                    <p className="text-sm text-gray-700">{comment.content}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
 

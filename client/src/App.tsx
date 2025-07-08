@@ -41,6 +41,7 @@ import HierarchyDashboard from "@/pages/HierarchyDashboard";
 import TestModal from "@/pages/TestModal";
 import ModalDebugTest from "@/pages/ModalDebugTest";
 import TestAdminPage from "@/pages/TestAdminPage";
+import EnhancedTimeline from "@/pages/enhanced-timeline";
 
 // Simple error boundary component
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -148,6 +149,7 @@ function Router() {
       <Route path="/test-modal" component={TestModal} />
       <Route path="/modal-debug" component={ModalDebugTest} />
       <Route path="/test-admin" component={TestAdminPage} />
+      <Route path="/enhanced-timeline" component={EnhancedTimeline} />
       <Route component={NotFound} />
     </Switch>
   );
