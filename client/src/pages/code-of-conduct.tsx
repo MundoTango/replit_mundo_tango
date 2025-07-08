@@ -9,7 +9,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 // Router import handled via wouter below
 import { ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, Shield, Users, Globe, CheckCircle, UserCheck, MessageSquare, AlertTriangle, Flag } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -31,6 +31,11 @@ export default function CodeOfConduct() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const form = useForm<CodeOfConductData>({
     resolver: zodResolver(codeOfConductSchema),
