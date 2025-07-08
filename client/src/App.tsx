@@ -149,7 +149,12 @@ function Router() {
       <Route path="/test-modal" component={TestModal} />
       <Route path="/modal-debug" component={ModalDebugTest} />
       <Route path="/test-admin" component={TestAdminPage} />
-      <Route path="/enhanced-timeline" component={EnhancedTimeline} />
+      <Route path="/enhanced-timeline">
+        {() => {
+          console.log("🎯 Route matched: /enhanced-timeline");
+          return <EnhancedTimeline />;
+        }}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

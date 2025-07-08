@@ -45,9 +45,13 @@ interface Post {
 }
 
 const EnhancedTimeline = () => {
+  console.log("🚀 EnhancedTimeline component is rendering!");
+  
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  console.log("🔍 User data:", user);
   
   // Debug log to confirm page is loading
   console.log("🎯 EnhancedTimeline page loaded!");
