@@ -10,17 +10,21 @@ import {
   Calendar,
   Sparkles,
   Clock,
-  CheckCircle
+  CheckCircle,
+  ThumbsUp
 } from 'lucide-react';
 import { formatDistanceToNow, differenceInDays } from 'date-fns';
 import PostDetailModal from './PostDetailModal';
 import { renderWithMentions } from '@/utils/renderWithMentions';
 import { RoleEmojiDisplay } from '@/components/ui/RoleEmojiDisplay';
 import { formatUserLocation } from '@/utils/locationUtils';
-import { ReactionSelector } from '@/components/ui/ReactionSelector';
+import { FacebookReactionSelector } from '@/components/ui/FacebookReactionSelector';
 import { RichTextCommentEditor } from '@/components/ui/RichTextCommentEditor';
 import { PostContextMenu } from '@/components/ui/PostContextMenu';
 import { ReportModal } from '@/components/ui/ReportModal';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface Post {
   id: number;
@@ -77,11 +81,16 @@ interface PostItemProps {
 }
 
 export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const [commentText, setCommentText] = useState('');
   const [isCommentFocused, setIsCommentFocused] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [showShareOptions, setShowShareOptions] = useState(false);
   const [currentUserReaction, setCurrentUserReaction] = useState(post.currentUserReaction);
 
   // Calculate age-based opacity for gradual fade effect
@@ -120,44 +129,139 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  // API Mutations
+  const reactionMutation = useMutation({
+    mutationFn: async ({ postId, reaction }: { postId: number; reaction: string }) => {
+      const response = await fetch(`/api/post-reaction/store`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          post_id: postId,
+          reaction_type: reaction
+        })
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+    }
+  });
+
+  const commentMutation = useMutation({
+    mutationFn: async ({ postId, content, mentions }: { postId: number; content: string; mentions: string[] }) => {
+      const response = await fetch(`/api/post-comment/store`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          post_id: postId,
+          comment: content,
+          mentions 
+        })
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+      setShowComments(true);
+      toast({ title: "Comment posted successfully!" });
+    }
+  });
+
+  const reportMutation = useMutation({
+    mutationFn: async ({ postId, reason, description }: { postId: number; reason: string; description: string }) => {
+      const response = await fetch(`/api/post-report/store`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          post_id: postId,
+          reason,
+          description 
+        })
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ 
+        title: "Report submitted",
+        description: "Thank you for your report. We'll review it shortly."
+      });
+      setIsReportModalOpen(false);
+    }
+  });
+
+  const shareToWallMutation = useMutation({
+    mutationFn: async ({ postId, comment }: { postId: number; comment?: string }) => {
+      const response = await fetch(`/api/post-share/store`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          post_id: postId,
+          comment: comment || ''
+        })
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Post shared to your timeline!" });
+      setShowShareOptions(false);
+    }
+  });
+
   // Enhanced handler functions
   const handleReaction = (reactionId: string) => {
+    // Facebook-style reactions: like, love, haha, wow, sad, angry
+    const facebookReactions: Record<string, string> = {
+      'like': '👍',
+      'love': '❤️',
+      'haha': '😆',
+      'wow': '😮',
+      'sad': '😢',
+      'angry': '😠'
+    };
+    
     setCurrentUserReaction(reactionId === currentUserReaction ? '' : reactionId);
-    // TODO: Call API to save reaction
-    console.log(`Reacted with ${reactionId} to post ${post.id}`);
+    reactionMutation.mutate({ postId: post.id, reaction: reactionId });
   };
 
   const handleComment = (content: string, mentions: string[]) => {
-    // TODO: Call API to save comment
-    console.log(`Comment on post ${post.id}:`, content, mentions);
+    commentMutation.mutate({ postId: post.id, content, mentions });
   };
 
   const handleEdit = () => {
-    console.log(`Edit post ${post.id}`);
-    // TODO: Open edit modal
+    // TODO: Implement edit modal
+    toast({ 
+      title: "Edit feature coming soon",
+      description: "This feature is being implemented."
+    });
   };
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this post?')) {
-      console.log(`Delete post ${post.id}`);
-      // TODO: Call API to delete post
+      // TODO: Implement delete mutation
+      toast({ 
+        title: "Delete feature coming soon",
+        description: "This feature is being implemented."
+      });
     }
   };
 
   const handleReport = (reason: string, description: string) => {
-    console.log(`Report post ${post.id}:`, reason, description);
-    // TODO: Call API to submit report
-    
-    // Show confirmation popup
-    alert('Thank you for your report. We have received it and will review it shortly.');
+    reportMutation.mutate({ postId: post.id, reason, description });
   };
 
   const handleShare = () => {
-    console.log(`Share post ${post.id}`);
-    onShare(post);
+    setShowShareOptions(true);
   };
 
-  const isOwner = post.userId === 3; // TODO: Get actual current user ID
+  const handleShareToWall = (comment?: string) => {
+    shareToWallMutation.mutate({ postId: post.id, comment });
+  };
+
+  const isOwner = post.userId === user?.id;
 
   const consentGlowClass = post.hasConsent 
     ? 'ring-2 ring-emerald-200 shadow-emerald-100/50 shadow-lg' 
@@ -349,8 +453,8 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
         {/* Enhanced Action Bar */}
         <footer className="flex items-center justify-between pt-6 border-t border-gray-100">
           <div className="flex items-center gap-4">
-            {/* Enhanced Reaction System */}
-            <ReactionSelector
+            {/* Facebook-style Reaction System */}
+            <FacebookReactionSelector
               postId={post.id}
               currentReaction={currentUserReaction}
               reactions={post.reactions}
@@ -448,6 +552,75 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
           onClose={() => setIsReportModalOpen(false)}
           onSubmit={handleReport}
         />
+
+        {/* Share Options Dialog */}
+        {showShareOptions && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 w-96 max-w-[90vw] shadow-2xl">
+              <h3 className="text-xl font-bold mb-4">Share Post</h3>
+              
+              <div className="space-y-3">
+                {/* Share to Timeline */}
+                <button
+                  onClick={() => handleShareToWall()}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  <div className="p-2 bg-blue-100 rounded-full">
+                    <Share2 className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium">Share to Timeline</p>
+                    <p className="text-sm text-gray-600">Share this post on your timeline</p>
+                  </div>
+                </button>
+
+                {/* Share with Comment */}
+                <button
+                  onClick={() => {
+                    const comment = prompt("Add a comment to your share (optional):");
+                    if (comment !== null) {
+                      handleShareToWall(comment);
+                    }
+                  }}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  <div className="p-2 bg-green-100 rounded-full">
+                    <MessageCircle className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium">Share with Comment</p>
+                    <p className="text-sm text-gray-600">Add your thoughts when sharing</p>
+                  </div>
+                </button>
+
+                {/* Copy Link */}
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/posts/${post.id}`);
+                    toast({ title: "Link copied to clipboard!" });
+                    setShowShareOptions(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  <div className="p-2 bg-purple-100 rounded-full">
+                    <Share2 className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium">Copy Link</p>
+                    <p className="text-sm text-gray-600">Copy post link to clipboard</p>
+                  </div>
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowShareOptions(false)}
+                className="mt-4 w-full p-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </article>
   );

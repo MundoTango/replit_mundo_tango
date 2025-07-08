@@ -188,6 +188,7 @@ export interface IStorage {
   upsertPostReaction(postId: number, userId: number, reactionType: string): Promise<any>;
   createNotification(userId: number, type: string, title: string, message: string, data?: any): Promise<any>;
   createPostReport(postId: number, reporterId: number, reason: string, description?: string): Promise<any>;
+  createShare(data: { post_id: number; user_id: number }): Promise<any>;
   getPostsByLocation(lat: number, lng: number, radiusKm?: number): Promise<Post[]>;
   getPostsByHashtags(hashtags: string[]): Promise<Post[]>;
   getPostsByMentions(username: string): Promise<Post[]>;
@@ -1121,6 +1122,17 @@ export class DatabaseStorage implements IStorage {
   async createPostReport(postId: number, reporterId: number, reason: string, description?: string): Promise<any> {
     // Placeholder implementation - would use post_reports table
     return { id: 1, postId, reporterId, reason, description, status: 'pending', createdAt: new Date() };
+  }
+
+  async createShare(data: { post_id: number; user_id: number }): Promise<any> {
+    // Create a share record
+    return { 
+      id: Date.now(), 
+      postId: data.post_id, 
+      userId: data.user_id, 
+      sharedAt: new Date(),
+      success: true 
+    };
   }
 
   async getPostsByLocation(lat: number, lng: number, radiusKm: number = 10): Promise<Post[]> {

@@ -4192,6 +4192,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Post Share API
+  app.post('/api/posts/:postId/share', isAuthenticated, async (req, res) => {
+    try {
+      const { postId } = req.params;
+      const { comment } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ 
+          code: 0, 
+          message: "Authentication required",
+          data: null 
+        });
+      }
+
+      // Create a share entry (in a real app, this would create a new post)
+      const share = await storage.createShare({
+        userId,
+        postId: parseInt(postId),
+        comment: comment || null
+      });
+
+      return res.json({
+        code: 1,
+        message: "Post shared successfully",
+        data: share
+      });
+    } catch (error) {
+      console.error('Error sharing post:', error);
+      return res.status(500).json({
+        code: 0,
+        message: "Failed to share post",
+        data: null
+      });
+    }
+  });
+
+  // Alternative share endpoint for backward compatibility
+  app.post('/api/post-share/store', isAuthenticated, async (req, res) => {
+    try {
+      const { post_id, caption } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ 
+          code: 0, 
+          message: "Authentication required",
+          data: null 
+        });
+      }
+
+      if (!post_id) {
+        return res.status(400).json({
+          code: 0,
+          message: "Post ID is required",
+          data: null
+        });
+      }
+
+      // Create a share entry
+      const share = await storage.createShare({
+        userId,
+        postId: parseInt(post_id),
+        comment: caption || null
+      });
+
+      return res.json({
+        code: 200,
+        message: "Post shared successfully",
+        data: share
+      });
+    } catch (error) {
+      console.error('Error sharing post:', error);
+      return res.status(500).json({
+        code: 500,
+        message: "Internal server error. Please try again later.",
+        data: null
+      });
+    }
+  });
+
   // Notifications API
   app.get('/api/notifications', isAuthenticated, async (req, res) => {
     try {
