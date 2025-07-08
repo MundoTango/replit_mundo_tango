@@ -2245,11 +2245,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const { email, nickname, languages, selectedRoles, location, acceptTerms, acceptPrivacy } = req.body;
+      const { nickname, languages, selectedRoles, location, acceptTerms, acceptPrivacy } = req.body;
 
       // Update user profile with basic information
       const updatedUser = await storage.updateUser(user.id, {
-        email,
         nickname,
         name: nickname || user.name || user.username, // Use nickname as display name
         languages,

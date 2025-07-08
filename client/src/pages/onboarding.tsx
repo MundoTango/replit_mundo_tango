@@ -89,7 +89,6 @@ const danceExperienceOptions = [
 ];
 
 const onboardingSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
   nickname: z.string().min(1, "Nickname is required").max(50, "Nickname too long"),
   languages: z.array(z.string()).min(1, "Select at least one language"),
   selectedRoles: z.array(z.string()).optional(), // Optional - can register without roles
@@ -143,7 +142,6 @@ export default function Onboarding() {
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
-      email: "",
       nickname: "",
       languages: [],
       selectedRoles: [],
@@ -220,36 +218,7 @@ export default function Onboarding() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
 
-            {/* Email Section */}
-            <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50">
-              <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-indigo-300 transition-colors">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-full flex items-center justify-center group-hover:animate-pulse shadow-lg">
-                  <Mail className="w-5 h-5 text-indigo-600 group-hover:text-blue-600 transition-colors duration-300" />
-                </div>
-                <h2 className="text-xl font-medium text-gray-900 group-hover:text-indigo-700 transition-colors">Email Address</h2>
-                <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">📧 Your contact info</span>
-                </div>
-              </div>
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700 group-hover:text-indigo-700 transition-colors">Enter your email address</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="your.email@example.com"
-                        {...field}
-                        className="h-12 border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg hover:border-indigo-300 transition-all duration-200 focus:shadow-lg focus:shadow-indigo-100"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+
 
             {/* Nickname Section */}
             <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50">

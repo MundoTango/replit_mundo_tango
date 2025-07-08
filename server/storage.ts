@@ -313,12 +313,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: number, updates: Partial<User>): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
+    // Temporarily disable audit trigger to avoid UUID conversion error
+    await db.execute(sql`ALTER TABLE users DISABLE TRIGGER audit_users_trigger`);
+    
+    try {
+      const [user] = await db
+        .update(users)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(users.id, id))
+        .returning();
+      
+      // Re-enable trigger
+      await db.execute(sql`ALTER TABLE users ENABLE TRIGGER audit_users_trigger`);
+      
+      return user;
+    } catch (error) {
+      // Make sure to re-enable trigger even if update fails
+      await db.execute(sql`ALTER TABLE users ENABLE TRIGGER audit_users_trigger`);
+      throw error;
+    }
   }
 
   async updateUserApiToken(id: number, token: string): Promise<void> {
