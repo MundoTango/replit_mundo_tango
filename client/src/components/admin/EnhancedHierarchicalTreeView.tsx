@@ -607,7 +607,10 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
       {selectedItem && (
         <JiraStyleItemDetailModal 
           selectedItem={selectedItem} 
-          onClose={() => setSelectedItem(null)}
+          onClose={() => {
+            console.log('Closing modal, resetting selectedItem');
+            setSelectedItem(null);
+          }}
           onSignOff={(reviewArea) => {
             console.log('Sign off:', reviewArea);
             // TODO: Implement sign-off functionality

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,43 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
   onSignOff
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'evolution' | 'development' | 'reviews'>('development');
+
+  // Handle escape key press
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
+
+  // Prevent background scrolling when modal is open
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
+  // Safe close handler
+  const handleClose = useCallback(() => {
+    try {
+      onClose();
+    } catch (error) {
+      console.error('Error closing modal:', error);
+      // Force close by reloading the component
+      window.location.hash = '';
+    }
+  }, [onClose]);
 
   // Early return if no item selected
   if (!selectedItem) {
@@ -193,7 +230,7 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
   const modalContent = (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-[9999]"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div 
         className="bg-white rounded-lg w-full max-w-7xl max-h-[95vh] overflow-hidden flex flex-col"
@@ -234,7 +271,7 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
             <Button
               variant="ghost"
               size="sm"
-              onClick={onClose}
+              onClick={handleClose}
               className="text-gray-500 hover:text-gray-700"
             >
               <X className="h-5 w-5" />
@@ -548,7 +585,7 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
               Last updated: {new Date().toLocaleDateString()}
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={onClose}>
+              <Button variant="outline" onClick={handleClose}>
                 Close
               </Button>
               <Button className="bg-blue-600 hover:bg-blue-700">

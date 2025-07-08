@@ -38,6 +38,7 @@ import ProfileSwitcher from "@/pages/ProfileSwitcher";
 import LifeCEO from "@/pages/LifeCEO";
 import LifeCEOEnhanced from "@/pages/LifeCEOEnhanced";
 import HierarchyDashboard from "@/pages/HierarchyDashboard";
+import TestModal from "@/pages/TestModal";
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -113,6 +114,7 @@ function Router() {
       <Route path="/life-ceo-portal" component={LifeCEOPortal} />
       <Route path="/life-ceo/agent/:id" component={LifeCEOAgentDetail} />
       <Route path="/hierarchy" component={HierarchyDashboard} />
+      <Route path="/test-modal" component={TestModal} />
       <Route component={NotFound} />
     </Switch>
   );
