@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -189,9 +190,15 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
   const completedReviews = reviewAreas.filter(r => r.status === 'approved').length;
   const reviewProgress = (completedReviews / reviewAreas.length) * 100;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
-      <div className="bg-white rounded-lg w-full max-w-7xl max-h-[95vh] overflow-hidden flex flex-col">
+  const modalContent = (
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-[9999]"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-lg w-full max-w-7xl max-h-[95vh] overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         {/* Jira-Style Header */}
         <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-blue-50 to-purple-50">
@@ -553,6 +560,12 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
         </div>
       </div>
     </div>
+  );
+
+  // Portal rendering to prevent z-index and rendering conflicts
+  return ReactDOM.createPortal(
+    modalContent,
+    document.body
   );
 };
 

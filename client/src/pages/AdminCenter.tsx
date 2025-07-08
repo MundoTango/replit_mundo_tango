@@ -1631,7 +1631,7 @@ const AdminCenter: React.FC = () => {
       case 'overview': return renderOverview();
       case 'daily-activity': return <DailyActivityView />;
       case 'project-tracker': return (
-        <ErrorBoundary fallback={<div className="p-6 text-center text-red-600">Error loading project hierarchy. Please refresh the page.</div>}>
+        <ErrorBoundary fallbackMessage="Error loading project hierarchy. Please refresh the page.">
           <EnhancedHierarchicalTreeView />
         </ErrorBoundary>
       );
