@@ -1,0 +1,2311 @@
+add to the 23ls for the database section that it should be a Supabase. com expert. I asked supabase what it would improve and it said:
+
+# DATABASE OPTIMIZATION PACKAGE
+
+## 1. Expanded RLS Policy Coverage
+- Enables Row Level Security (RLS) on additional tables like groups, group_members, attachments, and media_tags
+- Benefits: Enhanced security, consistent security model, reduced risk of data leakage, and protected API endpoints
+
+## 2. Comprehensive Health Check Function
+- Creates a function that collects detailed database statistics including database size, connection counts, table/index statistics, cache hit ratios, bloat estimates, and performance metrics
+- Benefits: Proactive monitoring, performance insights, capacity planning, and troubleshooting assistance
+
+## 3. Enhanced GDPR Data Export Function
+- Creates a comprehensive function to export all user data across multiple tables including profile data, posts, memories, media, events, messages, and friend relationships
+- Benefits: Regulatory compliance with GDPR "right to access", user data transparency, simplified data handling, and consistent data format
+
+## 4. Enhanced Timeline Navigation Debug Function
+- Creates a function to analyze and debug timeline content delivery with proper visibility filtering and performance metrics
+- Benefits: Performance optimization, easier debugging, content visibility verification, and query insights
+
+## 5. Table Partitioning for Performance
+- Implements table partitioning for the posts table by date ranges with separate physical partitions for different time periods
+- Benefits: Dramatically improved query performance, efficient maintenance operations, better scalability for large tables, and optimized storage
+
+## 6. Audit Logging System
+- Creates a comprehensive audit logging system tracking changes to sensitive data including who made changes, when they occurred, and what was changed
+- Benefits: Accountability, security compliance, forensic analysis capabilities, and complete change history
+
+## 7. Connection Pooling Optimization
+- Creates a function to analyze and optimize database connection settings based on actual usage patterns
+- Benefits: Resource efficiency, improved scalability, reduced latency, and better stability during peak loads
+
+## 8. Full-Text Search Optimization
+- Implements optimized full-text search across posts, memories, and events with specialized indexes and proper security filtering
+- Benefits: Dramatically improved search performance, better relevance ranking, resource efficiency, and enhanced user experience
+
+## 9. Database Maintenance Functions
+- Creates a comprehensive maintenance function handling table vacuuming, statistics analysis, index rebuilding, and runtime controls
+- Benefits: Automated maintenance, preserved performance, space reclamation, and query optimization
+
+## 10. Data Validation and Integrity Functions
+- Creates functions to identify and fix data integrity issues including orphaned records, inconsistent counts, invalid data, and missing required data
+- Benefits: Ensured data quality, improved application stability, automated repairs, and proactive monitoring
+
+## 11. User Analytics Edge Function
+- Implements a serverless Edge Function calculating user engagement metrics across posts, comments, likes, shares, memories, events, and friend counts
+- Benefits: Performance offloading from main database, real-time insights, scalable analytics, and enhanced user engagement features
+
+“-- Enable RLS on additional tables
+ALTER TABLE public.groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.group_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.group_visitors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pinned_groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_message_statuses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.attachments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.media_tags ENABLE ROW LEVEL SECURITY;”
+“CREATE OR REPLACE FUNCTION public.check_database_health()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    result jsonb;
+BEGIN
+    -- Collect database statistics
+    WITH db_stats AS (
+        SELECT
+            pg_database_size(current_database()) AS db_size,
+            (SELECT count(*) FROM pg_stat_activity WHERE datname = current_database()) AS active_connections,
+            (SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND state = 'active') AS active_queries,
+            (SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND state = 'idle') AS idle_connections,
+            (SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type IS NOT NULL) AS waiting_queries,
+            (SELECT extract(epoch from now() - pg_postmaster_start_time())) AS uptime_seconds
+    ),
+    table_stats AS (
+        SELECT
+            count(*) AS total_tables,
+            sum(pg_total_relation_size(c.oid)) AS total_table_size,
+            sum(pg_relation_size(c.oid)) AS total_table_data_size,
+            sum(pg_total_relation_size(c.oid) - pg_relation_size(c.oid)) AS total_index_size
+        FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE c.relkind = 'r' AND n.nspname = 'public'
+    ),
+    index_stats AS (
+        SELECT
+            count(*) AS total_indexes,
+            count(*) FILTER (WHERE i.indisvalid = false) AS invalid_indexes
+        FROM pg_index i
+        JOIN pg_class c ON c.oid = i.indexrelid
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'public'
+    ),
+    bloat_estimate AS (
+        SELECT
+            count(*) FILTER (WHERE (n_dead_tup::float / greatest(n_live_tup, 1)) > 0.2) AS tables_with_bloat
+        FROM pg_stat_user_tables
+        WHERE schemaname = 'public' AND n_live_tup > 1000
+    ),
+    cache_hit_ratio AS (
+        SELECT
+            sum(heap_blks_hit) / (sum(heap_blks_hit) + sum(heap_blks_read) + 0.001) * 100 AS hit_ratio
+        FROM pg_statio_user_tables
+        WHERE schemaname = 'public'
+    )
+    SELECT
+        jsonb_build_object(
+            'timestamp', now(),
+            'database_name', current_database(),
+            'database_size_mb', round((db_size / 1024.0 / 1024.0)::numeric, 2),
+            'uptime_hours', round((uptime_seconds / 3600.0)::numeric, 2),
+            'connections', jsonb_build_object(
+                'active', active_connections,
+                'active_queries', active_queries,
+                'idle', idle_connections,
+                'waiting', waiting_queries
+            ),
+            'tables', jsonb_build_object(
+                'count', total_tables,
+                'size_mb', round((total_table_size / 1024.0 / 1024.0)::numeric, 2),
+                'data_size_mb', round((total_table_data_size / 1024.0 / 1024.0)::numeric, 2),
+                'index_size_mb', round((total_index_size / 1024.0 / 1024.0)::numeric, 2)
+            ),
+            'indexes', jsonb_build_object(
+                'count', total_indexes,
+                'invalid', invalid_indexes
+            ),
+            'performance', jsonb_build_object(
+                'cache_hit_ratio', round(hit_ratio::numeric, 2),
+                'tables_with_bloat', tables_with_bloat
+            ),
+            'status', 'healthy'
+        ) INTO result
+    FROM db_stats, table_stats, index_stats, bloat_estimate, cache_hit_ratio;
+
+    RETURN result;
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object(
+        'timestamp', now(),
+        'status', 'error',
+        'error', SQLERRM,
+        'detail', SQLSTATE
+    );
+END;
+$$;”
+“CREATE OR REPLACE FUNCTION public.export_user_data(p_user_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    result jsonb;
+    user_data jsonb;
+    profile_data jsonb;
+    posts_data jsonb;
+    memories_data jsonb;
+    media_data jsonb;
+    events_data jsonb;
+    messages_data jsonb;
+    friends_data jsonb;
+BEGIN
+    -- Validate user exists
+    IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id = p_user_id) THEN
+        RETURN jsonb_build_object('error', 'User not found');
+    END IF;
+
+    -- Get user profile data
+    SELECT jsonb_build_object(
+        'id', u.id,
+        'email', u.email,
+        'name', u.name,
+        'username', u.username,
+        'first_name', u.first_name,
+        'last_name', u.last_name,
+        'bio', u.bio,
+        'profile_image_url', u.profile_image_url,
+        'background_image_url', u.background_image_url,
+        'city', u.city,
+        'country', u.country,
+        'created_at', u.created_at
+    ) INTO user_data
+    FROM public.users u
+    WHERE u.auth_user_id = p_user_id;
+
+    -- Get user languages
+    SELECT jsonb_agg(jsonb_build_object(
+        'language', l.name,
+        'proficiency', ul.proficiency
+    )) INTO profile_data
+    FROM public.user_languages ul
+    JOIN public.languages l ON ul.language_id = l.id
+    WHERE ul.user_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id);
+
+    -- Get user posts
+    SELECT jsonb_agg(jsonb_build_object(
+        'id', p.id,
+        'content', p.content,
+        'caption', p.caption,
+        'created_at', p.created_at,
+        'visibility', p.visibility
+    )) INTO posts_data
+    FROM public.posts p
+    WHERE p.user_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)
+    AND p.deleted_at IS NULL;
+
+    -- Get user memories
+    SELECT jsonb_agg(jsonb_build_object(
+        'id', m.id,
+        'caption', m.caption,
+        'created_at', m.created_at,
+        'visibility', m.visibility
+    )) INTO memories_data
+    FROM public.memories m
+    WHERE m.user_id = p_user_id;
+
+    -- Get user media
+    SELECT jsonb_agg(jsonb_build_object(
+        'id', m.id,
+        'file_url', m.file_url,
+        'caption', m.caption,
+        'type', m.type,
+        'created_at', m.created_at,
+        'visibility', m.visibility,
+        'tags', (
+            SELECT jsonb_agg(mt.tag)
+            FROM public.media_tags mt
+            WHERE mt.media_id = m.id
+        )
+    )) INTO media_data
+    FROM public.media m
+    WHERE m.user_id = p_user_id;
+
+    -- Get user events
+    SELECT jsonb_agg(jsonb_build_object(
+        'id', e.id,
+        'title', e.title,
+        'description', e.description,
+        'start_date', e.start_date,
+        'end_date', e.end_date,
+        'created_at', e.created_at
+    )) INTO events_data
+    FROM public.events e
+    WHERE e.organizer_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)
+    AND e.deleted_at IS NULL;
+
+    -- Get user messages
+    SELECT jsonb_agg(jsonb_build_object(
+        'id', cm.id,
+        'content', cm.content,
+        'created_at', cm.created_at,
+        'room_id', cm.chat_room_id
+    )) INTO messages_data
+    FROM public.chat_messages cm
+    WHERE cm.sender_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)
+    AND cm.deleted_at IS NULL;
+
+    -- Get user friends
+    SELECT jsonb_agg(jsonb_build_object(
+        'friend_id', CASE 
+            WHEN f.requester_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id) THEN f.addressee_id
+            ELSE f.requester_id
+        END,
+        'status', f.status,
+        'created_at', f.created_at
+    )) INTO friends_data
+    FROM public.friends f
+    WHERE (f.requester_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id) OR 
+           f.addressee_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id))
+    AND f.status = 'accepted';
+
+    -- Combine all data
+    result := jsonb_build_object(
+        'user', user_data,
+        'profile', profile_data,
+        'posts', COALESCE(posts_data, '[]'::jsonb),
+        'memories', COALESCE(memories_data, '[]'::jsonb),
+        'media', COALESCE(media_data, '[]'::jsonb),
+        'events', COALESCE(events_data, '[]'::jsonb),
+        'messages', COALESCE(messages_data, '[]'::jsonb),
+        'friends', COALESCE(friends_data, '[]'::jsonb),
+        'exported_at', now()
+    );
+
+    RETURN result;
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object(
+        'error', SQLERRM,
+        'detail', SQLSTATE
+    );
+END;
+$$;”
+“CREATE OR REPLACE FUNCTION public.debug_timeline_navigation(
+    p_user_id uuid,
+    p_start_date timestamp with time zone,
+    p_end_date timestamp with time zone,
+    p_limit integer DEFAULT 50
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    result jsonb;
+    timeline_items jsonb;
+    query_stats jsonb;
+    execution_time numeric;
+    start_time timestamptz;
+    end_time timestamptz;
+BEGIN
+    -- Record start time for performance measurement
+    start_time := clock_timestamp();
+    
+    -- Get timeline items (posts, events, memories) within date range
+    WITH timeline AS (
+        -- Posts
+        SELECT 
+            p.id,
+            'post' AS item_type,
+            p.created_at AS item_date,
+            p.content AS title,
+            p.user_id AS owner_id,
+            u.username AS owner_name,
+            p.visibility
+        FROM public.posts p
+        JOIN public.users u ON p.user_id = u.id
+        WHERE p.created_at BETWEEN p_start_date AND p_end_date
+        AND p.deleted_at IS NULL
+        AND (
+            -- Posts visible to the user
+            p.visibility = 'public'
+            OR p.user_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)
+            OR (p.visibility = 'friends' AND EXISTS (
+                SELECT 1 FROM public.friends f
+                WHERE ((f.requester_id = p.user_id AND f.addressee_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id))
+                    OR (f.addressee_id = p.user_id AND f.requester_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)))
+                AND f.status = 'accepted'
+            ))
+        )
+        
+        UNION ALL
+        
+        -- Events
+        SELECT 
+            e.id,
+            'event' AS item_type,
+            e.start_date AS item_date,
+            e.title,
+            e.organizer_id AS owner_id,
+            u.username AS owner_name,
+            CASE WHEN e.is_public THEN 'public'::text ELSE 'private'::text END AS visibility
+        FROM public.events e
+        JOIN public.users u ON e.organizer_id = u.id
+        WHERE e.start_date BETWEEN p_start_date AND p_end_date
+        AND e.deleted_at IS NULL
+        AND (
+            e.is_public 
+            OR e.organizer_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)
+            OR EXISTS (
+                SELECT 1 FROM public.event_participants ep
+                WHERE ep.event_id = e.id
+                AND ep.user_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)
+            )
+        )
+        
+        UNION ALL
+        
+        -- Memories
+        SELECT 
+            m.id,
+            'memory' AS item_type,
+            m.created_at AS item_date,
+            m.caption AS title,
+            m.user_id AS owner_id,
+            u.username AS owner_name,
+            m.visibility
+        FROM public.memories m
+        JOIN public.users u ON m.user_id = u.auth_user_id
+        WHERE m.created_at BETWEEN p_start_date AND p_end_date
+        AND (
+            m.visibility = 'Public'
+            OR m.user_id = p_user_id
+            OR (m.visibility = 'Mutual' AND EXISTS (
+                SELECT 1 FROM public.friends f
+                WHERE ((f.requester_id = (SELECT id FROM public.users WHERE auth_user_id = m.user_id) 
+                       AND f.addressee_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id))
+                    OR (f.addressee_id = (SELECT id FROM public.users WHERE auth_user_id = m.user_id) 
+                       AND f.requester_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)))
+                AND f.status = 'accepted'
+            ))
+        )
+    )
+    SELECT 
+        jsonb_agg(
+            jsonb_build_object(
+                'id', t.id,
+                'type', t.item_type,
+                'date', t.item_date,
+                'title', t.title,
+                'owner_id', t.owner_id,
+                'owner_name', t.owner_name,
+                'visibility', t.visibility
+            )
+            ORDER BY t.item_date DESC
+        )
+    INTO timeline_items
+    FROM timeline t
+    LIMIT p_limit;
+    
+    -- Record end time
+    end_time := clock_timestamp();
+    execution_time := extract(epoch from (end_time - start_time)) * 1000; -- in milliseconds
+    
+    -- Get query statistics
+    SELECT jsonb_build_object(
+        'posts_count', (SELECT count(*) FROM public.posts 
+                        WHERE created_at BETWEEN p_start_date AND p_end_date AND deleted_at IS NULL),
+        'events_count', (SELECT count(*) FROM public.events 
+                         WHERE start_date BETWEEN p_start_date AND p_end_date AND deleted_at IS NULL),
+        'memories_count', (SELECT count(*) FROM public.memories 
+                          WHERE created_at BETWEEN p_start_date AND p_end_date),
+        'date_range_days', extract(day from (p_end_date - p_start_date)),
+        'execution_time_ms', execution_time,
+        'query_plan', (
+            SELECT jsonb_agg(jsonb_build_object(
+                'table', pn.nspname || '.' || pc.relname,
+                'scan_type', pa.attname,
+                'rows', pe.rows
+            ))
+            FROM pg_stat_statements pss
+            JOIN pg_class pc ON pss.queryid = pc.oid
+            JOIN pg_namespace pn ON pc.relnamespace = pn.oid
+            JOIN pg_attribute pa ON pc.oid = pa.attrelid
+            JOIN pg_stats pe ON pe.tablename = pc.relname AND pe.attname = pa.attname
+            WHERE pss.query LIKE '%timeline%'
+            LIMIT 5
+        )
+    ) INTO query_stats;
+    
+    -- Build final result
+    result := jsonb_build_object(
+        'timeline_items', COALESCE(timeline_items, '[]'::jsonb),
+        'item_count', jsonb_array_length(COALESCE(timeline_items, '[]'::jsonb)),
+        'start_date', p_start_date,
+        'end_date', p_end_date,
+        'user_id', p_user_id,
+        'stats', query_stats,
+        'generated_at', now()
+    );
+    
+    RETURN result;
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object(
+        'error', SQLERRM,
+        'detail', SQLSTATE,
+        'query_portion', 'Timeline navigation debug function'
+    );
+END;
+$$;”
+“-- Example for partitioning the posts table by date range
+CREATE TABLE public.posts_partitioned (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid,
+    group_id uuid,
+    event_id uuid,
+    activity_id uuid,
+    feeling_id uuid,
+    user_travel_id uuid,
+    shared_by uuid,
+    is_shared boolean DEFAULT false,
+    original_post_id uuid,
+    content text,
+    caption text,
+    total_likes integer DEFAULT 0,
+    total_comments integer DEFAULT 0,
+    total_shares integer DEFAULT 0,
+    visibility character varying DEFAULT 'public'::character varying,
+    status character varying DEFAULT 'active'::character varying,
+    location_name text,
+    country character varying,
+    city character varying,
+    latitude numeric,
+    longitude numeric,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    deleted_at timestamp with time zone
+) PARTITION BY RANGE (created_at);
+
+-- Create partitions for different time periods
+CREATE TABLE public.posts_y2023 PARTITION OF public.posts_partitioned
+    FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+CREATE TABLE public.posts_y2024_q1 PARTITION OF public.posts_partitioned
+    FOR VALUES FROM ('2024-01-01') TO ('2024-04-01');
+
+CREATE TABLE public.posts_y2024_q2 PARTITION OF public.posts_partitioned
+    FOR VALUES FROM ('2024-04-01') TO ('2024-07-01');
+
+CREATE TABLE public.posts_y2024_q3 PARTITION OF public.posts_partitioned
+    FOR VALUES FROM ('2024-07-01') TO ('2024-10-01');
+
+CREATE TABLE public.posts_y2024_q4 PARTITION OF public.posts_partitioned
+    FOR VALUES FROM ('2024-10-01') TO ('2025-01-01');
+
+-- Create indexes on the partitioned table
+CREATE INDEX posts_partitioned_user_id_idx ON public.posts_partitioned(user_id);
+CREATE INDEX posts_partitioned_created_at_idx ON public.posts_partitioned(created_at);
+CREATE INDEX posts_partitioned_visibility_idx ON public.posts_partitioned(visibility);
+
+-- Enable RLS on the partitioned table
+ALTER TABLE public.posts_partitioned ENABLE ROW LEVEL SECURITY;”
+
+
+“-- Create audit log table
+CREATE TABLE public.audit_logs (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    table_name text NOT NULL,
+    record_id uuid NOT NULL,
+    operation text NOT NULL,
+    old_data jsonb,
+    new_data jsonb,
+    changed_by uuid,
+    changed_at timestamp with time zone DEFAULT now() NOT NULL,
+    ip_address text,
+    user_agent text
+);
+
+-- Create index on audit logs
+CREATE INDEX audit_logs_table_record_idx ON public.audit_logs(table_name, record_id);
+CREATE INDEX audit_logs_changed_at_idx ON public.audit_logs(changed_at);
+CREATE INDEX audit_logs_changed_by_idx ON public.audit_logs(changed_by);
+
+-- Create audit trigger function
+CREATE OR REPLACE FUNCTION public.audit_trigger_func()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    audit_row public.audit_logs;
+    include_old boolean;
+    include_new boolean;
+    excluded_cols text[] = ARRAY[]::text[];
+    changed_by_id uuid;
+BEGIN
+    -- Determine which data to include
+    IF (TG_OP = 'UPDATE') THEN
+        include_old := TRUE;
+        include_new := TRUE;
+    ELSIF (TG_OP = 'DELETE') THEN
+        include_old := TRUE;
+        include_new := FALSE;
+    ELSIF (TG_OP = 'INSERT') THEN
+        include_old := FALSE;
+        include_new := TRUE;
+    END IF;
+
+    -- Try to get the user ID from the current session
+    BEGIN
+        changed_by_id := (SELECT auth.uid());
+    EXCEPTION WHEN OTHERS THEN
+        changed_by_id := NULL;
+    END;
+
+    -- Create audit row
+    audit_row = ROW(
+        gen_random_uuid(),           -- id
+        TG_TABLE_NAME::text,         -- table_name
+        CASE 
+            WHEN TG_OP = 'INSERT' THEN (NEW).id
+            ELSE (OLD).id
+        END,                         -- record_id
+        TG_OP,                       -- operation
+        CASE WHEN include_old THEN
+            jsonb_strip_nulls(to_jsonb(OLD) - excluded_cols)
+        ELSE NULL END,               -- old_data
+        CASE WHEN include_new THEN
+            jsonb_strip_nulls(to_jsonb(NEW) - excluded_cols)
+        ELSE NULL END,               -- new_data
+        changed_by_id,               -- changed_by
+        now(),                       -- changed_at
+        current_setting('request.headers', true)::jsonb->>'x-forwarded-for', -- ip_address
+        current_setting('request.headers', true)::jsonb->>'user-agent'       -- user_agent
+    );
+
+    INSERT INTO public.audit_logs VALUES (audit_row.*);
+    RETURN NULL;
+END;
+$$;
+
+-- Example of applying the audit trigger to a sensitive table
+CREATE TRIGGER audit_users_trigger
+AFTER INSERT OR UPDATE OR DELETE ON public.users
+FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();
+
+-- Apply to other sensitive tables
+CREATE TRIGGER audit_posts_trigger
+AFTER INSERT OR UPDATE OR DELETE ON public.posts
+FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();
+
+CREATE TRIGGER audit_memories_trigger
+AFTER INSERT OR UPDATE OR DELETE ON public.memories
+FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();”
+“-- Create a function to optimize connection pooling settings
+CREATE OR REPLACE FUNCTION public.optimize_connection_pooling()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    current_settings jsonb;
+    recommended_settings jsonb;
+    db_stats jsonb;
+BEGIN
+    -- Get current connection pool settings
+    SELECT jsonb_build_object(
+        'max_connections', current_setting('max_connections')::int,
+        'shared_buffers', current_setting('shared_buffers'),
+        'work_mem', current_setting('work_mem'),
+        'maintenance_work_mem', current_setting('maintenance_work_mem'),
+        'effective_cache_size', current_setting('effective_cache_size'),
+        'idle_in_transaction_session_timeout', current_setting('idle_in_transaction_session_timeout')
+    ) INTO current_settings;
+    
+    -- Get database statistics
+    SELECT jsonb_build_object(
+        'total_connections', count(*),
+        'active_connections', count(*) FILTER (WHERE state = 'active'),
+        'idle_connections', count(*) FILTER (WHERE state = 'idle'),
+        'idle_in_transaction', count(*) FILTER (WHERE state = 'idle in transaction'),
+        'longest_transaction_seconds', extract(epoch from now() - max(xact_start)) FILTER (WHERE xact_start IS NOT NULL),
+        'longest_idle_seconds', extract(epoch from now() - max(state_change)) FILTER (WHERE state = 'idle')
+    ) INTO db_stats
+    FROM pg_stat_activity
+    WHERE datname = current_database();
+    
+    -- Calculate recommended settings based on database activity
+    SELECT jsonb_build_object(
+        'max_connections', GREATEST(50, db_stats->>'total_connections'::int * 1.5)::int,
+        'shared_buffers', CASE 
+            WHEN (SELECT setting::int FROM pg_settings WHERE name = 'shared_buffers') < 1024 THEN '1GB'
+            ELSE current_setting('shared_buffers')
+        END,
+        'work_mem', CASE 
+            WHEN (SELECT setting::int FROM pg_settings WHERE name = 'work_mem') < 4096 THEN '4MB'
+            ELSE current_setting('work_mem')
+        END,
+        'maintenance_work_mem', CASE 
+            WHEN (SELECT setting::int FROM pg_settings WHERE name = 'maintenance_work_mem') < 65536 THEN '64MB'
+            ELSE current_setting('maintenance_work_mem')
+        END,
+        'effective_cache_size', CASE 
+            WHEN (SELECT setting::int FROM pg_settings WHERE name = 'effective_cache_size') < 4194304 THEN '4GB'
+            ELSE current_setting('effective_cache_size')
+        END,
+        'idle_in_transaction_session_timeout', CASE 
+            WHEN (SELECT setting::int FROM pg_settings WHERE name = 'idle_in_transaction_session_timeout') = 0 THEN '30s'
+            ELSE current_setting('idle_in_transaction_session_timeout')
+        END,
+        'pgbouncer_pool_mode', 'transaction',
+        'pgbouncer_default_pool_size', GREATEST(20, (db_stats->>'active_connections'::int * 0.8)::int),
+        'pgbouncer_max_client_conn', GREATEST(100, (db_stats->>'total_connections'::int * 2)::int)
+    ) INTO recommended_settings;
+    
+    RETURN jsonb_build_object(
+        'current_settings', current_settings,
+        'database_stats', db_stats,
+        'recommended_settings', recommended_settings,
+        'recommendations', jsonb_build_array(
+            'Consider implementing PgBouncer if not already using it',
+            'Set idle_in_transaction_session_timeout to prevent hanging transactions',
+            'Adjust max_connections based on actual usage patterns',
+            'Monitor connection usage during peak hours to fine-tune settings'
+        ),
+        'timestamp', now()
+    );
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object(
+        'error', SQLERRM,
+        'detail', SQLSTATE
+    );
+END;
+$$;”
+
+“-- Create search configuration
+CREATE TEXT SEARCH CONFIGURATION public.app_search (COPY = pg_catalog.english);
+
+-- Create search function for posts and memories
+CREATE OR REPLACE FUNCTION public.search_content(
+    search_query text,
+    p_user_id uuid,
+    content_types text[] DEFAULT ARRAY['posts', 'memories', 'events'],
+    max_results integer DEFAULT 50
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    search_tsquery tsquery;
+    results jsonb;
+    posts_results jsonb;
+    memories_results jsonb;
+    events_results jsonb;
+BEGIN
+    -- Convert search query to tsquery
+    search_tsquery := plainto_tsquery('public.app_search', search_query);
+    
+    -- Search posts if requested
+    IF 'posts' = ANY(content_types) THEN
+        SELECT jsonb_agg(post_result)
+        INTO posts_results
+        FROM (
+            SELECT 
+                p.id,
+                'post' AS type,
+                p.content,
+                p.caption,
+                p.created_at,
+                u.username AS author,
+                ts_rank_cd(
+                    setweight(to_tsvector('public.app_search', COALESCE(p.content, '')), 'A') ||
+                    setweight(to_tsvector('public.app_search', COALESCE(p.caption, '')), 'B'),
+                    search_tsquery
+                ) AS rank
+            FROM public.posts p
+            JOIN public.users u ON p.user_id = u.id
+            WHERE (
+                search_tsquery @@ to_tsvector('public.app_search', COALESCE(p.content, '')) OR
+                search_tsquery @@ to_tsvector('public.app_search', COALESCE(p.caption, ''))
+            )
+            AND p.deleted_at IS NULL
+            AND (
+                -- Posts visible to the user
+                p.visibility = 'public'
+                OR p.user_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)
+                OR (p.visibility = 'friends' AND EXISTS (
+                    SELECT 1 FROM public.friends f
+                    WHERE ((f.requester_id = p.user_id AND f.addressee_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id))
+                        OR (f.addressee_id = p.user_id AND f.requester_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)))
+                    AND f.status = 'accepted'
+                ))
+            )
+            ORDER BY rank DESC
+            LIMIT max_results
+        ) AS post_result;
+    END IF;
+    
+    -- Search memories if requested
+    IF 'memories' = ANY(content_types) THEN
+        SELECT jsonb_agg(memory_result)
+        INTO memories_results
+        FROM (
+            SELECT 
+                m.id,
+                'memory' AS type,
+                m.caption,
+                m.created_at,
+                u.username AS author,
+                ts_rank_cd(
+                    to_tsvector('public.app_search', COALESCE(m.caption, '')),
+                    search_tsquery
+                ) AS rank
+            FROM public.memories m
+            JOIN public.users u ON m.user_id = u.auth_user_id
+            WHERE search_tsquery @@ to_tsvector('public.app_search', COALESCE(m.caption, ''))
+            AND (
+                m.visibility = 'Public'
+                OR m.user_id = p_user_id
+                OR (m.visibility = 'Mutual' AND EXISTS (
+                    SELECT 1 FROM public.friends f
+                    WHERE ((f.requester_id = (SELECT id FROM public.users WHERE auth_user_id = m.user_id) 
+                           AND f.addressee_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id))
+                        OR (f.addressee_id = (SELECT id FROM public.users WHERE auth_user_id = m.user_id) 
+                           AND f.requester_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)))
+                    AND f.status = 'accepted'
+                ))
+            )
+            ORDER BY rank DESC
+            LIMIT max_results
+        ) AS memory_result;
+    END IF;
+    
+    -- Search events if requested
+    IF 'events' = ANY(content_types) THEN
+        SELECT jsonb_agg(event_result)
+        INTO events_results
+        FROM (
+            SELECT 
+                e.id,
+                'event' AS type,
+                e.title,
+                e.description,
+                e.start_date,
+                u.username AS organizer,
+                ts_rank_cd(
+                    setweight(to_tsvector('public.app_search', COALESCE(e.title, '')), 'A') ||
+                    setweight(to_tsvector('public.app_search', COALESCE(e.description, '')), 'B'),
+                    search_tsquery
+                ) AS rank
+            FROM public.events e
+            JOIN public.users u ON e.organizer_id = u.id
+            WHERE (
+                search_tsquery @@ to_tsvector('public.app_search', COALESCE(e.title, '')) OR
+                search_tsquery @@ to_tsvector('public.app_search', COALESCE(e.description, ''))
+            )
+            AND e.deleted_at IS NULL
+            AND (
+                e.is_public 
+                OR e.organizer_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)
+                OR EXISTS (
+                    SELECT 1 FROM public.event_participants ep
+                    WHERE ep.event_id = e.id
+                    AND ep.user_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)
+                )
+            )
+            ORDER BY rank DESC
+            LIMIT max_results
+        ) AS event_result;
+    END IF;
+    
+    -- Combine results
+    results := jsonb_build_object(
+        'query', search_query,
+        'posts', COALESCE(posts_results, '[]'::jsonb),
+        'memories', COALESCE(memories_results, '[]'::jsonb),
+        'events', COALESCE(events_results, '[]'::jsonb),
+        'total_results', (
+            jsonb_array_length(COALESCE(posts_results, '[]'::jsonb)) +
+            jsonb_array_length(COALESCE(memories_results, '[]'::jsonb)) +
+            jsonb_array_length(COALESCE(events_results, '[]'::jsonb))
+        ),
+        'search_timestamp', now()
+    );
+    
+    RETURN results;
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object(
+        'error', SQLERRM,
+        'detail', SQLSTATE
+    );
+END;
+$$;
+
+-- Create indexes to support full-text search
+CREATE INDEX posts_content_search_idx ON public.posts USING GIN (to_tsvector('public.app_search', COALESCE(content, '')));
+CREATE INDEX posts_caption_search_idx ON public.posts USING GIN (to_tsvector('public.app_search', COALESCE(caption, '')));
+CREATE INDEX memories_caption_search_idx ON public.memories USING GIN (to_tsvector('public.app_search', COALESCE(caption, '')));
+CREATE INDEX events_title_search_idx ON public.events USING GIN (to_tsvector('public.app_search', COALESCE(title, '')));
+CREATE INDEX events_description_search_idx ON public.events USING GIN (to_tsvector('public.app_search', COALESCE(description, '')));”
+“-- Create a comprehensive database maintenance function
+CREATE OR REPLACE FUNCTION public.perform_database_maintenance(
+    p_vacuum boolean DEFAULT true,
+    p_analyze boolean DEFAULT true,
+    p_reindex boolean DEFAULT false,
+    p_max_runtime_minutes integer DEFAULT 60
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    start_time timestamptz := clock_timestamp();
+    end_time timestamptz;
+    max_end_time timestamptz := start_time + (p_max_runtime_minutes || ' minutes')::interval;
+    current_table text;
+    tables_processed integer := 0;
+    tables_skipped integer := 0;
+    vacuum_stats jsonb := '[]'::jsonb;
+    analyze_stats jsonb := '[]'::jsonb;
+    reindex_stats jsonb := '[]'::jsonb;
+    table_record record;
+    table_size bigint;
+    dead_tuples bigint;
+    live_tuples bigint;
+    operation_result jsonb;
+    operation_start timestamptz;
+    operation_end timestamptz;
+    should_continue boolean := true;
+BEGIN
+    -- Process tables in order of estimated benefit (most dead tuples first)
+    FOR table_record IN 
+        SELECT 
+            schemaname || '.' || relname AS table_name,
+            pg_table_size(schemaname || '.' || relname) AS size_bytes,
+            n_dead_tup AS dead_tuples,
+            n_live_tup AS live_tuples,
+            CASE WHEN n_live_tup > 0 
+                THEN round((n_dead_tup::float / n_live_tup::float) * 100, 2)
+                ELSE 0
+            END AS dead_tuple_percentage
+        FROM pg_stat_user_tables
+        WHERE schemaname = 'public'
+        ORDER BY 
+            CASE WHEN n_live_tup > 0 
+                THEN (n_dead_tup::float / n_live_tup::float)
+                ELSE 0
+            END DESC
+    LOOP
+        -- Check if we've exceeded the maximum runtime
+        IF clock_timestamp() > max_end_time THEN
+            should_continue := false;
+            EXIT;
+        END IF;
+        
+        current_table := table_record.table_name;
+        table_size := table_record.size_bytes;
+        dead_tuples := table_record.dead_tuples;
+        live_tuples := table_record.live_tuples;
+        
+        -- VACUUM if requested and beneficial (> 10% dead tuples or > 10000 dead tuples)
+        IF p_vacuum AND (table_record.dead_tuple_percentage > 10 OR dead_tuples > 10000) THEN
+            operation_start := clock_timestamp();
+            
+            BEGIN
+                EXECUTE 'VACUUM (VERBOSE, ANALYZE) ' || current_table;
+                
+                operation_end := clock_timestamp();
+                operation_result := jsonb_build_object(
+                    'table', current_table,
+                    'operation', 'VACUUM',
+                    'size_mb', round((table_size / 1024.0 / 1024.0)::numeric, 2),
+                    'dead_tuples_before', dead_tuples,
+                    'dead_tuple_pct_before', table_record.dead_tuple_percentage,
+                    'duration_seconds', extract(epoch from (operation_end - operation_start)),
+                    'success', true
+                );
+                
+                vacuum_stats := vacuum_stats || operation_result;
+            EXCEPTION WHEN OTHERS THEN
+                operation_result := jsonb_build_object(
+                    'table', current_table,
+                    'operation', 'VACUUM',
+                    'error', SQLERRM,
+                    'success', false
+                );
+                vacuum_stats := vacuum_stats || operation_result;
+            END;
+        END IF;
+        
+        -- ANALYZE if requested
+        IF p_analyze AND should_continue THEN
+            operation_start := clock_timestamp();
+            
+            BEGIN
+                EXECUTE 'ANALYZE VERBOSE ' || current_table;
+                
+                operation_end := clock_timestamp();
+                operation_result := jsonb_build_object(
+                    'table', current_table,
+                    'operation', 'ANALYZE',
+                    'duration_seconds', extract(epoch from (operation_end - operation_start)),
+                    'success', true
+                );
+                
+                analyze_stats := analyze_stats || operation_result;
+            EXCEPTION WHEN OTHERS THEN
+                operation_result := jsonb_build_object(
+                    'table', current_table,
+                    'operation', 'ANALYZE',
+                    'error', SQLERRM,
+                    'success', false
+                );
+                analyze_stats := analyze_stats || operation_result;
+            END;
+        END IF;
+        
+        -- REINDEX if requested
+        IF p_reindex AND should_continue THEN
+            operation_start := clock_timestamp();
+            
+            BEGIN
+                EXECUTE 'REINDEX TABLE ' || current_table;
+                
+                operation_end := clock_timestamp();
+                operation_result := jsonb_build_object(
+                    'table', current_table,
+                    'operation', 'REINDEX',
+                    'duration_seconds', extract(epoch from (operation_end - operation_start)),
+                    'success', true
+                );
+                
+                reindex_stats := reindex_stats || operation_result;
+            EXCEPTION WHEN OTHERS THEN
+                operation_result := jsonb_build_object(
+                    'table', current_table,
+                    'operation', 'REINDEX',
+                    'error', SQLERRM,
+                    'success', false
+                );
+                reindex_stats := reindex_stats || operation_result;
+            END;
+        END IF;
+        
+        tables_processed := tables_processed + 1;
+    END LOOP;
+    
+    end_time := clock_timestamp();
+    
+    -- Return statistics about the maintenance operations
+    RETURN jsonb_build_object(
+        'start_time', start_time,
+        'end_time', end_time,
+        'duration_minutes', round(extract(epoch from (end_time - start_time)) / 60.0, 2),
+        'tables_processed', tables_processed,
+        'tables_skipped', tables_skipped,
+        'max_runtime_reached', NOT should_continue,
+        'vacuum_operations', vacuum_stats,
+        'analyze_operations', analyze_stats,
+        'reindex_operations', reindex_stats,
+        'database_size_mb', (SELECT round(pg_database_size(current_database()) / 1024.0 / 1024.0, 2))
+    );
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object(
+        'error', SQLERRM,
+        'detail', SQLSTATE,
+        'table', current_table
+    );
+END;
+$$;”
+“-- Create a function to validate data integrity across the database
+CREATE OR REPLACE FUNCTION public.validate_data_integrity()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    results jsonb := '{}'::jsonb;
+    orphaned_records jsonb := '{}'::jsonb;
+    inconsistent_counts jsonb := '{}'::jsonb;
+    invalid_data jsonb := '{}'::jsonb;
+    missing_required jsonb := '{}'::jsonb;
+BEGIN
+    -- Check for orphaned records (foreign key references to non-existent records)
+    -- Posts with non-existent users
+    WITH orphaned AS (
+        SELECT p.id, p.user_id
+        FROM public.posts p
+        LEFT JOIN public.users u ON p.user_id = u.id
+        WHERE p.user_id IS NOT NULL AND u.id IS NULL
+    )
+    SELECT jsonb_build_object(
+        'count', COUNT(*),
+        'sample', (SELECT jsonb_agg(o.*) FROM (SELECT * FROM orphaned LIMIT 5) o)
+    ) INTO orphaned_records
+    FROM orphaned;
+    
+    results := results || jsonb_build_object('orphaned_posts', orphaned_records);
+    
+    -- Check for inconsistent counts (e.g., post_likes count doesn't match actual likes)
+    WITH post_likes_check AS (
+        SELECT 
+            p.id AS post_id,
+            p.total_likes AS reported_count,
+            COUNT(pl.id) AS actual_count
+        FROM public.posts p
+        LEFT JOIN public.post_likes pl ON p.id = pl.post_id
+        GROUP BY p.id, p.total_likes
+        HAVING p.total_likes != COUNT(pl.id)
+    )
+    SELECT jsonb_build_object(
+        'count', COUNT(*),
+        'sample', (SELECT jsonb_agg(plc.*) FROM (SELECT * FROM post_likes_check LIMIT 5) plc)
+    ) INTO inconsistent_counts
+    FROM post_likes_check;
+    
+    results := results || jsonb_build_object('inconsistent_post_likes', inconsistent_counts);
+    
+    -- Check for invalid data (e.g., future dates, invalid email formats)
+    WITH invalid_dates AS (
+        SELECT 
+            id, 
+            created_at
+        FROM public.posts
+        WHERE created_at > now()
+        UNION ALL
+        SELECT 
+            id, 
+            created_at
+        FROM public.events
+        WHERE created_at > now() OR start_date > end_date
+    )
+    SELECT jsonb_build_object(
+        'count', COUNT(*),
+        'sample', (SELECT jsonb_agg(id.*) FROM (SELECT * FROM invalid_dates LIMIT 5) id)
+    ) INTO invalid_data
+    FROM invalid_dates;
+    
+    results := results || jsonb_build_object('invalid_dates', invalid_data);
+    
+    -- Check for missing required data
+    WITH missing_data AS (
+        SELECT 
+            id,
+            'missing_content' AS issue
+        FROM public.posts
+        WHERE content IS NULL AND caption IS NULL
+        UNION ALL
+        SELECT 
+            id,
+            'missing_title' AS issue
+        FROM public.events
+        WHERE title IS NULL OR title = ''
+    )
+    SELECT jsonb_build_object(
+        'count', COUNT(*),
+        'sample', (SELECT jsonb_agg(md.*) FROM (SELECT * FROM missing_data LIMIT 5) md)
+    ) INTO missing_required
+    FROM missing_data;
+    
+    results := results || jsonb_build_object('missing_required_data', missing_required);
+    
+    -- Add summary
+    results := jsonb_build_object(
+        'timestamp', now(),
+        'issues_found', (
+            (results->'orphaned_posts'->>'count')::int +
+            (results->'inconsistent_post_likes'->>'count')::int +
+            (results->'invalid_dates'->>'count')::int +
+            (results->'missing_required_data'->>'count')::int
+        ),
+        'details', results
+    );
+    
+    RETURN results;
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object(
+        'error', SQLERRM,
+        'detail', SQLSTATE
+    );
+END;
+$$;
+
+-- Create a function to fix common data integrity issues
+CREATE OR REPLACE FUNCTION public.fix_data_integrity_issues(
+    p_fix_orphaned boolean DEFAULT true,
+    p_fix_counts boolean DEFAULT true,
+    p_fix_invalid_dates boolean DEFAULT false,
+    p_dry_run boolean DEFAULT true
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    results jsonb := '{}'::jsonb;
+    orphaned_fixed integer := 0;
+    counts_fixed integer := 0;
+    dates_fixed integer := 0;
+BEGIN
+    -- Fix orphaned records
+    IF p_fix_orphaned THEN
+        IF NOT p_dry_run THEN
+            -- Soft delete posts with non-existent users
+            UPDATE public.posts
+            SET deleted_at = now()
+            WHERE id IN (
+                SELECT p.id
+                FROM public.posts p
+                LEFT JOIN public.users u ON p.user_id = u.id
+                WHERE p.user_id IS NOT NULL AND u.id IS NULL
+            );
+            
+            GET DIAGNOSTICS orphaned_fixed = ROW_COUNT;
+        ELSE
+            SELECT COUNT(*)
+            INTO orphaned_fixed
+            FROM public.posts p
+            LEFT JOIN public.users u ON p.user_id = u.id
+            WHERE p.user_id IS NOT NULL AND u.id IS NULL;
+        END IF;
+    END IF;
+    
+    -- Fix inconsistent counts
+    IF p_fix_counts THEN
+        IF NOT p_dry_run THEN
+            -- Update post like counts
+            UPDATE public.posts p
+            SET total_likes = subquery.like_count
+            FROM (
+                SELECT 
+                    post_id, 
+                    COUNT(*) AS like_count
+                FROM public.post_likes
+                GROUP BY post_id
+            ) AS subquery
+            WHERE p.id = subquery.post_id
+            AND p.total_likes != subquery.like_count;
+            
+            GET DIAGNOSTICS counts_fixed = ROW_COUNT;
+            
+            -- Update post comment counts
+            UPDATE public.posts p
+            SET total_comments = subquery.comment_count
+            FROM (
+                SELECT 
+                    post_id, 
+                    COUNT(*) AS comment_count
+                FROM public.post_comments
+                WHERE deleted_at IS NULL
+                GROUP BY post_id
+            ) AS subquery
+            WHERE p.id = subquery.post_id
+            AND p.total_comments != subquery.comment_count;
+            
+            counts_fixed := counts_fixed + ROW_COUNT;
+        ELSE
+            SELECT COUNT(*)
+            INTO counts_fixed
+            FROM (
+                SELECT p.id
+                FROM public.posts p
+                LEFT JOIN (
+                    SELECT post_id, COUNT(*) AS like_count
+                    FROM public.post_likes
+                    GROUP BY post_id
+                ) l ON p.id = l.post_id
+                WHERE p.total_likes != COALESCE(l.like_count, 0)
+                UNION
+                SELECT p.id
+                FROM public.posts p
+                LEFT JOIN (
+                    SELECT post_id, COUNT(*) AS comment_count
+                    FROM public.post_comments
+                    WHERE deleted_at IS NULL
+                    GROUP BY post_id
+                ) c ON p.id = c.post_id
+                WHERE p.total_comments != COALESCE(c.comment_count, 0)
+            ) AS combined;
+        END IF;
+    END IF;
+    
+    -- Fix invalid dates
+    IF p_fix_invalid_dates THEN
+        IF NOT p_dry_run THEN
+            -- Fix future created_at dates in posts
+            UPDATE public.posts
+            SET created_at = now()
+            WHERE created_at > now();
+            
+            GET DIAGNOSTICS dates_fixed = ROW_COUNT;
+            
+            -- Fix future created_at dates in events
+            UPDATE public.events
+            SET created_at = now()
+            WHERE created_at > now();
+            
+            dates_fixed := dates_fixed + ROW_COUNT;
+            
+            -- Fix events where end_date is before start_date
+            UPDATE public.events
+            SET end_date = start_date + interval '1 hour'
+            WHERE end_date < start_date;
+            
+            dates_fixed := dates_fixed + ROW_COUNT;
+        ELSE
+            SELECT COUNT(*)
+            INTO dates_fixed
+            FROM (
+                SELECT id FROM public.posts WHERE created_at > now()
+                UNION ALL
+                SELECT id FROM public.events WHERE created_at > now()
+                UNION ALL
+                SELECT id FROM public.events WHERE end_date < start_date
+            ) AS invalid_dates;
+        END IF;
+    END IF;
+    
+    -- Return results
+    results := jsonb_build_object(
+        'timestamp', now(),
+        'dry_run', p_dry_run,
+        'orphaned_records_fixed', orphaned_fixed,
+        'inconsistent_counts_fixed', counts_fixed,
+        'invalid_dates_fixed', dates_fixed,
+        'total_fixes', orphaned_fixed + counts_fixed + dates_fixed
+    );
+    
+    RETURN results;
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object(
+        'error', SQLERRM,
+        'detail', SQLSTATE
+    );
+END;
+$$;”
+“import { createClient } from 'npm:@supabase/supabase-js@2.38.4'
+
+// Define the response type for better type safety
+interface AnalyticsResponse {
+  userId: string;
+  period: string;
+  metrics: {
+    postCount: number;
+    postEngagement: number;
+    commentCount: number;
+    likeCount: number;
+    shareCount: number;
+    memoryCount: number;
+    eventParticipation: number;
+    friendCount: number;
+    activeStreak: number;
+    topContent: Array<{
+      id: string;
+      type: string;
+      engagement: number;
+      created_at: string;
+    }>;
+  };
+  timestamp: string;
+}
+
+// Define the request body type
+interface AnalyticsRequest {
+  userId: string;
+  period: 'day' | 'week' | 'month' | 'year';
+  includeTopContent?: boolean;
+}
+
+Deno.serve(async (req) => {
+  try {
+    // Handle preflight CORS
+    if (req.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      });
+    }
+
+    // Only allow POST requests
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
+
+    // Parse request body
+    const requestData: AnalyticsRequest = await req.json();
+    const { userId, period = 'week', includeTopContent = true } = requestData;
+
+    if (!userId) {
+      return new Response(JSON.stringify({ error: 'User ID is required' }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
+
+    // Initialize Supabase client with auth from request
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: { Authorization: req.headers.get('Authorization')! },
+      },
+    });
+
+    // Get date range based on period
+    const now = new Date();
+    let startDate: Date;
+    
+    switch (period) {
+      case 'day':
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 1);
+        break;
+      case 'week':
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case 'month':
+        startDate = new Date(now);
+        startDate.setMonth(now.getMonth() - 1);
+        break;
+      case 'year':
+        startDate = new Date(now);
+        startDate.setFullYear(now.getFullYear() - 1);
+        break;
+      default:
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 7);
+    }
+
+    // Format dates for PostgreSQL
+    const startDateStr = startDate.toISOString();
+    const endDateStr = now.toISOString();
+
+    // Get user's internal ID from auth_user_id
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('auth_user_id', userId)
+      .single();
+
+    if (userError || !userData) {
+      return new Response(JSON.stringify({ error: 'User not found', details: userError }), {
+        status: 404,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
+
+    const internalUserId = userData.id;
+
+    // Run analytics queries in parallel for better performance
+    const [
+      postMetrics,
+      commentMetrics,
+      likeMetrics,
+      shareMetrics,
+      memoryMetrics,
+      eventMetrics,
+      friendMetrics,
+      streakData,
+      topContentData,
+    ] = await Promise.all([
+      // Post count and engagement
+      supabase.rpc('get_user_post_metrics', { 
+        p_user_id: internalUserId, 
+        p_start_date: startDateStr, 
+        p_end_date: endDateStr 
+      }),
+      
+      // Comment count
+      supabase.from('post_comments')
+        .select('id', { count: 'exact' })
+        .eq('user_id', internalUserId)
+        .gte('created_at', startDateStr)
+        .lte('created_at', endDateStr)
+        .is('deleted_at', null),
+      
+      // Like count
+      supabase.from('post_likes')
+        .select('id', { count: 'exact' })
+        .eq('user_id', internalUserId)
+        .gte('created_at', startDateStr)
+        .lte('created_at', endDateStr),
+      
+      // Share count
+      supabase.from('post_shares')
+        .select('id', { count: 'exact' })
+        .eq('user_id', internalUserId)
+        .gte('created_at', startDateStr)
+        .lte('created_at', endDateStr),
+      
+      // Memory count
+      supabase.from('memories')
+        .select('id', { count: 'exact' })
+        .eq('user_id', userId)
+        .gte('created_at', startDateStr)
+        .lte('created_at', endDateStr),
+      
+      // Event participation
+      supabase.from('event_participants')
+        .select('id', { count: 'exact' })
+        .eq('user_id', internalUserId)
+        .gte('registered_at', startDateStr)
+        .lte('registered_at', endDateStr),
+      
+      // Friend count
+      supabase.rpc('get_user_friend_count', { 
+        p_user_id: internalUserId 
+      }),
+      
+      // Active streak
+      supabase.rpc('get_user_activity_streak', { 
+        p_user_id: internalUserId 
+      }),
+      
+      // Top content (if requested)
+      includeTopContent ? supabase.rpc('get_user_top_content', { 
+        p_user_id: internalUserId,
+        p_limit: 5
+      }) : Promise.resolve({ data: [] }),
+    ]);
+
+    // Prepare response
+    const response: AnalyticsResponse = {
+      userId,
+      period,
+      metrics: {
+        postCount: postMetrics.data?.post_count || 0,
+        postEngagement: postMetrics.data?.engagement_rate || 0,
+        commentCount: commentMetrics.count || 0,
+        likeCount: likeMetrics.count || 0,
+        shareCount: shareMetrics.count || 0,
+        memoryCount: memoryMetrics.count || 0,
+        eventParticipation: eventMetrics.count || 0,
+        friendCount: friendMetrics.data?.friend_count || 0,
+        activeStreak: streakData.data?.streak_days || 0,
+        topContent: topContentData.data || [],
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  } catch (error) {
+    console.error('Error in user-analytics function:', error);
+    return new Response(JSON.stringify({ error: 'Internal server error', details: error.message }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  }
+});”
+
+“-- TABLE PARTITIONING FOR PERFORMANCE
+CREATE TABLE public.posts_partitioned (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid,
+    group_id uuid,
+    event_id uuid,
+    activity_id uuid,
+    feeling_id uuid,
+    user_travel_id uuid,
+    shared_by uuid,
+    is_shared boolean DEFAULT false,
+    original_post_id uuid,
+    content text,
+    caption text,
+    total_likes integer DEFAULT 0,
+    total_comments integer DEFAULT 0,
+    total_shares integer DEFAULT 0,
+    visibility character varying DEFAULT 'public'::character varying,
+    status character varying DEFAULT 'active'::character varying,
+    location_name text,
+    country character varying,
+    city character varying,
+    latitude numeric,
+    longitude numeric,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    deleted_at timestamp with time zone
+) PARTITION BY RANGE (created_at);
+
+-- Create partitions for different time periods
+CREATE TABLE public.posts_y2023 PARTITION OF public.posts_partitioned
+    FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+CREATE TABLE public.posts_y2024_q1 PARTITION OF public.posts_partitioned
+    FOR VALUES FROM ('2024-01-01') TO ('2024-04-01');
+
+CREATE TABLE public.posts_y2024_q2 PARTITION OF public.posts_partitioned
+    FOR VALUES FROM ('2024-04-01') TO ('2024-07-01');
+
+CREATE TABLE public.posts_y2024_q3 PARTITION OF public.posts_partitioned
+    FOR VALUES FROM ('2024-07-01') TO ('2024-10-01');
+
+CREATE TABLE public.posts_y2024_q4 PARTITION OF public.posts_partitioned
+    FOR VALUES FROM ('2024-10-01') TO ('2025-01-01');
+
+-- Create indexes on the partitioned table
+CREATE INDEX posts_partitioned_user_id_idx ON public.posts_partitioned(user_id);
+CREATE INDEX posts_partitioned_created_at_idx ON public.posts_partitioned(created_at);
+CREATE INDEX posts_partitioned_visibility_idx ON public.posts_partitioned(visibility);
+
+-- Enable RLS on the partitioned table
+ALTER TABLE public.posts_partitioned ENABLE ROW LEVEL SECURITY;
+
+-- AUDIT LOGGING SYSTEM
+CREATE TABLE public.audit_logs (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    table_name text NOT NULL,
+    record_id uuid NOT NULL,
+    operation text NOT NULL,
+    old_data jsonb,
+    new_data jsonb,
+    changed_by uuid,
+    changed_at timestamp with time zone DEFAULT now() NOT NULL,
+    ip_address text,
+    user_agent text
+);
+
+-- Create index on audit logs
+CREATE INDEX audit_logs_table_record_idx ON public.audit_logs(table_name, record_id);
+CREATE INDEX audit_logs_changed_at_idx ON public.audit_logs(changed_at);
+CREATE INDEX audit_logs_changed_by_idx ON public.audit_logs(changed_by);
+
+-- Create audit trigger function
+CREATE OR REPLACE FUNCTION public.audit_trigger_func()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    audit_row public.audit_logs;
+    include_old boolean;
+    include_new boolean;
+    excluded_cols text[] = ARRAY[]::text[];
+    changed_by_id uuid;
+BEGIN
+    -- Determine which data to include
+    IF (TG_OP = 'UPDATE') THEN
+        include_old := TRUE;
+        include_new := TRUE;
+    ELSIF (TG_OP = 'DELETE') THEN
+        include_old := TRUE;
+        include_new := FALSE;
+    ELSIF (TG_OP = 'INSERT') THEN
+        include_old := FALSE;
+        include_new := TRUE;
+    END IF;
+
+    -- Try to get the user ID from the current session
+    BEGIN
+        changed_by_id := (SELECT auth.uid());
+    EXCEPTION WHEN OTHERS THEN
+        changed_by_id := NULL;
+    END;
+
+    -- Create audit row
+    audit_row = ROW(
+        gen_random_uuid(),           -- id
+        TG_TABLE_NAME::text,         -- table_name
+        CASE 
+            WHEN TG_OP = 'INSERT' THEN (NEW).id
+            ELSE (OLD).id
+        END,                         -- record_id
+        TG_OP,                       -- operation
+        CASE WHEN include_old THEN
+            jsonb_strip_nulls(to_jsonb(OLD) - excluded_cols)
+        ELSE NULL END,               -- old_data
+        CASE WHEN include_new THEN
+            jsonb_strip_nulls(to_jsonb(NEW) - excluded_cols)
+        ELSE NULL END,               -- new_data
+        changed_by_id,               -- changed_by
+        now(),                       -- changed_at
+        current_setting('request.headers', true)::jsonb->>'x-forwarded-for', -- ip_address
+        current_setting('request.headers', true)::jsonb->>'user-agent'       -- user_agent
+    );
+
+    INSERT INTO public.audit_logs VALUES (audit_row.*);
+    RETURN NULL;
+END;
+$$;
+
+-- Example of applying the audit trigger to a sensitive table
+CREATE TRIGGER audit_users_trigger
+AFTER INSERT OR UPDATE OR DELETE ON public.users
+FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();
+
+-- Apply to other sensitive tables
+CREATE TRIGGER audit_posts_trigger
+AFTER INSERT OR UPDATE OR DELETE ON public.posts
+FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();
+
+CREATE TRIGGER audit_memories_trigger
+AFTER INSERT OR UPDATE OR DELETE ON public.memories
+FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();
+
+-- CONNECTION POOLING OPTIMIZATION
+CREATE OR REPLACE FUNCTION public.optimize_connection_pooling()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    current_settings jsonb;
+    recommended_settings jsonb;
+    db_stats jsonb;
+BEGIN
+    -- Get current connection pool settings
+    SELECT jsonb_build_object(
+        'max_connections', current_setting('max_connections')::int,
+        'shared_buffers', current_setting('shared_buffers'),
+        'work_mem', current_setting('work_mem'),
+        'maintenance_work_mem', current_setting('maintenance_work_mem'),
+        'effective_cache_size', current_setting('effective_cache_size'),
+        'idle_in_transaction_session_timeout', current_setting('idle_in_transaction_session_timeout')
+    ) INTO current_settings;
+    
+    -- Get database statistics
+    SELECT jsonb_build_object(
+        'total_connections', count(*),
+        'active_connections', count(*) FILTER (WHERE state = 'active'),
+        'idle_connections', count(*) FILTER (WHERE state = 'idle'),
+        'idle_in_transaction', count(*) FILTER (WHERE state = 'idle in transaction'),
+        'longest_transaction_seconds', extract(epoch from now() - max(xact_start)) FILTER (WHERE xact_start IS NOT NULL),
+        'longest_idle_seconds', extract(epoch from now() - max(state_change)) FILTER (WHERE state = 'idle')
+    ) INTO db_stats
+    FROM pg_stat_activity
+    WHERE datname = current_database();
+    
+    -- Calculate recommended settings based on database activity
+    SELECT jsonb_build_object(
+        'max_connections', GREATEST(50, db_stats->>'total_connections'::int * 1.5)::int,
+        'shared_buffers', CASE 
+            WHEN (SELECT setting::int FROM pg_settings WHERE name = 'shared_buffers') < 1024 THEN '1GB'
+            ELSE current_setting('shared_buffers')
+        END,
+        'work_mem', CASE 
+            WHEN (SELECT setting::int FROM pg_settings WHERE name = 'work_mem') < 4096 THEN '4MB'
+            ELSE current_setting('work_mem')
+        END,
+        'maintenance_work_mem', CASE 
+            WHEN (SELECT setting::int FROM pg_settings WHERE name = 'maintenance_work_mem') < 65536 THEN '64MB'
+            ELSE current_setting('maintenance_work_mem')
+        END,
+        'effective_cache_size', CASE 
+            WHEN (SELECT setting::int FROM pg_settings WHERE name = 'effective_cache_size') < 4194304 THEN '4GB'
+            ELSE current_setting('effective_cache_size')
+        END,
+        'idle_in_transaction_session_timeout', CASE 
+            WHEN (SELECT setting::int FROM pg_settings WHERE name = 'idle_in_transaction_session_timeout') = 0 THEN '30s'
+            ELSE current_setting('idle_in_transaction_session_timeout')
+        END,
+        'pgbouncer_pool_mode', 'transaction',
+        'pgbouncer_default_pool_size', GREATEST(20, (db_stats->>'active_connections'::int * 0.8)::int),
+        'pgbouncer_max_client_conn', GREATEST(100, (db_stats->>'total_connections'::int * 2)::int)
+    ) INTO recommended_settings;
+    
+    RETURN jsonb_build_object(
+        'current_settings', current_settings,
+        'database_stats', db_stats,
+        'recommended_settings', recommended_settings,
+        'recommendations', jsonb_build_array(
+            'Consider implementing PgBouncer if not already using it',
+            'Set idle_in_transaction_session_timeout to prevent hanging transactions',
+            'Adjust max_connections based on actual usage patterns',
+            'Monitor connection usage during peak hours to fine-tune settings'
+        ),
+        'timestamp', now()
+    );
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object(
+        'error', SQLERRM,
+        'detail', SQLSTATE
+    );
+END;
+$$;
+
+-- FULL-TEXT SEARCH OPTIMIZATION
+CREATE TEXT SEARCH CONFIGURATION public.app_search (COPY = pg_catalog.english);
+
+-- Create search function for posts and memories
+CREATE OR REPLACE FUNCTION public.search_content(
+    search_query text,
+    p_user_id uuid,
+    content_types text[] DEFAULT ARRAY['posts', 'memories', 'events'],
+    max_results integer DEFAULT 50
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    search_tsquery tsquery;
+    results jsonb;
+    posts_results jsonb;
+    memories_results jsonb;
+    events_results jsonb;
+BEGIN
+    -- Convert search query to tsquery
+    search_tsquery := plainto_tsquery('public.app_search', search_query);
+    
+    -- Search posts if requested
+    IF 'posts' = ANY(content_types) THEN
+        SELECT jsonb_agg(post_result)
+        INTO posts_results
+        FROM (
+            SELECT 
+                p.id,
+                'post' AS type,
+                p.content,
+                p.caption,
+                p.created_at,
+                u.username AS author,
+                ts_rank_cd(
+                    setweight(to_tsvector('public.app_search', COALESCE(p.content, '')), 'A') ||
+                    setweight(to_tsvector('public.app_search', COALESCE(p.caption, '')), 'B'),
+                    search_tsquery
+                ) AS rank
+            FROM public.posts p
+            JOIN public.users u ON p.user_id = u.id
+            WHERE (
+                search_tsquery @@ to_tsvector('public.app_search', COALESCE(p.content, '')) OR
+                search_tsquery @@ to_tsvector('public.app_search', COALESCE(p.caption, ''))
+            )
+            AND p.deleted_at IS NULL
+            AND (
+                -- Posts visible to the user
+                p.visibility = 'public'
+                OR p.user_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)
+                OR (p.visibility = 'friends' AND EXISTS (
+                    SELECT 1 FROM public.friends f
+                    WHERE ((f.requester_id = p.user_id AND f.addressee_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id))
+                        OR (f.addressee_id = p.user_id AND f.requester_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)))
+                    AND f.status = 'accepted'
+                ))
+            )
+            ORDER BY rank DESC
+            LIMIT max_results
+        ) AS post_result;
+    END IF;
+    
+    -- Search memories if requested
+    IF 'memories' = ANY(content_types) THEN
+        SELECT jsonb_agg(memory_result)
+        INTO memories_results
+        FROM (
+            SELECT 
+                m.id,
+                'memory' AS type,
+                m.caption,
+                m.created_at,
+                u.username AS author,
+                ts_rank_cd(
+                    to_tsvector('public.app_search', COALESCE(m.caption, '')),
+                    search_tsquery
+                ) AS rank
+            FROM public.memories m
+            JOIN public.users u ON m.user_id = u.auth_user_id
+            WHERE search_tsquery @@ to_tsvector('public.app_search', COALESCE(m.caption, ''))
+            AND (
+                m.visibility = 'Public'
+                OR m.user_id = p_user_id
+                OR (m.visibility = 'Mutual' AND EXISTS (
+                    SELECT 1 FROM public.friends f
+                    WHERE ((f.requester_id = (SELECT id FROM public.users WHERE auth_user_id = m.user_id) 
+                           AND f.addressee_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id))
+                        OR (f.addressee_id = (SELECT id FROM public.users WHERE auth_user_id = m.user_id) 
+                           AND f.requester_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)))
+                    AND f.status = 'accepted'
+                ))
+            )
+            ORDER BY rank DESC
+            LIMIT max_results
+        ) AS memory_result;
+    END IF;
+    
+    -- Search events if requested
+    IF 'events' = ANY(content_types) THEN
+        SELECT jsonb_agg(event_result)
+        INTO events_results
+        FROM (
+            SELECT 
+                e.id,
+                'event' AS type,
+                e.title,
+                e.description,
+                e.start_date,
+                u.username AS organizer,
+                ts_rank_cd(
+                    setweight(to_tsvector('public.app_search', COALESCE(e.title, '')), 'A') ||
+                    setweight(to_tsvector('public.app_search', COALESCE(e.description, '')), 'B'),
+                    search_tsquery
+                ) AS rank
+            FROM public.events e
+            JOIN public.users u ON e.organizer_id = u.id
+            WHERE (
+                search_tsquery @@ to_tsvector('public.app_search', COALESCE(e.title, '')) OR
+                search_tsquery @@ to_tsvector('public.app_search', COALESCE(e.description, ''))
+            )
+            AND e.deleted_at IS NULL
+            AND (
+                e.is_public 
+                OR e.organizer_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)
+                OR EXISTS (
+                    SELECT 1 FROM public.event_participants ep
+                    WHERE ep.event_id = e.id
+                    AND ep.user_id = (SELECT id FROM public.users WHERE auth_user_id = p_user_id)
+                )
+            )
+            ORDER BY rank DESC
+            LIMIT max_results
+        ) AS event_result;
+    END IF;
+    
+    -- Combine results
+    results := jsonb_build_object(
+        'query', search_query,
+        'posts', COALESCE(posts_results, '[]'::jsonb),
+        'memories', COALESCE(memories_results, '[]'::jsonb),
+        'events', COALESCE(events_results, '[]'::jsonb),
+        'total_results', (
+            jsonb_array_length(COALESCE(posts_results, '[]'::jsonb)) +
+            jsonb_array_length(COALESCE(memories_results, '[]'::jsonb)) +
+            jsonb_array_length(COALESCE(events_results, '[]'::jsonb))
+        ),
+        'search_timestamp', now()
+    );
+    
+    RETURN results;
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object(
+        'error', SQLERRM,
+        'detail', SQLSTATE
+    );
+END;
+$$;
+
+-- Create indexes to support full-text search
+CREATE INDEX posts_content_search_idx ON public.posts USING GIN (to_tsvector('public.app_search', COALESCE(content, '')));
+CREATE INDEX posts_caption_search_idx ON public.posts USING GIN (to_tsvector('public.app_search', COALESCE(caption, '')));
+CREATE INDEX memories_caption_search_idx ON public.memories USING GIN (to_tsvector('public.app_search', COALESCE(caption, '')));
+CREATE INDEX events_title_search_idx ON public.events USING GIN (to_tsvector('public.app_search', COALESCE(title, '')));
+CREATE INDEX events_description_search_idx ON public.events USING GIN (to_tsvector('public.app_search', COALESCE(description, '')));
+
+-- DATABASE MAINTENANCE FUNCTIONS
+CREATE OR REPLACE FUNCTION public.perform_database_maintenance(
+    p_vacuum boolean DEFAULT true,
+    p_analyze boolean DEFAULT true,
+    p_reindex boolean DEFAULT false,
+    p_max_runtime_minutes integer DEFAULT 60
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    start_time timestamptz := clock_timestamp();
+    end_time timestamptz;
+    max_end_time timestamptz := start_time + (p_max_runtime_minutes || ' minutes')::interval;
+    current_table text;
+    tables_processed integer := 0;
+    tables_skipped integer := 0;
+    vacuum_stats jsonb := '[]'::jsonb;
+    analyze_stats jsonb := '[]'::jsonb;
+    reindex_stats jsonb := '[]'::jsonb;
+    table_record record;
+    table_size bigint;
+    dead_tuples bigint;
+    live_tuples bigint;
+    operation_result jsonb;
+    operation_start timestamptz;
+    operation_end timestamptz;
+    should_continue boolean := true;
+BEGIN
+    -- Process tables in order of estimated benefit (most dead tuples first)
+    FOR table_record IN 
+        SELECT 
+            schemaname || '.' || relname AS table_name,
+            pg_table_size(schemaname || '.' || relname) AS size_bytes,
+            n_dead_tup AS dead_tuples,
+            n_live_tup AS live_tuples,
+            CASE WHEN n_live_tup > 0 
+                THEN round((n_dead_tup::float / n_live_tup::float) * 100, 2)
+                ELSE 0
+            END AS dead_tuple_percentage
+        FROM pg_stat_user_tables
+        WHERE schemaname = 'public'
+        ORDER BY 
+            CASE WHEN n_live_tup > 0 
+                THEN (n_dead_tup::float / n_live_tup::float)
+                ELSE 0
+            END DESC
+    LOOP
+        -- Check if we've exceeded the maximum runtime
+        IF clock_timestamp() > max_end_time THEN
+            should_continue := false;
+            EXIT;
+        END IF;
+        
+        current_table := table_record.table_name;
+        table_size := table_record.size_bytes;
+        dead_tuples := table_record.dead_tuples;
+        live_tuples := table_record.live_tuples;
+        
+        -- VACUUM if requested and beneficial (> 10% dead tuples or > 10000 dead tuples)
+        IF p_vacuum AND (table_record.dead_tuple_percentage > 10 OR dead_tuples > 10000) THEN
+            operation_start := clock_timestamp();
+            
+            BEGIN
+                EXECUTE 'VACUUM (VERBOSE, ANALYZE) ' || current_table;
+                
+                operation_end := clock_timestamp();
+                operation_result := jsonb_build_object(
+                    'table', current_table,
+                    'operation', 'VACUUM',
+                    'size_mb', round((table_size / 1024.0 / 1024.0)::numeric, 2),
+                    'dead_tuples_before', dead_tuples,
+                    'dead_tuple_pct_before', table_record.dead_tuple_percentage,
+                    'duration_seconds', extract(epoch from (operation_end - operation_start)),
+                    'success', true
+                );
+                
+                vacuum_stats := vacuum_stats || operation_result;
+            EXCEPTION WHEN OTHERS THEN
+                operation_result := jsonb_build_object(
+                    'table', current_table,
+                    'operation', 'VACUUM',
+                    'error', SQLERRM,
+                    'success', false
+                );
+                vacuum_stats := vacuum_stats || operation_result;
+            END;
+        END IF;
+        
+        -- ANALYZE if requested
+        IF p_analyze AND should_continue THEN
+            operation_start := clock_timestamp();
+            
+            BEGIN
+                EXECUTE 'ANALYZE VERBOSE ' || current_table;
+                
+                operation_end := clock_timestamp();
+                operation_result := jsonb_build_object(
+                    'table', current_table,
+                    'operation', 'ANALYZE',
+                    'duration_seconds', extract(epoch from (operation_end - operation_start)),
+                    'success', true
+                );
+                
+                analyze_stats := analyze_stats || operation_result;
+            EXCEPTION WHEN OTHERS THEN
+                operation_result := jsonb_build_object(
+                    'table', current_table,
+                    'operation', 'ANALYZE',
+                    'error', SQLERRM,
+                    'success', false
+                );
+                analyze_stats := analyze_stats || operation_result;
+            END;
+        END IF;
+        
+        -- REINDEX if requested
+        IF p_reindex AND should_continue THEN
+            operation_start := clock_timestamp();
+            
+            BEGIN
+                EXECUTE 'REINDEX TABLE ' || current_table;
+                
+                operation_end := clock_timestamp();
+                operation_result := jsonb_build_object(
+                    'table', current_table,
+                    'operation', 'REINDEX',
+                    'duration_seconds', extract(epoch from (operation_end - operation_start)),
+                    'success', true
+                );
+                
+                reindex_stats := reindex_stats || operation_result;
+            EXCEPTION WHEN OTHERS THEN
+                operation_result := jsonb_build_object(
+                    'table', current_table,
+                    'operation', 'REINDEX',
+                    'error', SQLERRM,
+                    'success', false
+                );
+                reindex_stats := reindex_stats || operation_result;
+            END;
+        END IF;
+        
+        tables_processed := tables_processed + 1;
+    END LOOP;
+    
+    end_time := clock_timestamp();
+    
+    -- Return statistics about the maintenance operations
+    RETURN jsonb_build_object(
+        'start_time', start_time,
+        'end_time', end_time,
+        'duration_minutes', round(extract(epoch from (end_time - start_time)) / 60.0, 2),
+        'tables_processed', tables_processed,
+        'tables_skipped', tables_skipped,
+        'max_runtime_reached', NOT should_continue,
+        'vacuum_operations', vacuum_stats,
+        'analyze_operations', analyze_stats,
+        'reindex_operations', reindex_stats,
+        'database_size_mb', (SELECT round(pg_database_size(current_database()) / 1024.0 / 1024.0, 2))
+    );
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object(
+        'error', SQLERRM,
+        'detail', SQLSTATE,
+        'table', current_table
+    );
+END;
+$$;
+
+-- DATA VALIDATION AND INTEGRITY FUNCTIONS
+CREATE OR REPLACE FUNCTION public.validate_data_integrity()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    results jsonb := '{}'::jsonb;
+    orphaned_records jsonb := '{}'::jsonb;
+    inconsistent_counts jsonb := '{}'::jsonb;
+    invalid_data jsonb := '{}'::jsonb;
+    missing_required jsonb := '{}'::jsonb;
+BEGIN
+    -- Check for orphaned records (foreign key references to non-existent records)
+    -- Posts with non-existent users
+    WITH orphaned AS (
+        SELECT p.id, p.user_id
+        FROM public.posts p
+        LEFT JOIN public.users u ON p.user_id = u.id
+        WHERE p.user_id IS NOT NULL AND u.id IS NULL
+    )
+    SELECT jsonb_build_object(
+        'count', COUNT(*),
+        'sample', (SELECT jsonb_agg(o.*) FROM (SELECT * FROM orphaned LIMIT 5) o)
+    ) INTO orphaned_records
+    FROM orphaned;
+    
+    results := results || jsonb_build_object('orphaned_posts', orphaned_records);
+    
+    -- Check for inconsistent counts (e.g., post_likes count doesn't match actual likes)
+    WITH post_likes_check AS (
+        SELECT 
+            p.id AS post_id,
+            p.total_likes AS reported_count,
+            COUNT(pl.id) AS actual_count
+        FROM public.posts p
+        LEFT JOIN public.post_likes pl ON p.id = pl.post_id
+        GROUP BY p.id, p.total_likes
+        HAVING p.total_likes != COUNT(pl.id)
+    )
+    SELECT jsonb_build_object(
+        'count', COUNT(*),
+        'sample', (SELECT jsonb_agg(plc.*) FROM (SELECT * FROM post_likes_check LIMIT 5) plc)
+    ) INTO inconsistent_counts
+    FROM post_likes_check;
+    
+    results := results || jsonb_build_object('inconsistent_post_likes', inconsistent_counts);
+    
+    -- Check for invalid data (e.g., future dates, invalid email formats)
+    WITH invalid_dates AS (
+        SELECT 
+            id, 
+            created_at
+        FROM public.posts
+        WHERE created_at > now()
+        UNION ALL
+        SELECT 
+            id, 
+            created_at
+        FROM public.events
+        WHERE created_at > now() OR start_date > end_date
+    )
+    SELECT jsonb_build_object(
+        'count', COUNT(*),
+        'sample', (SELECT jsonb_agg(id.*) FROM (SELECT * FROM invalid_dates LIMIT 5) id)
+    ) INTO invalid_data
+    FROM invalid_dates;
+    
+    results := results || jsonb_build_object('invalid_dates', invalid_data);
+    
+    -- Check for missing required data
+    WITH missing_data AS (
+        SELECT 
+            id,
+            'missing_content' AS issue
+        FROM public.posts
+        WHERE content IS NULL AND caption IS NULL
+        UNION ALL
+        SELECT 
+            id,
+            'missing_title' AS issue
+        FROM public.events
+        WHERE title IS NULL OR title = ''
+    )
+    SELECT jsonb_build_object(
+        'count', COUNT(*),
+        'sample', (SELECT jsonb_agg(md.*) FROM (SELECT * FROM missing_data LIMIT 5) md)
+    ) INTO missing_required
+    FROM missing_data;
+    
+    results := results || jsonb_build_object('missing_required_data', missing_required);
+    
+    -- Add summary
+    results := jsonb_build_object(
+        'timestamp', now(),
+        'issues_found', (
+            (results->'orphaned_posts'->>'count')::int +
+            (results->'inconsistent_post_likes'->>'count')::int +
+            (results->'invalid_dates'->>'count')::int +
+            (results->'missing_required_data'->>'count')::int
+        ),
+        'details', results
+    );
+    
+    RETURN results;
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object(
+        'error', SQLERRM,
+        'detail', SQLSTATE
+    );
+END;
+$$;
+
+-- Create a function to fix common data integrity issues
+CREATE OR REPLACE FUNCTION public.fix_data_integrity_issues(
+    p_fix_orphaned boolean DEFAULT true,
+    p_fix_counts boolean DEFAULT true,
+    p_fix_invalid_dates boolean DEFAULT false,
+    p_dry_run boolean DEFAULT true
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    results jsonb := '{}'::jsonb;
+    orphaned_fixed integer := 0;
+    counts_fixed integer := 0;
+    dates_fixed integer := 0;
+BEGIN
+    -- Fix orphaned records
+    IF p_fix_orphaned THEN
+        IF NOT p_dry_run THEN
+            -- Soft delete posts with non-existent users
+            UPDATE public.posts
+            SET deleted_at = now()
+            WHERE id IN (
+                SELECT p.id
+                FROM public.posts p
+                LEFT JOIN public.users u ON p.user_id = u.id
+                WHERE p.user_id IS NOT NULL AND u.id IS NULL
+            );
+            
+            GET DIAGNOSTICS orphaned_fixed = ROW_COUNT;
+        ELSE
+            SELECT COUNT(*)
+            INTO orphaned_fixed
+            FROM public.posts p
+            LEFT JOIN public.users u ON p.user_id = u.id
+            WHERE p.user_id IS NOT NULL AND u.id IS NULL;
+        END IF;
+    END IF;
+    
+    -- Fix inconsistent counts
+    IF p_fix_counts THEN
+        IF NOT p_dry_run THEN
+            -- Update post like counts
+            UPDATE public.posts p
+            SET total_likes = subquery.like_count
+            FROM (
+                SELECT 
+                    post_id, 
+                    COUNT(*) AS like_count
+                FROM public.post_likes
+                GROUP BY post_id
+            ) AS subquery
+            WHERE p.id = subquery.post_id
+            AND p.total_likes != subquery.like_count;
+            
+            GET DIAGNOSTICS counts_fixed = ROW_COUNT;
+            
+            -- Update post comment counts
+            UPDATE public.posts p
+            SET total_comments = subquery.comment_count
+            FROM (
+                SELECT 
+                    post_id, 
+                    COUNT(*) AS comment_count
+                FROM public.post_comments
+                WHERE deleted_at IS NULL
+                GROUP BY post_id
+            ) AS subquery
+            WHERE p.id = subquery.post_id
+            AND p.total_comments != subquery.comment_count;
+            
+            counts_fixed := counts_fixed + ROW_COUNT;
+        ELSE
+            SELECT COUNT(*)
+            INTO counts_fixed
+            FROM (
+                SELECT p.id
+                FROM public.posts p
+                LEFT JOIN (
+                    SELECT post_id, COUNT(*) AS like_count
+                    FROM public.post_likes
+                    GROUP BY post_id
+                ) l ON p.id = l.post_id
+                WHERE p.total_likes != COALESCE(l.like_count, 0)
+                UNION
+                SELECT p.id
+                FROM public.posts p
+                LEFT JOIN (
+                    SELECT post_id, COUNT(*) AS comment_count
+                    FROM public.post_comments”
+
+
+
+Use the 23ls to analyze this and then use the 23ls to reprompt yourself to complete the work. Make sure to do tests along the way to make sure the work has been done properly.
