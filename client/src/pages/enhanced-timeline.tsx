@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import WhatsOnYourMind from "@/components/feed/WhatsOnYourMind";
 import PostLikeComment from "@/components/feed/PostLikeComment";
 import NewFeedEvents from "@/components/feed/NewFeedEvents";
+import FacebookInspiredMemoryCard from "@/components/moments/FacebookInspiredMemoryCard";
 import { 
   ImageIcon, 
   MapPin, 
@@ -160,6 +161,43 @@ const EnhancedTimeline = () => {
     setPostImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Like post mutation
+  const likePostMutation = useMutation({
+    mutationFn: async (postId: number) => {
+      const response = await fetch(`/api/posts/${postId}/like`, {
+        method: "POST",
+        credentials: "include",
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/posts/feed"] });
+    },
+  });
+
+  const handleLikePost = (postId: number) => {
+    likePostMutation.mutate(postId);
+  };
+
+  const handleSharePost = (postId: number) => {
+    const postUrl = `${window.location.origin}/posts/${postId}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: "Check out this tango moment!",
+        url: postUrl,
+      }).catch(() => {
+        // User cancelled share
+      });
+    } else {
+      navigator.clipboard.writeText(postUrl);
+      toast({ 
+        title: "Link copied!",
+        description: "Post link has been copied to clipboard."
+      });
+    }
+  };
+
   useEffect(() => {
     if (editingPost) {
       setPostContent(editingPost.content);
@@ -193,14 +231,22 @@ const EnhancedTimeline = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  posts.map((post, index) => (
-                    <PostLikeComment
-                      key={post.id}
-                      post={post}
-                      index={index}
-                      onEdit={handleEditPost}
-                    />
-                  ))
+                  <>
+                    {/* Add a banner to confirm we're on Timeline page */}
+                    <div className="bg-green-100 border-4 border-green-600 p-4 rounded-lg mb-4">
+                      <h2 className="text-xl font-bold text-green-800 mb-2">✅ TIMELINE PAGE - FACEBOOK DESIGN ACTIVE ✅</h2>
+                      <p className="text-green-700">You're now viewing the Timeline with the new Facebook-inspired design!</p>
+                    </div>
+                    {posts.map((post, index) => (
+                      <FacebookInspiredMemoryCard
+                        key={post.id}
+                        post={post}
+                        onLike={() => handleLikePost(post.id)}
+                        onComment={() => {}}
+                        onShare={() => handleSharePost(post.id)}
+                      />
+                    ))}
+                  </>
                 )}
               </div>
             </div>
