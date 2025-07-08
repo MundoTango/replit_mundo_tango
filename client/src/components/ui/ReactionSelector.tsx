@@ -110,36 +110,28 @@ export const ReactionSelector: React.FC<ReactionSelectorProps> = ({
       {/* Reaction Picker Popup */}
       {showReactions && (
         <div 
-          className="absolute bottom-full left-0 mb-2 bg-white rounded-2xl shadow-xl border border-gray-200 p-3 z-50"
+          className="absolute bottom-full left-0 mb-2 bg-white rounded-full shadow-lg border border-gray-100 px-2 py-1 z-50"
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => {
             setIsHovering(false);
             setTimeout(() => setShowReactions(false), 200);
           }}
         >
-          <div className="flex gap-1">
+          <div className="flex items-center">
             {REACTION_TYPES.map((reaction) => (
               <button
                 key={reaction.id}
                 className={`
-                  relative flex items-center justify-center w-12 h-12 rounded-full
-                  transition-all duration-200 hover:scale-110
-                  ${currentReaction === reaction.id 
-                    ? 'bg-gradient-to-br from-pink-100 to-indigo-100 ring-2 ring-pink-300 shadow-md' 
-                    : 'hover:bg-gray-100'
-                  }
+                  p-2 rounded-full transition-all duration-150
+                  hover:scale-110 hover:bg-gray-50
+                  ${currentReaction === reaction.id ? 'bg-blue-50' : ''}
                 `}
                 onClick={() => handleReactionClick(reaction.id)}
                 title={reaction.label}
               >
-                <span className="text-xl transition-transform">
+                <span className="text-lg">
                   {reaction.emoji}
                 </span>
-                {reactions[reaction.id] > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gray-800 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium shadow-sm">
-                    {reactions[reaction.id]}
-                  </span>
-                )}
               </button>
             ))}
           </div>
