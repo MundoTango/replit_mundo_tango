@@ -139,9 +139,24 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  // Development auth bypass for admin routes
+  if (process.env.NODE_ENV === 'development' && 
+      (req.path.startsWith('/api/admin/') || 
+       req.path.startsWith('/api/life-ceo/') ||
+       req.path.startsWith('/api/gdpr/'))) {
+    console.log('🔧 Dev auth bypass for:', req.path);
+    // Set default admin user for development
+    const { storage } = await import('./storage');
+    const defaultUser = await storage.getUserById(3); // Scott Boddye
+    if (defaultUser) {
+      req.user = defaultUser;
+      return next();
+    }
+  }
+
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !user?.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
