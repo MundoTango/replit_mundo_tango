@@ -8419,7 +8419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         success: true,
-        data: cityGroupsWithCoords.filter(g => g.lat && g.lng) // Only return groups with valid coordinates
+        data: cityGroupsWithCoords // Return all city groups, coordinates will be added later
       });
     } catch (error) {
       console.error('Error fetching city groups:', error);
@@ -8445,8 +8445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Count total users with dancer role
         db.select({ count: sql<number>`COUNT(DISTINCT ${userRoles.userId})` })
           .from(userRoles)
-          .innerJoin(roles, eq(userRoles.roleId, roles.id))
-          .where(eq(roles.roleName, 'dancer'))
+          .where(eq(userRoles.roleName, 'dancer'))
           .then(r => r[0]?.count || 0),
         
         // Count distinct cities with active users
