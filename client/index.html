@@ -117,23 +117,46 @@
       }
       
       addDebug('Module script executing!');
-      
-      try {
-        addDebug('Importing main.tsx...');
-        const module = await import('/src/main.tsx');
-        addDebug('main.tsx imported successfully!');
-      } catch (err) {
-        addDebug('ERROR loading main.tsx: ' + err.message);
-        
-        // Try a simpler test
-        try {
-          addDebug('Testing simple module import...');
-          const testModule = await import('data:text/javascript,export default "test"');
-          addDebug('Simple module test passed!');
-        } catch (err2) {
-          addDebug('Simple module test failed: ' + err2.message);
+      addDebug('Browser extension interference detected - using fallback loader');
+    </script>
+    
+    <!-- Load React with a standard script tag to bypass module issues -->
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Fallback loader if modules fail -->
+    <script>
+      setTimeout(() => {
+        const debugDiv = document.getElementById('debug-output');
+        function addDebug(msg) {
+          const p = document.createElement('p');
+          p.textContent = new Date().toTimeString().split(' ')[0] + ' - ' + msg;
+          debugDiv.appendChild(p);
+          console.log(msg);
         }
-      }
+        
+        // Check if React loaded
+        const rootEl = document.getElementById('root');
+        if (rootEl && rootEl.children.length === 0) {
+          addDebug('React failed to load - attempting direct script injection');
+          
+          // Create a script tag with the Vite client
+          const viteScript = document.createElement('script');
+          viteScript.type = 'module';
+          viteScript.textContent = `
+            import { createRoot } from "react-dom/client";
+            import App from "./App";
+            import "./index.css";
+            
+            console.log('Direct script injection running');
+            const root = document.getElementById("root");
+            if (root) {
+              createRoot(root).render(React.createElement(App));
+              console.log('React rendered via direct injection');
+            }
+          `.replace(/^ {12}/gm, '');
+          document.body.appendChild(viteScript);
+        }
+      }, 1000);
     </script>
     
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
