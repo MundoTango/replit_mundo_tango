@@ -28,8 +28,21 @@
   <body>
     <div id="root"></div>
     
+    <!-- Debug output -->
+    <div id="debug" style="position: fixed; bottom: 0; left: 0; right: 0; background: black; color: lime; padding: 10px; font-family: monospace; font-size: 12px; z-index: 9999;">
+      JavaScript Status: <span id="js-status">Not loaded</span>
+    </div>
+    
+    <script>
+      document.getElementById('js-status').textContent = 'Inline script running';
+    </script>
+    
     <!-- Load React app -->
     <script type="module" src="/src/main.tsx"></script>
+    
+    <script type="module">
+      document.getElementById('js-status').textContent = 'Module script running - loading React...';
+    </script>
     
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
