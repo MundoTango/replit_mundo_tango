@@ -1713,11 +1713,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/posts/:postId/comments", isAuthenticated, async (req, res) => {
     try {
       const postId = req.params.postId; // Keep as string
-      const comments = await storage.getCommentsByPostId(postId);
-      res.json({ 
-        success: true, 
-        data: comments
-      });
+      
+      // Check if it's a memory ID
+      if (postId.startsWith('mem_')) {
+        const comments = await storage.getMemoryComments(postId);
+        res.json({ 
+          success: true, 
+          data: comments
+        });
+      } else {
+        const comments = await storage.getCommentsByPostId(postId);
+        res.json({ 
+          success: true, 
+          data: comments
+        });
+      }
     } catch (error: any) {
       console.error('Error fetching comments:', error);
       res.status(500).json({ 
@@ -1743,23 +1753,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if post exists
-      const post = await storage.getPostById(postId);
-      if (!post) {
-        return res.status(404).json({
-          success: false,
-          message: 'Post not found',
-          data: null
+      // Check if it's a memory ID
+      if (postId.startsWith('mem_')) {
+        // Check if memory exists
+        const memory = await storage.getMemoryById(postId);
+        if (!memory) {
+          return res.status(404).json({
+            success: false,
+            message: 'Memory not found',
+            data: null
+          });
+        }
+        
+        const comment = await storage.addMemoryComment(postId, userId, content.trim());
+        res.status(201).json({
+          success: true,
+          message: 'Comment posted successfully',
+          data: comment
+        });
+      } else {
+        // Check if post exists
+        const post = await storage.getPostById(postId);
+        if (!post) {
+          return res.status(404).json({
+            success: false,
+            message: 'Post not found',
+            data: null
+          });
+        }
+
+        const comment = await storage.commentOnPost(postId, userId, content.trim());
+        res.status(201).json({
+          success: true,
+          message: 'Comment posted successfully',
+          data: comment
         });
       }
-
-      const comment = await storage.commentOnPost(postId, userId, content.trim());
-      
-      res.status(201).json({
-        success: true,
-        message: 'Comment posted successfully',
-        data: comment
-      });
     } catch (error: any) {
       console.error('Error creating comment:', error);
       res.status(500).json({
@@ -4049,18 +4078,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const comment = await storage.createComment({
-        userId,
-        postId: postId, // Keep as string for memory IDs
-        parentId: parentId ? parseInt(parentId) : null,
-        content
-      });
+      // Check if it's a memory ID
+      if (postId.startsWith('mem_')) {
+        const comment = await storage.createMemoryComment({
+          userId,
+          memoryId: postId,
+          content,
+          parentId: parentId ? parseInt(parentId) : null,
+          mentions,
+          gifUrl,
+          imageUrl
+        });
 
-      return res.json({
-        code: 1,
-        message: "Comment created successfully",
-        data: comment
-      });
+        return res.json({
+          code: 1,
+          message: "Comment created successfully",
+          data: comment
+        });
+      } else {
+        const comment = await storage.createComment({
+          userId,
+          postId: postId,
+          parentId: parentId ? parseInt(parentId) : null,
+          content
+        });
+
+        return res.json({
+          code: 1,
+          message: "Comment created successfully",
+          data: comment
+        });
+      }
     } catch (error) {
       console.error('Error creating comment:', error);
       return res.status(500).json({
@@ -4074,13 +4122,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/posts/:postId/comments', async (req, res) => {
     try {
       const { postId } = req.params;
-      const comments = await storage.getCommentsByPostId(postId); // Pass string ID directly
       
-      return res.json({
-        code: 1,
-        message: "Comments retrieved successfully",
-        data: comments
-      });
+      // Check if it's a memory ID
+      if (postId.startsWith('mem_')) {
+        const comments = await storage.getMemoryComments(postId);
+        return res.json({
+          code: 1,
+          message: "Comments retrieved successfully",
+          data: comments
+        });
+      } else {
+        const comments = await storage.getCommentsByPostId(postId);
+        return res.json({
+          code: 1,
+          message: "Comments retrieved successfully",
+          data: comments
+        });
+      }
     } catch (error) {
       console.error('Error fetching comments:', error);
       return res.status(500).json({
@@ -4106,17 +4164,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const reactionData = await storage.createReaction({
-        userId,
-        postId: postId, // Keep as string for memory IDs
-        type: reaction // Map 'reaction' to 'type' for storage
-      });
+      // Check if it's a memory ID
+      if (postId.startsWith('mem_')) {
+        await storage.addMemoryReaction(postId, userId, reaction);
+        
+        // Get the updated reactions count
+        const reactions = await storage.getMemoryReactions(postId);
 
-      return res.json({
-        code: 1,
-        message: "Reaction added successfully",
-        data: reactionData
-      });
+        return res.json({
+          code: 1,
+          message: "Reaction added successfully",
+          data: { reactions }
+        });
+      } else {
+        const reactionData = await storage.createReaction({
+          userId,
+          postId: postId,
+          type: reaction // Map 'reaction' to 'type' for storage
+        });
+
+        return res.json({
+          code: 1,
+          message: "Reaction added successfully",
+          data: reactionData
+        });
+      }
     } catch (error) {
       console.error('Error creating reaction:', error);
       return res.status(500).json({
@@ -4140,7 +4212,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      await storage.removeReaction(postId, userId); // Keep as string for memory IDs
+      // Check if it's a memory ID
+      if (postId.startsWith('mem_')) {
+        await storage.removeMemoryReaction(postId, userId);
+      } else {
+        await storage.removeReaction(postId, userId);
+      }
 
       return res.json({
         code: 1,
@@ -4172,12 +4249,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const report = await storage.createReport({
-        postId: postId, // Keep as string for memory IDs
-        reporterId: userId,
-        reason,
-        description: description || null
-      });
+      // Check if it's a memory ID
+      let report;
+      if (postId.startsWith('mem_')) {
+        // Create memory report
+        report = await storage.createMemoryReport({
+          memoryId: postId,
+          reporterId: userId,
+          reason,
+          description: description || null
+        });
+      } else {
+        report = await storage.createReport({
+          postId: postId,
+          reporterId: userId,
+          reason,
+          description: description || null
+        });
+      }
 
       return res.json({
         code: 1,
@@ -4253,10 +4342,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Create a share entry
+      // Create a share entry (post_id could be string for memory IDs)
       const share = await storage.createShare({
         userId,
-        postId: parseInt(post_id),
+        postId: post_id.startsWith('mem_') ? post_id : parseInt(post_id),
         comment: caption || null
       });
 

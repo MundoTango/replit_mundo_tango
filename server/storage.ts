@@ -1321,12 +1321,13 @@ export class DatabaseStorage implements IStorage {
     return { id: 1, postId, reporterId, reason, description, status: 'pending', createdAt: new Date() };
   }
 
-  async createShare(data: { post_id: number; user_id: number }): Promise<any> {
+  async createShare(data: { postId: number | string; userId: number; comment?: string | null }): Promise<any> {
     // Create a share record
     return { 
       id: Date.now(), 
-      postId: data.post_id, 
-      userId: data.user_id, 
+      postId: data.postId, 
+      userId: data.userId, 
+      comment: data.comment || null,
       sharedAt: new Date(),
       success: true 
     };
@@ -2522,6 +2523,140 @@ export class DatabaseStorage implements IStorage {
       .from(codeOfConductAgreements)
       .where(eq(codeOfConductAgreements.userId, userId))
       .orderBy(desc(codeOfConductAgreements.createdAt));
+  }
+
+  // Memory-specific comment methods
+  async addMemoryComment(memoryId: string, userId: number, content: string, mentions?: any[]): Promise<any> {
+    try {
+      const [comment] = await db.execute(sql`
+        INSERT INTO memory_comments (memory_id, user_id, content, mentions)
+        VALUES (${memoryId}, ${userId}, ${content}, ${JSON.stringify(mentions || [])}::jsonb)
+        RETURNING *
+      `);
+      
+      // Fetch user details for the comment
+      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      
+      return {
+        ...comment,
+        user: {
+          id: user.id,
+          name: user.name,
+          profileImage: user.profileImage
+        }
+      };
+    } catch (error) {
+      console.error('Error adding memory comment:', error);
+      throw error;
+    }
+  }
+
+  async getMemoryComments(memoryId: string): Promise<any[]> {
+    try {
+      const result = await db.execute(sql`
+        SELECT mc.*, u.id as user_id, u.name as user_name, u.profile_image as user_profile_image
+        FROM memory_comments mc
+        JOIN users u ON mc.user_id = u.id
+        WHERE mc.memory_id = ${memoryId}
+        ORDER BY mc.created_at DESC
+      `);
+      
+      return result.rows.map(row => ({
+        id: row.id,
+        content: row.content,
+        userId: row.user_id,
+        user: {
+          id: row.user_id,
+          name: row.user_name,
+          profileImage: row.user_profile_image
+        },
+        createdAt: row.created_at,
+        mentions: row.mentions || []
+      }));
+    } catch (error) {
+      console.error('Error getting memory comments:', error);
+      return [];
+    }
+  }
+
+  // Memory-specific reaction methods
+  async addMemoryReaction(memoryId: string, userId: number, reactionType: string): Promise<void> {
+    try {
+      await db.execute(sql`
+        INSERT INTO memory_reactions (memory_id, user_id, reaction_type)
+        VALUES (${memoryId}, ${userId}, ${reactionType})
+        ON CONFLICT (memory_id, user_id) 
+        DO UPDATE SET reaction_type = ${reactionType}, created_at = NOW()
+      `);
+    } catch (error) {
+      console.error('Error adding memory reaction:', error);
+      throw error;
+    }
+  }
+
+  async removeMemoryReaction(memoryId: string, userId: number): Promise<void> {
+    try {
+      await db.execute(sql`
+        DELETE FROM memory_reactions 
+        WHERE memory_id = ${memoryId} AND user_id = ${userId}
+      `);
+    } catch (error) {
+      console.error('Error removing memory reaction:', error);
+      throw error;
+    }
+  }
+
+  async getMemoryReactions(memoryId: string): Promise<{ [key: string]: number }> {
+    try {
+      const result = await db.execute(sql`
+        SELECT reaction_type, COUNT(*) as count
+        FROM memory_reactions
+        WHERE memory_id = ${memoryId}
+        GROUP BY reaction_type
+      `);
+      
+      const reactions: { [key: string]: number } = {};
+      result.rows.forEach(row => {
+        reactions[row.reaction_type] = parseInt(row.count);
+      });
+      
+      return reactions;
+    } catch (error) {
+      console.error('Error getting memory reactions:', error);
+      return {};
+    }
+  }
+
+  async getUserMemoryReaction(memoryId: string, userId: number): Promise<string | null> {
+    try {
+      const result = await db.execute(sql`
+        SELECT reaction_type 
+        FROM memory_reactions
+        WHERE memory_id = ${memoryId} AND user_id = ${userId}
+        LIMIT 1
+      `);
+      
+      return result.rows[0]?.reaction_type || null;
+    } catch (error) {
+      console.error('Error getting user memory reaction:', error);
+      return null;
+    }
+  }
+  
+  // Memory-specific report methods
+  async createMemoryReport(data: { memoryId: string; reporterId: number; reason: string; description?: string | null }): Promise<any> {
+    try {
+      const [report] = await db.execute(sql`
+        INSERT INTO memory_reports (memory_id, reporter_id, reason, description)
+        VALUES (${data.memoryId}, ${data.reporterId}, ${data.reason}, ${data.description || null})
+        RETURNING *
+      `);
+      
+      return report;
+    } catch (error) {
+      console.error('Error creating memory report:', error);
+      throw error;
+    }
   }
 }
 

@@ -97,8 +97,8 @@ export const FacebookReactionSelector: React.FC<FacebookReactionSelectorProps> =
 
       {/* Reaction Picker */}
       {showReactions && (
-        <div className="absolute bottom-full left-0 mb-2 bg-white rounded-2xl shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <div className="flex gap-2">
+        <div className="absolute bottom-full left-0 mb-3 bg-white rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200 border border-gray-100">
+          <div className="grid grid-cols-6 gap-1">
             {FACEBOOK_REACTIONS.map((reaction) => (
               <button
                 key={reaction.id}
@@ -108,15 +108,17 @@ export const FacebookReactionSelector: React.FC<FacebookReactionSelectorProps> =
                   setShowReactions(false);
                 }}
                 className={`
-                  w-12 h-12 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-all duration-200
-                  ${currentReaction === reaction.id ? 'bg-gray-100' : ''}
+                  w-14 h-14 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors duration-150
+                  ${currentReaction === reaction.id ? 'bg-gray-100 ring-2 ring-blue-500' : ''}
                 `}
                 title={reaction.label}
               >
-                <span className="text-2xl block">{reaction.emoji}</span>
+                <span className="text-2xl block select-none" style={{ fontSize: '28px', lineHeight: '1' }}>{reaction.emoji}</span>
               </button>
             ))}
           </div>
+          {/* Tooltip arrow */}
+          <div className="absolute -bottom-2 left-4 w-4 h-4 bg-white border-r border-b border-gray-100 transform rotate-45"></div>
         </div>
       )}
     </div>
