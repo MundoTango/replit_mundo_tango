@@ -15,7 +15,11 @@ export default function GroupsPage() {
 
   // Fetch groups data with membership status
   const { data: groupsData, isLoading } = useQuery({
-    queryKey: ['/api/groups']
+    queryKey: ['/api/groups'],
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Consider data stale immediately
+    gcTime: 0, // Don't cache the data (v5 uses gcTime instead of cacheTime)
   });
 
   // Join group mutation

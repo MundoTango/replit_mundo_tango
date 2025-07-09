@@ -8,37 +8,55 @@ const monitor = CacheMonitor.getInstance();
 
 // Register service worker with updated cache version
 if ('serviceWorker' in navigator) {
-  // Register the service worker
-  navigator.serviceWorker.register('/service-worker.js')
+  // Unregister old service worker and register Workbox
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    registrations.forEach(registration => {
+      if (registration.active && registration.active.scriptURL.includes('/service-worker.js')) {
+        registration.unregister();
+        console.log('Unregistered old service worker');
+      }
+    });
+  });
+  
+  // Register the Workbox service worker
+  navigator.serviceWorker.register('/service-worker-workbox.js')
     .then(registration => {
-      console.log('Service Worker registered with scope:', registration.scope);
+      console.log('Workbox Service Worker registered with scope:', registration.scope);
       
-      // Force update check
-      registration.update();
+      // Force update check every 30 seconds
+      setInterval(() => {
+        registration.update();
+      }, 30000);
       
       // Handle updates
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'activated') {
-            console.log('New service worker activated');
-            // Clear old caches after new worker is active
-            caches.keys().then(cacheNames => {
-              const oldCaches = cacheNames.filter(name => 
-                name.startsWith('life-ceo-') && name !== 'life-ceo-v5'
-              );
-              Promise.all(oldCaches.map(name => {
-                console.log('Deleting old cache:', name);
-                return caches.delete(name);
-              }));
-            });
-          }
-        });
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New service worker available
+              console.log('New Workbox service worker installed, will activate on reload');
+              // Show update notification
+              const event = new CustomEvent('sw-update-available');
+              window.dispatchEvent(event);
+            }
+          });
+        }
       });
     })
     .catch(error => {
-      console.error('Service Worker registration failed:', error);
+      console.error('Workbox Service Worker registration failed:', error);
     });
+
+  // Clear all old caches on startup
+  caches.keys().then(cacheNames => {
+    cacheNames.forEach(cacheName => {
+      if (!cacheName.includes('workbox-')) {
+        caches.delete(cacheName);
+        console.log('Deleted old cache:', cacheName);
+      }
+    });
+  });
 
   // Clear theme from localStorage if it's causing issues
   const currentTheme = localStorage.getItem('life-ceo-theme');

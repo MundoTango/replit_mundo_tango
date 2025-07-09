@@ -6058,6 +6058,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
 
+      // Add cache-control headers to prevent stale data
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
       res.status(200).json({
         success: true,
         message: 'Groups retrieved successfully',

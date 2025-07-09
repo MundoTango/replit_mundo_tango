@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import * as pathModule from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -46,7 +47,12 @@ app.use((req, res, next) => {
 });
 
 // Serve uploaded files statically
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static('uploads'))
+
+// Serve service worker files
+app.get('/service-worker-workbox.js', (req, res) => {
+  res.sendFile(pathModule.join(process.cwd(), 'client/service-worker-workbox.js'));
+});
 
 (async () => {
   // Initialize automated compliance monitoring
