@@ -338,12 +338,12 @@ function MemoryCard({ memory }: MemoryCardProps) {
                 <div key={comment.id} className="flex gap-3">
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="text-xs">
-                      {comment.user.name.charAt(0)}
+                      {comment.user?.name?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="bg-gray-100 rounded-lg p-3">
-                      <p className="font-medium text-sm">{comment.user.name}</p>
+                      <p className="font-medium text-sm">{comment.user?.name || 'Unknown User'}</p>
                       <div className="text-sm" dangerouslySetInnerHTML={{ __html: comment.content }} />
                     </div>
                     <p className="text-xs text-gray-500 mt-1">

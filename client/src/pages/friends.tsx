@@ -372,7 +372,7 @@ export default function FriendsPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex gap-4">
                         <div className="w-12 h-12 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold">
-                          {request.friend_user?.name.charAt(0)}
+                          {request.friend_user?.name?.charAt(0) || 'U'}
                         </div>
                         <div>
                           <h4 className="font-semibold text-gray-900">
@@ -437,7 +437,7 @@ export default function FriendsPage() {
                       <div className="flex gap-4">
                         <div className="relative">
                           <div className="w-12 h-12 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold">
-                            {friend.name.charAt(0)}
+                            {friend.name?.charAt(0) || 'U'}
                           </div>
                           {friend.isOnline && (
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
