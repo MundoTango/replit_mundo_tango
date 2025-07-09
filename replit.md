@@ -2,7 +2,18 @@
 
 ## Overview
 
-**UPDATE (January 9, 2025 - Latest Update)**: Fixed Authentication & Live Statistics Implementation
+**UPDATE (January 9, 2025 - Community Navigation Cleanup)**: Simplified Community Page Navigation
+- **Navigation Redundancy Fix**: Removed duplicate navigation options from Community page
+  - Community page now redirects directly to World Map (/community → /community-world-map)
+  - Eliminated redundant action cards that duplicated sidebar navigation:
+    - "Browse Communities" (users should use Groups in sidebar)
+    - "Share Moments" (users should use Timeline in sidebar)  
+    - "Discover Events" (users should use Events in sidebar)
+  - World Map is now the primary community feature with live statistics
+- **23L Framework Applied**: Used comprehensive analysis to identify and fix navigation duplication
+- **User Experience**: Cleaner navigation flow, reduced cognitive load, direct access to World Map feature
+
+**UPDATE (January 9, 2025 - Previous Update)**: Fixed Authentication & Live Statistics Implementation
 - **Authentication Middleware Fix**: Resolved strict `isAuthenticated` middleware conflicts causing 401 errors
   - Fixed enhanced events, auto-join city groups, and statistics endpoints
   - Implemented flexible authentication pattern: check req.user.id → req.user.claims.sub → session.passport.user.claims.sub

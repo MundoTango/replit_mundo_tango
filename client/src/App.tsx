@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -217,7 +217,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Moments} />
       <Route path="/moments" component={Moments} />
-      <Route path="/community" component={Community} />
+      <Route path="/community">{() => <Redirect to="/community-world-map" />}</Route>
       <Route path="/community-world-map" component={CommunityWorldMap} />
       <Route path="/tango-communities" component={TangoCommunities} />
       <Route path="/housing-marketplace" component={HousingMarketplace} />
