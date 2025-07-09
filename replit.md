@@ -2,6 +2,18 @@
 
 ## Overview
 
+**UPDATE (January 9, 2025 - Buenos Aires Group Navigation Fix)**: Fixed Critical Authentication and Routing Issues
+- **Authentication Fix**: Resolved 401 Unauthorized error on Buenos Aires group page
+  - Root cause: Duplicate `/api/groups/:slug` routes with conflicting authentication middleware
+  - Solution: Removed duplicate route with strict `isAuthenticated` middleware, kept flexible `setUserContext` version
+  - Impact: All city groups now accessible without authentication errors
+- **Map Navigation Fix**: Community world map now navigates to correct group URLs
+  - Issue: Map was using `/groups/${city.id}` instead of slug-based URLs
+  - Solution: Updated LeafletMap component to use slug-based navigation
+  - Added slug field to `/api/community/city-groups` endpoint response
+- **23L Framework Applied**: Used comprehensive debugging approach for permanent fixes
+- **Prevention Measures**: Documented API route patterns and navigation standards
+
 **UPDATE (January 9, 2025 - Interactive Maps with Leaflet)**: Replaced Google Maps with Open Source Solution
 - **Mapping Solution Change**: Replaced Google Maps API with Leaflet.js open-source mapping library
   - Uses OpenStreetMap tiles - no API keys required, no billing concerns

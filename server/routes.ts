@@ -6122,85 +6122,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get group details with members for group page
-  app.get('/api/groups/:slug', isAuthenticated, async (req, res) => {
-    try {
-      const { slug } = req.params;
-      const groupWithMembers = await storage.getGroupWithMembers(slug);
-      
-      if (!groupWithMembers) {
-        return res.status(404).json({
-          success: false,
-          message: 'Group not found',
-          data: null
-        });
-      }
-
-      // Get additional data for group page
-      const [recentMemories, upcomingEvents] = await Promise.all([
-        storage.getGroupRecentMemories(groupWithMembers.id, 6),
-        storage.getGroupUpcomingEvents(groupWithMembers.id, 4)
-      ]);
-
-      // Check if current user is a member (authenticated via isAuthenticated middleware)
-      let currentUserMembership = null;
-      
-      // Extract Replit ID from authentication claims
-      const replitId = (req as any).user?.claims?.sub;
-      console.log('Group detail auth check - Replit ID:', replitId);
-      
-      let userId = null;
-      if (replitId === '44164221') {
-        // Scott Boddye's Replit ID - map to database user ID 3
-        userId = 3;
-        console.log('Mapped Scott Boddye Replit ID to database user ID:', userId);
-      } else if (replitId) {
-        try {
-          const dbUser = await storage.getUserByReplitId(replitId);
-          if (dbUser) {
-            userId = dbUser.id;
-            console.log('Found database user via Replit ID:', { dbUserId: userId, replitId });
-          }
-        } catch (error) {
-          console.log('Error finding user by Replit ID:', error);
-        }
-      }
-
-      if (userId) {
-        const isMember = await storage.checkUserInGroup(groupWithMembers.id, userId);
-        if (isMember) {
-          const memberData = groupWithMembers.members.find((m: any) => m.userId === userId);
-          currentUserMembership = memberData || null;
-          console.log('User is member:', { userId, role: memberData?.role });
-        } else {
-          console.log('User is not a member:', userId);
-        }
-      } else {
-        console.log('No valid user ID found');
-      }
-
-      // Flatten the response structure to match frontend expectations
-      const groupData = {
-        ...groupWithMembers,
-        isJoined: !!currentUserMembership,
-        userRole: currentUserMembership?.role || undefined,
-        recentEvents: upcomingEvents,
-        recentMemories: recentMemories
-      };
-
-      res.json({
-        success: true,
-        data: groupData
-      });
-    } catch (error) {
-      console.error('Error fetching group details:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error',
-        data: null
-      });
-    }
-  });
+  // REMOVED - Duplicate route causing 401 errors - using the setUserContext version instead
+  /* Previously removed duplicate route for /api/groups/:slug with isAuthenticated middleware */
 
   // Follow a group (for non-members to get updates)
   app.post('/api/groups/follow/:slug', isAuthenticated, async (req, res) => {
@@ -8690,6 +8613,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select({
           id: groups.id,
           name: groups.name,
+          slug: groups.slug,
           city: groups.city,
           country: groups.country,
           memberCount: sql<number>`COUNT(DISTINCT ${groupMembers.userId})`,
@@ -8697,7 +8621,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(groups)
         .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
         .where(eq(groups.type, 'city'))
-        .groupBy(groups.id, groups.name, groups.city, groups.country);
+        .groupBy(groups.id, groups.name, groups.slug, groups.city, groups.country);
 
       // Get event counts for each city
       const eventCounts: any = {};
@@ -8740,6 +8664,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const coords = group.city ? cityCoordinates[group.city] : null;
         return {
           ...group,
+          slug: group.slug,
           lat: coords?.lat || 0,
           lng: coords?.lng || 0,
           totalUsers: Number(group.memberCount || 0),
