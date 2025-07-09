@@ -6,7 +6,9 @@ import { CacheMonitor } from "./utils/cache-monitor";
 // Initialize cache monitoring
 const monitor = CacheMonitor.getInstance();
 
-// Register service worker and clear old caches
+// TEMPORARILY DISABLED - Service worker causing cache issues
+// TO FIX: Uncomment this after resolving cache problems
+/*
 if ('serviceWorker' in navigator) {
   // Register the service worker
   navigator.serviceWorker.register('/service-worker.js')
@@ -46,6 +48,19 @@ if ('serviceWorker' in navigator) {
     localStorage.removeItem('life-ceo-theme');
     console.log('Cleared old theme from localStorage');
   }
+}
+*/
+
+// Force unregister any existing service workers
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    console.log('Found active service workers:', registrations.length);
+    registrations.forEach(registration => {
+      registration.unregister().then(success => {
+        console.log('Service worker unregistered:', success);
+      });
+    });
+  });
 }
 
 // Start cache monitoring

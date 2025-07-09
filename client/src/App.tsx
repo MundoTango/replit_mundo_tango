@@ -96,28 +96,49 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
 
-  // Force complete cache clear and update for v4
+  // Force complete cache clear and service worker unregistration
   React.useEffect(() => {
-    if ('serviceWorker' in navigator && 'caches' in window) {
-      // Clear ALL caches to ensure fresh content
-      caches.keys().then(cacheNames => {
-        console.log('Current caches:', cacheNames);
-        const clearPromises = cacheNames.map(name => {
-          console.log('Deleting cache:', name);
-          return caches.delete(name);
-        });
+    const forceCacheClear = async () => {
+      console.log('=== FORCE CACHE CLEAR START ===');
+      
+      // 1. Unregister ALL service workers
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        console.log('Found service workers:', registrations.length);
         
-        Promise.all(clearPromises).then(() => {
-          console.log('All caches cleared');
-          // Update service worker
-          navigator.serviceWorker.getRegistrations().then(registrations => {
-            registrations.forEach(registration => {
-              registration.update();
-            });
-          });
-        });
-      });
-    }
+        for (const registration of registrations) {
+          const success = await registration.unregister();
+          console.log('Unregistered service worker:', success);
+        }
+      }
+      
+      // 2. Delete ALL caches
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        console.log('Found caches:', cacheNames);
+        
+        for (const cacheName of cacheNames) {
+          const deleted = await caches.delete(cacheName);
+          console.log(`Deleted cache ${cacheName}:`, deleted);
+        }
+      }
+      
+      // 3. Clear localStorage
+      localStorage.clear();
+      console.log('Cleared localStorage');
+      
+      // 4. Clear sessionStorage
+      sessionStorage.clear();
+      console.log('Cleared sessionStorage');
+      
+      // 5. Add cache-busting to all requests
+      window.CACHE_BUSTER = Date.now();
+      console.log('Cache buster:', window.CACHE_BUSTER);
+      
+      console.log('=== FORCE CACHE CLEAR COMPLETE ===');
+    };
+    
+    forceCacheClear();
   }, []);
 
   console.log("Router state:", { user, isLoading, isAuthenticated });

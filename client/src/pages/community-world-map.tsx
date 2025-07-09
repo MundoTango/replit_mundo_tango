@@ -120,10 +120,15 @@ export default function CommunityWorldMap() {
 
   // Load Google Maps API
   useEffect(() => {
+    // Debug: Log all environment variables
+    console.log('Environment variables:', import.meta.env);
+    
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    console.log('Google Maps API Key:', apiKey ? 'Found' : 'Not found');
+    
     if (!apiKey) {
-      setMapError('Google Maps API key not configured');
-      console.error('Google Maps API key not found');
+      setMapError('Google Maps API key not configured. Please check your .env file.');
+      console.error('Google Maps API key not found in environment variables');
       return;
     }
 
@@ -134,11 +139,12 @@ export default function CommunityWorldMap() {
     });
 
     loader.load().then(() => {
+      console.log('Google Maps loaded successfully');
       setIsMapLoaded(true);
       setMapError(null);
     }).catch((error) => {
       console.error('Error loading Google Maps:', error);
-      setMapError('Failed to load Google Maps');
+      setMapError(`Failed to load Google Maps: ${error.message}`);
     });
   }, []);
 
