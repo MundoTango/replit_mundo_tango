@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 
 // Import all the social feature components
-import FacebookReactionSelector from '../components/ui/FacebookReactionSelector';
+import { FacebookReactionSelector } from '../components/ui/FacebookReactionSelector';
 import RichTextCommentEditor from '../components/ui/RichTextCommentEditor';
 import RoleEmojiDisplay from '../components/ui/RoleEmojiDisplay';
 import PostContextMenu from '../components/ui/PostContextMenu';
