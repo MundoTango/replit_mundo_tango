@@ -165,6 +165,7 @@ function Router() {
       <Route path="/groups/:slug" component={GroupDetailPage} />
       <Route path="/profile" component={Profile} />
       <Route path="/events" component={EnhancedEvents} />
+      <Route path="/events-enhanced" component={EnhancedEvents} />
       <Route path="/invitations" component={Invitations} />
       <Route path="/profile/resume" component={ResumePage} />
       <Route path="/u/:username/resume" component={PublicResumePage} />

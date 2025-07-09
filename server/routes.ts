@@ -4156,7 +4156,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/enhanced', isAuthenticated, async (req, res) => {
     try {
       const { search, eventTypes, vibeTypes, location, dateRange, filter } = req.query;
-      const userId = (req as any).user.id;
+      const userClaims = (req as any).user.claims;
+      const user = await storage.getUserByReplitId(userClaims.sub);
+      
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'User not found' });
+      }
+      
+      const userId = user.id;
       
       let query = db
         .select({
@@ -4259,12 +4266,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create enhanced event
   app.post('/api/events/enhanced', isAuthenticated, async (req, res) => {
     try {
-      const userId = (req as any).user.id;
-      const user = await storage.getUser(userId);
+      const userClaims = (req as any).user.claims;
+      const user = await storage.getUserByReplitId(userClaims.sub);
       
       if (!user) {
         return res.status(401).json({ success: false, message: 'User not found' });
       }
+      
+      const userId = user.id;
       
       // Check if user has organizer or super_admin role
       const userRoles = await storage.getUserRoles(userId);
