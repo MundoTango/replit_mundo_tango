@@ -94,11 +94,15 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
   const [currentUserReaction, setCurrentUserReaction] = useState(post.currentUserReaction);
   const [comments, setComments] = useState(post.comments || []);
 
+  // Determine if this is a memory or regular post
+  const isMemory = post.id && typeof post.id === 'string' && post.id.startsWith('mem_');
+  const apiBasePath = isMemory ? `/api/memories` : `/api/posts`;
+
   // Fetch comments when section is opened
   const { data: fetchedComments } = useQuery({
-    queryKey: [`/api/posts/${post.id}/comments`],
+    queryKey: [`${apiBasePath}/${post.id}/comments`],
     queryFn: async () => {
-      const response = await fetch(`/api/posts/${post.id}/comments`, {
+      const response = await fetch(`${apiBasePath}/${post.id}/comments`, {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch comments');
@@ -154,7 +158,7 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
   // API Mutations
   const reactionMutation = useMutation({
     mutationFn: async ({ postId, reaction }: { postId: string; reaction: string }) => {
-      const response = await fetch(`/api/posts/${postId}/reactions`, {
+      const response = await fetch(`${apiBasePath}/${postId}/reactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -172,7 +176,7 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
 
   const commentMutation = useMutation({
     mutationFn: async ({ postId, content, mentions }: { postId: string; content: string; mentions: string[] }) => {
-      const response = await fetch(`/api/posts/${postId}/comments`, {
+      const response = await fetch(`${apiBasePath}/${postId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -185,7 +189,8 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
     },
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/posts/${post.id}/comments`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/${post.id}/comments`] });
       
       // Add the actual comment returned from server
       if (response.data) {
@@ -199,7 +204,7 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
 
   const reportMutation = useMutation({
     mutationFn: async ({ postId, reason, description }: { postId: string; reason: string; description: string }) => {
-      const response = await fetch(`/api/posts/${postId}/report`, {
+      const response = await fetch(`${apiBasePath}/${postId}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -221,7 +226,7 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
 
   const shareToWallMutation = useMutation({
     mutationFn: async ({ postId, comment }: { postId: string; comment?: string }) => {
-      const response = await fetch(`/api/posts/${postId}/share`, {
+      const response = await fetch(`${apiBasePath}/${postId}/share`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -521,7 +526,7 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
             <button
               onClick={() => {
                 // Open post in new window
-                const postUrl = `/posts/${post.id}`;
+                const postUrl = isMemory ? `/memories/${post.id}` : `/posts/${post.id}`;
                 window.open(postUrl, '_blank', 'width=800,height=900,menubar=no,toolbar=no,location=no,status=no');
               }}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200"
@@ -628,7 +633,8 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
                 {/* Copy Link */}
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/posts/${post.id}`);
+                    const shareUrl = isMemory ? `/memories/${post.id}` : `/posts/${post.id}`;
+                    navigator.clipboard.writeText(`${window.location.origin}${shareUrl}`);
                     toast({ title: "Link copied to clipboard!" });
                     setShowShareOptions(false);
                   }}
