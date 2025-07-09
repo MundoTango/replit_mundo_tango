@@ -28,15 +28,18 @@ export default function GroupDetailPage() {
   const [activeTab, setActiveTab] = useState('discussion');
 
   // Fetch group details
-  const { data: group, isLoading } = useQuery({
+  const { data: response, isLoading } = useQuery({
     queryKey: [`/api/groups/${slug}`],
     enabled: !!slug,
   });
 
+  // Extract group data from API response
+  const group = response?.data;
+
   // Join group mutation
   const joinGroupMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/groups/${slug}/join`, {
+      const response = await fetch(`/api/user/join-group/${slug}`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -55,7 +58,7 @@ export default function GroupDetailPage() {
   // Leave group mutation
   const leaveGroupMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/groups/${slug}/leave`, {
+      const response = await fetch(`/api/user/leave-group/${slug}`, {
         method: 'POST',
         credentials: 'include',
       });
