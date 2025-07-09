@@ -74,7 +74,27 @@
       }, 1000);
     </script>
     
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- Debug: Add inline script to verify execution -->
+    <script>
+      console.error('🟥 Inline script in HTML executing!');
+      window.addEventListener('error', function(e) {
+        console.error('🟥 Global error:', e.message, e.filename, e.lineno, e.colno, e.error);
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('🟥 Unhandled promise rejection:', e.reason);
+      });
+    </script>
+    
+    <script type="module">
+      console.error('🟦 Module script executing!');
+      import('/src/main.tsx').then(() => {
+        console.error('🟦 main.tsx loaded successfully!');
+      }).catch(err => {
+        console.error('🟦 Error loading main.tsx:', err);
+        document.body.innerHTML += '<h1 style="color: red;">Module Load Error: ' + err + '</h1>';
+      });
+    </script>
+    
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
   </body>
