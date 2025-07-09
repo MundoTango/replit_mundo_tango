@@ -32,10 +32,11 @@ export default function GroupsPage() {
       });
       const data = await response.json();
       console.log('🔄 GROUPS API RESPONSE:', data);
-      console.log('📊 Member status for each group:', data?.data?.groups?.map((g: any) => ({
+      console.log('📊 Member status for each group:', data?.data?.map((g: any) => ({
         id: g.id,
         name: g.name,
-        isMember: g.isMember
+        isMember: g.isMember,
+        membershipStatus: g.membershipStatus
       })));
       return data;
     }
@@ -83,10 +84,10 @@ export default function GroupsPage() {
 
   // Get statistics based on groups data
   const stats = {
-    totalCommunities: groupsData?.data?.groups?.length || 6,
-    joinedCommunities: groupsData?.data?.groups?.filter((g: any) => g.isMember).length || 2,
+    totalCommunities: groupsData?.data?.length || 6,
+    joinedCommunities: groupsData?.data?.filter((g: any) => g.isMember || g.membershipStatus === 'member').length || 2,
     totalEvents: 132, // This would come from a separate API
-    cities: new Set(groupsData?.data?.groups?.map((g: any) => g.city).filter(Boolean)).size || 4
+    cities: new Set(groupsData?.data?.map((g: any) => g.city).filter(Boolean)).size || 4
   };
 
   // Get event counts per group (mock data for now)
@@ -104,7 +105,7 @@ export default function GroupsPage() {
   };
 
   // Filter groups based on active filter and search
-  const filteredGroups = groupsData?.data?.groups?.filter((group: any) => {
+  const filteredGroups = groupsData?.data?.filter((group: any) => {
     const matchesSearch = searchQuery === '' || 
       group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       group.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -335,7 +336,7 @@ function CommunityCard({ group, eventCount, onJoin, onLeave, onViewDetails }: Co
 
         {/* Actions */}
         <div className="flex gap-3">
-          {group.isMember ? (
+          {group.membershipStatus === 'member' ? (
             <>
               <button
                 onClick={onLeave}

@@ -6028,11 +6028,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const userId = user?.id;
       
+      console.log(`📊 [Groups API] Detected user ID: ${userId}, username: ${user?.username}`);
+      
       // Get all groups (not just city groups)
       const allGroups = await storage.getAllGroups();
+      console.log(`📊 [Groups API] Total groups: ${allGroups.length}`);
       
       // Get user's joined groups
       const userGroups = await storage.getUserGroups(userId);
+      console.log(`📊 [Groups API] User ${userId} is member of ${userGroups.length} groups:`, userGroups.map((g: any) => ({ id: g.id, name: g.name })));
       const joinedGroupIds = userGroups.map((g: any) => g.id);
       
       // Get user's followed groups (non-members who follow for updates)
