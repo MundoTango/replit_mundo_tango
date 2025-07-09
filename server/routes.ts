@@ -6,7 +6,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { authMiddleware } from "./middleware/auth";
 import { setupUpload } from "./middleware/upload";
 import { storage } from "./storage";
-import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema, insertCustomRoleRequestSchema, roles, userProfiles, userRoles, groups, users, events, eventRsvps, groupMembers, follows, posts } from "../shared/schema";
+import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema, insertCustomRoleRequestSchema, roles, userProfiles, userRoles, groups, users, events, eventRsvps, groupMembers, follows, posts, hostHomes, recommendations } from "../shared/schema";
 import { z } from "zod";
 import { SocketService } from "./services/socketService";
 import { WebSocketServer } from "ws";
@@ -747,6 +747,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isOnboardingComplete: true,
         formStatus: 2
       });
+
+      // Automation 2: Assign user to professional groups based on their tango roles
+      if (user.tangoRoles && user.tangoRoles.length > 0) {
+        const { assignUserToProfessionalGroups } = await import('../utils/professionalGroupAutomation');
+        await assignUserToProfessionalGroups(user.id, user.tangoRoles);
+        console.log(`✅ Professional group automation completed for user ${user.id}`);
+      }
 
       res.json({
         success: true,
@@ -2378,6 +2385,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const event = await storage.createEvent(validatedData);
       console.log(`✅ Event created: ${event.title} (ID: ${event.id})`);
 
+      // Automation 3: Geocode event location for map display
+      if (event.location || req.body.city) {
+        const { geocodeAddress } = await import('../utils/geocodingService');
+        const geocoded = await geocodeAddress(event.location, req.body.city, req.body.country);
+        
+        if (geocoded) {
+          // Update event with coordinates
+          await db.update(events)
+            .set({ 
+              latitude: geocoded.lat.toString(), 
+              longitude: geocoded.lng.toString(),
+              city: req.body.city || geocoded.address_components.city,
+              country: req.body.country || geocoded.address_components.country
+            })
+            .where(eq(events.id, event.id));
+          
+          console.log(`📍 Event location geocoded: ${geocoded.lat}, ${geocoded.lng}`);
+        }
+      }
+
       // Automatic City Group Assignment
       let cityGroupAssignment = null;
       if (event.location || req.body.city || req.body.country) {
@@ -2774,6 +2801,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         console.log(`Assigned roles to user ${user.id}:`, rolesToAssign);
+
+        // AUTOMATION 2: Auto-join professional groups based on roles
+        const professionalRoles = ['teacher', 'organizer', 'dj', 'performer', 'musician', 'photographer', 'videographer'];
+        const userProfessionalRoles = rolesToAssign.filter(role => professionalRoles.includes(role));
+        
+        if (userProfessionalRoles.length > 0) {
+          for (const professionalRole of userProfessionalRoles) {
+            try {
+              // Check if professional group exists
+              let professionalGroup = await db.select()
+                .from(groups)
+                .where(and(
+                  eq(groups.type, 'role'),
+                  eq(groups.roleType, professionalRole)
+                ))
+                .limit(1);
+
+              // Create professional group if it doesn't exist
+              if (!professionalGroup || professionalGroup.length === 0) {
+                const groupData = {
+                  name: `${professionalRole.charAt(0).toUpperCase() + professionalRole.slice(1)}s Network`,
+                  slug: `${professionalRole}s-network`,
+                  description: `Professional network for ${professionalRole}s in the Mundo Tango community. Share experiences, find opportunities, and connect with peers.`,
+                  memberCount: 0,
+                  type: 'role',
+                  roleType: professionalRole,
+                  privacy: 'public' as const,
+                  isActive: true,
+                  createdAt: new Date(),
+                  updatedAt: new Date()
+                };
+
+                const result = await db.insert(groups).values(groupData).returning();
+                professionalGroup = result;
+                console.log(`Created professional group: ${groupData.name}`);
+              }
+
+              // Add user to professional group
+              const groupToJoin = Array.isArray(professionalGroup) ? professionalGroup[0] : professionalGroup;
+              await db.insert(groupMembers).values({
+                groupId: groupToJoin.id,
+                userId: user.id,
+                role: 'member',
+                joinedAt: new Date()
+              }).onConflictDoNothing();
+
+              // Update member count
+              await db.update(groups)
+                .set({ 
+                  memberCount: sql`member_count + 1`,
+                  updatedAt: new Date()
+                })
+                .where(eq(groups.id, groupToJoin.id));
+
+              console.log(`User ${user.id} auto-joined professional group: ${groupToJoin.name}`);
+            } catch (professionalGroupError) {
+              console.error(`Error joining professional group ${professionalRole}:`, professionalGroupError);
+            }
+          }
+        }
       } catch (roleError) {
         console.error('Error assigning roles during onboarding:', roleError);
         // Continue with onboarding even if role assignment fails
@@ -8913,6 +9000,207 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         error: 'Failed to fetch statistics'
       });
+    }
+  });
+
+  // Get events with location data for map
+  app.get('/api/community/events-map', async (req, res) => {
+    try {
+      const eventsWithLocation = await db.select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        startDate: events.startDate,
+        city: events.city,
+        address: events.location,
+        lat: events.latitude,
+        lng: events.longitude,
+        imageUrl: events.imageUrl,
+      })
+      .from(events)
+      .where(and(
+        isNotNull(events.latitude),
+        isNotNull(events.longitude),
+        gt(events.startDate, new Date())
+      ))
+      .orderBy(events.startDate)
+      .limit(100);
+
+      res.json(eventsWithLocation);
+    } catch (error) {
+      console.error('Error fetching events for map:', error);
+      res.json([]);
+    }
+  });
+
+  // Get host homes with location data for map
+  app.get('/api/community/homes-map', async (req, res) => {
+    try {
+      const homesWithLocation = await db.select({
+        id: hostHomes.id,
+        title: hostHomes.title,
+        description: hostHomes.description,
+        city: hostHomes.city,
+        address: hostHomes.address,
+        lat: hostHomes.lat,
+        lng: hostHomes.lng,
+        pricePerNight: hostHomes.pricePerNight,
+        photos: hostHomes.photos,
+      })
+      .from(hostHomes)
+      .where(and(
+        isNotNull(hostHomes.lat),
+        isNotNull(hostHomes.lng),
+        eq(hostHomes.isActive, true)
+      ))
+      .limit(100);
+
+      res.json(homesWithLocation);
+    } catch (error) {
+      console.error('Error fetching homes for map:', error);
+      res.json([]);
+    }
+  });
+
+  // Get recommendations with location data for map
+  app.get('/api/community/recommendations-map', async (req, res) => {
+    try {
+      const recommendationsWithLocation = await db.select({
+        id: recommendations.id,
+        title: recommendations.title,
+        description: recommendations.description,
+        type: recommendations.type,
+        city: recommendations.city,
+        address: recommendations.address,
+        lat: recommendations.lat,
+        lng: recommendations.lng,
+        rating: recommendations.rating,
+        photos: recommendations.photos,
+      })
+      .from(recommendations)
+      .where(and(
+        isNotNull(recommendations.lat),
+        isNotNull(recommendations.lng),
+        eq(recommendations.isActive, true)
+      ))
+      .limit(100);
+
+      res.json(recommendationsWithLocation);
+    } catch (error) {
+      console.error('Error fetching recommendations for map:', error);
+      res.json([]);
+    }
+  });
+
+  // Automation 4: Create host home with automatic geocoding
+  app.post('/api/host-homes', setUserContext, async (req, res) => {
+    try {
+      // Get current user
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+      }
+
+      const { title, description, address, city, country, pricePerNight, amenities, maxGuests, photos } = req.body;
+
+      // Create host home
+      const [hostHome] = await db.insert(hostHomes).values({
+        hostId: user.id,
+        title,
+        description,
+        address,
+        city,
+        country,
+        pricePerNight: pricePerNight ? parseInt(pricePerNight) * 100 : null, // Convert to cents
+        amenities: amenities || [],
+        maxGuests: parseInt(maxGuests) || 2,
+        photos: photos || [],
+        isActive: true
+      }).returning();
+
+      // Automation: Geocode the address
+      if (address || city) {
+        const { geocodeAddress } = await import('../utils/geocodingService');
+        const geocoded = await geocodeAddress(address, city, country);
+        
+        if (geocoded) {
+          await db.update(hostHomes)
+            .set({ 
+              lat: geocoded.lat, 
+              lng: geocoded.lng,
+              city: city || geocoded.address_components.city,
+              country: country || geocoded.address_components.country
+            })
+            .where(eq(hostHomes.id, hostHome.id));
+          
+          console.log(`🏠 Host home geocoded: ${geocoded.lat}, ${geocoded.lng}`);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Host home created successfully and added to map!',
+        data: hostHome 
+      });
+    } catch (error) {
+      console.error('Error creating host home:', error);
+      res.status(500).json({ success: false, message: 'Failed to create host home' });
+    }
+  });
+
+  // Automation 5: Create recommendation with automatic geocoding
+  app.post('/api/recommendations', setUserContext, async (req, res) => {
+    try {
+      // Get current user
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+      }
+
+      const { title, description, type, address, city, country, rating, photos } = req.body;
+
+      // Create recommendation
+      const [recommendation] = await db.insert(recommendations).values({
+        userId: user.id,
+        title,
+        description,
+        type: type || 'place',
+        address,
+        city,
+        country,
+        rating: parseFloat(rating) || 5,
+        photos: photos || [],
+        isActive: true,
+        createdAt: new Date()
+      }).returning();
+
+      // Automation: Geocode the address
+      if (address || city) {
+        const { geocodeAddress } = await import('../utils/geocodingService');
+        const geocoded = await geocodeAddress(address, city, country);
+        
+        if (geocoded) {
+          await db.update(recommendations)
+            .set({ 
+              lat: geocoded.lat, 
+              lng: geocoded.lng,
+              city: city || geocoded.address_components.city,
+              country: country || geocoded.address_components.country
+            })
+            .where(eq(recommendations.id, recommendation.id));
+          
+          console.log(`⭐ Recommendation geocoded: ${geocoded.lat}, ${geocoded.lng}`);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Recommendation created successfully and added to map!',
+        data: recommendation 
+      });
+    } catch (error) {
+      console.error('Error creating recommendation:', error);
+      res.status(500).json({ success: false, message: 'Failed to create recommendation' });
     }
   });
 

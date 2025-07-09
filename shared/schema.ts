@@ -12,7 +12,7 @@ import {
   unique,
   real
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -793,7 +793,8 @@ export const groups = pgTable("groups", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 255 }).unique().notNull(),
-  type: varchar("type", { length: 50 }).notNull().default("city"), // city, community, interest, etc.
+  type: varchar("type", { length: 50 }).notNull().default("city"), // city, community, interest, role, etc.
+  roleType: varchar("role_type", { length: 50 }), // teacher, organizer, dj, performer, etc.
   emoji: varchar("emoji", { length: 10 }).default("🏙️"),
   imageUrl: text("image_url"),
   coverImage: text("coverImage"), // Cover photo for group detail pages
@@ -807,6 +808,7 @@ export const groups = pgTable("groups", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("idx_groups_type").on(table.type),
+  index("idx_groups_role_type").on(table.roleType),
   index("idx_groups_city").on(table.city),
   index("idx_groups_slug").on(table.slug),
   index("idx_groups_created_at").on(table.createdAt),
@@ -847,6 +849,61 @@ export const chatHistory = pgTable("chat_history", {
   index("idx_chat_history_user").on(table.userId),
   index("idx_chat_history_timestamp").on(table.timestamp),
   index("idx_chat_history_type").on(table.messageType),
+]);
+
+// Host Homes table for accommodation listings
+export const hostHomes = pgTable("host_homes", {
+  id: serial("id").primaryKey(),
+  hostId: integer("host_id").references(() => users.id).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  address: text("address").notNull(),
+  city: varchar("city", { length: 100 }).notNull(),
+  state: varchar("state", { length: 100 }),
+  country: varchar("country", { length: 100 }).notNull(),
+  lat: real("lat"),
+  lng: real("lng"),
+  photos: text("photos").array().default(sql`ARRAY[]::text[]`),
+  amenities: text("amenities").array().default(sql`ARRAY[]::text[]`),
+  maxGuests: integer("max_guests").default(1),
+  pricePerNight: integer("price_per_night"), // in cents
+  availability: jsonb("availability").default({}), // dates available
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_host_homes_host").on(table.hostId),
+  index("idx_host_homes_city").on(table.city),
+  index("idx_host_homes_active").on(table.isActive),
+  index("idx_host_homes_location").on(table.lat, table.lng),
+]);
+
+// Recommendations table for user posts with recommendations
+export const recommendations = pgTable("recommendations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  postId: integer("post_id").references(() => posts.id),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // restaurant, venue, school, event, etc.
+  address: text("address"),
+  city: varchar("city", { length: 100 }).notNull(),
+  state: varchar("state", { length: 100 }),
+  country: varchar("country", { length: 100 }).notNull(),
+  lat: real("lat"),
+  lng: real("lng"),
+  photos: text("photos").array().default(sql`ARRAY[]::text[]`),
+  rating: integer("rating"), // 1-5 stars
+  tags: text("tags").array().default(sql`ARRAY[]::text[]`),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_recommendations_user").on(table.userId),
+  index("idx_recommendations_post").on(table.postId),
+  index("idx_recommendations_city").on(table.city),
+  index("idx_recommendations_type").on(table.type),
+  index("idx_recommendations_location").on(table.lat, table.lng),
 ]);
 
 // Reaction schema for post and comment reactions  
@@ -915,6 +972,20 @@ export const insertChatHistorySchema = createInsertSchema(chatHistory).omit({
   id: true,
   createdAt: true,
   timestamp: true,
+});
+
+// Host Homes schema
+export const insertHostHomeSchema = createInsertSchema(hostHomes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Recommendations schema
+export const insertRecommendationSchema = createInsertSchema(recommendations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 // Group relations

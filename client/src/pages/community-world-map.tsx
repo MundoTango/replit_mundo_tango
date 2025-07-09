@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import LeafletMap from '@/components/LeafletMap';
+import CommunityMapWithLayers from '@/components/CommunityMapWithLayers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -260,11 +260,7 @@ export default function CommunityWorldMap() {
                       </div>
                     </div>
                   ) : (
-                    <LeafletMap
-                      cities={cityGroups || []}
-                      onCityClick={handleCityClick}
-                      selectedCity={selectedCity}
-                    />
+                    <CommunityMapWithLayers />
                   )}
                 </div>
                 
