@@ -530,14 +530,29 @@ export default function CommunityWorldMap() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {[
-                      { region: 'South America', dancers: 18500, events: 1200, growth: 15 },
-                      { region: 'Europe', dancers: 12300, events: 890, growth: 8 },
-                      { region: 'North America', dancers: 7800, events: 650, growth: 12 },
-                      { region: 'Asia', dancers: 2400, events: 280, growth: 25 },
-                      { region: 'Oceania', dancers: 1200, events: 120, growth: 10 },
-                      { region: 'Africa', dancers: 637, events: 81, growth: 32 }
-                    ].map((region) => (
+                    {globalStats?.cityRankings ? (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-4">
+                          Live data from {globalStats.cityRankings.length} active cities
+                        </p>
+                        {globalStats.cityRankings.slice(0, 5).map((city: any) => (
+                          <div key={city.city} className="flex items-center justify-between mb-3">
+                            <div className="flex-1">
+                              <p className="font-medium">{city.city}, {city.country}</p>
+                              <p className="text-sm text-gray-600">{city.dancerCount} dancers</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      [
+                        { region: 'South America', dancers: 18500, events: 1200, growth: 15 },
+                        { region: 'Europe', dancers: 12300, events: 890, growth: 8 },
+                        { region: 'North America', dancers: 7800, events: 650, growth: 12 },
+                        { region: 'Asia', dancers: 2400, events: 280, growth: 25 },
+                        { region: 'Oceania', dancers: 1200, events: 120, growth: 10 },
+                        { region: 'Africa', dancers: 637, events: 81, growth: 32 }
+                      ].map((region) => (
                       <div key={region.region} className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
@@ -559,7 +574,8 @@ export default function CommunityWorldMap() {
                           </div>
                         </div>
                       </div>
-                    ))}
+                    ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -586,18 +602,8 @@ export default function CommunityWorldMap() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {[
-                      { rank: 1, city: 'Buenos Aires', country: '🇦🇷 Argentina', dancers: 8500, events: 420, growth: 5 },
-                      { rank: 2, city: 'Paris', country: '🇫🇷 France', dancers: 3200, events: 180, growth: 8 },
-                      { rank: 3, city: 'Berlin', country: '🇩🇪 Germany', dancers: 2800, events: 165, growth: 12 },
-                      { rank: 4, city: 'New York', country: '🇺🇸 USA', dancers: 2400, events: 145, growth: 10 },
-                      { rank: 5, city: 'Barcelona', country: '🇪🇸 Spain', dancers: 2100, events: 130, growth: 15 },
-                      { rank: 6, city: 'Moscow', country: '🇷🇺 Russia', dancers: 1800, events: 95, growth: 18 },
-                      { rank: 7, city: 'Tokyo', country: '🇯🇵 Japan', dancers: 1600, events: 88, growth: 22 },
-                      { rank: 8, city: 'London', country: '🇬🇧 UK', dancers: 1500, events: 92, growth: 7 },
-                      { rank: 9, city: 'Seoul', country: '🇰🇷 South Korea', dancers: 1200, events: 75, growth: 28 },
-                      { rank: 10, city: 'Istanbul', country: '🇹🇷 Turkey', dancers: 1100, events: 68, growth: 20 }
-                    ].map((city) => (
+                    {globalStats?.cityRankings?.length > 0 ? (
+                      globalStats.cityRankings.map((city: any) => (
                       <div key={city.rank} className="flex items-center gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
                         <div className={cn(
                           "text-2xl font-bold w-8 text-center",
@@ -616,23 +622,22 @@ export default function CommunityWorldMap() {
                           <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                             <span className="flex items-center gap-1">
                               <Users className="h-3 w-3" />
-                              {city.dancers.toLocaleString()} dancers
+                              {city.dancerCount?.toLocaleString() || 0} dancers
                             </span>
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {city.events} events/mo
-                            </span>
-                            <Badge variant="outline" className="text-xs">
-                              <TrendingUp className="h-3 w-3 mr-1" />
-                              +{city.growth}%
-                            </Badge>
                           </div>
                         </div>
                         <Button variant="outline" size="sm">
                           View Details
                         </Button>
                       </div>
-                    ))}
+                    ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <MapPin className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                        <p className="text-sm">No city data available yet</p>
+                        <p className="text-xs mt-1">Check back as the community grows!</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
