@@ -20,6 +20,25 @@ export default function GroupsPage() {
     refetchOnWindowFocus: true,
     staleTime: 0, // Consider data stale immediately
     gcTime: 0, // Don't cache the data (v5 uses gcTime instead of cacheTime)
+    queryFn: async () => {
+      // Add cache-busting query parameter
+      const cacheBuster = Date.now();
+      const response = await fetch(`/api/groups?_t=${cacheBuster}`, {
+        credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      const data = await response.json();
+      console.log('🔄 GROUPS API RESPONSE:', data);
+      console.log('📊 Member status for each group:', data?.data?.groups?.map((g: any) => ({
+        id: g.id,
+        name: g.name,
+        isMember: g.isMember
+      })));
+      return data;
+    }
   });
 
   // Join group mutation
