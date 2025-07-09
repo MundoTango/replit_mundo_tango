@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import WhatsOnYourMind from "@/components/feed/WhatsOnYourMind";
 import PostLikeComment from "@/components/feed/PostLikeComment";
 import NewFeedEvents from "@/components/feed/NewFeedEvents";
-import FacebookInspiredMemoryCard from "@/components/moments/FacebookInspiredMemoryCard";
+import EnhancedPostItem from "@/components/moments/EnhancedPostItem";
 import { 
   ImageIcon, 
   MapPin, 
