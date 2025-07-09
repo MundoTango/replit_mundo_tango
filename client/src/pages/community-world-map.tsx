@@ -376,10 +376,42 @@ export default function CommunityWorldMap() {
                     </div>
                   )}
                   {mapError && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-                      <div className="text-center">
-                        <p className="text-red-500 font-semibold mb-2">Oops! Something went wrong.</p>
-                        <p className="text-gray-600">{mapError}</p>
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50 p-8">
+                      <div className="text-center max-w-md">
+                        <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-red-500 font-semibold mb-2">Google Maps Configuration Issue</p>
+                        <p className="text-gray-600 text-sm mb-4">{mapError}</p>
+                        
+                        <div className="bg-blue-50 p-4 rounded-lg text-left mb-4">
+                          <p className="text-sm font-medium text-blue-900 mb-2">To fix this:</p>
+                          <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                            <li>Go to your Google Cloud Console</li>
+                            <li>Click on "APIs & Services" → "Credentials"</li>
+                            <li>Edit your API key "VITE_GOOGLE_MAPS_API_KEY"</li>
+                            <li>Under "Application restrictions", either:
+                              <ul className="ml-6 mt-1 list-disc list-inside">
+                                <li>Choose "None" (for development)</li>
+                                <li>Or add <code className="bg-blue-100 px-1 rounded">*.replit.dev</code> to HTTP referrers</li>
+                              </ul>
+                            </li>
+                            <li>Save and wait 1-2 minutes for changes to propagate</li>
+                          </ol>
+                        </div>
+                        
+                        {/* Show city groups as fallback */}
+                        {cityGroups && cityGroups.length > 0 && (
+                          <div className="bg-white p-4 rounded-lg border">
+                            <h3 className="font-medium text-gray-900 mb-3">Active City Groups (Live Data):</h3>
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                              {cityGroups.slice(0, 6).map((group: any) => (
+                                <div key={group.id} className="bg-gray-50 p-2 rounded">
+                                  <p className="font-medium text-gray-800">{group.city || group.name}</p>
+                                  <p className="text-gray-600">{group.memberCount} members</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
