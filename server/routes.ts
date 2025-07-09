@@ -4051,7 +4051,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const comment = await storage.createComment({
         userId,
-        postId: parseInt(postId),
+        postId: postId, // Keep as string for memory IDs
         parentId: parentId ? parseInt(parentId) : null,
         content
       });
@@ -4095,7 +4095,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/posts/:postId/reactions', isAuthenticated, async (req, res) => {
     try {
       const { postId } = req.params;
-      const { type } = req.body;
+      const { reaction } = req.body; // Changed from 'type' to 'reaction' to match frontend
       const userId = req.user?.id;
 
       if (!userId) {
@@ -4106,16 +4106,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const reaction = await storage.createReaction({
+      const reactionData = await storage.createReaction({
         userId,
         postId: postId, // Keep as string for memory IDs
-        type
+        type: reaction // Map 'reaction' to 'type' for storage
       });
 
       return res.json({
         code: 1,
         message: "Reaction added successfully",
-        data: reaction
+        data: reactionData
       });
     } catch (error) {
       console.error('Error creating reaction:', error);
@@ -4140,7 +4140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      await storage.removeReaction(userId, postId, type); // Keep as string for memory IDs
+      await storage.removeReaction(postId, userId); // Keep as string for memory IDs
 
       return res.json({
         code: 1,

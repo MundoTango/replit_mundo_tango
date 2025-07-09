@@ -17,7 +17,7 @@ export const FACEBOOK_REACTIONS: FacebookReaction[] = [
 ];
 
 interface FacebookReactionSelectorProps {
-  postId: number;
+  postId: number | string;
   currentReaction?: string;
   reactions?: { [key: string]: number };
   onReact: (reactionId: string) => void;

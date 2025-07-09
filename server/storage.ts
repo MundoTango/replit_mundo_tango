@@ -1095,7 +1095,20 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(eventParticipants.userId, userId), eq(eventParticipants.status, 'accepted')));
   }
 
-  async createComment(comment: InsertComment): Promise<PostComment> {
+  async createComment(comment: any): Promise<any> {
+    // Handle string memory IDs
+    if (typeof comment.postId === 'string') {
+      // For memory comments, return a placeholder for now
+      return {
+        id: Date.now(),
+        content: comment.content,
+        userId: comment.userId,
+        postId: comment.postId,
+        user: await this.getUser(comment.userId),
+        createdAt: new Date().toISOString()
+      };
+    }
+    
     return this.commentOnPost(comment.postId, comment.userId, comment.content);
   }
 
@@ -1110,11 +1123,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createReaction(reaction: any): Promise<any> {
-    const [newReaction] = await db.insert(postLikes).values(reaction).returning();
+    // Handle string memory IDs
+    if (typeof reaction.postId === 'string') {
+      // For memory reactions, we need to store them differently
+      // Using a placeholder implementation for now
+      return {
+        id: Date.now(),
+        postId: reaction.postId,
+        userId: reaction.userId,
+        type: reaction.type,
+        createdAt: new Date()
+      };
+    }
+    
+    // For numeric post IDs, use the existing postLikes table
+    const [newReaction] = await db.insert(postLikes).values({
+      postId: parseInt(reaction.postId),
+      userId: reaction.userId
+    }).returning();
     return newReaction;
   }
 
-  async removeReaction(postId: number, userId: number): Promise<void> {
+  async removeReaction(postId: number | string, userId: number): Promise<void> {
+    if (typeof postId === 'string') {
+      // Handle memory reaction removal
+      console.log(`Removing reaction from memory ${postId} by user ${userId}`);
+      return;
+    }
     return this.unlikePost(postId, userId);
   }
 

@@ -24,7 +24,7 @@ import { PostContextMenu } from '@/components/ui/PostContextMenu';
 import { ReportModal } from '@/components/ui/ReportModal';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface Post {
   id: string; // Changed from number to string
@@ -153,20 +153,20 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
 
   // API Mutations
   const reactionMutation = useMutation({
-    mutationFn: async ({ postId, reaction }: { postId: number; reaction: string }) => {
-      const response = await fetch(`/api/post-reaction/store`, {
+    mutationFn: async ({ postId, reaction }: { postId: string; reaction: string }) => {
+      const response = await fetch(`/api/posts/${postId}/reactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ 
-          post_id: postId,
-          reaction_type: reaction
+          reaction
         })
       });
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
     }
   });
 
@@ -209,7 +209,7 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
 
   const reportMutation = useMutation({
     mutationFn: async ({ postId, reason, description }: { postId: string; reason: string; description: string }) => {
-      const response = await fetch(`/api/posts/${postId}/reports`, {
+      const response = await fetch(`/api/posts/${postId}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
