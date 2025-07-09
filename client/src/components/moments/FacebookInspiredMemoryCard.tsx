@@ -116,7 +116,7 @@ export default function FacebookInspiredMemoryCard({ post, onLike, onComment, on
 
   const reportMutation = useMutation({
     mutationFn: async ({ postId, reason, description }: { postId: string; reason: string; description: string }) => {
-      const response = await fetch(`/api/posts/${postId}/reports`, {
+      const response = await fetch(`/api/posts/${postId}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
