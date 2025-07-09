@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Loader } from '@googlemaps/js-api-loader';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -61,6 +62,9 @@ interface CountryStats {
 export default function CommunityWorldMap() {
   const { toast } = useToast();
   const mapRef = useRef<any>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<CityData | null>(null);
   const [mapZoom, setMapZoom] = useState(2);
   const [searchQuery, setSearchQuery] = useState('');
@@ -114,9 +118,33 @@ export default function CommunityWorldMap() {
     }
   });
 
+  // Load Google Maps API
+  useEffect(() => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      setMapError('Google Maps API key not configured');
+      console.error('Google Maps API key not found');
+      return;
+    }
+
+    const loader = new Loader({
+      apiKey,
+      version: "weekly",
+      libraries: ["places", "marker"]
+    });
+
+    loader.load().then(() => {
+      setIsMapLoaded(true);
+      setMapError(null);
+    }).catch((error) => {
+      console.error('Error loading Google Maps:', error);
+      setMapError('Failed to load Google Maps');
+    });
+  }, []);
+
   // Initialize Google Maps
   useEffect(() => {
-    if (!window.google || !mapRef.current) return;
+    if (!isMapLoaded || !mapRef.current || mapInstanceRef.current) return;
 
     const map = new window.google.maps.Map(mapRef.current, {
       center: { lat: 0, lng: 0 },
@@ -135,8 +163,22 @@ export default function CommunityWorldMap() {
       ]
     });
 
+    mapInstanceRef.current = map;
+
+  }, [isMapLoaded]);
+
+  // Add markers when cityGroups data is available
+  useEffect(() => {
+    if (!isMapLoaded || !mapInstanceRef.current || !cityGroups) return;
+
+    const map = mapInstanceRef.current;
+
+    // Clear existing markers
+    map.markers?.forEach((marker: any) => marker.setMap(null));
+    map.markers = [];
+
     // Add markers for city groups
-    cityGroups?.forEach((group: any) => {
+    cityGroups.forEach((group: any) => {
       const marker = new window.google.maps.Marker({
         position: { lat: group.lat, lng: group.lng },
         map,
@@ -172,9 +214,12 @@ export default function CommunityWorldMap() {
         map.panTo({ lat: group.lat, lng: group.lng });
         map.setZoom(10);
       });
+
+      if (!map.markers) map.markers = [];
+      map.markers.push(marker);
     });
 
-  }, [cityGroups, mapZoom]);
+  }, [cityGroups, isMapLoaded]);
 
   const getMarkerColor = (city: CityData) => {
     if (city.dancers > 1000) return '#FF1744'; // Red for major hubs
@@ -315,7 +360,24 @@ export default function CommunityWorldMap() {
                 <div 
                   ref={mapRef}
                   className="w-full h-[600px] rounded-lg border border-gray-200"
-                />
+                >
+                  {!isMapLoaded && !mapError && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading map...</p>
+                      </div>
+                    </div>
+                  )}
+                  {mapError && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                      <div className="text-center">
+                        <p className="text-red-500 font-semibold mb-2">Oops! Something went wrong.</p>
+                        <p className="text-gray-600">{mapError}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 
                 {/* City Info Panel */}
                 {selectedCity && (
