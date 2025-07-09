@@ -115,22 +115,6 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     return path === location;
   };
 
-  const handleLinkClick = (link: string) => {
-    console.log("🔍 DEBUG: handleLinkClick called with:", link);
-    console.log("🔍 DEBUG: Current location before:", location);
-    setLocation(link);
-    console.log("🔍 DEBUG: Called setLocation with:", link);
-    
-    // Force a small delay to ensure navigation happens
-    setTimeout(() => {
-      console.log("🔍 DEBUG: Location after timeout:", window.location.pathname);
-    }, 100);
-    
-    if (window.innerWidth < 1024) {
-      setIsOpen(false);
-    }
-  };
-
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
@@ -227,20 +211,17 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                       setIsOpen(false);
                     }
                   }}
+                  className={`group flex items-center gap-3 py-2 px-4 rounded-xl cursor-pointer transition-all hover:bg-gray-100 block ${
+                    isActive(link)
+                      ? "bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg"
+                      : "text-gray-700"
+                  }`}
                 >
-                  <div
-                    className={`group flex items-center gap-3 py-2 px-4 rounded-xl cursor-pointer transition-all hover:bg-gray-100 ${
-                      isActive(link)
-                        ? "bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg"
-                        : "text-gray-700"
-                    }`}
-                  >
-                    <div className={`${isActive(link) ? "text-white" : "text-gray-500 group-hover:text-gray-700"}`}>
-                      {icon}
-                    </div>
-                    <div className={`text-sm font-semibold ${isActive(link) ? "text-white" : "group-hover:text-gray-900"} tracking-wide`}>
-                      {title}
-                    </div>
+                  <div className={`${isActive(link) ? "text-white" : "text-gray-500 group-hover:text-gray-700"}`}>
+                    {icon}
+                  </div>
+                  <div className={`text-sm font-semibold ${isActive(link) ? "text-white" : "group-hover:text-gray-900"} tracking-wide`}>
+                    {title}
                   </div>
                 </Link>
               ))}
@@ -270,25 +251,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             </div>
           </div>
 
-          {/* Debug Navigation Button - TEMPORARY */}
-          <div className="px-4 mb-4 space-y-2">
-            <Link href="/enhanced-timeline">
-              <button
-                className="w-full p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-sm"
-              >
-                🐛 DEBUG: Link Component Navigation
-              </button>
-            </Link>
-            <button
-              onClick={() => {
-                console.log("🔍 DEBUG: Force navigation with window.location");
-                window.location.href = '/enhanced-timeline';
-              }}
-              className="w-full p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-sm"
-            >
-              🔧 FORCE: window.location
-            </button>
-          </div>
+
 
           {/* Footer */}
           <div className="px-4 mb-4">
