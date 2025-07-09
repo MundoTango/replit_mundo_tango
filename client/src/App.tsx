@@ -50,6 +50,7 @@ import TimelineMinimal from "@/pages/timeline-minimal";
 import TimelineDebug from "@/pages/timeline-debug";
 import SimpleTest from "@/pages/simple-test";
 import FixModalTest from "@/pages/fix-modal-test";
+import NavigationTest from "@/pages/navigation-test";
 
 // Simple error boundary component
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -168,6 +169,7 @@ function Router() {
       <Route path="/debug" component={TimelineDebug} />
       <Route path="/simple-test" component={SimpleTest} />
       <Route path="/fix-modal" component={FixModalTest} />
+      <Route path="/navigation-test" component={NavigationTest} />
       <Route path="/enhanced-timeline-old" component={EnhancedTimeline} />
       <Route path="/route-test" component={RouteTest} />
       <Route component={NotFound} />
@@ -179,6 +181,31 @@ function App() {
   // Initialize analytics on app startup
   useEffect(() => {
     initAnalytics();
+    
+    // Debug: Confirm App is mounting
+    console.error('🚀 App component mounted!');
+    
+    // Add visible debug indicator
+    const debugDiv = document.createElement('div');
+    debugDiv.id = 'app-debug-indicator';
+    debugDiv.style.position = 'fixed';
+    debugDiv.style.bottom = '10px';
+    debugDiv.style.left = '10px';
+    debugDiv.style.backgroundColor = 'red';
+    debugDiv.style.color = 'white';
+    debugDiv.style.padding = '5px 10px';
+    debugDiv.style.zIndex = '999999';
+    debugDiv.style.fontSize = '12px';
+    debugDiv.innerHTML = `React App Loaded | Path: ${window.location.pathname}`;
+    document.body.appendChild(debugDiv);
+    
+    // Update path on navigation
+    setInterval(() => {
+      const div = document.getElementById('app-debug-indicator');
+      if (div) {
+        div.innerHTML = `React App Loaded | Path: ${window.location.pathname}`;
+      }
+    }, 500);
   }, []);
 
   // Remove debug mode - React is confirmed working
