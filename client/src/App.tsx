@@ -159,6 +159,7 @@ function Router() {
       <Route path="/modal-debug" component={ModalDebugTest} />
       <Route path="/test-admin" component={TestAdminPage} />
       <Route path="/enhanced-timeline" component={EnhancedTimelineV2} />
+      <Route path="/timeline-v2" component={EnhancedTimelineV2} />
       <Route path="/enhanced-timeline-old" component={EnhancedTimeline} />
       <Route path="/route-test" component={RouteTest} />
       <Route component={NotFound} />
