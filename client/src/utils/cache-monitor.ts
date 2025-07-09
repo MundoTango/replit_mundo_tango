@@ -12,7 +12,7 @@ export interface CacheStatus {
 
 export class CacheMonitor {
   private static instance: CacheMonitor;
-  private expectedVersion = 'life-ceo-v2'; // Must match service-worker.js
+  private expectedVersion = 'life-ceo-v3'; // Must match service-worker.js
   private checkInterval: NodeJS.Timeout | null = null;
   
   private constructor() {}

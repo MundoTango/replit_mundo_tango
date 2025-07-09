@@ -8405,32 +8405,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .from(groups)
         .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
-        .where(eq(groups.groupType, 'city'))
+        .where(eq(groups.type, 'city'))
         .groupBy(groups.id, groups.name, groups.city, groups.country);
 
-      // Get coordinates for each city
-      const cityGroupsWithCoords = await Promise.all(cityGroups.map(async (group) => {
-        // Get average coordinates from users in that city
-        const cityLocation = await db
-          .select({
-            lat: sql<number>`AVG(CAST(latitude AS FLOAT))`,
-            lng: sql<number>`AVG(CAST(longitude AS FLOAT))`,
-            userCount: sql<number>`COUNT(*)`
-          })
-          .from(users)
-          .where(and(
-            eq(users.city, group.city || ''),
-            isNotNull(users.latitude),
-            isNotNull(users.longitude)
-          ))
-          .then(r => r[0]);
-
-        return {
-          ...group,
-          lat: cityLocation?.lat ? Number(cityLocation.lat) : 0,
-          lng: cityLocation?.lng ? Number(cityLocation.lng) : 0,
-          totalUsers: Number(cityLocation?.userCount || 0)
-        };
+      // For now, return city groups without coordinates
+      // TODO: Implement geocoding service to get city coordinates
+      const cityGroupsWithCoords = cityGroups.map(group => ({
+        ...group,
+        lat: 0, // Placeholder - would need geocoding service
+        lng: 0, // Placeholder - would need geocoding service
+        totalUsers: Number(group.memberCount || 0)
       }));
 
       res.json({

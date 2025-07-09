@@ -18,6 +18,9 @@
   - Map now displays city groups as markers with member counts
   - Fixed city group visibility on Tango World Map
 - **Fixed Import Issues**: Added missing schema imports (eventRsvps, groupMembers, follows, memories)
+- **Cache Version Fix**: Updated cache monitor to v3 matching service worker version
+  - Fixed mismatch between service worker (v3) and cache monitor (v2)
+  - SQL syntax error fixed: groups table uses `type` column not `groupType`
 
 **UPDATE (January 9, 2025)**: Service Worker Cache Fix & Prevention System Implementation
 - **Critical Cache Issue Resolved**: Fixed persistent "old UI" bug caused by aggressive service worker caching

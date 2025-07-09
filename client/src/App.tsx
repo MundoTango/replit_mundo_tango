@@ -96,6 +96,31 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
 
+  // Force cache update for v3
+  React.useEffect(() => {
+    if ('serviceWorker' in navigator && 'caches' in window) {
+      caches.keys().then(cacheNames => {
+        const oldCaches = cacheNames.filter(name => 
+          name.startsWith('life-ceo-') && name !== 'life-ceo-v3'
+        );
+        
+        if (oldCaches.length > 0) {
+          console.log('Old cache detected, forcing update...');
+          Promise.all(oldCaches.map(name => caches.delete(name)))
+            .then(() => {
+              navigator.serviceWorker.getRegistrations().then(registrations => {
+                registrations.forEach(registration => {
+                  registration.unregister();
+                });
+                console.log('Cache cleared, reloading...');
+                window.location.reload();
+              });
+            });
+        }
+      });
+    }
+  }, []);
+
   console.log("Router state:", { user, isLoading, isAuthenticated });
 
   if (isLoading) {
