@@ -1,5 +1,6 @@
-// Life CEO Service Worker v1.0
-const CACHE_NAME = 'life-ceo-v1';
+// Life CEO Service Worker v2.0 - Updated January 9, 2025
+// IMPORTANT: Cache version updated to force refresh of all cached content
+const CACHE_NAME = 'life-ceo-v2';
 const urlsToCache = [
   '/',
   '/life-ceo',
@@ -10,6 +11,9 @@ const urlsToCache = [
 
 // Install event - cache resources
 self.addEventListener('install', event => {
+  // Force the new service worker to activate immediately
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -26,10 +30,14 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => {
+      // Force the service worker to control all clients immediately
+      return self.clients.claim();
     })
   );
 });
