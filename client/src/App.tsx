@@ -45,6 +45,7 @@ import EnhancedTimeline from "@/pages/enhanced-timeline";
 import EnhancedTimelineV2 from "@/pages/enhanced-timeline-v2";
 import SimpleEnhancedTimeline from "@/pages/simple-enhanced-timeline";
 import RouteTest from "@/pages/route-test";
+import TimelineTest from "@/pages/timeline-test";
 
 // Simple error boundary component
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -159,7 +160,7 @@ function Router() {
       <Route path="/modal-debug" component={ModalDebugTest} />
       <Route path="/test-admin" component={TestAdminPage} />
       <Route path="/enhanced-timeline" component={EnhancedTimelineV2} />
-      <Route path="/timeline-v2" component={EnhancedTimelineV2} />
+      <Route path="/timeline-v2" component={TimelineTest} />
       <Route path="/enhanced-timeline-old" component={EnhancedTimeline} />
       <Route path="/route-test" component={RouteTest} />
       <Route component={NotFound} />
