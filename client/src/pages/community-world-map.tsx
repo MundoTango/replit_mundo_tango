@@ -476,7 +476,7 @@ export default function CommunityWorldMap() {
                       <div>
                         <p className="text-sm text-gray-600">Total Dancers</p>
                         <p className="text-2xl font-bold">{globalStats?.totalDancers || 0}</p>
-                        <p className="text-xs text-green-600 mt-1">Live count</p>
+                        <p className="text-xs text-green-600 mt-1">Live DB count (v2)</p>
                       </div>
                       <Users className="h-8 w-8 text-blue-500" />
                     </div>
