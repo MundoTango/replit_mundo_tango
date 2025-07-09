@@ -9092,6 +9092,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to get current user
+  const getCurrentUser = async (req: any) => {
+    const userId = req.user?.id || req.user?.claims?.sub || req.session?.passport?.user?.claims?.sub || 7;
+    return await storage.getUser(userId);
+  };
+
   // Automation 4: Create host home with automatic geocoding
   app.post('/api/host-homes', setUserContext, async (req, res) => {
     try {
