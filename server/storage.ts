@@ -1098,14 +1098,29 @@ export class DatabaseStorage implements IStorage {
   async createComment(comment: any): Promise<any> {
     // Handle string memory IDs
     if (typeof comment.postId === 'string') {
-      // For memory comments, return a placeholder for now
+      // Create memory comment in new table
+      const result = await db.execute(sql`
+        INSERT INTO memory_comments (memory_id, user_id, content, mentions)
+        VALUES (${comment.postId}, ${comment.userId}, ${comment.content}, ${JSON.stringify(comment.mentions || [])})
+        RETURNING *
+      `);
+      
+      const newComment = result.rows[0] as any;
+      
+      // Get user info for the comment
+      const user = await this.getUser(comment.userId);
+      
       return {
-        id: Date.now(),
-        content: comment.content,
-        userId: comment.userId,
-        postId: comment.postId,
-        user: await this.getUser(comment.userId),
-        createdAt: new Date().toISOString()
+        id: newComment.id,
+        content: newComment.content,
+        userId: newComment.user_id,
+        postId: newComment.memory_id,
+        user: {
+          id: user?.id,
+          name: user?.name || 'Unknown',
+          profileImage: user?.profileImage
+        },
+        createdAt: newComment.created_at
       };
     }
     
@@ -1115,9 +1130,27 @@ export class DatabaseStorage implements IStorage {
   async getCommentsByPostId(postId: number | string): Promise<PostComment[]> {
     // Handle string memory IDs
     if (typeof postId === 'string') {
-      // For now, return empty array for memory comments
-      // TODO: Implement memory comment system
-      return [];
+      // Get memory comments from new table
+      const result = await db.execute(sql`
+        SELECT mc.*, u.name as user_name, u.profile_image as user_profile_image
+        FROM memory_comments mc
+        JOIN users u ON mc.user_id = u.id
+        WHERE mc.memory_id = ${postId}
+        ORDER BY mc.created_at DESC
+      `);
+      
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        content: row.content,
+        userId: row.user_id,
+        postId: row.memory_id,
+        user: {
+          id: row.user_id,
+          name: row.user_name || 'Unknown',
+          profileImage: row.user_profile_image
+        },
+        createdAt: row.created_at
+      }));
     }
     return this.getPostComments(postId);
   }
@@ -1125,15 +1158,30 @@ export class DatabaseStorage implements IStorage {
   async createReaction(reaction: any): Promise<any> {
     // Handle string memory IDs
     if (typeof reaction.postId === 'string') {
-      // For memory reactions, we need to store them differently
-      // Using a placeholder implementation for now
-      return {
-        id: Date.now(),
-        postId: reaction.postId,
-        userId: reaction.userId,
-        type: reaction.type,
-        createdAt: new Date()
-      };
+      // Use upsert to handle toggle behavior
+      const result = await db.execute(sql`
+        INSERT INTO memory_reactions (memory_id, user_id, reaction_type)
+        VALUES (${reaction.postId}, ${reaction.userId}, ${reaction.type})
+        ON CONFLICT (memory_id, user_id) 
+        DO UPDATE SET 
+          reaction_type = CASE 
+            WHEN memory_reactions.reaction_type = ${reaction.type} THEN NULL
+            ELSE ${reaction.type}
+          END,
+          created_at = CURRENT_TIMESTAMP
+        RETURNING *
+      `);
+      
+      // If reaction was toggled off, delete the row
+      if (result.rows[0] && (result.rows[0] as any).reaction_type === null) {
+        await db.execute(sql`
+          DELETE FROM memory_reactions 
+          WHERE memory_id = ${reaction.postId} AND user_id = ${reaction.userId}
+        `);
+        return null;
+      }
+      
+      return result.rows[0];
     }
     
     // For numeric post IDs, use the existing postLikes table
@@ -1154,7 +1202,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createReport(report: any): Promise<any> {
-    // Placeholder for reports table - not implemented in current schema
+    // Handle string memory IDs
+    if (typeof report.postId === 'string') {
+      const result = await db.execute(sql`
+        INSERT INTO memory_reports (memory_id, reporter_id, reason, description)
+        VALUES (${report.postId}, ${report.reporterId}, ${report.reason}, ${report.description || null})
+        RETURNING *
+      `);
+      
+      return result.rows[0];
+    }
+    
+    // For numeric post IDs, we'd need a post_reports table
     return { id: 1, ...report, createdAt: new Date() };
   }
 

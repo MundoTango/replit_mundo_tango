@@ -183,24 +183,14 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
       });
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
       queryClient.invalidateQueries({ queryKey: [`/api/posts/${post.id}/comments`] });
       
-      // Add new comment to local state
-      const newComment = {
-        id: Date.now(),
-        content: data.comment || data.content,
-        userId: user?.id || 0,
-        user: {
-          id: user?.id || 0,
-          name: user?.name || 'Anonymous',
-          profileImage: user?.profileImage
-        },
-        createdAt: new Date().toISOString(),
-        mentions: data.mentions || []
-      };
-      setComments(prev => [...prev, newComment]);
+      // Add the actual comment returned from server
+      if (response.data) {
+        setComments(prev => [...prev, response.data]);
+      }
       
       setShowComments(true);
       toast({ title: "Comment posted successfully!" });
@@ -290,6 +280,7 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
   };
 
   const handleShare = () => {
+    // Don't use native share API, use platform share modal
     setShowShareOptions(true);
   };
 
