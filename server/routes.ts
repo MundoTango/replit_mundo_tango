@@ -6734,6 +6734,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, message: 'Failed to fetch moderation data' });
     }
   });
+  
+  // Admin: Get reports (TrangoTech-style)
+  app.get('/api/admin/reports', isAuthenticated, async (req, res) => {
+    try {
+      const { storage } = await import('./storage');
+      
+      // Check admin access
+      const replitId = req.session?.passport?.user?.claims?.sub;
+      if (!replitId) {
+        return res.status(401).json({ success: false, message: 'Authentication required.' });
+      }
+
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      let userRoles: string[] = [];
+      try {
+        const roles = await storage.getUserRoles(user.id);
+        userRoles = roles.map(role => role.roleName);
+      } catch (roleError) {
+        if (user.username === 'admin' || user.email?.includes('admin')) {
+          userRoles = ['super_admin', 'admin'];
+        }
+      }
+
+      const hasAdminAccess = userRoles.includes('super_admin') || userRoles.includes('admin') || userRoles.includes('moderator');
+      if (!hasAdminAccess) {
+        return res.status(403).json({ success: false, message: 'Access denied.' });
+      }
+      
+      const { status } = req.query;
+      const reports = await storage.getReports(status as string);
+      
+      res.json({
+        code: 200,
+        message: 'Reports fetched successfully',
+        data: { reports }
+      });
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to fetch reports',
+        data: null
+      });
+    }
+  });
+  
+  // Admin: Update report status (TrangoTech-style)
+  app.put('/api/admin/reports/:id', isAuthenticated, async (req, res) => {
+    try {
+      const { storage } = await import('./storage');
+      
+      // Check admin access
+      const replitId = req.session?.passport?.user?.claims?.sub;
+      if (!replitId) {
+        return res.status(401).json({ success: false, message: 'Authentication required.' });
+      }
+
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      let userRoles: string[] = [];
+      try {
+        const roles = await storage.getUserRoles(user.id);
+        userRoles = roles.map(role => role.roleName);
+      } catch (roleError) {
+        if (user.username === 'admin' || user.email?.includes('admin')) {
+          userRoles = ['super_admin', 'admin'];
+        }
+      }
+
+      const hasAdminAccess = userRoles.includes('super_admin') || userRoles.includes('admin') || userRoles.includes('moderator');
+      if (!hasAdminAccess) {
+        return res.status(403).json({ success: false, message: 'Access denied.' });
+      }
+      
+      const reportId = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!['resolved', 'unresolved', 'investigating', 'dismissed'].includes(status)) {
+        return res.status(400).json({
+          code: 400,
+          message: 'Invalid status',
+          data: null
+        });
+      }
+      
+      const updatedReport = await storage.updateReportStatus(reportId, status, user.id);
+      
+      res.json({
+        code: 200,
+        message: 'Report status updated successfully',
+        data: { report: updatedReport }
+      });
+    } catch (error) {
+      console.error('Error updating report:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to update report',
+        data: null
+      });
+    }
+  });
 
   // Admin: Get analytics data
   app.get('/api/admin/analytics', isAuthenticated, async (req, res) => {

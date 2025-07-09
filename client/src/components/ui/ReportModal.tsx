@@ -179,14 +179,14 @@ export const ReportModal: React.FC<ReportModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-200">
+        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
           <p className="text-sm text-gray-600">
             Reports are reviewed by our moderation team
           </p>
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              className="px-6 py-2.5 text-gray-700 hover:text-gray-900 font-medium transition-colors"
             >
               Cancel
             </button>
@@ -194,14 +194,14 @@ export const ReportModal: React.FC<ReportModalProps> = ({
               onClick={handleSubmit}
               disabled={!selectedReason || isSubmitting}
               className={`
-                px-6 py-2 rounded-xl font-medium transition-all
+                px-8 py-2.5 rounded-xl font-semibold transition-all transform
                 ${selectedReason && !isSubmitting
-                  ? 'bg-red-600 text-white hover:bg-red-700'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  ? 'bg-red-600 text-white hover:bg-red-700 hover:scale-105 shadow-lg'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }
               `}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Report'}
+              {isSubmitting ? 'Submitting Report...' : 'Submit Report'}
             </button>
           </div>
         </div>

@@ -896,72 +896,202 @@ const AdminCenter: React.FC = () => {
     </div>
   );
 
+  const [reports, setReports] = useState<any[]>([]);
+  const [reportFilter, setReportFilter] = useState('unresolved');
+  const [reportLoading, setReportLoading] = useState(false);
+
+  const fetchReports = async () => {
+    setReportLoading(true);
+    try {
+      const response = await fetch(`/api/admin/reports?status=${reportFilter}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch reports');
+      const data = await response.json();
+      if (data.code === 200) {
+        setReports(data.data.reports || []);
+      }
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const updateReportStatus = async (reportId: number, status: string) => {
+    try {
+      const response = await fetch(`/api/admin/reports/${reportId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status })
+      });
+      if (!response.ok) throw new Error('Failed to update report');
+      
+      // Refresh reports
+      await fetchReports();
+    } catch (error) {
+      console.error('Error updating report:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedTab === 'reports') {
+      fetchReports();
+    }
+  }, [selectedTab, reportFilter]);
+
   const renderReportsAndLogs = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Reports & System Logs</h2>
+        <h2 className="text-xl font-bold text-gray-900">User Reports & Moderation</h2>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <select
+            value={reportFilter}
+            onChange={(e) => setReportFilter(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="unresolved">Unresolved</option>
+            <option value="resolved">Resolved</option>
+            <option value="investigating">Investigating</option>
+            <option value="dismissed">Dismissed</option>
+            <option value="">All Reports</option>
+          </select>
+          <button 
+            onClick={fetchReports}
+            disabled={reportLoading}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
             <Eye className="w-4 h-4 inline mr-2" />
-            View All Logs
+            {reportLoading ? 'Loading...' : 'Refresh'}
           </button>
         </div>
       </div>
 
-      {/* Log Stats */}
+      {/* Report Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatCard
-          title="Error Logs"
-          value="23"
-          icon={<AlertTriangle className="w-5 h-5" />}
+          title="Pending Reports"
+          value={reports.filter(r => r.status === 'unresolved').length}
+          icon={<Flag className="w-5 h-5 text-red-600" />}
           bgColor="bg-red-50"
         />
         <StatCard
-          title="Security Events"
-          value="156"
-          icon={<Shield className="w-5 h-5" />}
-          bgColor="bg-blue-50"
+          title="Investigating"
+          value={reports.filter(r => r.status === 'investigating').length}
+          icon={<AlertTriangle className="w-5 h-5 text-yellow-600" />}
+          bgColor="bg-yellow-50"
         />
         <StatCard
-          title="API Requests"
-          value="47.2K"
-          icon={<Database className="w-5 h-5" />}
+          title="Resolved Today"
+          value={reports.filter(r => r.status === 'resolved' && new Date(r.resolved_at).toDateString() === new Date().toDateString()).length}
+          icon={<CheckCircle className="w-5 h-5 text-green-600" />}
           bgColor="bg-green-50"
         />
         <StatCard
-          title="Warnings"
-          value="8"
-          icon={<AlertCircle className="w-5 h-5" />}
-          bgColor="bg-yellow-50"
+          title="Total Reports"
+          value={reports.length}
+          icon={<Eye className="w-5 h-5 text-blue-600" />}
+          bgColor="bg-blue-50"
         />
       </div>
 
-      {/* Recent Logs */}
+      {/* Recent Reports */}
       <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent System Events</h3>
-        <div className="space-y-3">
-          <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <div className="flex-1">
-              <div className="font-medium">Database backup completed</div>
-              <div className="text-sm text-gray-500">2 hours ago • Size: 2.4GB</div>
-            </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">User Reports</h3>
+        {reportLoading ? (
+          <div className="text-center py-8 text-gray-500">
+            Loading reports...
           </div>
-          <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
-            <AlertTriangle className="w-5 h-5 text-yellow-600" />
-            <div className="flex-1">
-              <div className="font-medium">High memory usage detected</div>
-              <div className="text-sm text-gray-500">4 hours ago • 87% utilization</div>
-            </div>
+        ) : reports.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No reports found
           </div>
-          <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-            <Database className="w-5 h-5 text-blue-600" />
-            <div className="flex-1">
-              <div className="font-medium">Scheduled maintenance completed</div>
-              <div className="text-sm text-gray-500">Yesterday • Duration: 15 minutes</div>
-            </div>
+        ) : (
+          <div className="space-y-4">
+            {reports.map((report) => (
+              <div key={report.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        report.report_type_name === 'Harassment' ? 'bg-red-100 text-red-800' :
+                        report.report_type_name === 'Inappropriate' ? 'bg-orange-100 text-orange-800' :
+                        report.report_type_name === 'Spam' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {report.report_type_name}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {report.instance_type} #{report.instance_id}
+                      </span>
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        report.status === 'unresolved' ? 'bg-red-100 text-red-700' :
+                        report.status === 'investigating' ? 'bg-yellow-100 text-yellow-700' :
+                        report.status === 'resolved' ? 'bg-green-100 text-green-700' :
+                        'bg-gray-100 text-gray-700'
+                      }`}>
+                        {report.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-900 mb-2">{report.description || 'No description provided'}</p>
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span>Reported by: {report.reporter_name}</span>
+                      <span>•</span>
+                      <span>{new Date(report.created_at).toLocaleString()}</span>
+                      {report.resolved_at && (
+                        <>
+                          <span>•</span>
+                          <span>Resolved: {new Date(report.resolved_at).toLocaleString()}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    {report.status === 'unresolved' && (
+                      <>
+                        <button
+                          onClick={() => updateReportStatus(report.id, 'investigating')}
+                          className="px-3 py-1 text-sm bg-yellow-600 text-white rounded hover:bg-yellow-700"
+                        >
+                          Investigate
+                        </button>
+                        <button
+                          onClick={() => updateReportStatus(report.id, 'resolved')}
+                          className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                          Resolve
+                        </button>
+                        <button
+                          onClick={() => updateReportStatus(report.id, 'dismissed')}
+                          className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
+                        >
+                          Dismiss
+                        </button>
+                      </>
+                    )}
+                    {report.status === 'investigating' && (
+                      <>
+                        <button
+                          onClick={() => updateReportStatus(report.id, 'resolved')}
+                          className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                          Resolve
+                        </button>
+                        <button
+                          onClick={() => updateReportStatus(report.id, 'dismissed')}
+                          className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
+                        >
+                          Dismiss
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

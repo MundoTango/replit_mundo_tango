@@ -1201,20 +1201,69 @@ export class DatabaseStorage implements IStorage {
     return this.unlikePost(postId, userId);
   }
 
-  async createReport(report: any): Promise<any> {
-    // Handle string memory IDs
-    if (typeof report.postId === 'string') {
-      const result = await db.execute(sql`
-        INSERT INTO memory_reports (memory_id, reporter_id, reason, description)
-        VALUES (${report.postId}, ${report.reporterId}, ${report.reason}, ${report.description || null})
-        RETURNING *
-      `);
-      
-      return result.rows[0];
+  async getReports(status?: string): Promise<any[]> {
+    let query = sql`
+      SELECT 
+        r.*,
+        u.name as reporter_name,
+        u.profile_image as reporter_image,
+        rt.name as report_type_name
+      FROM reports r
+      JOIN users u ON r.user_id = u.id
+      JOIN report_types rt ON r.report_type_id = rt.id
+      WHERE r.deleted_at IS NULL
+    `;
+    
+    if (status) {
+      query = sql`${query} AND r.status = ${status}`;
     }
     
-    // For numeric post IDs, we'd need a post_reports table
-    return { id: 1, ...report, createdAt: new Date() };
+    query = sql`${query} ORDER BY r.created_at DESC`;
+    
+    const result = await db.execute(query);
+    return result.rows;
+  }
+  
+  async updateReportStatus(reportId: number, status: string, adminId: number): Promise<any> {
+    const result = await db.execute(sql`
+      UPDATE reports 
+      SET status = ${status}, 
+          resolved_by = ${adminId},
+          resolved_at = ${status === 'resolved' ? sql`CURRENT_TIMESTAMP` : null}
+      WHERE id = ${reportId}
+      RETURNING *
+    `);
+    
+    return result.rows[0];
+  }
+  
+  async createReport(report: any): Promise<any> {
+    // Map the reason to a report type ID
+    const reportTypeMapping: Record<string, number> = {
+      'harassment': 1,
+      'inappropriate': 2,
+      'irrelevant': 3,
+      'spam': 4,
+      'violence': 5,
+      'false_information': 6,
+      'hate_speech': 7,
+      'nudity': 8,
+      'copyright': 9,
+      'other': 10
+    };
+    
+    const reportTypeId = reportTypeMapping[report.reason] || 10; // Default to 'Other'
+    
+    // Determine instance type based on postId
+    const instanceType = typeof report.postId === 'string' ? 'memory' : 'post';
+    
+    const result = await db.execute(sql`
+      INSERT INTO reports (user_id, report_type_id, instance_type, instance_id, description)
+      VALUES (${report.reporterId}, ${reportTypeId}, ${instanceType}, ${report.postId}, ${report.description || null})
+      RETURNING *
+    `);
+    
+    return result.rows[0];
   }
 
   async getNotificationsByUserId(userId: number): Promise<any[]> {
