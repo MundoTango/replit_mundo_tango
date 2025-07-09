@@ -161,9 +161,9 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         <nav className="mt-4">
           {/* Mini Profile Section */}
           <div className="px-4 mb-6">
-            <Link
+            <a
               href="/profile"
-              onClick={() => {
+              onClick={(e) => {
                 if (window.innerWidth < 1024) {
                   setIsOpen(false);
                 }
@@ -203,7 +203,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   </span>
                 ))}
               </div>
-            </Link>
+            </a>
           </div>
 
           {/* Navigation Menu */}
@@ -211,10 +211,10 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             <div className="text-xs uppercase font-semibold text-gray-500 tracking-wide mb-3">Menu</div>
             <div className="space-y-1">
               {allRoutes.map(({ icon, title, link }, index) => (
-                <Link
+                <a
                   key={index}
                   href={link}
-                  onClick={() => {
+                  onClick={(e) => {
                     if (window.innerWidth < 1024) {
                       setIsOpen(false);
                     }
@@ -231,7 +231,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   <div className={`text-sm font-semibold ${isActive(link) ? "text-white" : "group-hover:text-gray-900"} tracking-wide`}>
                     {title}
                   </div>
-                </Link>
+                </a>
               ))}
             </div>
           </div>
