@@ -42,6 +42,7 @@ import TestModal from "@/pages/TestModal";
 import ModalDebugTest from "@/pages/ModalDebugTest";
 import TestAdminPage from "@/pages/TestAdminPage";
 import EnhancedTimeline from "@/pages/enhanced-timeline";
+import EnhancedTimelineV2 from "@/pages/enhanced-timeline-v2";
 import SimpleEnhancedTimeline from "@/pages/simple-enhanced-timeline";
 import RouteTest from "@/pages/route-test";
 
@@ -157,7 +158,8 @@ function Router() {
       <Route path="/test-modal" component={TestModal} />
       <Route path="/modal-debug" component={ModalDebugTest} />
       <Route path="/test-admin" component={TestAdminPage} />
-      <Route path="/enhanced-timeline" component={EnhancedTimeline} />
+      <Route path="/enhanced-timeline" component={EnhancedTimelineV2} />
+      <Route path="/enhanced-timeline-old" component={EnhancedTimeline} />
       <Route path="/route-test" component={RouteTest} />
       <Route component={NotFound} />
     </Switch>
