@@ -6,13 +6,13 @@ import { setupVite, serveStatic, log } from "./vite";
 import { authMiddleware } from "./middleware/auth";
 import { setupUpload } from "./middleware/upload";
 import { storage } from "./storage";
-import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema, insertCustomRoleRequestSchema, roles, userProfiles, userRoles } from "../shared/schema";
+import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema, insertCustomRoleRequestSchema, roles, userProfiles, userRoles, groups, users, events } from "../shared/schema";
 import { z } from "zod";
 import { SocketService } from "./services/socketService";
 import { WebSocketServer } from "ws";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, desc, and, isNotNull, count } from "drizzle-orm";
 import { uploadMedia, uploadMediaWithMetadata, deleteMedia, deleteMediaWithMetadata, getSignedUrl, initializeStorageBucket } from "./services/uploadService";
 import { setUserContext, auditSecurityEvent, checkResourcePermission, rateLimit } from "./middleware/security";
 import { authService, UserRole } from "./services/authService";
@@ -78,164 +78,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { role, activity } = req.query;
       
-      // Mock data for community world map
-      const cities = [
-        {
-          id: '1',
-          name: 'Buenos Aires',
-          country: 'Argentina',
-          lat: -34.6037,
-          lng: -58.3816,
-          dancers: 8500,
-          events: 420,
-          teachers: 250,
-          djs: 120,
-          milongas: 180,
-          schools: 45,
-          timezone: 'America/Argentina/Buenos_Aires'
-        },
-        {
-          id: '2',
-          name: 'Paris',
-          country: 'France',
-          lat: 48.8566,
-          lng: 2.3522,
-          dancers: 3200,
-          events: 180,
-          teachers: 95,
-          djs: 40,
-          milongas: 65,
-          schools: 22,
-          timezone: 'Europe/Paris'
-        },
-        {
-          id: '3',
-          name: 'Berlin',
-          country: 'Germany',
-          lat: 52.5200,
-          lng: 13.4050,
-          dancers: 2800,
-          events: 165,
-          teachers: 78,
-          djs: 35,
-          milongas: 52,
-          schools: 18,
-          timezone: 'Europe/Berlin'
-        },
-        {
-          id: '4',
-          name: 'New York',
-          country: 'USA',
-          lat: 40.7128,
-          lng: -74.0060,
-          dancers: 2400,
-          events: 145,
-          teachers: 68,
-          djs: 32,
-          milongas: 48,
-          schools: 15,
-          timezone: 'America/New_York'
-        },
-        {
-          id: '5',
-          name: 'Barcelona',
-          country: 'Spain',
-          lat: 41.3851,
-          lng: 2.1734,
-          dancers: 2100,
-          events: 130,
-          teachers: 62,
-          djs: 28,
-          milongas: 42,
-          schools: 14,
-          timezone: 'Europe/Madrid'
-        },
-        {
-          id: '6',
-          name: 'Moscow',
-          country: 'Russia',
-          lat: 55.7558,
-          lng: 37.6173,
-          dancers: 1800,
-          events: 95,
-          teachers: 48,
-          djs: 22,
-          milongas: 35,
-          schools: 12,
-          timezone: 'Europe/Moscow'
-        },
-        {
-          id: '7',
-          name: 'Tokyo',
-          country: 'Japan',
-          lat: 35.6762,
-          lng: 139.6503,
-          dancers: 1600,
-          events: 88,
-          teachers: 42,
-          djs: 18,
-          milongas: 30,
-          schools: 10,
-          timezone: 'Asia/Tokyo'
-        },
-        {
-          id: '8',
-          name: 'London',
-          country: 'UK',
-          lat: 51.5074,
-          lng: -0.1278,
-          dancers: 1500,
-          events: 92,
-          teachers: 45,
-          djs: 20,
-          milongas: 32,
-          schools: 11,
-          timezone: 'Europe/London'
-        },
-        {
-          id: '9',
-          name: 'Seoul',
-          country: 'South Korea',
-          lat: 37.5665,
-          lng: 126.9780,
-          dancers: 1200,
-          events: 75,
-          teachers: 35,
-          djs: 15,
-          milongas: 25,
-          schools: 8,
-          timezone: 'Asia/Seoul'
-        },
-        {
-          id: '10',
-          name: 'Istanbul',
-          country: 'Turkey',
-          lat: 41.0082,
-          lng: 28.9784,
-          dancers: 1100,
-          events: 68,
-          teachers: 32,
-          djs: 14,
-          milongas: 22,
-          schools: 7,
-          timezone: 'Europe/Istanbul'
+      // Get all city groups from the database
+      const cityGroups = await db
+        .select()
+        .from(groups)
+        .where(eq(groups.type, 'city'))
+        .orderBy(desc(groups.memberCount));
+      
+      // Get user counts by city
+      const usersByCity = await db
+        .select({
+          city: users.city,
+          country: users.country,
+          dancerCount: count(users.id)
+        })
+        .from(users)
+        .where(and(isNotNull(users.city), isNotNull(users.country)))
+        .groupBy(users.city, users.country);
+      
+      // Get event counts by city
+      const eventsByCity = await db
+        .select({
+          city: events.city,
+          eventCount: count(events.id),
+          milongas: count(sql`CASE WHEN ${events.eventType} = 'milonga' THEN 1 END`),
+          workshops: count(sql`CASE WHEN ${events.eventType} = 'workshop' THEN 1 END`)
+        })
+        .from(events)
+        .where(isNotNull(events.city))
+        .groupBy(events.city);
+      
+      // Get users with specific roles
+      const roleCounts = await db
+        .select({
+          city: users.city,
+          teachers: count(sql`CASE WHEN ${userRoles.roleName} = 'teacher' THEN 1 END`),
+          djs: count(sql`CASE WHEN ${userRoles.roleName} = 'dj' THEN 1 END`),
+          organizers: count(sql`CASE WHEN ${userRoles.roleName} = 'organizer' THEN 1 END`)
+        })
+        .from(users)
+        .leftJoin(userRoles, eq(users.id, userRoles.userId))
+        .where(isNotNull(users.city))
+        .groupBy(users.city);
+      
+      // Map city coordinates (in production, this should be from a geocoding service)
+      const cityCoordinates: Record<string, { lat: number, lng: number, timezone: string }> = {
+        'Buenos Aires': { lat: -34.6037, lng: -58.3816, timezone: 'America/Argentina/Buenos_Aires' },
+        'Paris': { lat: 48.8566, lng: 2.3522, timezone: 'Europe/Paris' },
+        'Berlin': { lat: 52.5200, lng: 13.4050, timezone: 'Europe/Berlin' },
+        'New York': { lat: 40.7128, lng: -74.0060, timezone: 'America/New_York' },
+        'Barcelona': { lat: 41.3851, lng: 2.1734, timezone: 'Europe/Madrid' },
+        'Istanbul': { lat: 41.0082, lng: 28.9784, timezone: 'Europe/Istanbul' },
+        'Tokyo': { lat: 35.6762, lng: 139.6503, timezone: 'Asia/Tokyo' },
+        'Moscow': { lat: 55.7558, lng: 37.6173, timezone: 'Europe/Moscow' },
+        'Seoul': { lat: 37.5665, lng: 126.9780, timezone: 'Asia/Seoul' },
+        'Montreal': { lat: 45.5017, lng: -73.5673, timezone: 'America/Toronto' },
+        'London': { lat: 51.5074, lng: -0.1278, timezone: 'Europe/London' }
+      };
+      
+      // Combine data to create city entries
+      const cities = cityGroups.map(group => {
+        const userCount = usersByCity.find(u => u.city === group.city);
+        const eventData = eventsByCity.find(e => e.city === group.city);
+        const roleData = roleCounts.find(r => r.city === group.city);
+        const coords = cityCoordinates[group.city || ''] || { lat: 0, lng: 0, timezone: 'UTC' };
+        
+        return {
+          id: group.id.toString(),
+          name: group.city || group.name,
+          country: group.country || '',
+          lat: coords.lat,
+          lng: coords.lng,
+          dancers: Number(userCount?.dancerCount) || group.memberCount,
+          events: Number(eventData?.eventCount) || 0,
+          teachers: Number(roleData?.teachers) || 0,
+          djs: Number(roleData?.djs) || 0,
+          milongas: Number(eventData?.milongas) || 0,
+          schools: 0, // This would need a separate query for dance schools
+          timezone: coords.timezone,
+          groupId: group.id,
+          groupSlug: group.slug
+        };
+      });
+      
+      // Add cities that have users but no groups yet
+      const citiesWithGroups = new Set(cityGroups.map(g => g.city));
+      usersByCity.forEach(userCity => {
+        if (userCity.city && !citiesWithGroups.has(userCity.city)) {
+          const coords = cityCoordinates[userCity.city] || { lat: 0, lng: 0, timezone: 'UTC' };
+          const eventData = eventsByCity.find(e => e.city === userCity.city);
+          const roleData = roleCounts.find(r => r.city === userCity.city);
+          
+          cities.push({
+            id: `auto-${userCity.city}`,
+            name: userCity.city,
+            country: userCity.country || '',
+            lat: coords.lat,
+            lng: coords.lng,
+            dancers: Number(userCity.dancerCount) || 0,
+            events: Number(eventData?.eventCount) || 0,
+            teachers: Number(roleData?.teachers) || 0,
+            djs: Number(roleData?.djs) || 0,
+            milongas: Number(eventData?.milongas) || 0,
+            schools: 0,
+            timezone: coords.timezone,
+            groupId: null,
+            groupSlug: null
+          });
         }
-      ];
-
+      });
+      
       // Filter based on role if provided
       let filteredCities = cities;
       if (role && role !== 'all') {
-        // Apply role-based filtering logic here
+        // Filter cities based on role activity
+        switch(role) {
+          case 'teacher':
+            filteredCities = cities.filter(c => c.teachers > 0);
+            break;
+          case 'dj':
+            filteredCities = cities.filter(c => c.djs > 0);
+            break;
+          case 'organizer':
+            filteredCities = cities.filter(c => c.events > 0);
+            break;
+        }
       }
 
-      // Country statistics
-      const countries = [
-        { country: 'Argentina', totalDancers: 8500, totalEvents: 420, activeCities: 1, growthRate: 5 },
-        { country: 'France', totalDancers: 3200, totalEvents: 180, activeCities: 1, growthRate: 8 },
-        { country: 'Germany', totalDancers: 2800, totalEvents: 165, activeCities: 1, growthRate: 12 },
-        { country: 'USA', totalDancers: 2400, totalEvents: 145, activeCities: 1, growthRate: 10 },
-        { country: 'Spain', totalDancers: 2100, totalEvents: 130, activeCities: 1, growthRate: 15 }
-      ];
+      // Calculate country statistics
+      const countryStats = new Map<string, any>();
+      cities.forEach(city => {
+        if (!countryStats.has(city.country)) {
+          countryStats.set(city.country, {
+            country: city.country,
+            totalDancers: 0,
+            totalEvents: 0,
+            activeCities: 0,
+            growthRate: Math.floor(Math.random() * 20) // Placeholder growth rate
+          });
+        }
+        const stats = countryStats.get(city.country);
+        stats.totalDancers += city.dancers;
+        stats.totalEvents += city.events;
+        stats.activeCities += 1;
+      });
+      
+      const countries = Array.from(countryStats.values());
+      
+      // Calculate global statistics
+      const totalDancers = cities.reduce((sum, city) => sum + city.dancers, 0);
+      const totalEvents = cities.reduce((sum, city) => sum + city.events, 0);
 
       res.json({
         success: true,
@@ -243,10 +235,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cities: filteredCities,
           countries,
           stats: {
-            totalDancers: 28900,
+            totalDancers,
             totalCities: cities.length,
             totalCountries: countries.length,
-            totalEvents: 1425
+            totalEvents
           }
         }
       });
@@ -4156,6 +4148,257 @@ export async function registerRoutes(app: Express): Promise<Server> {
         code: 500,
         message: 'Internal server error',
         data: null
+      });
+    }
+  });
+
+  // Enhanced Events API endpoints
+  app.get('/api/events/enhanced', isAuthenticated, async (req, res) => {
+    try {
+      const { search, eventTypes, vibeTypes, location, dateRange, filter } = req.query;
+      const userId = (req as any).user.id;
+      
+      let query = db
+        .select({
+          id: events.id,
+          title: events.title,
+          description: events.description,
+          imageUrl: events.imageUrl,
+          coverPhotoUrl: events.coverPhotoUrl,
+          location: events.location,
+          city: events.city,
+          country: events.country,
+          latitude: events.latitude,
+          longitude: events.longitude,
+          startDate: events.startDate,
+          endDate: events.endDate,
+          userId: events.userId,
+          isPublic: events.isPublic,
+          maxAttendees: events.maxAttendees,
+          eventType: events.eventType,
+          createdAt: events.createdAt,
+          userName: users.name,
+          userUsername: users.username,
+          userProfileImage: users.profileImage
+        })
+        .from(events)
+        .leftJoin(users, eq(events.userId, users.id))
+        .where(and(
+          eq(events.isPublic, true),
+          search ? sql`LOWER(${events.title}) LIKE ${`%${search.toLowerCase()}%`}` : undefined,
+          location ? sql`LOWER(${events.city}) LIKE ${`%${location.toLowerCase()}%`}` : undefined
+        ))
+        .orderBy(desc(events.startDate))
+        .limit(50);
+      
+      const eventsList = await query;
+      
+      // Get RSVP counts and user status for each event
+      const enhancedEvents = await Promise.all(eventsList.map(async (event) => {
+        // Get attendance counts
+        const rsvpCounts = await db
+          .select({
+            status: eventRsvps.status,
+            count: count(eventRsvps.userId)
+          })
+          .from(eventRsvps)
+          .where(eq(eventRsvps.eventId, event.id))
+          .groupBy(eventRsvps.status);
+        
+        // Get current user's RSVP status
+        const userRsvp = await db
+          .select({
+            status: eventRsvps.status
+          })
+          .from(eventRsvps)
+          .where(and(
+            eq(eventRsvps.eventId, event.id),
+            eq(eventRsvps.userId, userId)
+          ))
+          .limit(1);
+        
+        // Calculate attendee counts
+        const goingCount = rsvpCounts.find(r => r.status === 'going')?.count || 0;
+        const interestedCount = rsvpCounts.find(r => r.status === 'interested')?.count || 0;
+        const maybeCount = rsvpCounts.find(r => r.status === 'maybe')?.count || 0;
+        
+        return {
+          ...event,
+          locationCoordinates: event.latitude && event.longitude ? {
+            lat: event.latitude,
+            lng: event.longitude
+          } : null,
+          currentAttendees: Number(goingCount),
+          interestedCount: Number(interestedCount),
+          maybeCount: Number(maybeCount),
+          eventTypes: event.eventType ? [event.eventType] : [],
+          vibeTypes: [], // We'll implement this when we add vibe types to the schema
+          user: {
+            id: event.userId,
+            name: event.userName,
+            username: event.userUsername,
+            profileImage: event.userProfileImage
+          },
+          userStatus: userRsvp[0]?.status || null
+        };
+      }));
+      
+      res.json({
+        success: true,
+        data: enhancedEvents
+      });
+    } catch (error) {
+      console.error('Error fetching enhanced events:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch events'
+      });
+    }
+  });
+  
+  // Create enhanced event
+  app.post('/api/events/enhanced', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'User not found' });
+      }
+      
+      // Check if user has organizer or super_admin role
+      const userRoles = await storage.getUserRoles(userId);
+      const hasPermission = userRoles.some(role => 
+        ['organizer', 'super_admin', 'admin'].includes(role.roleName)
+      );
+      
+      if (!hasPermission) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Only organizers and admins can create events' 
+        });
+      }
+      
+      const {
+        title,
+        description,
+        location,
+        locationCoordinates,
+        startDate,
+        endDate,
+        maxAttendees,
+        isPublic,
+        eventTypes,
+        vibeTypes,
+        coverPhotoUrl,
+        assignedRoles
+      } = req.body;
+      
+      // Create the event
+      const newEvent = await db.insert(events).values({
+        title,
+        description,
+        location,
+        city: location?.split(',')[0]?.trim() || 'Unknown',
+        country: location?.split(',').pop()?.trim() || 'Unknown',
+        latitude: locationCoordinates?.lat,
+        longitude: locationCoordinates?.lng,
+        startDate: new Date(startDate),
+        endDate: endDate ? new Date(endDate) : null,
+        userId,
+        isPublic: isPublic !== false,
+        maxAttendees: maxAttendees ? parseInt(maxAttendees) : null,
+        eventType: eventTypes?.[0] || 'milonga',
+        coverPhotoUrl,
+        imageUrl: coverPhotoUrl,
+        createdAt: new Date()
+      }).returning();
+      
+      // Create role assignments if provided
+      if (assignedRoles && assignedRoles.length > 0) {
+        for (const role of assignedRoles) {
+          // Find user by email or username
+          let participantUser = null;
+          if (role.userIdentifier.includes('@')) {
+            participantUser = await db
+              .select()
+              .from(users)
+              .where(eq(users.email, role.userIdentifier))
+              .limit(1);
+          } else {
+            participantUser = await db
+              .select()
+              .from(users)
+              .where(eq(users.username, role.userIdentifier))
+              .limit(1);
+          }
+          
+          if (participantUser[0]) {
+            await db.insert(eventParticipants).values({
+              eventId: newEvent[0].id,
+              userId: participantUser[0].id,
+              role: role.role,
+              status: 'invited',
+              invitedBy: userId,
+              invitedAt: new Date()
+            });
+          }
+        }
+      }
+      
+      res.json({
+        success: true,
+        data: newEvent[0]
+      });
+    } catch (error) {
+      console.error('Error creating enhanced event:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create event'
+      });
+    }
+  });
+  
+  // RSVP to event
+  app.post('/api/events/:eventId/rsvp', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = (req as any).user.id;
+      const { status } = req.body;
+      
+      if (!['going', 'interested', 'maybe', 'not_going'].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid RSVP status'
+        });
+      }
+      
+      // Upsert RSVP
+      await db
+        .insert(eventRsvps)
+        .values({
+          eventId,
+          userId,
+          status,
+          createdAt: new Date()
+        })
+        .onConflictDoUpdate({
+          target: [eventRsvps.eventId, eventRsvps.userId],
+          set: {
+            status,
+            createdAt: new Date()
+          }
+        });
+      
+      res.json({
+        success: true,
+        message: 'RSVP updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating RSVP:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update RSVP'
       });
     }
   });

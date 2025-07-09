@@ -1,0 +1,826 @@
+I’m about to give you many tasks at once Dive deep into all of these so we can make sure we are fully utalizing the TT files as inspiration.
+deep analyze these prompts by going through them methodically and systematically  using the 23ls and then ask me any clarifing questions so you can then reprompt using the 23ls.
+
+
+Will you have any troubles handling this?
+________
+
+I need you to deeply analzyse everything about events. please look at everything from the TTfiles to what we have talked about. Include looking at "Create Event" update all designs to be consistant with the rest fo the platform. Once you are done reviewing, what else would you change/update/ make better? Make sure that the location is the full google maps integration so a user can add either a full address and/or a location name like “El Beso in buenos aries”. 
+
+The event participants should be working so as a event is created the organizer can add co-organizer, dj, etc (see ttfiles) and this then sends that person a request to participate. If they accept it goes on their profile under the “Tango Resume” and they are added to the event. 
+
+There should be an option to upload a cover photo
+
+The goal here would be to have test data from our test users to make different events so we have working data to make sure everything is working properly including the Upcoming events on the timeline and in the City groups that those test users belong to. I need to be able to see the events, being inspired by the TTfiles plus add your own updates looking at event platforms like facebook events, airbnb experiences, eventbrite, etc. look for any open source inspirations too.
+
+Events once created should go not only on the Event tab with full sorting by location (city, state, region, country, continent), type(milonga, workshop, practica, marathon, festival, competition, encuentro, etc multi select), Vibe (resturant, bar, dance studio, LGBTQ+, etc multi select), date, etc
+
+Events will also be added with the same filtering as the Events page to the City Groups on a map with a different colored pins like housing host and recommendations and when you click that pin it shows the basics of that event
+
+
+________________________
+
+Now, i need you to look at the last 48 hours at this and the project planner, update the name to “The Plan”. In the last 24 hours I’ve had a lot of issues with this module. Please deeply analzye what is happening and make any fixes so it fully restores the functionality
+deep analyze this using the 23ls and then ask me any clarifing questions so you can then reprompt using the 23ls.
+
+
+
+________________________
+
+I feel like there are still many TTfiles that have not been looked at or implemented. Please compare the TTfiles to what we currently have and implement them. For example you didn’t fully implement the memories reporting to the admin center. 
+
+Another example is TT files had a way to send in help requests. This should be inspired by jira or zendesk. Use any other open sources to help. 
+
+
+
+________________________
+Let’s deeply look at the posting feature. This is used in many other parts of the platform like events, groups, etc. we need to make sure that the functionality remains the same for all of them. Can we make one templated version that then spans to all of these different locations. 
+
+I need you to then deeply understand what its purpose is and enhance it more. For example, i need the location to be the full Google maps integration so a user can put just a city or a business like “El Beso, buenos aries”
+
+I also need it to have user location understanding so it can make a suggestion based on their location. 
+If they upload a photo or video, the metadata for that content should also be captured and used as a source to understand the location it was taken. 
+
+Keep in mind that users can also @ mention users, events, groups, etc
+
+
+It should also understand where the user is in relation to their city from registration, any events that are going to, etc so it the system can understand that they: uploaded a photo, based on metadata, the users location, and that they said they were going to the “X event” that maybe this is being taken at “X event” in “Y city” at “Z location”.  This will then lead to RECOMMENDATIONS which are: when a user posts content and it is for an actual (again based on google maps data) business it goes as a recommendation. 
+
+Recommendations then live in the city groups, as pins on a map that is a layer over events and housing hosts. So people can see everything there is to do in the city. Recommendations will be a different color pin. When they click they can see who posted the recommendation and what they posted. They will be able to filter by if the recommendation is from a local or a visitor: if I go to buenos aires a local can give me a great asado place but if i’m there and i want good chinese i’d prefer to get a recommendation from a chinese person. 
+
+
+
+________________________
+
+The tango community navigation and page see the TTfiles for inspiration, this shows all of the city groups around the world. Again the city groups are the groups that a user is added to based on their registration city. 
+
+It should show a world map with pins for where the cities are. When a user clicks on a pin it should show a small popup with basics: city name, how many people, how many events, how many housing hosts, and how many recommendations. 
+
+____________
+Friendship. You need to look at the TTfiles but the idea: 
+A user sends a friend request, a form comes up and it has: Did we dance (yes/no), Where did we dance (either city data from google or event data), Did we take any photos or videos(upload multiple), Did we have a fun story (open text), option to add a private message to themselves this should not be visible to the requestee (open text), and then snooze button which will remind them the next morning at 10am their local time. 
+
+Once this is received, the requestee then see all of this info and all the basic info about the requester: Name, city from registration, what they do in tango, any events they have in common. 
+
+If the requestee accepts: they have the option to also upload content, write a message, and make a personal note not seen by the requester.
+
+Then this creates the friendship page. The friendship page has this info on the right side of the screen as the “Beginning of our Friendship”. The personal note can be updated. This page then has all of the information about their friendship: any posts they are tagged in together, likes and comments on each other’s posts or comments, events, etc. 
+
+Then there is an understanding like LinkedIn about degrees of separation: 1st, 2nd, 3rd to users.
+
+As the Friendship page has more information about their friendship it then understands how close this person is as a friend. Which will then have impacts later when it comes to organizing traveling and wanting to spend more time with your close friends. 
+
+In the timeline on a users post, there should also be a “see friendship” button (see TTfiles) that gives a quick look at the friendship and then an option to go to the full friendship page. 
+
+
+
+____________
+
+Housing:this is inspired by airbnb and vrbo. Look to them for inspiration and open sources.
+If a user in their registration has indicated that they are a Housing Host then: they have a housing host onboarding like airbnb and vrbo (details about their place, photos, videos, etc) and they have the option to pick what level of friend can stay like LinkedIn about degrees of separation: 1st, 2nd, 3rd to users.
+
+Then these houses show up in the City Groups as a map layer with a different color with events and recomendations
+
+A host and guest then have a review system to help vet good guesets and hosts like Airbnb and VRBO.
+
+
+______________
+
+
+
+Global Statistics on the left navigation panel: this should be live data not hard coded data.
+
+
+______________
+
+
+
+-- COMPREHENSIVE DATABASE SECURITY IMPLEMENTATION
+-- =============================================
+
+/*
+## DATABASE SECURITY IMPLEMENTATION GUIDE
+
+This script implements a comprehensive security system for your Supabase database, including:
+
+1. AUDIT SYSTEM
+   - Creates an audit schema with a centralized logs table
+   - Implements trigger functions to automatically track all data changes
+   - Records who changed what and when, including the original and changed data
+   - Provides helper functions to easily apply audit to tables
+
+2. ROW LEVEL SECURITY (RLS) IMPROVEMENTS
+   - Enables RLS on tables that don't have it
+   - Adds missing policies for tables with RLS but no policies
+   - Provides functions to replace problematic 'FOR ALL' policies
+
+3. PERFORMANCE OPTIMIZATIONS
+   - Adds indexes for foreign key columns to improve query performance
+   - Particularly important for columns used in RLS policies
+
+4. SECURITY HEALTH CHECK FUNCTIONS
+   - Creates database functions to identify security issues
+   - Supports the security-health-check Edge Function
+
+5. AUDIT TRIGGER APPLICATION
+   - Applies audit triggers to important tables
+   - Provides examples for adding more tables to the audit system
+
+## IMPLEMENTATION PLAN
+
+1. Review this script carefully before running
+2. Execute the script in your Supabase SQL Editor
+3. Deploy the security-health-check Edge Function
+4. Run the security health check to verify improvements
+5. Monitor audit logs regularly
+
+*/
+
+-- =============================================
+-- PART 1: AUDIT SYSTEM IMPLEMENTATION
+-- =============================================
+
+-- Create audit schema
+CREATE SCHEMA IF NOT EXISTS audit;
+
+-- Create audit log table
+CREATE TABLE IF NOT EXISTS audit.logs (
+    id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    table_name text NOT NULL,
+    user_id uuid,
+    action text NOT NULL CHECK (action IN ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')),
+    row_data jsonb,
+    changed_fields jsonb,
+    query text,
+    ip_address inet,
+    timestamp timestamptz NOT NULL DEFAULT now()
+);
+
+-- Create indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_audit_logs_table_name ON audit.logs (table_name);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit.logs (user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit.logs (timestamp);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit.logs (action);
+
+-- Enable RLS on the audit logs table
+ALTER TABLE audit.logs ENABLE ROW LEVEL SECURITY;
+
+-- Create policy to allow only admins to view audit logs
+CREATE POLICY admin_audit_access ON audit.logs
+    FOR SELECT
+    TO authenticated
+    USING (
+        (SELECT is_admin FROM public.users WHERE auth_user_id = auth.uid()) = true
+    );
+
+-- Create the audit trigger function
+CREATE OR REPLACE FUNCTION audit.create_audit_trigger()
+RETURNS TRIGGER AS $$
+DECLARE
+    row_data jsonb;
+    changed_fields jsonb;
+    include_old boolean;
+    include_new boolean;
+    log_row jsonb;
+    excluded_cols text[] = ARRAY[]::text[];
+BEGIN
+    IF TG_WHEN <> 'AFTER' THEN
+        RAISE EXCEPTION 'audit.create_audit_trigger() may only run as an AFTER trigger';
+    END IF;
+
+    -- Determine which row to log
+    CASE TG_OP
+        WHEN 'INSERT' THEN
+            row_data = to_jsonb(NEW);
+            changed_fields = NULL;
+            include_old = false;
+            include_new = true;
+        WHEN 'UPDATE' THEN
+            -- Only log if something actually changed
+            IF NEW IS DISTINCT FROM OLD THEN
+                row_data = to_jsonb(OLD);
+                
+                -- Calculate changed fields
+                SELECT jsonb_object_agg(key, value) INTO changed_fields
+                FROM jsonb_each(to_jsonb(NEW))
+                WHERE to_jsonb(NEW) -> key IS DISTINCT FROM to_jsonb(OLD) -> key
+                  AND key NOT IN (SELECT unnest(excluded_cols));
+                
+                include_old = true;
+                include_new = true;
+            ELSE
+                -- No actual change, skip logging
+                RETURN NULL;
+            END IF;
+        WHEN 'DELETE' THEN
+            row_data = to_jsonb(OLD);
+            changed_fields = NULL;
+            include_old = true;
+            include_new = false;
+        WHEN 'TRUNCATE' THEN
+            row_data = NULL;
+            changed_fields = NULL;
+            include_old = false;
+            include_new = false;
+        ELSE
+            RAISE EXCEPTION 'audit.create_audit_trigger() triggered for unhandled event: %', TG_OP;
+    END CASE;
+
+    -- Build the audit log entry
+    INSERT INTO audit.logs (
+        table_name,
+        user_id,
+        action,
+        row_data,
+        changed_fields,
+        query,
+        ip_address
+    )
+    VALUES (
+        TG_TABLE_SCHEMA || '.' || TG_TABLE_NAME,
+        (CASE WHEN current_setting('request.jwt.claims', true)::jsonb ? 'sub' 
+              THEN (current_setting('request.jwt.claims', true)::jsonb ->> 'sub')::uuid 
+              ELSE NULL END),
+        TG_OP,
+        row_data,
+        changed_fields,
+        current_query(),
+        (CASE WHEN current_setting('request.headers', true)::jsonb ? 'x-forwarded-for' 
+              THEN (regexp_split_to_array(current_setting('request.headers', true)::jsonb ->> 'x-forwarded-for', ','))[1]::inet 
+              ELSE NULL END)
+    );
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Create a function to easily add audit triggers to tables
+CREATE OR REPLACE FUNCTION audit.add_audit_trigger(target_table regclass)
+RETURNS void AS $$
+DECLARE
+    trigger_name text;
+BEGIN
+    -- Generate a trigger name based on the table
+    SELECT 'audit_trigger_' || relname INTO trigger_name
+    FROM pg_class
+    WHERE oid = target_table;
+    
+    -- Create the trigger
+    EXECUTE format('DROP TRIGGER IF EXISTS %I ON %s', trigger_name, target_table);
+    EXECUTE format('CREATE TRIGGER %I AFTER INSERT OR UPDATE OR DELETE ON %s FOR EACH ROW EXECUTE FUNCTION audit.create_audit_trigger()', 
+                  trigger_name, target_table);
+    
+    RAISE NOTICE 'Added audit trigger to table: %', target_table;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a function to add audit triggers to all tables in a schema
+CREATE OR REPLACE FUNCTION audit.add_audit_triggers_to_schema(schema_name text)
+RETURNS void AS $$
+DECLARE
+    tables RECORD;
+BEGIN
+    FOR tables IN 
+        SELECT tablename 
+        FROM pg_tables 
+        WHERE schemaname = schema_name
+        AND tablename NOT LIKE 'pg_%'
+    LOOP
+        PERFORM audit.add_audit_trigger(schema_name || '.' || tables.tablename);
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a function to add audit triggers to specific tables
+CREATE OR REPLACE FUNCTION audit.add_audit_triggers_to_tables(table_names text[])
+RETURNS void AS $$
+DECLARE
+    table_name text;
+BEGIN
+    FOREACH table_name IN ARRAY table_names
+    LOOP
+        PERFORM audit.add_audit_trigger(table_name::regclass);
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create helper views for audit analysis
+CREATE OR REPLACE VIEW audit.recent_activity AS
+SELECT 
+    logs.id,
+    logs.table_name,
+    u.username,
+    logs.action,
+    logs.changed_fields,
+    logs.timestamp
+FROM 
+    audit.logs
+LEFT JOIN 
+    auth.users u ON logs.user_id = u.id
+WHERE 
+    logs.timestamp > (now() - interval '24 hours')
+ORDER BY 
+    logs.timestamp DESC;
+
+-- Create view for admin dashboard
+CREATE OR REPLACE VIEW audit.activity_summary AS
+SELECT 
+    date_trunc('hour', timestamp) AS hour,
+    table_name,
+    action,
+    count(*) AS action_count
+FROM 
+    audit.logs
+WHERE 
+    timestamp > (now() - interval '7 days')
+GROUP BY 
+    date_trunc('hour', timestamp),
+    table_name,
+    action
+ORDER BY 
+    hour DESC, 
+    table_name;
+
+-- =============================================
+-- PART 2: RLS POLICY IMPROVEMENTS
+-- =============================================
+
+-- Create a function to enable RLS on tables that don't have it
+CREATE OR REPLACE FUNCTION public.enable_rls_on_tables(table_names text[])
+RETURNS void AS $$
+DECLARE
+    table_name text;
+BEGIN
+    FOREACH table_name IN ARRAY table_names
+    LOOP
+        EXECUTE format('ALTER TABLE %s ENABLE ROW LEVEL SECURITY', table_name);
+        RAISE NOTICE 'Enabled RLS on table: %', table_name;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Enable RLS on tables that need it (example tables - adjust as needed)
+SELECT public.enable_rls_on_tables(ARRAY[
+    'public.group_members',
+    'public.group_visitors',
+    'public.groups',
+    'public.help_supports',
+    'public.invites',
+    'public.media_tags',
+    'public.pinned_groups',
+    'public.profiles',
+    'public.reports',
+    'public.settings',
+    'public.user_languages',
+    'public.user_profiles',
+    'public.user_travels'
+]);
+
+-- Create RLS policies for tables that are missing them
+-- For chat_room_users
+CREATE POLICY "Users can view their own chat rooms" ON public.chat_room_users
+    FOR SELECT
+    TO authenticated
+    USING (user_id = (SELECT id FROM public.users WHERE auth_user_id = auth.uid()));
+
+CREATE POLICY "Users can join chat rooms" ON public.chat_room_users
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (user_id = (SELECT id FROM public.users WHERE auth_user_id = auth.uid()));
+
+CREATE POLICY "Users can leave chat rooms" ON public.chat_room_users
+    FOR DELETE
+    TO authenticated
+    USING (user_id = (SELECT id FROM public.users WHERE auth_user_id = auth.uid()));
+
+-- For blocked_users
+CREATE POLICY "Users can view their blocked list" ON public.blocked_users
+    FOR SELECT
+    TO authenticated
+    USING (user_id = (SELECT id FROM public.users WHERE auth_user_id = auth.uid()));
+
+CREATE POLICY "Users can block others" ON public.blocked_users
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (user_id = (SELECT id FROM public.users WHERE auth_user_id = auth.uid()));
+
+CREATE POLICY "Users can unblock others" ON public.blocked_users
+    FOR DELETE
+    TO authenticated
+    USING (user_id = (SELECT id FROM public.users WHERE auth_user_id = auth.uid()));
+
+-- Create a function to fix 'FOR ALL' policies by replacing them with specific action policies
+CREATE OR REPLACE FUNCTION public.replace_all_policy(
+    table_name text,
+    policy_name text,
+    using_condition text
+) RETURNS void AS $$
+BEGIN
+    -- Drop the existing ALL policy
+    EXECUTE format('DROP POLICY IF EXISTS %I ON %s', policy_name, table_name);
+    
+    -- Create separate policies for each action
+    EXECUTE format('
+        CREATE POLICY %I_select ON %s
+        FOR SELECT
+        TO authenticated
+        USING (%s)
+    ', policy_name, table_name, using_condition);
+    
+    EXECUTE format('
+        CREATE POLICY %I_insert ON %s
+        FOR INSERT
+        TO authenticated
+        WITH CHECK (%s)
+    ', policy_name, table_name, using_condition);
+    
+    EXECUTE format('
+        CREATE POLICY %I_update ON %s
+        FOR UPDATE
+        TO authenticated
+        USING (%s)
+        WITH CHECK (%s)
+    ', policy_name, table_name, using_condition, using_condition);
+    
+    EXECUTE format('
+        CREATE POLICY %I_delete ON %s
+        FOR DELETE
+        TO authenticated
+        USING (%s)
+    ', policy_name, table_name, using_condition);
+    
+    RAISE NOTICE 'Replaced ALL policy % on table % with specific action policies', policy_name, table_name;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Example usage of replace_all_policy function (uncomment and modify as needed)
+-- SELECT public.replace_all_policy(
+--     'public.posts',
+--     'Users can manage their own posts',
+--     'user_id = (SELECT id FROM public.users WHERE auth_user_id = auth.uid())'
+-- );
+
+-- =============================================
+-- PART 3: PERFORMANCE OPTIMIZATIONS
+-- =============================================
+
+-- Create indexes for foreign keys that are missing them
+-- This improves query performance, especially for tables used in RLS policies
+
+-- users table
+CREATE INDEX IF NOT EXISTS idx_users_user_type ON public.users(user_type);
+
+-- user_api_tokens table
+CREATE INDEX IF NOT EXISTS idx_user_api_tokens_user_id ON public.user_api_tokens(user_id);
+
+-- user_otps table
+CREATE INDEX IF NOT EXISTS idx_user_otps_user_id ON public.user_otps(user_id);
+
+-- blocked_users table
+CREATE INDEX IF NOT EXISTS idx_blocked_users_blocked_user_id ON public.blocked_users(blocked_user_id);
+
+-- activities table
+CREATE INDEX IF NOT EXISTS idx_activities_parent_id ON public.activities(parent_id);
+
+-- posts table
+CREATE INDEX IF NOT EXISTS idx_posts_activity_id ON public.posts(activity_id);
+CREATE INDEX IF NOT EXISTS idx_posts_original_post_id ON public.posts(original_post_id);
+CREATE INDEX IF NOT EXISTS idx_posts_shared_by ON public.posts(shared_by);
+CREATE INDEX IF NOT EXISTS idx_posts_feeling_id ON public.posts(feeling_id);
+
+-- post_comments table
+CREATE INDEX IF NOT EXISTS idx_post_comments_parent_comment_id ON public.post_comments(parent_comment_id);
+
+-- post_comment_likes table
+CREATE INDEX IF NOT EXISTS idx_post_comment_likes_user_id ON public.post_comment_likes(user_id);
+
+-- post_shares table
+CREATE INDEX IF NOT EXISTS idx_post_shares_user_id ON public.post_shares(user_id);
+
+-- saved_posts table
+CREATE INDEX IF NOT EXISTS idx_saved_posts_user_id ON public.saved_posts(user_id);
+
+-- hidden_posts table
+CREATE INDEX IF NOT EXISTS idx_hidden_posts_user_id ON public.hidden_posts(user_id);
+
+-- groups table
+CREATE INDEX IF NOT EXISTS idx_groups_creator_id ON public.groups(creator_id);
+
+-- events table
+CREATE INDEX IF NOT EXISTS idx_events_event_type_id ON public.events(event_type_id);
+CREATE INDEX IF NOT EXISTS idx_events_creator_id ON public.events(creator_id);
+
+-- chat_rooms table
+CREATE INDEX IF NOT EXISTS idx_chat_rooms_creator_id ON public.chat_rooms(creator_id);
+
+-- chat_messages table
+CREATE INDEX IF NOT EXISTS idx_chat_messages_reply_to_id ON public.chat_messages(reply_to_id);
+
+-- memories table
+CREATE INDEX IF NOT EXISTS idx_memories_event_id ON public.memories(event_id);
+
+-- media table
+CREATE INDEX IF NOT EXISTS idx_media_reused_in_memory ON public.media(reused_in_memory);
+CREATE INDEX IF NOT EXISTS idx_media_memory_id ON public.media(memory_id);
+
+-- =============================================
+-- PART 4: SECURITY HEALTH CHECK FUNCTIONS
+-- =============================================
+
+-- Function to get tables without RLS
+CREATE OR REPLACE FUNCTION public.get_tables_without_rls()
+RETURNS TABLE(schemaname text, tablename text) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.schemaname, t.tablename
+    FROM pg_tables t
+    WHERE t.schemaname = 'public'
+    AND t.tablename NOT IN (
+        SELECT tablename 
+        FROM pg_tables 
+        WHERE rowsecurity = true AND schemaname = 'public'
+    )
+    ORDER BY t.tablename;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Function to get tables with RLS but no policies
+CREATE OR REPLACE FUNCTION public.get_tables_without_policies()
+RETURNS TABLE(schemaname text, tablename text) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.schemaname, t.tablename
+    FROM pg_tables t
+    LEFT JOIN (
+        SELECT schemaname, tablename
+        FROM pg_policies
+        WHERE schemaname = 'public'
+        GROUP BY schemaname, tablename
+    ) p ON t.schemaname = p.schemaname AND t.tablename = p.tablename
+    WHERE t.schemaname = 'public' AND t.rowsecurity = true AND p.tablename IS NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Function to get foreign keys without indexes
+CREATE OR REPLACE FUNCTION public.get_foreign_keys_without_indexes()
+RETURNS TABLE(table_name text, column_name text, foreign_table text, foreign_column text) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        tc.table_name::text,
+        kcu.column_name::text,
+        ccu.table_name::text AS foreign_table,
+        ccu.column_name::text AS foreign_column
+    FROM 
+        information_schema.table_constraints AS tc 
+        JOIN information_schema.key_column_usage AS kcu
+          ON tc.constraint_name = kcu.constraint_name
+          AND tc.table_schema = kcu.table_schema
+        JOIN information_schema.constraint_column_usage AS ccu
+          ON ccu.constraint_name = tc.constraint_name
+    WHERE tc.constraint_type = 'FOREIGN KEY'
+    AND tc.table_schema = 'public'
+    AND NOT EXISTS (
+        SELECT 1 FROM pg_indexes i 
+        WHERE i.tablename = tc.table_name
+        AND i.schemaname = tc.table_schema
+        AND i.indexdef LIKE '%' || kcu.column_name || '%'
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Function to get tables with FOR ALL policies
+CREATE OR REPLACE FUNCTION public.get_tables_with_all_policies()
+RETURNS TABLE(schemaname text, tablename text, policyname text) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.schemaname, p.tablename, p.policyname
+    FROM pg_policies p
+    WHERE p.schemaname = 'public'
+    AND p.cmd = 'ALL'
+    ORDER BY p.tablename;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Function to check if audit functionality exists
+CREATE OR REPLACE FUNCTION public.check_audit_functionality()
+RETURNS json AS $$
+DECLARE
+    result json;
+BEGIN
+    SELECT json_build_object(
+        'exists', EXISTS (
+            SELECT 1 
+            FROM information_schema.schemata 
+            WHERE schema_name = 'audit'
+        ) AND EXISTS (
+            SELECT 1 
+            FROM information_schema.tables 
+            WHERE table_schema = 'audit' 
+            AND table_name = 'logs'
+        )
+    ) INTO result;
+    
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- =============================================
+-- PART 5: APPLY AUDIT TRIGGERS TO IMPORTANT TABLES
+-- =============================================
+
+-- Apply audit triggers to the most important tables
+SELECT audit.add_audit_triggers_to_tables(ARRAY[
+    'public.users',
+    'public.posts',
+    'public.post_comments',
+    'public.events',
+    'public.event_participants',
+    'public.friends',
+    'public.chat_rooms',
+    'public.chat_messages',
+    'public.media',
+    'public.memories'
+]);
+
+-- You can add more tables as needed by uncommenting and modifying:
+-- SELECT audit.add_audit_triggers_to_tables(ARRAY[
+--     'public.table_name1',
+--     'public.table_name2'
+-- ]);
+
+-- Or apply to all tables in the public schema (use with caution on large databases):
+-- SELECT audit.add_audit_triggers_to_schema('public');
+
+/*
+-- =============================================
+-- SECURITY HEALTH CHECK EDGE FUNCTION
+-- =============================================
+
+After running this SQL script, deploy the following Edge Function using the Supabase Dashboard or CLI:
+
+Function name: security-health-check
+
+Code:
+```typescript
+// security-health-check.ts
+import { createClient } from 'npm:@supabase/supabase-js@2.39.3'
+
+interface SecurityIssue {
+  severity: 'high' | 'medium' | 'low';
+  issue_type: string;
+  description: string;
+  recommendation: string;
+  affected_objects: string[];
+}
+
+Deno.serve(async (req) => {
+  try {
+    // Only allow POST requests
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Get authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Authorization required' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Create Supabase client with admin privileges
+    // Note: This should be restricted to admin users only
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    // Verify the user is an admin
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Check if user is admin
+    const { data: userData, error: roleError } = await supabaseAdmin
+      .from('users')
+      .select('is_admin')
+      .eq('auth_user_id', user.id)
+      .single();
+
+    if (roleError || !userData?.is_admin) {
+      return new Response(JSON.stringify({ error: 'Admin privileges required' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Run security checks
+    const issues: SecurityIssue[] = [];
+
+    // Check 1: Tables without RLS
+    const { data: tablesWithoutRLS, error: rlsError } = await supabaseAdmin.rpc('get_tables_without_rls');
+    if (!rlsError && tablesWithoutRLS) {
+      if (tablesWithoutRLS.length > 0) {
+        issues.push({
+          severity: 'high',
+          issue_type: 'Missing RLS',
+          description: 'Tables without Row Level Security enabled',
+          recommendation: 'Enable RLS on these tables and add appropriate policies',
+          affected_objects: tablesWithoutRLS.map((t: any) => `${t.schemaname}.${t.tablename}`)
+        });
+      }
+    }
+
+    // Check 2: Tables with RLS but no policies
+    const { data: tablesWithoutPolicies, error: policiesError } = await supabaseAdmin.rpc('get_tables_without_policies');
+    if (!policiesError && tablesWithoutPolicies) {
+      if (tablesWithoutPolicies.length > 0) {
+        issues.push({
+          severity: 'high',
+          issue_type: 'Missing Policies',
+          description: 'Tables with RLS enabled but no policies defined',
+          recommendation: 'Add appropriate policies to these tables',
+          affected_objects: tablesWithoutPolicies.map((t: any) => `${t.schemaname}.${t.tablename}`)
+        });
+      }
+    }
+
+    // Check 3: Foreign keys without indexes
+    const { data: fkWithoutIndexes, error: fkError } = await supabaseAdmin.rpc('get_foreign_keys_without_indexes');
+    if (!fkError && fkWithoutIndexes) {
+      if (fkWithoutIndexes.length > 0) {
+        issues.push({
+          severity: 'medium',
+          issue_type: 'Missing Indexes',
+          description: 'Foreign keys without indexes can cause performance issues',
+          recommendation: 'Create indexes on these foreign key columns',
+          affected_objects: fkWithoutIndexes.map((fk: any) => `${fk.table_name}.${fk.column_name}`)
+        });
+      }
+    }
+
+    // Check 4: Tables using FOR ALL policies
+    const { data: allPolicies, error: allPoliciesError } = await supabaseAdmin.rpc('get_tables_with_all_policies');
+    if (!allPoliciesError && allPolicies) {
+      if (allPolicies.length > 0) {
+        issues.push({
+          severity: 'medium',
+          issue_type: 'FOR ALL Policies',
+          description: 'Tables using FOR ALL in RLS policies (not recommended)',
+          recommendation: 'Replace with specific action policies (SELECT, INSERT, UPDATE, DELETE)',
+          affected_objects: allPolicies.map((p: any) => `${p.schemaname}.${p.tablename}.${p.policyname}`)
+        });
+      }
+    }
+
+    // Check 5: Check for audit functionality
+    const { data: auditCheck, error: auditError } = await supabaseAdmin.rpc('check_audit_functionality');
+    if (!auditError && auditCheck && !auditCheck.exists) {
+      issues.push({
+        severity: 'medium',
+        issue_type: 'Missing Audit',
+        description: 'No comprehensive audit system detected',
+        recommendation: 'Implement audit logging for sensitive tables',
+        affected_objects: ['database']
+      });
+    }
+
+    // Return the security report
+    return new Response(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      total_issues: issues.length,
+      issues: issues,
+      summary: {
+        high: issues.filter(i => i.severity === 'high').length,
+        medium: issues.filter(i => i.severity === 'medium').length,
+        low: issues.filter(i => i.severity === 'low').length
+      }
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Error in security health check:', error);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+});
+```
+*/
+
+___________________________
+
