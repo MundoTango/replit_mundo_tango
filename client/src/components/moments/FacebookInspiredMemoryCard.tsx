@@ -299,7 +299,7 @@ export default function FacebookInspiredMemoryCard({ post, onLike, onComment, on
       <div className="px-2 py-1 flex items-center">
         {/* Facebook-style Reaction System */}
         <FacebookReactionSelector
-          postId={parseInt(post.id, 10)}
+          postId={post.id}
           currentReaction={currentUserReaction}
           reactions={post.reactions}
           onReact={handleReaction}
@@ -330,7 +330,7 @@ export default function FacebookInspiredMemoryCard({ post, onLike, onComment, on
           {/* Comment Editor */}
           <div className="p-4">
             <RichTextCommentEditor
-              postId={parseInt(post.id, 10)}
+              postId={post.id}
               onSubmit={handleComment}
               placeholder="Write a thoughtful comment..."
             />
@@ -427,7 +427,7 @@ export default function FacebookInspiredMemoryCard({ post, onLike, onComment, on
       {/* Report Modal */}
       <ReportModal
         isOpen={isReportModalOpen}
-        postId={parseInt(post.id, 10)}
+        postId={post.id}
         onClose={() => setIsReportModalOpen(false)}
         onSubmit={handleReport}
       />
