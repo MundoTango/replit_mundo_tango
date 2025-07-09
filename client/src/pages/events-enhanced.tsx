@@ -157,7 +157,7 @@ export default function EnhancedEventsPage() {
 
   // Fetch events with enhanced filtering
   const { data: events, isLoading } = useQuery({
-    queryKey: ['/api/events', filterBy, searchQuery, activeTab, selectedEventTypes, selectedVibeTypes, selectedLocation, dateRange],
+    queryKey: ['/api/events/enhanced', filterBy, searchQuery, activeTab, selectedEventTypes, selectedVibeTypes, selectedLocation, dateRange],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filterBy !== 'all') params.append('filter', filterBy);
@@ -169,7 +169,7 @@ export default function EnhancedEventsPage() {
       if (dateRange.start) params.append('startDate', dateRange.start);
       if (dateRange.end) params.append('endDate', dateRange.end);
       
-      const response = await fetch(`/api/events?${params}`, {
+      const response = await fetch(`/api/events/enhanced?${params}`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -223,7 +223,7 @@ export default function EnhancedEventsPage() {
       });
       setShowCreateForm(false);
       resetForm();
-      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events/enhanced'] });
     },
     onError: () => {
       toast({
