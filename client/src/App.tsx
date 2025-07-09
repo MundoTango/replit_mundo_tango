@@ -59,6 +59,7 @@ import HousingMarketplace from "@/pages/housing-marketplace";
 import GlobalStatistics from "@/pages/global-statistics";
 import DatabaseSecurity from "@/pages/database-security";
 import TestApp from "@/pages/test-app";
+import FeatureNavigation from "@/pages/feature-navigation";
 
 // Simple error boundary component
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -185,6 +186,7 @@ function Router() {
       <Route path="/enhanced-timeline-old" component={EnhancedTimeline} />
       <Route path="/route-test" component={RouteTest} />
       <Route path="/ttfiles-demo" component={TTfilesDemo} />
+      <Route path="/feature-navigation" component={FeatureNavigation} />
       <Route component={NotFound} />
     </Switch>
   );

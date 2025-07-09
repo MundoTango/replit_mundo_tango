@@ -1,6 +1,6 @@
-// Life CEO Service Worker v2.0 - Updated January 9, 2025
+// Life CEO Service Worker v3.0 - Updated January 9, 2025
 // IMPORTANT: Cache version updated to force refresh of all cached content
-const CACHE_NAME = 'life-ceo-v2';
+const CACHE_NAME = 'life-ceo-v3';
 const urlsToCache = [
   '/',
   '/life-ceo',

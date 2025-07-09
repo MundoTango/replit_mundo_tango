@@ -20,7 +20,8 @@ import {
   Activity,
   Building,
   Crown,
-  X
+  X,
+  Map
 } from 'lucide-react';
 
 interface DashboardSidebarProps {
@@ -47,8 +48,8 @@ export default function DashboardSidebar({ isOpen, onClose }: DashboardSidebarPr
   // Role-based navigation items
   const navigationItems: NavigationItem[] = [
     {
-      label: 'Memories',
-      path: '/moments',
+      label: 'Timeline',
+      path: '/enhanced-timeline',
       icon: Heart,
     },
     {
@@ -126,6 +127,12 @@ export default function DashboardSidebar({ isOpen, onClose }: DashboardSidebarPr
       path: '/platform',
       icon: Crown,
       roles: ['super_admin'],
+    },
+    // Temporary navigation helper
+    {
+      label: 'Feature Map',
+      path: '/feature-navigation',
+      icon: Map,
     },
   ];
 
