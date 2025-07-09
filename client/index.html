@@ -74,25 +74,66 @@
       }, 1000);
     </script>
     
-    <!-- Debug: Add inline script to verify execution -->
+    <!-- Debug: Create visible output to test JavaScript execution -->
     <script>
-      console.error('🟥 Inline script in HTML executing!');
-      window.addEventListener('error', function(e) {
-        console.error('🟥 Global error:', e.message, e.filename, e.lineno, e.colno, e.error);
-      });
-      window.addEventListener('unhandledrejection', function(e) {
-        console.error('🟥 Unhandled promise rejection:', e.reason);
-      });
+      // Create debug output div
+      const debugDiv = document.createElement('div');
+      debugDiv.id = 'debug-output';
+      debugDiv.style.position = 'fixed';
+      debugDiv.style.bottom = '0';
+      debugDiv.style.left = '0';
+      debugDiv.style.right = '0';
+      debugDiv.style.backgroundColor = 'black';
+      debugDiv.style.color = 'lime';
+      debugDiv.style.padding = '20px';
+      debugDiv.style.fontFamily = 'monospace';
+      debugDiv.style.fontSize = '14px';
+      debugDiv.style.zIndex = '999999';
+      debugDiv.style.maxHeight = '200px';
+      debugDiv.style.overflowY = 'auto';
+      debugDiv.innerHTML = '<h3>Debug Output:</h3>';
+      document.body.appendChild(debugDiv);
+      
+      function addDebug(msg) {
+        const p = document.createElement('p');
+        p.textContent = new Date().toTimeString().split(' ')[0] + ' - ' + msg;
+        debugDiv.appendChild(p);
+        console.log(msg);
+      }
+      
+      addDebug('Inline script executing!');
+      
+      // Try loading main.tsx directly
+      addDebug('Attempting to load main.tsx...');
     </script>
     
     <script type="module">
-      console.error('🟦 Module script executing!');
-      import('/src/main.tsx').then(() => {
-        console.error('🟦 main.tsx loaded successfully!');
-      }).catch(err => {
-        console.error('🟦 Error loading main.tsx:', err);
-        document.body.innerHTML += '<h1 style="color: red;">Module Load Error: ' + err + '</h1>';
-      });
+      const debugDiv = document.getElementById('debug-output');
+      function addDebug(msg) {
+        const p = document.createElement('p');
+        p.textContent = new Date().toTimeString().split(' ')[0] + ' - ' + msg;
+        debugDiv.appendChild(p);
+        console.log(msg);
+      }
+      
+      addDebug('Module script executing!');
+      
+      try {
+        addDebug('Importing main.tsx...');
+        const module = await import('/src/main.tsx');
+        addDebug('main.tsx imported successfully!');
+      } catch (err) {
+        addDebug('ERROR loading main.tsx: ' + err.message);
+        
+        // Try a simpler test
+        try {
+          addDebug('Testing simple module import...');
+          const testModule = await import('data:text/javascript,export default "test"');
+          addDebug('Simple module test passed!');
+        } catch (err2) {
+          addDebug('Simple module test failed: ' + err2.message);
+        }
+      }
     </script>
     
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
