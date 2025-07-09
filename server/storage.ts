@@ -247,6 +247,7 @@ export interface IStorage {
   followGroup(groupId: number, userId: number): Promise<void>;
   unfollowGroup(groupId: number, userId: number): Promise<void>;
   checkUserFollowingGroup(groupId: number, userId: number): Promise<boolean>;
+  getGroupMemberCount(groupId: number): Promise<number>;
   
   // Group page methods
   getGroupWithMembers(slug: string): Promise<(Group & { members: (GroupMember & { user: User })[] }) | undefined>;
@@ -1961,6 +1962,14 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     return result.length > 0;
+  }
+
+  async getGroupMemberCount(groupId: number): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` })
+      .from(groupMembers)
+      .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.status, 'active')));
+    
+    return Number(result[0]?.count || 0);
   }
 
   async getGroupWithMembers(slug: string): Promise<any> {

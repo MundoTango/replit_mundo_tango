@@ -27,7 +27,7 @@ import TeacherDashboard from "@/pages/teacher";
 import Friends from "@/pages/friends";
 import Groups from "@/pages/groups";
 import GroupPage from "@/pages/group";
-import GroupDetailPage from "@/pages/GroupDetailPage";
+import GroupDetailPage from "@/pages/GroupDetailPageMT";
 import CreateCommunity from "@/pages/create-community";
 import Invitations from "@/pages/invitations";
 import ResumePage from "@/pages/ResumePage";

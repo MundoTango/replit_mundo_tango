@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
@@ -6,7 +6,8 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import { 
   ArrowLeft, MapPin, Users, Globe, Lock, Calendar, MessageCircle, 
   Camera, Settings, UserPlus, Heart, Share2, MoreVertical, Flag,
-  Image, Video, FileText, Link as LinkIcon 
+  Image, Video, FileText, Link as LinkIcon, UserCheck, UserX,
+  Star, Clock, Info, Home, Music, BookOpen, Trophy, Zap
 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
@@ -20,21 +21,31 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/hooks/useAuth';
+import '../styles/ttfiles.css';
+import '../styles/mt-group.css';
 
 export default function GroupDetailPage() {
   const { slug } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('discussion');
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('about');
 
-  // Fetch group details
-  const { data: response, isLoading } = useQuery({
+  // Fetch group details with members
+  const { data: response, isLoading, error } = useQuery({
     queryKey: [`/api/groups/${slug}`],
     enabled: !!slug,
+    retry: 2,
   });
 
   // Extract group data from API response
   const group = response?.data;
+  
+  // Check if user is member/admin
+  const isMember = group?.members?.some(m => m.user.id === user?.id) || false;
+  const isAdmin = group?.members?.some(m => m.user.id === user?.id && m.role === 'admin') || false;
+  const memberRole = group?.members?.find(m => m.user.id === user?.id)?.role || 'member';
 
   // Join group mutation
   const joinGroupMutation = useMutation({
@@ -98,50 +109,55 @@ export default function GroupDetailPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="mb-6">
-          <button
-            onClick={() => setLocation('/groups')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            Back to Groups
-          </button>
+      <div className="max-w-7xl mx-auto">
+        {/* MT Group Header */}
+        <div className="mt-group-header">
+          {group.coverImage && (
+            <img 
+              src={group.coverImage} 
+              alt={group.name}
+              className="mt-group-cover"
+            />
+          )}
+          
+          <div className="mt-group-header-content">
+            <button
+              onClick={() => setLocation('/groups')}
+              className="flex items-center gap-2 text-white/80 hover:text-white mb-4 transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+              Back to Groups
+            </button>
 
-          {/* Cover Image & Info */}
-          <div className="relative">
-            <div className="h-48 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl overflow-hidden">
-              {group.imageUrl && (
-                <img 
-                  src={group.imageUrl} 
-                  alt={group.name}
-                  className="w-full h-full object-cover opacity-80"
-                />
-              )}
-            </div>
-            
-            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
-              <div className="flex items-end justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold text-white mb-2">{group.name}</h1>
-                  <div className="flex items-center gap-4 text-white/90">
-                    <span className="flex items-center gap-1">
-                      {group.privacy === 'public' ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                      {group.privacy === 'public' ? 'Public' : 'Private'} Group
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      {group.memberCount || 0} members
-                    </span>
-                    {group.location && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        {group.location}
-                      </span>
-                    )}
+            <div className="flex items-end gap-3">
+              <div className="w-20 h-20 bg-white rounded-full border-4 border-white shadow-lg">
+                {group.imageUrl ? (
+                  <img src={group.imageUrl} alt={group.name} className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  <div className="w-full h-full rounded-full bg-gradient-to-br from-pink-400 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+                    {group.emoji || group.name.charAt(0)}
                   </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <h1 className="text-3xl font-bold">{group.name}</h1>
+                <div className="flex items-center gap-4 text-gray-600 text-sm mt-1">
+                  <span className="flex items-center gap-1">
+                    {group.privacy === 'public' ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                    {group.privacy === 'public' ? 'Public' : 'Private'} Group
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    {group.memberCount || 0} members
+                  </span>
+                  {group.city && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      {group.city}{group.country ? `, ${group.country}` : ''}
+                    </span>
+                  )}
                 </div>
+              </div>
 
                 <div className="flex gap-2">
                   {group.isMember ? (
