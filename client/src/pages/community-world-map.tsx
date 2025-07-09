@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Loader } from '@googlemaps/js-api-loader';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import LeafletMap from '@/components/LeafletMap';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,12 +61,7 @@ interface CountryStats {
 
 export default function CommunityWorldMap() {
   const { toast } = useToast();
-  const mapRef = useRef<any>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [mapError, setMapError] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<CityData | null>(null);
-  const [mapZoom, setMapZoom] = useState(2);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('map');
   const [filterRole, setFilterRole] = useState('all');
@@ -118,114 +113,24 @@ export default function CommunityWorldMap() {
     }
   });
 
-  // Load Google Maps API
-  useEffect(() => {
-    // Debug: Log all environment variables
-    console.log('Environment variables:', import.meta.env);
-    
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    console.log('Google Maps API Key:', apiKey ? 'Found' : 'Not found');
-    
-    if (!apiKey) {
-      setMapError('Google Maps API key not configured. Please check your .env file.');
-      console.error('Google Maps API key not found in environment variables');
-      return;
-    }
-
-    const loader = new Loader({
-      apiKey,
-      version: "weekly",
-      libraries: ["places", "marker"]
+  // Handle city selection from map
+  const handleCityClick = (city: any) => {
+    setSelectedCity({
+      id: city.id,
+      name: city.city || city.name,
+      country: city.country || '',
+      lat: city.lat,
+      lng: city.lng,
+      dancers: city.totalUsers || city.memberCount || 0,
+      events: 0,
+      teachers: 0,
+      djs: 0,
+      milongas: 0,
+      schools: 0,
+      timezone: 'UTC',
+      localTime: ''
     });
-
-    loader.load().then(() => {
-      console.log('Google Maps loaded successfully');
-      setIsMapLoaded(true);
-      setMapError(null);
-    }).catch((error) => {
-      console.error('Error loading Google Maps:', error);
-      setMapError(`Failed to load Google Maps: ${error.message}`);
-    });
-  }, []);
-
-  // Initialize Google Maps
-  useEffect(() => {
-    if (!isMapLoaded || !mapRef.current || mapInstanceRef.current) return;
-
-    const map = new window.google.maps.Map(mapRef.current, {
-      center: { lat: 0, lng: 0 },
-      zoom: mapZoom,
-      styles: [
-        {
-          featureType: "water",
-          elementType: "geometry",
-          stylers: [{ color: "#e9e9e9" }, { lightness: 17 }]
-        },
-        {
-          featureType: "landscape",
-          elementType: "geometry",
-          stylers: [{ color: "#f5f5f5" }, { lightness: 20 }]
-        }
-      ]
-    });
-
-    mapInstanceRef.current = map;
-
-  }, [isMapLoaded]);
-
-  // Add markers when cityGroups data is available
-  useEffect(() => {
-    if (!isMapLoaded || !mapInstanceRef.current || !cityGroups) return;
-
-    const map = mapInstanceRef.current;
-
-    // Clear existing markers
-    map.markers?.forEach((marker: any) => marker.setMap(null));
-    map.markers = [];
-
-    // Add markers for city groups
-    cityGroups.forEach((group: any) => {
-      const marker = new window.google.maps.Marker({
-        position: { lat: group.lat, lng: group.lng },
-        map,
-        title: `${group.name} - ${group.memberCount} members`,
-        icon: {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          scale: Math.min(20, 5 + group.memberCount / 10),
-          fillColor: group.memberCount > 100 ? '#FF1744' : 
-                     group.memberCount > 50 ? '#F50057' : 
-                     group.memberCount > 20 ? '#E91E63' : '#9C27B0',
-          fillOpacity: 0.8,
-          strokeColor: '#ffffff',
-          strokeWeight: 2
-        }
-      });
-
-      marker.addListener('click', () => {
-        setSelectedCity({
-          id: group.id,
-          name: group.city || group.name,
-          country: group.country || '',
-          lat: group.lat,
-          lng: group.lng,
-          dancers: group.totalUsers || 0,
-          events: 0,
-          teachers: 0,
-          djs: 0,
-          milongas: 0,
-          schools: 0,
-          timezone: 'UTC',
-          localTime: ''
-        });
-        map.panTo({ lat: group.lat, lng: group.lng });
-        map.setZoom(10);
-      });
-
-      if (!map.markers) map.markers = [];
-      map.markers.push(marker);
-    });
-
-  }, [cityGroups, isMapLoaded]);
+  };
 
   const getMarkerColor = (city: CityData) => {
     if (city.dancers > 1000) return '#FF1744'; // Red for major hubs
@@ -335,27 +240,10 @@ export default function CommunityWorldMap() {
                       </SelectContent>
                     </Select>
                     <div className="flex gap-2 ml-auto">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setMapZoom(Math.min(20, mapZoom + 1))}
-                      >
-                        <ZoomIn className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setMapZoom(Math.max(1, mapZoom - 1))}
-                      >
-                        <ZoomOut className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setMapZoom(2)}
-                      >
-                        <Maximize2 className="h-4 w-4" />
-                      </Button>
+                      <p className="text-sm text-gray-600 flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        Use mouse or touch to navigate the map
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -363,57 +251,20 @@ export default function CommunityWorldMap() {
 
               {/* Map Container */}
               <div className="relative">
-                <div 
-                  ref={mapRef}
-                  className="w-full h-[600px] rounded-lg border border-gray-200"
-                >
-                  {!isMapLoaded && !mapError && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                <div className="w-full h-[600px]">
+                  {isLoading ? (
+                    <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
                       <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-                        <p className="text-gray-600">Loading map...</p>
+                        <p className="text-gray-600">Loading map data...</p>
                       </div>
                     </div>
-                  )}
-                  {mapError && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50 p-8">
-                      <div className="text-center max-w-md">
-                        <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-red-500 font-semibold mb-2">Google Maps Configuration Issue</p>
-                        <p className="text-gray-600 text-sm mb-4">{mapError}</p>
-                        
-                        <div className="bg-blue-50 p-4 rounded-lg text-left mb-4">
-                          <p className="text-sm font-medium text-blue-900 mb-2">To fix this:</p>
-                          <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-                            <li>Go to your Google Cloud Console</li>
-                            <li>Click on "APIs & Services" → "Credentials"</li>
-                            <li>Edit your API key "VITE_GOOGLE_MAPS_API_KEY"</li>
-                            <li>Under "Application restrictions", either:
-                              <ul className="ml-6 mt-1 list-disc list-inside">
-                                <li>Choose "None" (for development)</li>
-                                <li>Or add <code className="bg-blue-100 px-1 rounded">*.replit.dev</code> to HTTP referrers</li>
-                              </ul>
-                            </li>
-                            <li>Save and wait 1-2 minutes for changes to propagate</li>
-                          </ol>
-                        </div>
-                        
-                        {/* Show city groups as fallback */}
-                        {cityGroups && cityGroups.length > 0 && (
-                          <div className="bg-white p-4 rounded-lg border">
-                            <h3 className="font-medium text-gray-900 mb-3">Active City Groups (Live Data):</h3>
-                            <div className="grid grid-cols-2 gap-2 text-sm">
-                              {cityGroups.slice(0, 6).map((group: any) => (
-                                <div key={group.id} className="bg-gray-50 p-2 rounded">
-                                  <p className="font-medium text-gray-800">{group.city || group.name}</p>
-                                  <p className="text-gray-600">{group.memberCount} members</p>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                  ) : (
+                    <LeafletMap
+                      cities={cityGroups || []}
+                      onCityClick={handleCityClick}
+                      selectedCity={selectedCity}
+                    />
                   )}
                 </div>
                 

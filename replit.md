@@ -2,16 +2,26 @@
 
 ## Overview
 
-**UPDATE (January 9, 2025 - Community Navigation Cleanup)**: Simplified Community Page Navigation
-- **Navigation Redundancy Fix**: Removed duplicate navigation options from Community page
+**UPDATE (January 9, 2025 - Interactive Maps with Leaflet)**: Replaced Google Maps with Open Source Solution
+- **Mapping Solution Change**: Replaced Google Maps API with Leaflet.js open-source mapping library
+  - Uses OpenStreetMap tiles - no API keys required, no billing concerns
+  - Eliminated dependency on Google Cloud Console configuration
+  - Created reusable LeafletMap component with interactive features
+- **City Groups Integration**: Map displays real-time city groups from database
+  - Dynamic markers sized by member count
+  - Color-coded markers based on community size
+  - Interactive popups showing city name, country, and member count
+  - Smooth fly-to animation when cities are selected
+- **Technical Implementation**: 
+  - Installed leaflet@^1.9.4, react-leaflet@^4.2.1, @types/leaflet@^1.9.0
+  - Fixed React 18 compatibility by using react-leaflet v4 instead of v5
+  - Custom marker icons with size and color based on member count
+- **Previous Update - Community Navigation Cleanup**: Simplified Community Page Navigation
   - Community page now redirects directly to World Map (/community → /community-world-map)
-  - Eliminated redundant action cards that duplicated sidebar navigation:
-    - "Browse Communities" (users should use Groups in sidebar)
-    - "Share Moments" (users should use Timeline in sidebar)  
-    - "Discover Events" (users should use Events in sidebar)
+  - Eliminated redundant action cards that duplicated sidebar navigation
   - World Map is now the primary community feature with live statistics
-- **23L Framework Applied**: Used comprehensive analysis to identify and fix navigation duplication
-- **User Experience**: Cleaner navigation flow, reduced cognitive load, direct access to World Map feature
+- **23L Framework Applied**: Used comprehensive analysis for both navigation cleanup and mapping solution
+- **User Experience**: No API key configuration needed, instant map functionality, better reliability
 
 **UPDATE (January 9, 2025 - Previous Update)**: Fixed Authentication & Live Statistics Implementation
 - **Authentication Middleware Fix**: Resolved strict `isAuthenticated` middleware conflicts causing 401 errors
