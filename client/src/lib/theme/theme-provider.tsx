@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import * as React from 'react';
 import { DesignTokens, defaultTokens } from './design-tokens';
 
 // Theme Configuration
@@ -228,15 +228,15 @@ interface ThemeContextType {
   isLoading: boolean;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined);
 
 // Theme Provider Component
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentThemeId, setCurrentThemeId] = useState<string>('mundo-tango');
-  const [isLoading, setIsLoading] = useState(true);
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [currentThemeId, setCurrentThemeId] = React.useState<string>('mundo-tango');
+  const [isLoading, setIsLoading] = React.useState(true);
 
   // Load theme preference from localStorage
-  useEffect(() => {
+  React.useEffect(() => {
     const savedTheme = localStorage.getItem('life-ceo-theme');
     if (savedTheme && themes[savedTheme]) {
       setCurrentThemeId(savedTheme);
@@ -245,7 +245,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   // Apply theme to DOM when theme changes
-  useEffect(() => {
+  React.useEffect(() => {
     if (!isLoading) {
       const theme = themes[currentThemeId];
       
@@ -315,7 +315,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 // Custom hook to use theme
 export const useTheme = () => {
-  const context = useContext(ThemeContext);
+  const context = React.useContext(ThemeContext);
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }

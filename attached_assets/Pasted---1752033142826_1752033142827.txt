@@ -1,0 +1,140 @@
+
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-02ed25d5ca27f5a4.js:38 [LaunchDarkly] LaunchDarkly client initialized
+web-client-content-script.js:2 Uncaught TypeError: Failed to execute 'observe' on 'MutationObserver': parameter 1 is not of type 'Node'.
+    at HTMLIFrameElement.<anonymous> (web-client-content-script.js:2:402720)Understand this error
+MundoTangoApp:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+framework-397e64f38411c44c.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-397e64f38411c44c.js:1Understand this error
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'battery'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+attached_assets/image_1752032866650.png:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+attached_assets/image_1752032875595.png:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+attached_assets/image_1752033051371.png:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+framework-397e64f38411c44c.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-397e64f38411c44c.js:1Understand this error
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Unrecognized feature: 'battery'.Understand this warning
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Unrecognized feature: 'layout-animations'.Understand this warning
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Unrecognized feature: 'navigation-override'.Understand this warning
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Unrecognized feature: 'oversized-images'.Understand this warning
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Unrecognized feature: 'unsized-media'.Understand this warning
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar1so%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+client:536 WebSocket connection to 'wss://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/?token=IvJPiu-WH-21' failed: 
+setupWebSocket @ client:536Understand this error
+_app-02ed25d5ca27f5a4.js:38 Invalid href 'https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/--%20COMPREHENSIVE%20DATABASE%20SECURITY%20IMPLEMENTATION%20--%20=============================================%20%20/*%20%23%23%20DATABASE%20SECURITY%20IMPLEMENTATION%20GUIDE%20%20This%20script%20implements%20a%20comprehensive%20security%20system%20for%20your%20Supabase%20database,%20including:%20%201.%20AUDIT%20SYSTEM%20%20%20%20-%20Creates%20an%20audit%20schema%20with%20a%20centralized%20logs%20table%20%20%20%20-%20Implements%20trigger%20functions%20to%20automatically%20track%20all%20data%20changes%20%20%20%20-%20Records%20who%20changed%20what%20and%20when,%20including%20the%20original%20and%20changed%20data%20%20%20%20-%20Provides%20helper%20functions%20to%20easily%20apply%20audit%20to%20tables%20%202.%20ROW%20LEVEL%20SECURITY%20(RLS)%20IMPROVEMENTS%20%20%20%20-%20Enables%20RLS%20on%20tables%20that%20don't%20have%20it%20%20%20%20-%20Adds%20missing%20policies%20for%20tables%20with%20RLS%20but%20no%20policies%20%20%20%20-%20Provides%20functions%20to%20replace%20problematic%20'FOR%20ALL'%20policies%20%203.%20PERFORMANCE%20OPTIMIZATIONS%20%20%20%20-%20Adds%20indexes%20for%20foreign%20key%20columns%20to%20improve%20query%20performance%20%20%20%20-%20Particularly%20important%20for%20columns%20used%20in%20RLS%20policies%20%204.%20SECURITY%20HEALTH%20CHECK%20FUNCTIONS%20%20%20%20-%20Creates%20database%20functions%20to%20identify%20security%20issues%20%20%20%20-%20Supports%20the%20security-health-check%20Edge%20Function%20%205.%20AUDIT%20TRIGGER%20APPLICATION%20%20%20%20-%20Applies%20audit%20triggers%20to%20important%20tables%20%20%20%20-%20Provides%20examples%20for%20adding%20more%20tables%20to%20the%20audit%20system%20%20%23%23%20IMPLEMENTATION%20PLAN%20%201.%20Review%20this%20script%20carefully%20before%20running%202.%20Execute%20the%20script%20in%20your%20Supabase%20SQL%20Editor%203.%20Deploy%20the%20security-health-check%20Edge%20Function%204.%20Run%20the%20security%20health%20check%20to%20verify%20improvements%205.%20Monitor%20audit%20logs%20regularly%20%20*/%20%20--%20=============================================%20--%20PART%201:%20AUDIT%20SYSTEM%20IMPLEMENTATION%20--%20=============================================%20%20--%20Create%20audit%20schema%20CREATE%20SCHEMA%20IF%20NOT%20EXISTS%20audit;%20%20--%20Create%20audit%20log%20table%20CREATE%20TABLE%20IF%20NOT%20EXISTS%20audit.logs%20(%20%20%20%20%20id%20bigint%20PRIMARY%20KEY%20GENERATED%20ALWAYS%20AS%20IDENTITY,%20%20%20%20%20table_name%20text%20NOT%20NULL,%20%20%20%20%20user_id%20uuid,%20%20%20%20%20action%20text%20NOT%20NULL%20CHECK%20(action%20IN%20('INSERT',%20'UPDATE',%20'DELETE',%20'TRUNCATE')),%20%20%20%20%20row_data%20jsonb,%20%20%20%20%20changed_fields%20jsonb,%20%20%20%20%20query%20text,%20%20%20%20%20ip_address%20inet,%20%20%20%20%20timestamp%20timestamptz%20NOT%20NULL%20DEFAULT%20now()%20);%20%20--%20Create%20indexes%20for%20better%20query%20performance%20CREATE%20INDEX%20IF%20NOT%20EXISTS%20idx_audit_logs_table_name%20ON%20audit.logs%20(table_name);%20CREATE%20INDEX%20IF%20NOT%20EXISTS%20idx_audit_logs_user_id%20ON%20audit.logs%20(user_id);%20CREATE%20INDEX%20IF%20NOT%20EXISTS%20idx_audit_logs_timestamp%20ON%20audit.logs%20(timestamp);%20CREATE%20INDEX%20IF%20NOT%20EXISTS%20idx_audit_logs_action%20ON%20audit.logs%20(action);%20%20--%20Enable%20RLS%20on%20the%20audit%20logs%20table%20ALTER%20TABLE%20audit.logs%20ENABLE%20ROW%20LEVEL%20SECURITY;%20%20--%20Create%20policy%20to%20allow%20only%20admins%20to%20view%20audit%20logs%20CREATE%20POLICY%20admin_audit_access%20ON%20audit.logs%20%20%20%20%20FOR%20SELECT%20%20%20%20%20TO%20authenticated%20%20%20%20%20USING%20(%20%20%20%20%20%20%20%20%20(SELECT%20is_admin%20FROM%20public.users%20WHERE%20auth_user_id%20=%20auth.uid())%20=%20true%20%20%20%20%20);%20%20--%20Create%20the%20audit%20trigger%20function%20CREATE%20OR%20REPLACE%20FUNCTION%20audit.create_audit_trigger()%20RETURNS%20TRIGGER%20AS%20$$%20DECLARE%20%20%20%20%20row_data%20jsonb;%20%20%20%20%20changed_fields%20jsonb;%20%20%20%20%20include_old%20boolean;%20%20%20%20%20include_new%20boolean;%20%20%20%20%20log_row%20jsonb;%20%20%20%20%20excluded_cols%20text[]%20=%20ARRAY[]::text[];%20BEGIN%20%20%20%20%20IF%20TG_WHEN%20%3C%3E%20'AFTER'%20THEN%20%20%20%20%20%20%20%20%20RAISE%20EXCEPTION%20'audit.create_audit_trigger()%20may%20only%20run%20as%20an%20AFTER%20trigger';%20%20%20%20%20END%20IF;%20%20%20%20%20%20--%20Determine%20which%20row%20to%20log%20%20%20%20%20CASE%20TG_OP%20%20%20%20%20%20%20%20%20WHEN%20'INSERT'%20THEN%20%20%20%20%20%20%20%20%20%20%20%20%20row_data%20=%20to_jsonb(NEW);%20%20%20%20%20%20%20%20%20%20%20%20%20changed_fields%20=%20NULL;%20%20%20%20%20%20%20%20%20%20%20%20%20include_old%20=%20false;%20%20%20%20%20%20%20%20%20%20%20%20%20include_new%20=%20true;%20%20%20%20%20%20%20%20%20WHEN%20'UPDATE'%20THEN%20%20%20%20%20%20%20%20%20%20%20%20%20--%20Only%20log%20if%20something%20actually%20changed%20%20%20%20%20%20%20%20%20%20%20%20%20IF%20
+(anonymous) @ _app-02ed25d5ca27f5a4.js:38Understand this error
+workspace_iframe.html:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+supabaseClient.ts:17 ⚠️ VITE_SUPABASE_URL not configured or invalid - real-time features will be disabled
+(anonymous) @ supabaseClient.ts:17Understand this warning
+2chunk-ZMLY2J2T.js?v=c6819234:136 Warning: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.
+printWarning @ chunk-ZMLY2J2T.js?v=c6819234:136Understand this error
+chunk-ZMLY2J2T.js?v=c6819234:1066 Uncaught TypeError: Cannot read properties of null (reading 'useState')
+    at useState (chunk-ZMLY2J2T.js?v=c6819234:1066:29)
+    at ThemeProvider (theme-provider.tsx:235:47)
+    at renderWithHooks (chunk-276SZO74.js?v=937857e5:11548:26)
+    at mountIndeterminateComponent (chunk-276SZO74.js?v=937857e5:14926:21)
+    at beginWork (chunk-276SZO74.js?v=937857e5:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-276SZO74.js?v=937857e5:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-276SZO74.js?v=937857e5:3699:24)
+    at invokeGuardedCallback (chunk-276SZO74.js?v=937857e5:3733:39)
+    at beginWork$1 (chunk-276SZO74.js?v=937857e5:19765:15)
+    at performUnitOfWork (chunk-276SZO74.js?v=937857e5:19198:20)Understand this error
+2chunk-ZMLY2J2T.js?v=c6819234:136 Warning: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.
+printWarning @ chunk-ZMLY2J2T.js?v=c6819234:136Understand this error
+chunk-ZMLY2J2T.js?v=c6819234:1066 Uncaught TypeError: Cannot read properties of null (reading 'useState')
+    at useState (chunk-ZMLY2J2T.js?v=c6819234:1066:29)
+    at ThemeProvider (theme-provider.tsx:235:47)
+    at renderWithHooks (chunk-276SZO74.js?v=937857e5:11548:26)
+    at mountIndeterminateComponent (chunk-276SZO74.js?v=937857e5:14926:21)
+    at beginWork (chunk-276SZO74.js?v=937857e5:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-276SZO74.js?v=937857e5:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-276SZO74.js?v=937857e5:3699:24)
+    at invokeGuardedCallback (chunk-276SZO74.js?v=937857e5:3733:39)
+    at beginWork$1 (chunk-276SZO74.js?v=937857e5:19765:15)
+    at performUnitOfWork (chunk-276SZO74.js?v=937857e5:19198:20)Understand this error
+chunk-276SZO74.js?v=937857e5:14032 The above error occurred in the <ThemeProvider> component:
+
+    at ThemeProvider (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/lib/theme/theme-provider.tsx:228:33)
+    at QueryClientProvider (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=937857e5:2805:3)
+    at App (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/App.tsx?v=wf4CRSbpkvO8laALC8ONK:302:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-276SZO74.js?v=937857e5:14032Understand this error
+chunk-276SZO74.js?v=937857e5:19413 Uncaught TypeError: Cannot read properties of null (reading 'useState')
+    at useState (chunk-ZMLY2J2T.js?v=c6819234:1066:29)
+    at ThemeProvider (theme-provider.tsx:235:47)
+    at renderWithHooks (chunk-276SZO74.js?v=937857e5:11548:26)
+    at mountIndeterminateComponent (chunk-276SZO74.js?v=937857e5:14926:21)
+    at beginWork (chunk-276SZO74.js?v=937857e5:15914:22)
+    at beginWork$1 (chunk-276SZO74.js?v=937857e5:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=937857e5:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=937857e5:19137:13)
+    at renderRootSync (chunk-276SZO74.js?v=937857e5:19116:15)
+    at recoverFromConcurrentError (chunk-276SZO74.js?v=937857e5:18736:28)Understand this error
+client:536 WebSocket connection to 'wss://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/?token=IvJPiu-WH-21' failed: 
+setupWebSocket @ client:536Understand this error
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=IvJPiu-WH-21' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)Understand this error
