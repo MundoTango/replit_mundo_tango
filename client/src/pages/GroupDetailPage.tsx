@@ -1,37 +1,31 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'wouter';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Users, Calendar, Image, MapPin, UserPlus, Bell, BellOff } from 'lucide-react';
+import React, { useState } from 'react';
+import { useParams } from 'wouter';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { apiRequest } from '@/lib/queryClient';
-import { toast } from '@/hooks/use-toast';
-
-interface GroupDetail {
-  id: number;
-  name: string;
-  slug: string;
-  type: string;
-  emoji: string;
-  imageUrl?: string;
-  description?: string;
-  city?: string;
-  country?: string;
-  memberCount: number;
-  eventCount?: number;
-  isJoined: boolean;
-  userRole?: string;
-  isPublic: boolean;
-  createdAt: string;
-  members?: any[];
-  recentEvents?: any[];
-  recentMemories?: any[];
-}
+import { 
+  ArrowLeft, MapPin, Users, Globe, Lock, Calendar, MessageCircle, 
+  Camera, Settings, UserPlus, Heart, Share2, MoreVertical, Flag,
+  Image, Video, FileText, Link as LinkIcon 
+} from 'lucide-react';
+import { useLocation } from 'wouter';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function GroupDetailPage() {
   const { slug } = useParams();
-  const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('discussion');
 
   // Fetch group details
   const { data: group, isLoading } = useQuery({
@@ -42,244 +36,318 @@ export default function GroupDetailPage() {
   // Join group mutation
   const joinGroupMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/groups/${slug}/join`, {
-        method: 'POST'
+      const response = await fetch(`/api/groups/${slug}/join`, {
+        method: 'POST',
+        credentials: 'include',
       });
+      if (!response.ok) throw new Error('Failed to join group');
+      return response.json();
     },
     onSuccess: () => {
+      toast({
+        title: 'Joined successfully!',
+        description: `You are now a member of ${group?.name}`,
+      });
       queryClient.invalidateQueries({ queryKey: [`/api/groups/${slug}`] });
-      toast({
-        title: 'Success',
-        description: 'You have joined the group!',
-      });
     },
-    onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to join group',
-        variant: 'destructive'
-      });
-    }
   });
 
   // Leave group mutation
   const leaveGroupMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/groups/${slug}/leave`, {
-        method: 'POST'
+      const response = await fetch(`/api/groups/${slug}/leave`, {
+        method: 'POST',
+        credentials: 'include',
       });
+      if (!response.ok) throw new Error('Failed to leave group');
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/groups/${slug}`] });
       toast({
-        title: 'Success',
-        description: 'You have left the group',
+        title: 'Left group',
+        description: `You have left ${group?.name}`,
       });
-    }
-  });
-
-  // Follow group mutation
-  const followGroupMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest(`/api/groups/${slug}/follow`, {
-        method: 'POST'
-      });
+      queryClient.invalidateQueries({ queryKey: [`/api/groups/${slug}`] });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/groups/${slug}`] });
-      toast({
-        title: 'Success',
-        description: 'You are now following this group!',
-      });
-    }
-  });
-
-  // Unfollow group mutation
-  const unfollowGroupMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest(`/api/groups/${slug}/unfollow`, {
-        method: 'POST'
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/groups/${slug}`] });
-      toast({
-        title: 'Success',
-        description: 'You have unfollowed this group',
-      });
-    }
   });
 
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
         </div>
       </DashboardLayout>
     );
   }
 
-  if (!group?.data) {
+  if (!group) {
     return (
       <DashboardLayout>
-        <Card className="max-w-md mx-auto mt-20">
-          <CardContent className="pt-6 text-center">
-            <h2 className="text-2xl font-bold mb-2">Group not found</h2>
-            <p className="text-muted-foreground mb-4">The group you're looking for doesn't exist.</p>
-            <Link href="/groups">
-              <Button>Back to Groups</Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-semibold mb-2">Group not found</h2>
+          <p className="text-gray-600 mb-4">This group may have been removed or you don't have access.</p>
+          <Button onClick={() => setLocation('/groups')}>Back to Groups</Button>
+        </div>
       </DashboardLayout>
     );
   }
-
-  const groupData = group.data as GroupDetail;
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto">
-        {/* Header Section */}
-        <div className="relative h-64 rounded-xl overflow-hidden mb-8">
-          <img 
-            src={groupData.imageUrl || 'https://images.pexels.com/photos/1701194/pexels-photo-1701194.jpeg'} 
-            alt={groupData.name}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-          <div className="absolute bottom-6 left-6 text-white">
-            <h1 className="text-4xl font-bold flex items-center gap-3">
-              <span className="text-5xl">{groupData.emoji}</span>
-              {groupData.name}
-            </h1>
-            {groupData.city && (
-              <p className="text-xl mt-2 flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                {groupData.city}, {groupData.country}
-              </p>
-            )}
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="mb-6">
+          <button
+            onClick={() => setLocation('/groups')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            Back to Groups
+          </button>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Stats Cards */}
-            <div className="grid grid-cols-2 gap-4">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Members</p>
-                      <p className="text-3xl font-bold">{groupData.memberCount || groupData.members?.length || 0}</p>
-                    </div>
-                    <Users className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Events</p>
-                      <p className="text-3xl font-bold">{groupData.eventCount || groupData.recentEvents?.length || 0}</p>
-                    </div>
-                    <Calendar className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
+          {/* Cover Image & Info */}
+          <div className="relative">
+            <div className="h-48 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl overflow-hidden">
+              {group.imageUrl && (
+                <img 
+                  src={group.imageUrl} 
+                  alt={group.name}
+                  className="w-full h-full object-cover opacity-80"
+                />
+              )}
             </div>
-
-            {/* Description */}
-            {groupData.description && (
-              <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-3">About</h2>
-                  <p className="text-muted-foreground">{groupData.description}</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Recent Activity */}
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-                <div className="space-y-4">
-                  <p className="text-center text-muted-foreground py-8">
-                    No recent activity to show
-                  </p>
+            
+            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
+              <div className="flex items-end justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-2">{group.name}</h1>
+                  <div className="flex items-center gap-4 text-white/90">
+                    <span className="flex items-center gap-1">
+                      {group.privacy === 'public' ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                      {group.privacy === 'public' ? 'Public' : 'Private'} Group
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Users className="h-4 w-4" />
+                      {group.memberCount || 0} members
+                    </span>
+                    {group.location && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        {group.location}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Actions */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-4">Actions</h3>
-                <div className="space-y-3">
-                  {groupData.isJoined ? (
-                    <Button 
-                      onClick={() => leaveGroupMutation.mutate()}
-                      disabled={leaveGroupMutation.isPending}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Users className="w-4 h-4 mr-2" />
-                      Leave Group
-                    </Button>
+                <div className="flex gap-2">
+                  {group.isMember ? (
+                    <>
+                      <Button
+                        onClick={() => leaveGroupMutation.mutate()}
+                        variant="outline"
+                        className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                      >
+                        Leave Group
+                      </Button>
+                      {group.isAdmin && (
+                        <Button
+                          onClick={() => setLocation(`/groups/${slug}/edit`)}
+                          className="bg-white text-gray-900 hover:bg-gray-100"
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          Manage
+                        </Button>
+                      )}
+                    </>
                   ) : (
-                    <Button 
+                    <Button
                       onClick={() => joinGroupMutation.mutate()}
-                      disabled={joinGroupMutation.isPending}
-                      className="w-full"
+                      className="bg-white text-gray-900 hover:bg-gray-100"
                     >
-                      <UserPlus className="w-4 h-4 mr-2" />
+                      <UserPlus className="h-4 w-4 mr-2" />
                       Join Group
                     </Button>
                   )}
-
-                  {!groupData.isJoined && (
-                    <Button 
-                      onClick={() => followGroupMutation.mutate()}
-                      disabled={followGroupMutation.isPending}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Bell className="w-4 h-4 mr-2" />
-                      Follow for Updates
-                    </Button>
-                  )}
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                        <MoreVertical className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Share
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-red-600">
+                        <Flag className="h-4 w-4 mr-2" />
+                        Report
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Group Info */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-4">Group Information</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Type</span>
-                    <span className="capitalize">{groupData.type} Group</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Privacy</span>
-                    <span>{groupData.isPublic ? 'Public' : 'Private'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Created</span>
-                    <span>{new Date(groupData.createdAt).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Description */}
+        {group.description && (
+          <Card className="p-6 mb-6">
+            <h3 className="font-semibold mb-2">About</h3>
+            <p className="text-gray-600">{group.description}</p>
+          </Card>
+        )}
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-6">
+            <TabsTrigger value="discussion">Discussion</TabsTrigger>
+            <TabsTrigger value="members">Members</TabsTrigger>
+            <TabsTrigger value="events">Events</TabsTrigger>
+            <TabsTrigger value="media">Media</TabsTrigger>
+            <TabsTrigger value="about">About</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="discussion" className="space-y-4">
+            {/* Create Post */}
+            {group.isMember && (
+              <Card className="p-4">
+                <div className="flex gap-3">
+                  <Avatar>
+                    <AvatarImage src="/api/placeholder/40/40" />
+                    <AvatarFallback>U</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <button className="w-full text-left px-4 py-2 bg-gray-100 rounded-lg text-gray-500 hover:bg-gray-200">
+                      Share something with the group...
+                    </button>
+                    <div className="flex gap-2 mt-2">
+                      <Button variant="ghost" size="sm">
+                        <Image className="h-4 w-4 mr-2" />
+                        Photo
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Video className="h-4 w-4 mr-2" />
+                        Video
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Event
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {/* Posts */}
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="p-6">
+                  <div className="flex items-start gap-3 mb-4">
+                    <Avatar>
+                      <AvatarImage src={`/api/placeholder/40/40?${i}`} />
+                      <AvatarFallback>M{i}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <h4 className="font-semibold">Member {i}</h4>
+                      <p className="text-sm text-gray-500">2 hours ago</p>
+                    </div>
+                  </div>
+                  <p className="mb-4">
+                    Just had an amazing practice session! Working on my ochos and feeling great progress. 
+                    Who else is practicing today? 💃
+                  </p>
+                  <div className="flex items-center gap-4 text-gray-500">
+                    <button className="flex items-center gap-1 hover:text-red-500">
+                      <Heart className="h-4 w-4" />
+                      <span className="text-sm">12</span>
+                    </button>
+                    <button className="flex items-center gap-1 hover:text-blue-500">
+                      <MessageCircle className="h-4 w-4" />
+                      <span className="text-sm">5</span>
+                    </button>
+                    <button className="flex items-center gap-1 hover:text-green-500">
+                      <Share2 className="h-4 w-4" />
+                      <span className="text-sm">Share</span>
+                    </button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="members">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Card key={i} className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={`/api/placeholder/48/48?${i}`} />
+                      <AvatarFallback>M{i}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <h4 className="font-semibold">Member {i}</h4>
+                      <p className="text-sm text-gray-500">Joined 2 months ago</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      View Profile
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="events">
+            <div className="text-center py-12 text-gray-500">
+              <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p>No upcoming events</p>
+              {group.isMember && (
+                <Button className="mt-4">Create Event</Button>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="media">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <div key={i} className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
+                  <img 
+                    src={`/api/placeholder/300/300?${i}`} 
+                    alt={`Media ${i}`}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform"
+                  />
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="about">
+            <Card className="p-6">
+              <h3 className="font-semibold mb-4">Group Information</h3>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-gray-500">Created</p>
+                  <p>{new Date(group.createdAt).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Type</p>
+                  <p className="capitalize">{group.type}</p>
+                </div>
+                {group.rules && (
+                  <div>
+                    <p className="text-sm text-gray-500 mb-2">Group Rules</p>
+                    <p className="whitespace-pre-wrap">{group.rules}</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

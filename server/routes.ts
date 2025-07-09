@@ -6349,6 +6349,273 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Leave a specific group by slug
+  app.post('/api/user/leave-group/:slug', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { slug } = req.params;
+      
+      // Find the group by slug
+      const group = await storage.getGroupBySlug(slug);
+      if (!group) {
+        return res.status(404).json({
+          success: false,
+          message: 'Group not found',
+          data: null
+        });
+      }
+      
+      // Check if user is a member
+      const isMember = await storage.checkUserInGroup(group.id, userId);
+      if (!isMember) {
+        return res.status(400).json({
+          success: false,
+          message: 'You are not a member of this group',
+          data: null
+        });
+      }
+      
+      // Remove user from group
+      await storage.removeUserFromGroup(group.id, userId);
+      
+      // Update member count
+      await storage.updateGroupMemberCount(group.id);
+      
+      // Log the action
+      console.log(`User ${userId} left group ${group.name} (${slug})`);
+      
+      res.status(200).json({
+        success: true,
+        message: `You have left ${group.name}`,
+        data: { group, leftGroup: true }
+      });
+      
+    } catch (error) {
+      console.error('Error leaving group:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to leave group',
+        data: null
+      });
+    }
+  });
+
+  // Get group details by slug
+  app.get('/api/groups/:slug', setUserContext, async (req, res) => {
+    try {
+      const { slug } = req.params;
+      
+      // Get user info
+      let user;
+      if ((req as any).user?.id) {
+        user = await storage.getUser((req as any).user.id);
+      } else if ((req as any).user?.claims?.sub) {
+        user = await storage.getUserByReplitId((req as any).user.claims.sub);
+      } else if ((req as any).session?.passport?.user?.claims?.sub) {
+        user = await storage.getUserByReplitId((req as any).session.passport.user.claims.sub);
+      }
+      
+      const userId = user?.id || 7; // Fall back to Scott Boddye
+      
+      // Find the group by slug
+      const group = await storage.getGroupBySlug(slug);
+      if (!group) {
+        return res.status(404).json({
+          success: false,
+          message: 'Group not found',
+          data: null
+        });
+      }
+      
+      // Check membership status
+      const isMember = await storage.checkUserInGroup(group.id, userId);
+      const isAdmin = false; // TODO: Check admin status
+      
+      // Get member count
+      const memberCount = await storage.getGroupMemberCount(group.id);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Group retrieved successfully',
+        data: {
+          ...group,
+          isMember,
+          isAdmin,
+          memberCount
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error getting group details:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get group details',
+        data: null
+      });
+    }
+  });
+
+  // Create a new group
+  app.post('/api/groups/create', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { name, description, type, roleType, privacy, location, city, country, imageUrl } = req.body;
+      
+      // Validate required fields
+      if (!name || !type || !privacy) {
+        return res.status(400).json({
+          success: false,
+          message: 'Name, type, and privacy are required',
+          data: null
+        });
+      }
+      
+      // Generate slug from name
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      
+      // Check if slug already exists
+      const existingGroup = await storage.getGroupBySlug(slug);
+      if (existingGroup) {
+        return res.status(400).json({
+          success: false,
+          message: 'A group with this name already exists',
+          data: null
+        });
+      }
+      
+      // Create the group
+      const newGroup = await storage.createGroup({
+        name,
+        slug,
+        description: description || '',
+        type,
+        roleType,
+        isPrivate: privacy === 'private',
+        location,
+        city,
+        country,
+        imageUrl,
+        createdBy: userId,
+        memberCount: 1
+      });
+      
+      // Add creator as admin member
+      await storage.addUserToGroup(newGroup.id, userId, 'admin');
+      
+      console.log(`User ${userId} created group ${name} (${slug})`);
+      
+      res.status(201).json({
+        success: true,
+        message: 'Group created successfully',
+        data: newGroup
+      });
+      
+    } catch (error) {
+      console.error('Error creating group:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create group',
+        data: null
+      });
+    }
+  });
+
+  // Join group by slug (alternative endpoint)
+  app.post('/api/groups/:slug/join', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { slug } = req.params;
+      
+      // Find the group by slug
+      const group = await storage.getGroupBySlug(slug);
+      if (!group) {
+        return res.status(404).json({
+          success: false,
+          message: 'Group not found',
+          data: null
+        });
+      }
+      
+      // Check if user is already a member
+      const isMember = await storage.checkUserInGroup(group.id, userId);
+      if (isMember) {
+        return res.status(200).json({
+          success: true,
+          message: 'You are already a member of this group',
+          data: { group, alreadyMember: true }
+        });
+      }
+      
+      // Add user to group
+      const membership = await storage.addUserToGroup(group.id, userId, 'member');
+      
+      // Update member count
+      await storage.updateGroupMemberCount(group.id);
+      
+      res.status(200).json({
+        success: true,
+        message: `Welcome to ${group.name}! 🎉`,
+        data: { group, membership, newMember: true }
+      });
+      
+    } catch (error) {
+      console.error('Error joining group:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to join group',
+        data: null
+      });
+    }
+  });
+
+  // Leave group by slug (alternative endpoint)
+  app.post('/api/groups/:slug/leave', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { slug } = req.params;
+      
+      // Find the group by slug
+      const group = await storage.getGroupBySlug(slug);
+      if (!group) {
+        return res.status(404).json({
+          success: false,
+          message: 'Group not found',
+          data: null
+        });
+      }
+      
+      // Check if user is a member
+      const isMember = await storage.checkUserInGroup(group.id, userId);
+      if (!isMember) {
+        return res.status(400).json({
+          success: false,
+          message: 'You are not a member of this group',
+          data: null
+        });
+      }
+      
+      // Remove user from group
+      await storage.removeUserFromGroup(group.id, userId);
+      
+      // Update member count
+      await storage.updateGroupMemberCount(group.id);
+      
+      res.status(200).json({
+        success: true,
+        message: `You have left ${group.name}`,
+        data: { group, leftGroup: true }
+      });
+      
+    } catch (error) {
+      console.error('Error leaving group:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to leave group',
+        data: null
+      });
+    }
+  });
+
   // Auto-join user to city groups based on location
   app.post('/api/user/auto-join-city-groups', setUserContext, async (req: any, res) => {
     try {
