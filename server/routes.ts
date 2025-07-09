@@ -6,7 +6,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { authMiddleware } from "./middleware/auth";
 import { setupUpload } from "./middleware/upload";
 import { storage } from "./storage";
-import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema, insertCustomRoleRequestSchema, roles, userProfiles, userRoles, groups, users, events } from "../shared/schema";
+import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema, insertCustomRoleRequestSchema, roles, userProfiles, userRoles, groups, users, events, eventRsvps, groupMembers, follows, posts } from "../shared/schema";
 import { z } from "zod";
 import { SocketService } from "./services/socketService";
 import { WebSocketServer } from "ws";
@@ -4153,11 +4153,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Enhanced Events API endpoints
-  app.get('/api/events/enhanced', isAuthenticated, async (req, res) => {
+  app.get('/api/events/enhanced', setUserContext, async (req, res) => {
     try {
       const { search, eventTypes, vibeTypes, location, dateRange, filter } = req.query;
-      const userClaims = (req as any).user.claims;
-      const user = await storage.getUserByReplitId(userClaims.sub);
+      
+      // Use flexible authentication pattern
+      let user;
+      if ((req as any).user?.id) {
+        user = await storage.getUser((req as any).user.id);
+      } else if ((req as any).user?.claims?.sub) {
+        user = await storage.getUserByReplitId((req as any).user.claims.sub);
+      } else if ((req as any).session?.passport?.user?.claims?.sub) {
+        user = await storage.getUserByReplitId((req as any).session.passport.user.claims.sub);
+      }
       
       if (!user) {
         return res.status(401).json({ success: false, message: 'User not found' });
@@ -4165,43 +4173,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const userId = user.id;
       
-      let query = db
-        .select({
-          id: events.id,
-          title: events.title,
-          description: events.description,
-          imageUrl: events.imageUrl,
-          coverPhotoUrl: events.coverPhotoUrl,
-          location: events.location,
-          city: events.city,
-          country: events.country,
-          latitude: events.latitude,
-          longitude: events.longitude,
-          startDate: events.startDate,
-          endDate: events.endDate,
-          userId: events.userId,
-          isPublic: events.isPublic,
-          maxAttendees: events.maxAttendees,
-          eventType: events.eventType,
-          createdAt: events.createdAt,
-          userName: users.name,
-          userUsername: users.username,
-          userProfileImage: users.profileImage
-        })
-        .from(events)
-        .leftJoin(users, eq(events.userId, users.id))
-        .where(and(
-          eq(events.isPublic, true),
-          search ? sql`LOWER(${events.title}) LIKE ${`%${search.toLowerCase()}%`}` : undefined,
-          location ? sql`LOWER(${events.city}) LIKE ${`%${location.toLowerCase()}%`}` : undefined
-        ))
+      // Build query with proper table references
+      const baseQuery = db.select().from(events).leftJoin(users, eq(events.userId, users.id));
+      
+      const conditions = [eq(events.isPublic, true)];
+      if (search) {
+        conditions.push(sql`LOWER(${events.title}) LIKE ${`%${search.toLowerCase()}%`}`);
+      }
+      if (location) {
+        conditions.push(sql`LOWER(${events.city}) LIKE ${`%${location.toLowerCase()}%`}`);
+      }
+      
+      const eventsList = await baseQuery
+        .where(and(...conditions))
         .orderBy(desc(events.startDate))
         .limit(50);
       
-      const eventsList = await query;
-      
       // Get RSVP counts and user status for each event
-      const enhancedEvents = await Promise.all(eventsList.map(async (event) => {
+      const enhancedEvents = await Promise.all(eventsList.map(async (item) => {
+        // Extract event data from joined result
+        const event = item.events;
+        const user = item.users;
+        
         // Get attendance counts
         const rsvpCounts = await db
           .select({
@@ -4240,12 +4233,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           maybeCount: Number(maybeCount),
           eventTypes: event.eventType ? [event.eventType] : [],
           vibeTypes: [], // We'll implement this when we add vibe types to the schema
-          user: {
-            id: event.userId,
-            name: event.userName,
-            username: event.userUsername,
-            profileImage: event.userProfileImage
-          },
+          user: user ? {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            profileImage: user.profileImage
+          } : null,
           userStatus: userRsvp[0]?.status || null
         };
       }));
@@ -4264,10 +4257,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Create enhanced event
-  app.post('/api/events/enhanced', isAuthenticated, async (req, res) => {
+  app.post('/api/events/enhanced', setUserContext, async (req, res) => {
     try {
-      const userClaims = (req as any).user.claims;
-      const user = await storage.getUserByReplitId(userClaims.sub);
+      // Use flexible authentication pattern
+      let user;
+      if ((req as any).user?.id) {
+        user = await storage.getUser((req as any).user.id);
+      } else if ((req as any).user?.claims?.sub) {
+        user = await storage.getUserByReplitId((req as any).user.claims.sub);
+      } else if ((req as any).session?.passport?.user?.claims?.sub) {
+        user = await storage.getUserByReplitId((req as any).session.passport.user.claims.sub);
+      }
       
       if (!user) {
         return res.status(401).json({ success: false, message: 'User not found' });
@@ -6326,10 +6326,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auto-join user to city groups based on location
-  app.post('/api/user/auto-join-city-groups', isAuthenticated, async (req: any, res) => {
+  app.post('/api/user/auto-join-city-groups', setUserContext, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUserByReplitId(userId);
+      // Use flexible authentication pattern
+      let user;
+      if (req.user?.id) {
+        user = await storage.getUser(req.user.id);
+      } else if (req.user?.claims?.sub) {
+        user = await storage.getUserByReplitId(req.user.claims.sub);
+      } else if (req.session?.passport?.user?.claims?.sub) {
+        user = await storage.getUserByReplitId(req.session.passport.user.claims.sub);
+      }
       
       if (!user) {
         return res.status(404).json({
@@ -8380,6 +8387,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: 'Failed to get conversations'
+      });
+    }
+  });
+
+  // Get city groups for world map
+  app.get('/api/community/city-groups', async (req, res) => {
+    try {
+      // Get all city groups with member counts and coordinates
+      const cityGroups = await db
+        .select({
+          id: groups.id,
+          name: groups.name,
+          city: groups.city,
+          country: groups.country,
+          memberCount: sql<number>`COUNT(DISTINCT ${groupMembers.userId})`,
+        })
+        .from(groups)
+        .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
+        .where(eq(groups.groupType, 'city'))
+        .groupBy(groups.id, groups.name, groups.city, groups.country);
+
+      // Get coordinates for each city
+      const cityGroupsWithCoords = await Promise.all(cityGroups.map(async (group) => {
+        // Get average coordinates from users in that city
+        const cityLocation = await db
+          .select({
+            lat: sql<number>`AVG(CAST(latitude AS FLOAT))`,
+            lng: sql<number>`AVG(CAST(longitude AS FLOAT))`,
+            userCount: sql<number>`COUNT(*)`
+          })
+          .from(users)
+          .where(and(
+            eq(users.city, group.city || ''),
+            isNotNull(users.latitude),
+            isNotNull(users.longitude)
+          ))
+          .then(r => r[0]);
+
+        return {
+          ...group,
+          lat: cityLocation?.lat ? Number(cityLocation.lat) : 0,
+          lng: cityLocation?.lng ? Number(cityLocation.lng) : 0,
+          totalUsers: Number(cityLocation?.userCount || 0)
+        };
+      }));
+
+      res.json({
+        success: true,
+        data: cityGroupsWithCoords.filter(g => g.lat && g.lng) // Only return groups with valid coordinates
+      });
+    } catch (error) {
+      console.error('Error fetching city groups:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch city groups'
+      });
+    }
+  });
+
+  // Global Statistics API
+  app.get('/api/statistics/global', async (req, res) => {
+    try {
+      // Get live counts from database
+      const [
+        totalDancers,
+        activeCities,
+        totalEvents,
+        totalConnections,
+        totalGroups,
+        totalMemories
+      ] = await Promise.all([
+        // Count total users with dancer role
+        db.select({ count: sql<number>`COUNT(DISTINCT ${userRoles.userId})` })
+          .from(userRoles)
+          .innerJoin(roles, eq(userRoles.roleId, roles.id))
+          .where(eq(roles.roleName, 'dancer'))
+          .then(r => r[0]?.count || 0),
+        
+        // Count distinct cities with active users
+        db.select({ count: sql<number>`COUNT(DISTINCT city)` })
+          .from(users)
+          .where(and(
+            isNotNull(users.city),
+            eq(users.isActive, true)
+          ))
+          .then(r => r[0]?.count || 0),
+        
+        // Count total events
+        db.select({ count: sql<number>`COUNT(*)` })
+          .from(events)
+          .then(r => r[0]?.count || 0),
+        
+        // Count total follows (connections)
+        db.select({ count: sql<number>`COUNT(*)` })
+          .from(follows)
+          .then(r => r[0]?.count || 0),
+        
+        // Count total groups
+        db.select({ count: sql<number>`COUNT(*)` })
+          .from(groups)
+          .then(r => r[0]?.count || 0),
+        
+        // Count total memories (posts)
+        db.select({ count: sql<number>`COUNT(*)` })
+          .from(posts)
+          .then(r => r[0]?.count || 0)
+      ]);
+
+      // Get city rankings (top cities by user count)
+      const cityRankings = await db
+        .select({
+          city: users.city,
+          country: users.country,
+          userCount: sql<number>`COUNT(*)`,
+        })
+        .from(users)
+        .where(and(
+          isNotNull(users.city),
+          eq(users.isActive, true)
+        ))
+        .groupBy(users.city, users.country)
+        .orderBy(desc(sql`COUNT(*)`))
+        .limit(10);
+
+      res.json({
+        success: true,
+        data: {
+          totalDancers,
+          activeCities,
+          totalEvents,
+          totalConnections,
+          totalGroups,
+          totalMemories,
+          cityRankings: cityRankings.map((city, index) => ({
+            rank: index + 1,
+            city: city.city,
+            country: city.country,
+            dancerCount: Number(city.userCount)
+          }))
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching global statistics:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch statistics'
       });
     }
   });

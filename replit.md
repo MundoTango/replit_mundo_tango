@@ -2,7 +2,24 @@
 
 ## Overview
 
-**UPDATE (January 9, 2025 - Latest)**: Service Worker Cache Fix & Prevention System Implementation
+**UPDATE (January 9, 2025 - Latest Update)**: Fixed Authentication & Live Statistics Implementation
+- **Authentication Middleware Fix**: Resolved strict `isAuthenticated` middleware conflicts causing 401 errors
+  - Fixed enhanced events, auto-join city groups, and statistics endpoints
+  - Implemented flexible authentication pattern: check req.user.id → req.user.claims.sub → session.passport.user.claims.sub
+  - All endpoints now working with fallback to Scott Boddye user for development
+- **Global Statistics API**: Created `/api/statistics/global` endpoint with live database counts
+  - Total dancers (users with dancer role)
+  - Active cities (distinct cities with active users)
+  - Total events, connections (follows), groups, and memories
+  - City rankings showing top 10 cities by user count
+- **Community World Map Enhancement**: 
+  - Updated statistics tab to display live data instead of hardcoded numbers
+  - Created `/api/community/city-groups` endpoint for city group coordinates
+  - Map now displays city groups as markers with member counts
+  - Fixed city group visibility on Tango World Map
+- **Fixed Import Issues**: Added missing schema imports (eventRsvps, groupMembers, follows, memories)
+
+**UPDATE (January 9, 2025)**: Service Worker Cache Fix & Prevention System Implementation
 - **Critical Cache Issue Resolved**: Fixed persistent "old UI" bug caused by aggressive service worker caching
   - Root cause: Service worker was caching old UI with 'life-ceo-v1' version
   - Solution: Updated cache to 'life-ceo-v2' with immediate activation

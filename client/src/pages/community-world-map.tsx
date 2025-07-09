@@ -86,9 +86,37 @@ export default function CommunityWorldMap() {
     }
   });
 
+  // Fetch global statistics
+  const { data: globalStats } = useQuery({
+    queryKey: ['/api/statistics/global'],
+    queryFn: async () => {
+      const response = await fetch('/api/statistics/global', {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch statistics');
+      const result = await response.json();
+      return result.data;
+    }
+  });
+
+  // Fetch city groups data
+  const { data: cityGroups } = useQuery({
+    queryKey: ['/api/community/city-groups'],
+    queryFn: async () => {
+      const response = await fetch('/api/community/city-groups', {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch city groups');
+      const result = await response.json();
+      return result.data || [];
+    }
+  });
+
   // Initialize Google Maps
   useEffect(() => {
-    if (!window.google || !mapRef.current || isLoading) return;
+    if (!window.google || !mapRef.current) return;
 
     const map = new window.google.maps.Map(mapRef.current, {
       center: { lat: 0, lng: 0 },
@@ -107,16 +135,18 @@ export default function CommunityWorldMap() {
       ]
     });
 
-    // Add markers for each city
-    communityData?.cities?.forEach((city: CityData) => {
+    // Add markers for city groups
+    cityGroups?.forEach((group: any) => {
       const marker = new window.google.maps.Marker({
-        position: { lat: city.lat, lng: city.lng },
+        position: { lat: group.lat, lng: group.lng },
         map,
-        title: city.name,
+        title: `${group.name} - ${group.memberCount} members`,
         icon: {
           path: window.google.maps.SymbolPath.CIRCLE,
-          scale: Math.min(20, 5 + city.dancers / 100),
-          fillColor: getMarkerColor(city),
+          scale: Math.min(20, 5 + group.memberCount / 10),
+          fillColor: group.memberCount > 100 ? '#FF1744' : 
+                     group.memberCount > 50 ? '#F50057' : 
+                     group.memberCount > 20 ? '#E91E63' : '#9C27B0',
           fillOpacity: 0.8,
           strokeColor: '#ffffff',
           strokeWeight: 2
@@ -124,13 +154,27 @@ export default function CommunityWorldMap() {
       });
 
       marker.addListener('click', () => {
-        setSelectedCity(city);
-        map.panTo({ lat: city.lat, lng: city.lng });
+        setSelectedCity({
+          id: group.id,
+          name: group.city || group.name,
+          country: group.country || '',
+          lat: group.lat,
+          lng: group.lng,
+          dancers: group.totalUsers || 0,
+          events: 0,
+          teachers: 0,
+          djs: 0,
+          milongas: 0,
+          schools: 0,
+          timezone: 'UTC',
+          localTime: ''
+        });
+        map.panTo({ lat: group.lat, lng: group.lng });
         map.setZoom(10);
       });
     });
 
-  }, [communityData, mapZoom, isLoading]);
+  }, [cityGroups, mapZoom]);
 
   const getMarkerColor = (city: CityData) => {
     if (city.dancers > 1000) return '#FF1744'; // Red for major hubs
@@ -363,8 +407,8 @@ export default function CommunityWorldMap() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-gray-600">Total Dancers</p>
-                        <p className="text-2xl font-bold">42,837</p>
-                        <p className="text-xs text-green-600 mt-1">+12% this month</p>
+                        <p className="text-2xl font-bold">{globalStats?.totalDancers || 0}</p>
+                        <p className="text-xs text-green-600 mt-1">Live count</p>
                       </div>
                       <Users className="h-8 w-8 text-blue-500" />
                     </div>
@@ -376,8 +420,8 @@ export default function CommunityWorldMap() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-gray-600">Active Cities</p>
-                        <p className="text-2xl font-bold">286</p>
-                        <p className="text-xs text-green-600 mt-1">+5 new cities</p>
+                        <p className="text-2xl font-bold">{globalStats?.activeCities || 0}</p>
+                        <p className="text-xs text-green-600 mt-1">Cities with users</p>
                       </div>
                       <MapPin className="h-8 w-8 text-green-500" />
                     </div>
@@ -388,9 +432,9 @@ export default function CommunityWorldMap() {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-600">Countries</p>
-                        <p className="text-2xl font-bold">67</p>
-                        <p className="text-xs text-gray-500 mt-1">6 continents</p>
+                        <p className="text-sm text-gray-600">Total Groups</p>
+                        <p className="text-2xl font-bold">{globalStats?.totalGroups || 0}</p>
+                        <p className="text-xs text-gray-500 mt-1">Community groups</p>
                       </div>
                       <Globe className="h-8 w-8 text-purple-500" />
                     </div>
@@ -401,9 +445,9 @@ export default function CommunityWorldMap() {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-600">Monthly Events</p>
-                        <p className="text-2xl font-bold">3,421</p>
-                        <p className="text-xs text-green-600 mt-1">+18% growth</p>
+                        <p className="text-sm text-gray-600">Total Memories</p>
+                        <p className="text-2xl font-bold">{globalStats?.totalMemories || 0}</p>
+                        <p className="text-xs text-green-600 mt-1">Shared memories</p>
                       </div>
                       <Calendar className="h-8 w-8 text-red-500" />
                     </div>
