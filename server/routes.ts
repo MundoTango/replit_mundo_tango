@@ -6394,6 +6394,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get group members with their tango roles
+  app.get('/api/groups/:slug/members', setUserContext, async (req, res) => {
+    try {
+      const { slug } = req.params;
+      
+      // Find the group by slug
+      const group = await storage.getGroupBySlug(slug);
+      if (!group) {
+        return res.status(404).json({
+          success: false,
+          message: 'Group not found',
+          data: null
+        });
+      }
+      
+      // Get all members of the group with their tango roles
+      const members = await db.select({
+        user: {
+          id: users.id,
+          name: users.name,
+          username: users.username,
+          profileImage: users.profileImage,
+          city: users.city,
+          country: users.country,
+          bio: users.bio
+        },
+        role: groupMembers.role,
+        joinedAt: groupMembers.joinedAt,
+        tangoRoles: users.tangoRoles
+      })
+      .from(groupMembers)
+      .innerJoin(users, eq(groupMembers.userId, users.id))
+      .where(eq(groupMembers.groupId, group.id))
+      .orderBy(groupMembers.joinedAt);
+      
+      // Transform the data to include parsed tango roles
+      const membersWithRoles = members.map(member => ({
+        ...member,
+        user: {
+          ...member.user,
+          tangoRoles: member.tangoRoles || []
+        }
+      }));
+      
+      res.status(200).json({
+        success: true,
+        message: 'Group members retrieved successfully',
+        data: membersWithRoles
+      });
+      
+    } catch (error) {
+      console.error('Error getting group members:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get group members',
+        data: null
+      });
+    }
+  });
+
+  // Get events for a specific group
+  app.get('/api/groups/:slug/events', setUserContext, async (req, res) => {
+    try {
+      const { slug } = req.params;
+      
+      // Find the group by slug
+      const group = await storage.getGroupBySlug(slug);
+      if (!group) {
+        return res.status(404).json({
+          success: false,
+          message: 'Group not found',
+          data: null
+        });
+      }
+      
+      // Get all events for this group's city
+      let groupEvents = [];
+      if (group.type === 'city' && group.city) {
+        groupEvents = await db.select({
+          id: events.id,
+          title: events.title,
+          description: events.description,
+          startDate: events.startDate,
+          endDate: events.endDate,
+          location: events.location,
+          city: events.city,
+          country: events.country,
+          latitude: events.latitude,
+          longitude: events.longitude,
+          host: {
+            id: users.id,
+            name: users.name,
+            username: users.username,
+            profileImage: users.profileImage
+          },
+          attendeeCount: events.attendeeCount,
+          imageUrl: events.imageUrl,
+          isRecurring: events.isRecurring,
+          frequency: events.frequency
+        })
+        .from(events)
+        .leftJoin(users, eq(events.userId, users.id))
+        .where(and(
+          eq(events.city, group.city),
+          gt(events.startDate, new Date())
+        ))
+        .orderBy(events.startDate);
+      }
+      
+      res.status(200).json({
+        success: true,
+        message: 'Group events retrieved successfully',
+        data: groupEvents
+      });
+      
+    } catch (error) {
+      console.error('Error getting group events:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get group events',
+        data: null
+      });
+    }
+  });
+
   // Create a new group
   app.post('/api/groups/create', isAuthenticated, async (req, res) => {
     try {

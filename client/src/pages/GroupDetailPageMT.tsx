@@ -14,6 +14,8 @@ import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import EventMap from '@/components/EventMap';
+import { Filter } from 'lucide-react';
 import '../styles/ttfiles.css';
 import '../styles/mt-group.css';
 
@@ -55,6 +57,58 @@ export default function GroupDetailPageMT() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('about');
+  
+  // Member data state
+  const [memberData, setMemberData] = useState<any[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+  
+  // Event filtering state
+  const [eventFilters, setEventFilters] = useState({
+    search: '',
+    eventType: 'all',
+    dateRange: { start: '', end: '' },
+    location: '',
+    priceRange: { min: 0, max: 1000 },
+    hasSpace: false
+  });
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  
+  // Event data state
+  const [events, setEvents] = useState<any[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Fetch member details with roles when members tab is active
+  React.useEffect(() => {
+    if (activeTab === 'members' && slug) {
+      setLoadingMembers(true);
+      fetch(`/api/groups/${slug}/members`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setMemberData(data.data);
+          }
+          setLoadingMembers(false);
+        })
+        .catch(() => setLoadingMembers(false));
+    }
+  }, [activeTab, slug]);
+  
+  // Fetch group events when events tab is active
+  React.useEffect(() => {
+    if (activeTab === 'events' && slug) {
+      setLoadingEvents(true);
+      fetch(`/api/groups/${slug}/events`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setEvents(data.data || []);
+          }
+          setLoadingEvents(false);
+        })
+        .catch(() => setLoadingEvents(false));
+    }
+  }, [activeTab, slug]);
 
   // Fetch group details with members
   const { data: response, isLoading, error } = useQuery({
@@ -259,110 +313,305 @@ export default function GroupDetailPageMT() {
     </div>
   );
 
-  const renderMembersTab = () => (
-    <div className="space-y-6">
-      {/* Member Search */}
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">{group.memberCount} Members</h3>
-        {isAdmin && (
-          <Button className="mt-action-button mt-action-button-primary">
-            <UserPlus className="h-4 w-4" />
-            Invite Members
-          </Button>
-        )}
-      </div>
-
-      {/* Members Grid */}
-      <div className="mt-members-grid">
-        {group.members?.map((member: GroupMember) => (
-          <div 
-            key={member.user.id} 
-            className="mt-member-card"
-            onClick={() => setLocation(`/u/${member.user.username}`)}
-          >
-            <div className="mt-member-avatar">
-              {member.user.profileImage ? (
-                <img src={member.user.profileImage} alt={member.user.name} className="w-full h-full rounded-full object-cover" />
-              ) : (
-                member.user.name.charAt(0)
-              )}
-            </div>
-            <div className="mt-member-info">
-              <p className="mt-member-name">{member.user.name}</p>
-              <p className="mt-member-role">
-                {member.role === 'admin' ? 'Admin' : 'Member'} • Joined {new Date(member.joinedAt).toLocaleDateString()}
-              </p>
-            </div>
-            {member.role === 'admin' && (
-              <span className="mt-member-badge">Admin</span>
-            )}
+  const renderMembersTab = () => {
+    // Filter to show only professional members (teachers, organizers, DJs, etc.)
+    const professionalRoles = ['teacher', 'organizer', 'dj', 'performer', 'musician', 'photographer', 'videographer'];
+    
+    // Filter professional members
+    const professionalMembers = memberData.filter(member => 
+      member.tangoRoles?.some((role: string) => professionalRoles.includes(role))
+    );
+    
+    return (
+      <div className="space-y-6">
+        {/* Member Search */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-lg font-semibold">Professional Members</h3>
+            <p className="text-sm text-gray-500">
+              {professionalMembers.length} professionals • {memberData.length} total members
+            </p>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderEventsTab = () => (
-    <div className="space-y-6">
-      {/* Events Header */}
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Upcoming Events</h3>
-        {isMember && (
-          <Button className="mt-action-button mt-action-button-primary">
-            <Calendar className="h-4 w-4" />
-            Create Event
-          </Button>
-        )}
-      </div>
-
-      {/* Events List */}
-      <div className="mt-events-list">
-        {/* Mock events for now */}
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="mt-event-item">
-            <div className="mt-event-date">
-              <div className="mt-event-day">{15 + i}</div>
-              <div className="mt-event-month">JAN</div>
-            </div>
-            <div className="mt-event-details">
-              <h4 className="mt-event-title">Weekly Milonga at {group.name}</h4>
-              <div className="mt-event-info">
-                <span className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  9:00 PM
-                </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  {group.city || 'Buenos Aires'}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  {42 + i * 7} attending
-                </span>
-              </div>
-            </div>
-            <ChevronRight className="h-5 w-5 text-gray-400" />
-          </div>
-        ))}
-      </div>
-
-      {/* Empty State */}
-      {false && (
-        <div className="mt-empty-state">
-          <Calendar className="mt-empty-icon" />
-          <h3 className="mt-empty-title">No upcoming events</h3>
-          <p className="mt-empty-description">
-            Be the first to organize an event for this group!
-          </p>
-          {isMember && (
+          {isAdmin && (
             <Button className="mt-action-button mt-action-button-primary">
-              Create First Event
+              <UserPlus className="h-4 w-4" />
+              Invite Members
             </Button>
           )}
         </div>
-      )}
-    </div>
-  );
+
+        {/* Professional Members Grid */}
+        {loadingMembers ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-pink-500"></div>
+          </div>
+        ) : professionalMembers.length > 0 ? (
+          <div className="mt-members-grid">
+            {professionalMembers.map((member: any) => (
+              <div 
+                key={member.userId} 
+                className="mt-member-card"
+                onClick={() => setLocation(`/u/${member.username}`)}
+              >
+                <div className="mt-member-avatar">
+                  {member.profileImage ? (
+                    <img src={member.profileImage} alt={member.name} className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    member.name.charAt(0)
+                  )}
+                </div>
+                <div className="mt-member-info">
+                  <p className="mt-member-name">{member.name}</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {member.tangoRoles?.filter((role: string) => professionalRoles.includes(role)).map((role: string) => (
+                      <span key={role} className="text-xs bg-gradient-to-r from-pink-500 to-purple-600 text-white px-2 py-0.5 rounded-full">
+                        {role}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Joined {new Date(member.joinedAt).toLocaleDateString()}
+                  </p>
+                </div>
+                {member.groupRole === 'admin' && (
+                  <span className="mt-member-badge">Admin</span>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-empty-state">
+            <Users className="mt-empty-icon" />
+            <h3 className="mt-empty-title">No professional members yet</h3>
+            <p className="mt-empty-description">
+              Teachers, organizers, and other professionals will appear here when they join.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderEventsTab = () => {
+    // Filter events based on current filters
+    const filteredEvents = events.filter(event => {
+      if (eventFilters.search && !event.title.toLowerCase().includes(eventFilters.search.toLowerCase())) {
+        return false;
+      }
+      if (eventFilters.eventType !== 'all' && event.eventType !== eventFilters.eventType) {
+        return false;
+      }
+      if (eventFilters.dateRange.start && new Date(event.startDate) < new Date(eventFilters.dateRange.start)) {
+        return false;
+      }
+      if (eventFilters.dateRange.end && new Date(event.startDate) > new Date(eventFilters.dateRange.end)) {
+        return false;
+      }
+      if (eventFilters.location && !event.location.toLowerCase().includes(eventFilters.location.toLowerCase())) {
+        return false;
+      }
+      if (eventFilters.hasSpace && event.attendeeCount >= event.maxAttendees) {
+        return false;
+      }
+      return true;
+    });
+
+    return (
+      <div className="space-y-6">
+        {/* Events Header */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <h3 className="text-lg font-semibold">Group Events</h3>
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+              >
+                <Calendar className="h-4 w-4" />
+                List
+              </Button>
+              <Button
+                variant={viewMode === 'map' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('map')}
+              >
+                <MapPin className="h-4 w-4" />
+                Map
+              </Button>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className={showFilters ? 'bg-pink-50' : ''}
+            >
+              <Filter className="h-4 w-4" />
+              Filters {filteredEvents.length !== events.length && `(${filteredEvents.length})`}
+            </Button>
+            {isMember && (
+              <Button className="mt-action-button mt-action-button-primary">
+                <Calendar className="h-4 w-4" />
+                Create Event
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Filters Panel */}
+        {showFilters && (
+          <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Search */}
+              <div>
+                <label className="text-sm font-medium mb-1 block">Search</label>
+                <input
+                  type="text"
+                  placeholder="Search events..."
+                  value={eventFilters.search}
+                  onChange={(e) => setEventFilters({...eventFilters, search: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+              
+              {/* Event Type */}
+              <div>
+                <label className="text-sm font-medium mb-1 block">Type</label>
+                <select
+                  value={eventFilters.eventType}
+                  onChange={(e) => setEventFilters({...eventFilters, eventType: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                >
+                  <option value="all">All Types</option>
+                  <option value="milonga">Milonga</option>
+                  <option value="practica">Práctica</option>
+                  <option value="workshop">Workshop</option>
+                  <option value="festival">Festival</option>
+                  <option value="concert">Concert</option>
+                </select>
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="text-sm font-medium mb-1 block">Location</label>
+                <input
+                  type="text"
+                  placeholder="Search location..."
+                  value={eventFilters.location}
+                  onChange={(e) => setEventFilters({...eventFilters, location: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+
+              {/* Date Range */}
+              <div>
+                <label className="text-sm font-medium mb-1 block">From Date</label>
+                <input
+                  type="date"
+                  value={eventFilters.dateRange.start}
+                  onChange={(e) => setEventFilters({...eventFilters, dateRange: {...eventFilters.dateRange, start: e.target.value}})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">To Date</label>
+                <input
+                  type="date"
+                  value={eventFilters.dateRange.end}
+                  onChange={(e) => setEventFilters({...eventFilters, dateRange: {...eventFilters.dateRange, end: e.target.value}})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+
+              {/* Has Space */}
+              <div className="flex items-end">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={eventFilters.hasSpace}
+                    onChange={(e) => setEventFilters({...eventFilters, hasSpace: e.target.checked})}
+                    className="rounded"
+                  />
+                  <span className="text-sm">Only show events with space</span>
+                </label>
+              </div>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEventFilters({
+                search: '',
+                eventType: 'all',
+                dateRange: { start: '', end: '' },
+                location: '',
+                priceRange: { min: 0, max: 1000 },
+                hasSpace: false
+              })}
+            >
+              Clear Filters
+            </Button>
+          </div>
+        )}
+
+        {/* View Mode Content */}
+        {viewMode === 'list' ? (
+          <div className="mt-events-list">
+            {loadingEvents ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-pink-500"></div>
+              </div>
+            ) : filteredEvents.length > 0 ? (
+              filteredEvents.map((event) => (
+                <div key={event.id} className="mt-event-item" onClick={() => setLocation(`/events/${event.id}`)}>
+                  <div className="mt-event-date">
+                    <div className="mt-event-day">{new Date(event.startDate).getDate()}</div>
+                    <div className="mt-event-month">{new Date(event.startDate).toLocaleDateString('en', { month: 'short' }).toUpperCase()}</div>
+                  </div>
+                  <div className="mt-event-details">
+                    <h4 className="mt-event-title">{event.title}</h4>
+                    <div className="mt-event-info">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        {new Date(event.startDate).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        {event.location}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        {event.attendeeCount || 0} attending
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-gray-400" />
+                </div>
+              ))
+            ) : (
+              <div className="mt-empty-state">
+                <Calendar className="mt-empty-icon" />
+                <h3 className="mt-empty-title">No events found</h3>
+                <p className="mt-empty-description">
+                  {events.length > 0 ? 'Try adjusting your filters' : 'Be the first to organize an event for this group!'}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="h-[600px] relative">
+            <EventMap 
+              events={filteredEvents}
+              cityLat={group?.latitude}
+              cityLng={group?.longitude}
+              onEventClick={(event) => setLocation(`/events/${event.id}`)}
+            />
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderPostsTab = () => (
     <div className="space-y-6">
