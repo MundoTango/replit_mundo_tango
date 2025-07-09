@@ -196,19 +196,6 @@ function App() {
     initAnalytics();
   }, []);
 
-  // Simple test to check if React is working
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('test') === 'simple') {
-    return (
-      <div style={{ padding: '20px', backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
-        <h1>React is working!</h1>
-        <p>If you can see this, the app is loading correctly.</p>
-        <p>Time: {new Date().toLocaleString()}</p>
-        <button onClick={() => window.location.href = '/'}>Go to main app</button>
-      </div>
-    );
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
