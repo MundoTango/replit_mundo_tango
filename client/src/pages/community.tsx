@@ -39,6 +39,26 @@ export default function CommunityPage() {
           
           {/* Enhanced navigation cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <Link href="/community-world-map">
+              <div className="group bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-3xl p-8 hover:scale-105 hover:shadow-2xl hover:shadow-purple-200/50 transition-all duration-300 cursor-pointer relative overflow-hidden">
+                <div className="absolute top-0 right-0 px-3 py-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-semibold rounded-bl-2xl">
+                  NEW
+                </div>
+                <div className="flex flex-col items-center text-center">
+                  <div className="relative mb-6">
+                    <div className="p-4 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
+                      <Globe className="h-10 w-10 text-white animate-pulse" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center">
+                      <MapPin className="h-3 w-3 text-white" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">World Map</h3>
+                  <p className="text-gray-600 leading-relaxed">Interactive global map of tango communities with live statistics</p>
+                </div>
+              </div>
+            </Link>
+
             <Link href="/tango-communities">
               <div className="group bg-white/90 backdrop-blur-sm rounded-3xl border border-indigo-100/50 p-8 hover:scale-105 hover:shadow-2xl hover:shadow-purple-100/30 transition-all duration-300 cursor-pointer">
                 <div className="flex flex-col items-center text-center">

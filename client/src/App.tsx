@@ -18,6 +18,7 @@ import CodeOfConduct from "@/pages/code-of-conduct";
 import Home from "@/pages/home";
 import Profile from "@/pages/profile";
 import Events from "@/pages/events";
+import EnhancedEvents from "@/pages/events-enhanced";
 import Messages from "@/pages/messages";
 import Moments from "@/pages/moments";
 import Community from "@/pages/community";
@@ -54,7 +55,9 @@ import SimpleTest from "@/pages/simple-test";
 import FixModalTest from "@/pages/fix-modal-test";
 import NavigationTest from "@/pages/navigation-test";
 import TTfilesDemo from "@/pages/TTfilesDemo";
+import TTfilesHelpCenter from "@/pages/ttfiles-help-center";
 import TangoCommunities from "@/pages/tango-communities";
+import CommunityWorldMap from "@/pages/community-world-map";
 import HousingMarketplace from "@/pages/housing-marketplace";
 import GlobalStatistics from "@/pages/global-statistics";
 import DatabaseSecurity from "@/pages/database-security";
@@ -150,6 +153,7 @@ function Router() {
       <Route path="/" component={Moments} />
       <Route path="/moments" component={Moments} />
       <Route path="/community" component={Community} />
+      <Route path="/community-world-map" component={CommunityWorldMap} />
       <Route path="/tango-communities" component={TangoCommunities} />
       <Route path="/housing-marketplace" component={HousingMarketplace} />
       <Route path="/global-statistics" component={GlobalStatistics} />
@@ -160,7 +164,7 @@ function Router() {
       <Route path="/groups" component={Groups} />
       <Route path="/groups/:slug" component={GroupDetailPage} />
       <Route path="/profile" component={Profile} />
-      <Route path="/events" component={Events} />
+      <Route path="/events" component={EnhancedEvents} />
       <Route path="/invitations" component={Invitations} />
       <Route path="/profile/resume" component={ResumePage} />
       <Route path="/u/:username/resume" component={PublicResumePage} />
@@ -186,6 +190,7 @@ function Router() {
       <Route path="/enhanced-timeline-old" component={EnhancedTimeline} />
       <Route path="/route-test" component={RouteTest} />
       <Route path="/ttfiles-demo" component={TTfilesDemo} />
+      <Route path="/ttfiles-help-center" component={TTfilesHelpCenter} />
       <Route path="/feature-navigation" component={FeatureNavigation} />
       <Route component={NotFound} />
     </Switch>

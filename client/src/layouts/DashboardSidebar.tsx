@@ -21,7 +21,9 @@ import {
   Building,
   Crown,
   X,
-  Map
+  Map,
+  HelpCircle,
+  Mail
 } from 'lucide-react';
 
 interface DashboardSidebarProps {
@@ -71,6 +73,11 @@ export default function DashboardSidebar({ isOpen, onClose }: DashboardSidebarPr
       label: 'Profile',
       path: '/profile',
       icon: User,
+    },
+    {
+      label: 'TTfiles Help',
+      path: '/ttfiles-help-center',
+      icon: HelpCircle,
     },
     // Role-specific items
     {

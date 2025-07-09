@@ -73,6 +73,385 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Community World Map endpoints
+  app.get('/api/community/world-map', async (req, res) => {
+    try {
+      const { role, activity } = req.query;
+      
+      // Mock data for community world map
+      const cities = [
+        {
+          id: '1',
+          name: 'Buenos Aires',
+          country: 'Argentina',
+          lat: -34.6037,
+          lng: -58.3816,
+          dancers: 8500,
+          events: 420,
+          teachers: 250,
+          djs: 120,
+          milongas: 180,
+          schools: 45,
+          timezone: 'America/Argentina/Buenos_Aires'
+        },
+        {
+          id: '2',
+          name: 'Paris',
+          country: 'France',
+          lat: 48.8566,
+          lng: 2.3522,
+          dancers: 3200,
+          events: 180,
+          teachers: 95,
+          djs: 40,
+          milongas: 65,
+          schools: 22,
+          timezone: 'Europe/Paris'
+        },
+        {
+          id: '3',
+          name: 'Berlin',
+          country: 'Germany',
+          lat: 52.5200,
+          lng: 13.4050,
+          dancers: 2800,
+          events: 165,
+          teachers: 78,
+          djs: 35,
+          milongas: 52,
+          schools: 18,
+          timezone: 'Europe/Berlin'
+        },
+        {
+          id: '4',
+          name: 'New York',
+          country: 'USA',
+          lat: 40.7128,
+          lng: -74.0060,
+          dancers: 2400,
+          events: 145,
+          teachers: 68,
+          djs: 32,
+          milongas: 48,
+          schools: 15,
+          timezone: 'America/New_York'
+        },
+        {
+          id: '5',
+          name: 'Barcelona',
+          country: 'Spain',
+          lat: 41.3851,
+          lng: 2.1734,
+          dancers: 2100,
+          events: 130,
+          teachers: 62,
+          djs: 28,
+          milongas: 42,
+          schools: 14,
+          timezone: 'Europe/Madrid'
+        },
+        {
+          id: '6',
+          name: 'Moscow',
+          country: 'Russia',
+          lat: 55.7558,
+          lng: 37.6173,
+          dancers: 1800,
+          events: 95,
+          teachers: 48,
+          djs: 22,
+          milongas: 35,
+          schools: 12,
+          timezone: 'Europe/Moscow'
+        },
+        {
+          id: '7',
+          name: 'Tokyo',
+          country: 'Japan',
+          lat: 35.6762,
+          lng: 139.6503,
+          dancers: 1600,
+          events: 88,
+          teachers: 42,
+          djs: 18,
+          milongas: 30,
+          schools: 10,
+          timezone: 'Asia/Tokyo'
+        },
+        {
+          id: '8',
+          name: 'London',
+          country: 'UK',
+          lat: 51.5074,
+          lng: -0.1278,
+          dancers: 1500,
+          events: 92,
+          teachers: 45,
+          djs: 20,
+          milongas: 32,
+          schools: 11,
+          timezone: 'Europe/London'
+        },
+        {
+          id: '9',
+          name: 'Seoul',
+          country: 'South Korea',
+          lat: 37.5665,
+          lng: 126.9780,
+          dancers: 1200,
+          events: 75,
+          teachers: 35,
+          djs: 15,
+          milongas: 25,
+          schools: 8,
+          timezone: 'Asia/Seoul'
+        },
+        {
+          id: '10',
+          name: 'Istanbul',
+          country: 'Turkey',
+          lat: 41.0082,
+          lng: 28.9784,
+          dancers: 1100,
+          events: 68,
+          teachers: 32,
+          djs: 14,
+          milongas: 22,
+          schools: 7,
+          timezone: 'Europe/Istanbul'
+        }
+      ];
+
+      // Filter based on role if provided
+      let filteredCities = cities;
+      if (role && role !== 'all') {
+        // Apply role-based filtering logic here
+      }
+
+      // Country statistics
+      const countries = [
+        { country: 'Argentina', totalDancers: 8500, totalEvents: 420, activeCities: 1, growthRate: 5 },
+        { country: 'France', totalDancers: 3200, totalEvents: 180, activeCities: 1, growthRate: 8 },
+        { country: 'Germany', totalDancers: 2800, totalEvents: 165, activeCities: 1, growthRate: 12 },
+        { country: 'USA', totalDancers: 2400, totalEvents: 145, activeCities: 1, growthRate: 10 },
+        { country: 'Spain', totalDancers: 2100, totalEvents: 130, activeCities: 1, growthRate: 15 }
+      ];
+
+      res.json({
+        success: true,
+        data: {
+          cities: filteredCities,
+          countries,
+          stats: {
+            totalDancers: 28900,
+            totalCities: cities.length,
+            totalCountries: countries.length,
+            totalEvents: 1425
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching world map data:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch world map data'
+      });
+    }
+  });
+
+  // TTfiles Help Center endpoints
+  app.get('/api/ttfiles/help-requests', async (req, res) => {
+    try {
+      const { q, category, urgency } = req.query;
+      
+      // Mock data for help requests
+      const helpRequests = [
+        {
+          id: '1',
+          title: 'How to upload multiple photos to event',
+          description: 'I\'m trying to upload multiple photos to my milonga event but the upload button is not working. Please help!',
+          category: 'technical',
+          location: 'Buenos Aires, Argentina',
+          urgency: 'medium',
+          status: 'open',
+          createdAt: new Date().toISOString(),
+          userId: 1,
+          user: {
+            name: 'Maria Rodriguez',
+            username: 'maria_tango',
+            profileImage: null
+          },
+          responses: 3,
+          lastActivity: new Date().toISOString()
+        },
+        {
+          id: '2',
+          title: 'Need help finding practice partner',
+          description: 'New to Berlin and looking for a practice partner for weekly sessions. Intermediate level.',
+          category: 'community',
+          location: 'Berlin, Germany',
+          urgency: 'low',
+          status: 'open',
+          createdAt: new Date(Date.now() - 86400000).toISOString(),
+          userId: 2,
+          user: {
+            name: 'Hans Mueller',
+            username: 'hans_berlin',
+            profileImage: null
+          },
+          responses: 5,
+          lastActivity: new Date().toISOString()
+        }
+      ];
+
+      // Apply filters
+      let filtered = helpRequests;
+      if (q) {
+        filtered = filtered.filter(r => 
+          r.title.toLowerCase().includes(q.toLowerCase()) ||
+          r.description.toLowerCase().includes(q.toLowerCase())
+        );
+      }
+      if (category) {
+        filtered = filtered.filter(r => r.category === category);
+      }
+      if (urgency) {
+        filtered = filtered.filter(r => r.urgency === urgency);
+      }
+
+      res.json({
+        success: true,
+        data: filtered
+      });
+    } catch (error) {
+      console.error('Error fetching help requests:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch help requests'
+      });
+    }
+  });
+
+  app.get('/api/ttfiles/my-help-requests', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      
+      // Mock data for user's help requests
+      const myRequests = [
+        {
+          id: '3',
+          title: 'Issue with event RSVP system',
+          description: 'When I try to RSVP to events, I get an error message.',
+          category: 'technical',
+          location: 'Paris, France',
+          urgency: 'high',
+          status: 'in_progress',
+          createdAt: new Date(Date.now() - 172800000).toISOString(),
+          userId: userId,
+          responses: 2,
+          lastActivity: new Date().toISOString()
+        }
+      ];
+
+      res.json({
+        success: true,
+        data: myRequests
+      });
+    } catch (error) {
+      console.error('Error fetching user help requests:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch your help requests'
+      });
+    }
+  });
+
+  app.post('/api/ttfiles/help-requests', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      const { title, description, category, location, urgency } = req.body;
+
+      if (!title || !description || !category) {
+        return res.status(400).json({
+          success: false,
+          error: 'Title, description, and category are required'
+        });
+      }
+
+      const newRequest = {
+        id: Date.now().toString(),
+        title,
+        description,
+        category,
+        location: location || '',
+        urgency: urgency || 'medium',
+        status: 'open',
+        createdAt: new Date().toISOString(),
+        userId,
+        user: {
+          name: req.user?.name || 'Anonymous',
+          username: req.user?.username || 'anonymous',
+          profileImage: req.user?.profileImage || null
+        },
+        responses: 0,
+        lastActivity: new Date().toISOString()
+      };
+
+      res.json({
+        success: true,
+        data: newRequest
+      });
+    } catch (error) {
+      console.error('Error creating help request:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create help request'
+      });
+    }
+  });
+
+  app.get('/api/ttfiles/reported-memories', isAuthenticated, async (req, res) => {
+    try {
+      // Only show reported memories to admins or the reporter
+      const userId = req.user?.id;
+      const userRoles = await storage.getUserRoles(userId);
+      const isAdmin = userRoles.some(r => r.roleName === 'admin' || r.roleName === 'super_admin');
+
+      // Mock data for reported memories
+      const reports = [
+        {
+          id: '1',
+          memoryId: 'mem-1',
+          reportType: 'inappropriate',
+          description: 'This content violates community guidelines',
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+          memory: {
+            content: 'Some inappropriate content...',
+            user: {
+              name: 'John Doe',
+              username: 'johndoe'
+            }
+          }
+        }
+      ];
+
+      // Filter based on user role
+      const filtered = isAdmin ? reports : reports.filter(r => r.reporterId === userId);
+
+      res.json({
+        success: true,
+        data: filtered
+      });
+    } catch (error) {
+      console.error('Error fetching reported memories:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch reported memories'
+      });
+    }
+  });
+
   // Apply security middleware to all authenticated routes (after public endpoints)
   app.use('/api', setUserContext);
 
