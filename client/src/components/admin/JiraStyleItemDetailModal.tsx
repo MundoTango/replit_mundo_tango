@@ -52,11 +52,14 @@ export const JiraStyleItemDetailModal: React.FC<JiraStyleItemDetailModalProps> =
   // Safe close handler
   const handleClose = useCallback(() => {
     try {
+      // Reset body overflow before closing
+      document.body.style.overflow = 'auto';
       onClose();
     } catch (error) {
       console.error('Error closing modal:', error);
-      // Force close by reloading the component
-      window.location.hash = '';
+      // Force close by cleaning up state
+      document.body.style.overflow = 'auto';
+      onClose();
     }
   }, [onClose]);
 

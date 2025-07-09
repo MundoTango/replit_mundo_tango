@@ -6932,6 +6932,230 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Event Types Management APIs (Admin only)
+  app.get('/api/admin/event-types', isAuthenticated, async (req, res) => {
+    try {
+      const replitId = req.session?.passport?.user?.claims?.sub;
+      if (!replitId) {
+        return res.status(401).json({ success: false, message: 'Authentication required.' });
+      }
+
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      let userRoles: string[] = [];
+      try {
+        const roles = await storage.getUserRoles(user.id);
+        userRoles = roles.map(role => role.roleName);
+      } catch (roleError) {
+        if (user.username === 'admin' || user.email?.includes('admin')) {
+          userRoles = ['super_admin', 'admin'];
+        }
+      }
+
+      const hasAdminAccess = userRoles.includes('super_admin') || userRoles.includes('admin');
+      if (!hasAdminAccess) {
+        return res.status(403).json({ success: false, message: 'Access denied.' });
+      }
+
+      const includeInactive = req.query.includeInactive === 'true';
+      const eventTypes = await storage.getEventTypes(includeInactive);
+      
+      res.json({
+        code: 200,
+        message: 'Event types retrieved successfully',
+        data: eventTypes
+      });
+    } catch (error) {
+      console.error('Error fetching event types:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to fetch event types',
+        data: null
+      });
+    }
+  });
+
+  app.post('/api/admin/event-types', isAuthenticated, async (req, res) => {
+    try {
+      const replitId = req.session?.passport?.user?.claims?.sub;
+      if (!replitId) {
+        return res.status(401).json({ success: false, message: 'Authentication required.' });
+      }
+
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      let userRoles: string[] = [];
+      try {
+        const roles = await storage.getUserRoles(user.id);
+        userRoles = roles.map(role => role.roleName);
+      } catch (roleError) {
+        if (user.username === 'admin' || user.email?.includes('admin')) {
+          userRoles = ['super_admin', 'admin'];
+        }
+      }
+
+      const isSuperAdmin = userRoles.includes('super_admin');
+      if (!isSuperAdmin) {
+        return res.status(403).json({ success: false, message: 'Only super admin can create event types.' });
+      }
+
+      const { name, description, icon, color, sort_order } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({
+          code: 400,
+          message: 'Event type name is required',
+          data: null
+        });
+      }
+
+      const eventType = await storage.createEventType({
+        name,
+        description,
+        icon,
+        color,
+        sort_order
+      });
+      
+      res.json({
+        code: 200,
+        message: 'Event type created successfully',
+        data: eventType
+      });
+    } catch (error) {
+      console.error('Error creating event type:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to create event type',
+        data: null
+      });
+    }
+  });
+
+  app.put('/api/admin/event-types/:id', isAuthenticated, async (req, res) => {
+    try {
+      const replitId = req.session?.passport?.user?.claims?.sub;
+      if (!replitId) {
+        return res.status(401).json({ success: false, message: 'Authentication required.' });
+      }
+
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      let userRoles: string[] = [];
+      try {
+        const roles = await storage.getUserRoles(user.id);
+        userRoles = roles.map(role => role.roleName);
+      } catch (roleError) {
+        if (user.username === 'admin' || user.email?.includes('admin')) {
+          userRoles = ['super_admin', 'admin'];
+        }
+      }
+
+      const isSuperAdmin = userRoles.includes('super_admin');
+      if (!isSuperAdmin) {
+        return res.status(403).json({ success: false, message: 'Only super admin can update event types.' });
+      }
+
+      const eventTypeId = parseInt(req.params.id);
+      const eventType = await storage.updateEventType(eventTypeId, req.body);
+      
+      res.json({
+        code: 200,
+        message: 'Event type updated successfully',
+        data: eventType
+      });
+    } catch (error) {
+      console.error('Error updating event type:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to update event type',
+        data: null
+      });
+    }
+  });
+
+  app.delete('/api/admin/event-types/:id', isAuthenticated, async (req, res) => {
+    try {
+      const replitId = req.session?.passport?.user?.claims?.sub;
+      if (!replitId) {
+        return res.status(401).json({ success: false, message: 'Authentication required.' });
+      }
+
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      let userRoles: string[] = [];
+      try {
+        const roles = await storage.getUserRoles(user.id);
+        userRoles = roles.map(role => role.roleName);
+      } catch (roleError) {
+        if (user.username === 'admin' || user.email?.includes('admin')) {
+          userRoles = ['super_admin', 'admin'];
+        }
+      }
+
+      const isSuperAdmin = userRoles.includes('super_admin');
+      if (!isSuperAdmin) {
+        return res.status(403).json({ success: false, message: 'Only super admin can delete event types.' });
+      }
+
+      const eventTypeId = parseInt(req.params.id);
+      const success = await storage.deleteEventType(eventTypeId);
+      
+      if (!success) {
+        return res.status(404).json({
+          code: 404,
+          message: 'Event type not found',
+          data: null
+        });
+      }
+      
+      res.json({
+        code: 200,
+        message: 'Event type deactivated successfully',
+        data: { id: eventTypeId }
+      });
+    } catch (error) {
+      console.error('Error deleting event type:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to delete event type',
+        data: null
+      });
+    }
+  });
+
+  // Public event types API (for event creation form)
+  app.get('/api/event-types', async (req, res) => {
+    try {
+      const eventTypes = await storage.getEventTypes(false); // Only active types
+      
+      res.json({
+        code: 200,
+        message: 'Event types retrieved successfully',
+        data: eventTypes
+      });
+    } catch (error) {
+      console.error('Error fetching event types:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to fetch event types',
+        data: null
+      });
+    }
+  });
+
   // Admin: Get analytics data
   app.get('/api/admin/analytics', isAuthenticated, async (req, res) => {
     try {

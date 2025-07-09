@@ -7,6 +7,7 @@ import EnhancedHierarchicalTreeView from '@/components/admin/EnhancedHierarchica
 import { PlatformFeatureDeepDive } from '@/components/admin/PlatformFeatureDeepDive';
 import LifeCEOPortal from '@/components/admin/LifeCEOPortal';
 import DailyActivityView from '@/components/admin/DailyActivityView';
+import { EventTypesManager } from '@/components/admin/EventTypesManager';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { 
   Users, 
@@ -211,12 +212,13 @@ const AdminCenter: React.FC = () => {
     { id: 'life-ceo', label: 'Life CEO Portal', icon: <Brain className="w-4 h-4" /> },
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'daily-activity', label: 'Daily Activity', icon: <Calendar className="w-4 h-4" />, isNew: true },
-    { id: 'project-tracker', label: '11L Project Tracker', icon: <GitCommit className="w-4 h-4" /> },
+    { id: 'project-tracker', label: 'The Plan', icon: <GitCommit className="w-4 h-4" /> },
     { id: 'feature-deep-dive', label: 'Feature Deep Dive', icon: <Database className="w-4 h-4" /> },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
     { id: 'content', label: 'Content Moderation', icon: <FileText className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="w-4 h-4" /> },
     { id: 'events', label: 'Event Management', icon: <Calendar className="w-4 h-4" /> },
+    { id: 'event-types', label: 'Event Types', icon: <Calendar className="w-4 h-4" />, isNew: true },
     { id: 'reports', label: 'Reports & Logs', icon: <Eye className="w-4 h-4" /> },
     { id: 'compliance', label: 'Compliance Center', icon: <Shield className="w-4 h-4" /> },
     { id: 'rbac', label: 'RBAC/ABAC Manager', icon: <Lock className="w-4 h-4" /> },
@@ -1770,6 +1772,7 @@ const AdminCenter: React.FC = () => {
       case 'content': return renderContentModeration();
       case 'analytics': return renderAnalytics();
       case 'events': return renderEventManagement();
+      case 'event-types': return <EventTypesManager />;
       case 'reports': return renderReportsAndLogs();
       case 'compliance': return renderCompliance();
       case 'rbac': return renderRbacManager();

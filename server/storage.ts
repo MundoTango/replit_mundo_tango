@@ -2658,6 +2658,101 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+
+  // Event Types Management
+  async getEventTypes(includeInactive = false): Promise<any[]> {
+    let query = sql`
+      SELECT * FROM event_types
+    `;
+    
+    if (!includeInactive) {
+      query = sql`${query} WHERE is_active = true`;
+    }
+    
+    query = sql`${query} ORDER BY sort_order ASC, name ASC`;
+    
+    const result = await db.execute(query);
+    return result.rows;
+  }
+
+  async getEventTypeById(id: number): Promise<any> {
+    const result = await db.execute(sql`
+      SELECT * FROM event_types WHERE id = ${id}
+    `);
+    return result.rows[0];
+  }
+
+  async createEventType(data: {
+    name: string;
+    description?: string;
+    icon?: string;
+    color?: string;
+    sort_order?: number;
+  }): Promise<any> {
+    const result = await db.execute(sql`
+      INSERT INTO event_types (name, description, icon, color, sort_order)
+      VALUES (${data.name}, ${data.description || null}, ${data.icon || 'Calendar'}, 
+              ${data.color || '#6366F1'}, ${data.sort_order || 0})
+      RETURNING *
+    `);
+    return result.rows[0];
+  }
+
+  async updateEventType(id: number, data: {
+    name?: string;
+    description?: string;
+    icon?: string;
+    color?: string;
+    sort_order?: number;
+    is_active?: boolean;
+  }): Promise<any> {
+    const updates = [];
+    const values = [];
+    
+    if (data.name !== undefined) {
+      updates.push(`name = $${updates.length + 2}`);
+      values.push(data.name);
+    }
+    if (data.description !== undefined) {
+      updates.push(`description = $${updates.length + 2}`);
+      values.push(data.description);
+    }
+    if (data.icon !== undefined) {
+      updates.push(`icon = $${updates.length + 2}`);
+      values.push(data.icon);
+    }
+    if (data.color !== undefined) {
+      updates.push(`color = $${updates.length + 2}`);
+      values.push(data.color);
+    }
+    if (data.sort_order !== undefined) {
+      updates.push(`sort_order = $${updates.length + 2}`);
+      values.push(data.sort_order);
+    }
+    if (data.is_active !== undefined) {
+      updates.push(`is_active = $${updates.length + 2}`);
+      values.push(data.is_active);
+    }
+    
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+    
+    const query = `
+      UPDATE event_types 
+      SET ${updates.join(', ')}
+      WHERE id = $1
+      RETURNING *
+    `;
+    
+    const result = await db.query(query, [id, ...values]);
+    return result.rows[0];
+  }
+
+  async deleteEventType(id: number): Promise<boolean> {
+    const result = await db.execute(sql`
+      UPDATE event_types SET is_active = false WHERE id = ${id}
+    `);
+    return result.rowCount > 0;
+  }
 }
 
 export const storage = new DatabaseStorage();
