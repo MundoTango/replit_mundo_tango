@@ -9,6 +9,7 @@ import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Card } from '../components/ui/card';
 import { useToast } from '../hooks/use-toast';
+import { useAuth } from '../contexts/auth-context';
 import { formatDistanceToNow } from 'date-fns';
 import {
   ImageIcon,
@@ -77,7 +78,7 @@ function MemoryCard({ memory }: MemoryCardProps) {
   const [comments, setComments] = useState(memory.comments || []);
   const [currentUserReaction, setCurrentUserReaction] = useState(memory.currentUserReaction);
   const { toast } = useToast();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { user } = useAuth();
 
   // Determine API base path for memories
   const apiBasePath = '/api/memories';
@@ -409,7 +410,9 @@ function MemoryCard({ memory }: MemoryCardProps) {
 
 export default function EnhancedTimelineV2() {
   const { toast } = useToast();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { user } = useAuth();
+  
+  console.log('EnhancedTimelineV2 component loaded!', { user });
 
   // Fetch timeline posts
   const { data: posts = [], isLoading } = useQuery({

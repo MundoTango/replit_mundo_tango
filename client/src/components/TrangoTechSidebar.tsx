@@ -30,7 +30,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const sidebarRoutes = [
     {
       icon: <Heart className="w-5 h-5" />,
-      title: "Timeline",
+      title: "Timeline V2 ✨",
       link: "/enhanced-timeline",
     },
     {
@@ -86,6 +86,9 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const allRoutes = hasAdminAccess 
     ? [...sidebarRoutes, adminRoute, lifeCEORoute] 
     : sidebarRoutes;
+  
+  // Debug log to verify routes
+  console.log('Sidebar routes:', allRoutes.map(r => ({ title: r.title, link: r.link })));
 
   // Mundo Tango Global Statistics
   const globalStats = [
