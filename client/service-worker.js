@@ -1,3 +1,21 @@
+// SELF-DESTRUCT MODE - Service worker will unregister itself
+// Remove this after cache issues are resolved
+self.addEventListener('install', () => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    self.registration.unregister().then(() => {
+      return self.clients.matchAll();
+    }).then(clients => {
+      clients.forEach(client => client.navigate(client.url));
+    })
+  );
+});
+
+// DISABLED - Original service worker code
+/* 
 // Life CEO Service Worker v4.0 - Updated January 9, 2025
 // IMPORTANT: Cache version updated to v4 with network-first strategy
 const CACHE_NAME = 'life-ceo-v4';
@@ -128,4 +146,4 @@ function openDB() {
       }
     };
   });
-}
+}*/

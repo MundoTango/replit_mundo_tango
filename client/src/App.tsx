@@ -101,14 +101,34 @@ function Router() {
     const forceCacheClear = async () => {
       console.log('=== FORCE CACHE CLEAR START ===');
       
-      // 1. Unregister ALL service workers
+      // 1. Aggressively unregister ALL service workers
       if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        console.log('Found service workers:', registrations.length);
-        
-        for (const registration of registrations) {
-          const success = await registration.unregister();
-          console.log('Unregistered service worker:', success);
+        try {
+          // Get all registrations
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          console.log('Found service workers:', registrations.length);
+          
+          // Try multiple methods to kill service workers
+          for (const registration of registrations) {
+            // Method 1: Normal unregister
+            const success = await registration.unregister();
+            console.log('Unregistered service worker:', success);
+            
+            // Method 2: Force update then unregister
+            if (!success) {
+              await registration.update();
+              const retry = await registration.unregister();
+              console.log('Retry unregister after update:', retry);
+            }
+          }
+          
+          // Method 3: Clear controller
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+          }
+          
+        } catch (error) {
+          console.error('Error unregistering service workers:', error);
         }
       }
       
