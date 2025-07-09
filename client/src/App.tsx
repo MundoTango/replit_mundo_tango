@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SocketProvider } from "@/contexts/socket-context";
+import { AuthProvider } from "@/contexts/auth-context";
 import { useAuth } from "@/hooks/useAuth";
 import { initAnalytics, analytics } from "@/lib/analytics";
 import { ThemeProvider } from "@/lib/theme/theme-provider";
@@ -181,48 +182,25 @@ function App() {
   // Initialize analytics on app startup
   useEffect(() => {
     initAnalytics();
-    
-    // Debug: Confirm App is mounting
-    console.error('🚀 App component mounted!');
-    
-    // Add visible debug indicator
-    const debugDiv = document.createElement('div');
-    debugDiv.id = 'app-debug-indicator';
-    debugDiv.style.position = 'fixed';
-    debugDiv.style.bottom = '10px';
-    debugDiv.style.left = '10px';
-    debugDiv.style.backgroundColor = 'red';
-    debugDiv.style.color = 'white';
-    debugDiv.style.padding = '5px 10px';
-    debugDiv.style.zIndex = '999999';
-    debugDiv.style.fontSize = '12px';
-    debugDiv.innerHTML = `React App Loaded | Path: ${window.location.pathname}`;
-    document.body.appendChild(debugDiv);
-    
-    // Update path on navigation
-    setInterval(() => {
-      const div = document.getElementById('app-debug-indicator');
-      if (div) {
-        div.innerHTML = `React App Loaded | Path: ${window.location.pathname}`;
-      }
-    }, 500);
   }, []);
 
   // Remove debug mode - React is confirmed working
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <SocketProvider>
-          <TooltipProvider>
-            <Toaster />
-            <ErrorBoundary>
-              <Router />
-            </ErrorBoundary>
-            <ThemeManager />
-          </TooltipProvider>
-        </SocketProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <SocketProvider>
+            <TooltipProvider>
+              <Toaster />
+              <ErrorBoundary>
+                <Router />
+              </ErrorBoundary>
+              <ThemeManager />
+            </TooltipProvider>
+          </SocketProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
