@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { initAnalytics, analytics } from "@/lib/analytics";
 import { ThemeProvider } from "@/lib/theme/theme-provider";
 import ThemeManager from "@/components/theme/ThemeManager";
+import { CacheUpdateNotifier } from "@/components/CacheUpdateNotifier";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Onboarding from "@/pages/onboarding";
@@ -193,6 +194,7 @@ function App() {
           <SocketProvider>
             <TooltipProvider>
               <Toaster />
+              <CacheUpdateNotifier />
               <ErrorBoundary>
                 <Router />
               </ErrorBoundary>
