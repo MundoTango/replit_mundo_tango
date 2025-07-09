@@ -31,6 +31,20 @@
 - **Error Handling**: Added comprehensive loading and error states with fallback UI
 - **23L Framework**: Applied stability approach with proper type safety and error boundaries
 
+**UPDATE (January 9, 2025 - City-Specific Cover Photos)**: Pexels API Integration for Dynamic City Photos
+- **Existing Infrastructure Utilized**: Leveraged comprehensive CityPhotoService.ts with Pexels API integration
+  - Service already had intelligent search queries, curated fallbacks, and error handling
+  - PEXELS_API_KEY configured and operational in environment
+- **API Enhancement**: Updated `/api/groups/:slug` endpoint to fetch city photos dynamically
+  - Added city photo fetching for city-type groups using CityPhotoService
+  - Returns photo URL in `image_url` field with proper logging
+  - Graceful fallback to existing image or curated photos
+- **Frontend Update**: Modified GroupDetailPageMT to display city-specific cover photos
+  - Updated header to use `group.image_url` for cityscape photos
+  - Added descriptive alt text for accessibility
+  - Maintains fallback to `group.coverImage` if no city photo available
+- **23L Framework Applied**: Systematic analysis identified existing infrastructure and integrated it seamlessly
+
 **UPDATE (January 9, 2025 - Interactive Maps with Leaflet)**: Replaced Google Maps with Open Source Solution
 - **Mapping Solution Change**: Replaced Google Maps API with Leaflet.js open-source mapping library
   - Uses OpenStreetMap tiles - no API keys required, no billing concerns

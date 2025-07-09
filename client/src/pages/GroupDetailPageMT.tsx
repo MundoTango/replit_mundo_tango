@@ -443,10 +443,10 @@ export default function GroupDetailPageMT() {
       <div className="max-w-7xl mx-auto">
         {/* MT Group Header */}
         <div className="mt-group-header">
-          {group.coverImage && (
+          {(group.image_url || group.coverImage) && (
             <img 
-              src={group.coverImage} 
-              alt={group.name}
+              src={group.image_url || group.coverImage} 
+              alt={`${group.city || group.name} cityscape`}
               className="mt-group-cover"
             />
           )}

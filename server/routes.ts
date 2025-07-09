@@ -6357,11 +6357,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get member count
       const memberCount = await storage.getGroupMemberCount(group.id);
       
+      // Fetch city-specific photo if it's a city group
+      let cityPhotoUrl = group.image_url || null;
+      if (group.type === 'city' && group.city) {
+        try {
+          const { CityPhotoService } = await import('./services/cityPhotoService.js');
+          const photoResult = await CityPhotoService.fetchCityPhoto(group.city, group.country);
+          if (photoResult?.url) {
+            cityPhotoUrl = photoResult.url;
+            console.log(`📸 Fetched city photo for ${group.city}: ${cityPhotoUrl}`);
+          }
+        } catch (photoError) {
+          console.error('Error fetching city photo:', photoError);
+        }
+      }
+      
       res.status(200).json({
         success: true,
         message: 'Group retrieved successfully',
         data: {
           ...group,
+          image_url: cityPhotoUrl,
           isMember,
           isAdmin,
           memberCount
