@@ -33,15 +33,6 @@ export default function MomentsPage() {
             <p className="text-xl text-blue-gray-600 font-medium max-w-2xl mx-auto lg:mx-0">
               Share your tango moments, connect with dancers, and create lasting memories together
             </p>
-            {/* TEMPORARY DEBUG LINK */}
-            <div className="mt-4 space-x-2">
-              <a href="/enhanced-timeline" className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold">
-                🐛 DEBUG: Direct Link to Enhanced Timeline
-              </a>
-              <a href="/route-test" className="inline-block px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-bold">
-                🧪 Route Test Page
-              </a>
-            </div>
           </div>
           
           {/* Enhanced flexbox layout with better spacing */}
