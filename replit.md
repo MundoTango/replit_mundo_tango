@@ -17,7 +17,8 @@
   - `/enhanced-timeline-old` → EnhancedTimeline (deprecated version)
 - **23L Framework Applied**: Used systematic analysis to ensure all features work correctly
 - **Authentication Context Fix**: Resolved "useAuth must be used within an AuthProvider" error by adding AuthProvider to App.tsx
-- **Sidebar Navigation Fix**: Fixed undefined handleLinkClick function in TrangoTechSidebar component
+- **Sidebar Navigation Fix**: Fixed undefined handleLinkClick function - replaced wouter Link components with standard anchor tags
+- **ThemeProvider React Hooks Fix**: Resolved "Invalid hook call" error by updating React imports to use React.* syntax for all hooks
 
 **UPDATE (January 9, 2025)**: Enhanced Reporting System Implementation
 - **Report Management**: Complete TrangoTech-style reporting system with admin moderation

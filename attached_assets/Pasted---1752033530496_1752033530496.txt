@@ -1,0 +1,85 @@
+
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-02ed25d5ca27f5a4.js:38 [LaunchDarkly] LaunchDarkly client initialized
+web-client-content-script.js:2 Uncaught TypeError: Failed to execute 'observe' on 'MutationObserver': parameter 1 is not of type 'Node'.
+    at HTMLIFrameElement.<anonymous> (web-client-content-script.js:2:402720)Understand this error
+MundoTangoApp:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+framework-397e64f38411c44c.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-397e64f38411c44c.js:1Understand this error
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'battery'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+framework-397e64f38411c44c.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-397e64f38411c44c.js:1Understand this warning
+workspace_iframe.html:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+supabaseClient.ts:17 ⚠️ VITE_SUPABASE_URL not configured or invalid - real-time features will be disabled
+(anonymous) @ supabaseClient.ts:17Understand this warning
+App.tsx:44 Router state: Object
+analytics.ts:119 📊 Plausible Analytics is live on mundo-tango.replit.dev
+client:536 WebSocket connection to 'wss://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/?token=IvJPiu-WH-21' failed: 
+setupWebSocket @ client:536Understand this error
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=IvJPiu-WH-21' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)Understand this error
+analytics.ts:125 Analytics tracking active - events will be sent to Plausible
+App.tsx:44 Router state: Object
+App.tsx:68 User flow check: Object
+App.tsx:89 Showing main app
+stallwart.build.js:1 stallwart: failed ping 1
+socket-context.tsx:24 WebSocket connected
+stallwart.build.js:1 stallwart: failed ping 2
+attached_assets/image_1752032875595.png:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+attached_assets/image_1752033384591.png:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+EnhancedPostItem.tsx:127 Reacted with love to post c25cb4d8-4faa-476d-97f5-b303211b45b2
