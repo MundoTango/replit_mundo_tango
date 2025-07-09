@@ -9210,5 +9210,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 📊 Live Global Statistics endpoints
+  app.get('/api/statistics/dashboard', async (req, res) => {
+    try {
+      // Get statistics from individual views instead of function
+      const [userStats] = await db.select().from(sql`user_statistics`);
+      const roleStats = await db.select().from(sql`role_distribution`);
+      const [contentStats] = await db.select().from(sql`content_statistics`);
+      const [eventStats] = await db.select().from(sql`event_statistics`);
+      const [groupStats] = await db.select().from(sql`group_statistics`);
+      const topCities = await db.select().from(sql`geographic_statistics`).limit(10);
+      
+      res.json({
+        success: true,
+        data: {
+          users: userStats,
+          roles: roleStats,
+          content: contentStats,
+          events: eventStats,
+          groups: groupStats,
+          topCities: topCities,
+          timestamp: new Date()
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard statistics:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch statistics'
+      });
+    }
+  });
+
+  app.get('/api/statistics/trends', async (req, res) => {
+    try {
+      const timeframe = req.query.timeframe || '7d';
+      
+      // Get user growth trend
+      const userTrend = await db.execute(sql`
+        SELECT 
+          DATE(created_at) as date,
+          COUNT(*) as new_users
+        FROM users
+        WHERE created_at > NOW() - INTERVAL '${sql.raw(timeframe === '30d' ? '30 days' : '7 days')}'
+        GROUP BY DATE(created_at)
+        ORDER BY date
+      `);
+
+      // Get content creation trend
+      const contentTrend = await db.execute(sql`
+        SELECT 
+          DATE(created_at) as date,
+          COUNT(*) as new_posts
+        FROM posts
+        WHERE created_at > NOW() - INTERVAL '${sql.raw(timeframe === '30d' ? '30 days' : '7 days')}'
+        GROUP BY DATE(created_at)
+        ORDER BY date
+      `);
+
+      // Get event creation trend
+      const eventTrend = await db.execute(sql`
+        SELECT 
+          DATE(created_at) as date,
+          COUNT(*) as new_events
+        FROM events
+        WHERE created_at > NOW() - INTERVAL '${sql.raw(timeframe === '30d' ? '30 days' : '7 days')}'
+        GROUP BY DATE(created_at)
+        ORDER BY date
+      `);
+
+      res.json({
+        success: true,
+        data: {
+          userTrend,
+          contentTrend,
+          eventTrend,
+          timeframe
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching trends:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch trends'
+      });
+    }
+  });
+
+  app.get('/api/statistics/geographic', async (req, res) => {
+    try {
+      const geoStats = await db.execute(sql`
+        SELECT * FROM geographic_statistics
+        LIMIT 50
+      `);
+
+      res.json({
+        success: true,
+        data: geoStats
+      });
+    } catch (error) {
+      console.error('Error fetching geographic statistics:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch geographic statistics'
+      });
+    }
+  });
+
+  app.get('/api/statistics/real-time', async (req, res) => {
+    try {
+      // Get real-time activity counts
+      const realtimeStats = await db.execute(sql`
+        SELECT 
+          (SELECT COUNT(*) FROM users WHERE is_active = true) as online_users,
+          (SELECT COUNT(*) FROM posts WHERE created_at > NOW() - INTERVAL '1 hour') as posts_last_hour,
+          (SELECT COUNT(*) FROM events WHERE start_date BETWEEN NOW() AND NOW() + INTERVAL '24 hours') as events_next_24h,
+          (SELECT COUNT(*) FROM activities WHERE created_at > NOW() - INTERVAL '1 hour') as activities_last_hour
+      `);
+
+      res.json({
+        success: true,
+        data: realtimeStats[0]
+      });
+    } catch (error) {
+      console.error('Error fetching real-time statistics:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch real-time statistics'
+      });
+    }
+  });
+
   return server;
 }
