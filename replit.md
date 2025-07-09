@@ -10,12 +10,17 @@
 - **City Groups Integration**: Map displays real-time city groups from database
   - Dynamic markers sized by member count
   - Color-coded markers based on community size
-  - Interactive popups showing city name, country, and member count
+  - Interactive popups showing city name, country, member count, and event count
   - Smooth fly-to animation when cities are selected
+- **Event Count Feature**: Added live event counts to city group popups
+  - Updated `/api/community/city-groups` endpoint to include event counts per city
+  - Added query to count upcoming events (startDate > now) for each city
+  - Map popups now display both member and event counts
 - **Technical Implementation**: 
   - Installed leaflet@^1.9.4, react-leaflet@^4.2.1, @types/leaflet@^1.9.0
   - Fixed React 18 compatibility by using react-leaflet v4 instead of v5
   - Custom marker icons with size and color based on member count
+  - Added `inArray` and `gt` imports from drizzle-orm for event queries
 - **Previous Update - Community Navigation Cleanup**: Simplified Community Page Navigation
   - Community page now redirects directly to World Map (/community → /community-world-map)
   - Eliminated redundant action cards that duplicated sidebar navigation

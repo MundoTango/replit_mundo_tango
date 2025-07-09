@@ -20,6 +20,7 @@ interface MapCity {
   lng: number;
   memberCount?: number | string;
   totalUsers?: number;
+  eventCount?: number;
 }
 
 interface LeafletMapProps {
@@ -109,12 +110,31 @@ export default function LeafletMap({ cities, onCityClick, selectedCity }: Leafle
             }}
           >
             <Popup>
-              <div className="text-center">
-                <h3 className="font-semibold">{city.city || city.name}</h3>
+              <div 
+                className="text-center cursor-pointer p-2 hover:bg-gray-50 rounded transition-colors"
+                onClick={() => {
+                  onCityClick?.(city);
+                  // Navigate to city group page
+                  window.location.href = `/groups/${city.id}`;
+                }}
+              >
+                <h3 className="font-bold text-lg bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">
+                  {city.city || city.name}
+                </h3>
                 {city.country && <p className="text-sm text-gray-600">{city.country}</p>}
-                <p className="text-sm mt-1">
-                  <span className="font-medium">{memberCount}</span> members
-                </p>
+                <div className="mt-2 space-y-1">
+                  <div className="flex items-center justify-center gap-1 text-sm">
+                    <span className="font-semibold text-pink-600">{memberCount}</span>
+                    <span className="text-gray-600">members</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-1 text-sm">
+                    <span className="font-semibold text-blue-600">{city.eventCount || 0}</span>
+                    <span className="text-gray-600">events</span>
+                  </div>
+                </div>
+                <button className="mt-2 text-xs bg-gradient-to-r from-pink-500 to-blue-500 text-white px-3 py-1 rounded-full hover:opacity-90 transition-opacity">
+                  View Group
+                </button>
               </div>
             </Popup>
           </Marker>
@@ -128,12 +148,29 @@ export default function LeafletMap({ cities, onCityClick, selectedCity }: Leafle
           icon={getMarkerIcon(1)}
         >
           <Popup>
-            <div className="text-center">
-              <h3 className="font-semibold">Buenos Aires</h3>
+            <div 
+              className="text-center cursor-pointer p-2 hover:bg-gray-50 rounded transition-colors"
+              onClick={() => {
+                window.location.href = `/groups/buenos-aires`;
+              }}
+            >
+              <h3 className="font-bold text-lg bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">
+                Buenos Aires
+              </h3>
               <p className="text-sm text-gray-600">Argentina</p>
-              <p className="text-sm mt-1">
-                <span className="font-medium">1</span> member
-              </p>
+              <div className="mt-2 space-y-1">
+                <div className="flex items-center justify-center gap-1 text-sm">
+                  <span className="font-semibold text-pink-600">1</span>
+                  <span className="text-gray-600">member</span>
+                </div>
+                <div className="flex items-center justify-center gap-1 text-sm">
+                  <span className="font-semibold text-blue-600">0</span>
+                  <span className="text-gray-600">events</span>
+                </div>
+              </div>
+              <button className="mt-2 text-xs bg-gradient-to-r from-pink-500 to-blue-500 text-white px-3 py-1 rounded-full hover:opacity-90 transition-opacity">
+                View Group
+              </button>
             </div>
           </Popup>
         </Marker>

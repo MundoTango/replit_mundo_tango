@@ -12,7 +12,7 @@ import { SocketService } from "./services/socketService";
 import { WebSocketServer } from "ws";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { db } from "./db";
-import { eq, sql, desc, and, isNotNull, count } from "drizzle-orm";
+import { eq, sql, desc, and, isNotNull, count, inArray, gt } from "drizzle-orm";
 import { uploadMedia, uploadMediaWithMetadata, deleteMedia, deleteMediaWithMetadata, getSignedUrl, initializeStorageBucket } from "./services/uploadService";
 import { setUserContext, auditSecurityEvent, checkResourcePermission, rateLimit } from "./middleware/security";
 import { authService, UserRole } from "./services/authService";
@@ -8394,7 +8394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get city groups for world map
   app.get('/api/community/city-groups', async (req, res) => {
     try {
-      // Get all city groups with member counts and coordinates
+      // Get all city groups with member counts
       const cityGroups = await db
         .select({
           id: groups.id,
@@ -8408,24 +8408,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(groups.type, 'city'))
         .groupBy(groups.id, groups.name, groups.city, groups.country);
 
-      // For now, return city groups without coordinates
-      // TODO: Implement geocoding service to get city coordinates
-      const cityGroupsWithCoords = cityGroups.map(group => ({
-        ...group,
-        lat: 0, // Placeholder - would need geocoding service
-        lng: 0, // Placeholder - would need geocoding service
-        totalUsers: Number(group.memberCount || 0)
-      }));
+      // Get event counts for each city
+      const eventCounts: any = {};
+      if (cityGroups.length > 0) {
+        const cities = cityGroups.map(g => g.city).filter(Boolean);
+        const eventsPerCity = await db
+          .select({
+            city: events.city,
+            eventCount: count(events.id),
+          })
+          .from(events)
+          .where(and(
+            inArray(events.city, cities as string[]),
+            gt(events.startDate, new Date())
+          ))
+          .groupBy(events.city);
+        
+        eventsPerCity.forEach(e => {
+          if (e.city) eventCounts[e.city] = Number(e.eventCount);
+        });
+      }
+
+      // Add coordinates based on known cities (expand this list as needed)
+      const cityCoordinates: Record<string, { lat: number; lng: number }> = {
+        'Buenos Aires': { lat: -34.6037, lng: -58.3816 },
+        'New York': { lat: 40.7128, lng: -74.0060 },
+        'Paris': { lat: 48.8566, lng: 2.3522 },
+        'Berlin': { lat: 52.5200, lng: 13.4050 },
+        'London': { lat: 51.5074, lng: -0.1278 },
+        'Barcelona': { lat: 41.3851, lng: 2.1734 },
+        'Tokyo': { lat: 35.6762, lng: 139.6503 },
+        'Sydney': { lat: -33.8688, lng: 151.2093 },
+        'Prague': { lat: 50.0755, lng: 14.4378 },
+        'Amsterdam': { lat: 52.3676, lng: 4.9041 },
+        'Vienna': { lat: 48.2082, lng: 16.3738 },
+        'Stockholm': { lat: 59.3293, lng: 18.0686 },
+      };
+
+      const cityGroupsWithData = cityGroups.map(group => {
+        const coords = group.city ? cityCoordinates[group.city] : null;
+        return {
+          ...group,
+          lat: coords?.lat || 0,
+          lng: coords?.lng || 0,
+          totalUsers: Number(group.memberCount || 0),
+          eventCount: group.city ? (eventCounts[group.city] || 0) : 0
+        };
+      });
 
       res.json({
         success: true,
-        data: cityGroupsWithCoords // Return all city groups, coordinates will be added later
+        data: cityGroupsWithData
       });
     } catch (error) {
       console.error('Error fetching city groups:', error);
       res.status(500).json({
         success: false,
-        error: 'Failed to fetch city groups'
+        message: 'Failed to fetch city groups'
       });
     }
   });
