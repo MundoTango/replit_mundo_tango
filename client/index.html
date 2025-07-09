@@ -27,6 +27,53 @@
   </head>
   <body>
     <div id="root"></div>
+    
+    <!-- Fix modal overlay issue before React loads -->
+    <script>
+      // Remove any blocking modal overlays
+      window.addEventListener('DOMContentLoaded', function() {
+        console.error('DOM Content Loaded - Fixing modal overlays');
+        
+        // Remove modal overlays
+        const modals = document.querySelectorAll('[data-modal-priority]');
+        modals.forEach(modal => {
+          console.log('Removing modal:', modal);
+          modal.remove();
+        });
+        
+        // Fix body styles
+        document.body.style.overflow = 'auto';
+        document.body.style.position = 'static';
+        
+        // Create a visible test element to confirm script is running
+        const testDiv = document.createElement('div');
+        testDiv.style.position = 'fixed';
+        testDiv.style.top = '0';
+        testDiv.style.left = '0';
+        testDiv.style.right = '0';
+        testDiv.style.backgroundColor = 'green';
+        testDiv.style.color = 'white';
+        testDiv.style.padding = '10px';
+        testDiv.style.zIndex = '999999';
+        testDiv.style.textAlign = 'center';
+        testDiv.innerHTML = 'Modal Fix Script Running - React Loading...';
+        document.body.appendChild(testDiv);
+        
+        // Remove test div after 3 seconds
+        setTimeout(() => testDiv.remove(), 3000);
+      });
+      
+      // Also run periodically to catch any new modals
+      setInterval(function() {
+        const modals = document.querySelectorAll('[data-modal-priority]');
+        if (modals.length > 0) {
+          console.log('Found new modals, removing...');
+          modals.forEach(modal => modal.remove());
+          document.body.style.overflow = 'auto';
+        }
+      }, 1000);
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
