@@ -1,0 +1,396 @@
+/* TrangoTech Original Design System */
+/* Based on authentic TTfiles: EventCard.jsx, ProfileHead.jsx, CommunityCard.jsx */
+
+:root {
+  /* TrangoTech Brand Colors */
+  --tt-primary-red: #8E142E;
+  --tt-secondary-blue: #0D448A;
+  --tt-accent-gold: #D4AF37;
+  --tt-text-dark: #2C2C2C;
+  --tt-text-light: #666666;
+  --tt-bg-light: #F7F7F7;
+  --tt-bg-white: #FFFFFF;
+  --tt-border-color: #E5E5E5;
+  --tt-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --tt-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
+  
+  /* TrangoTech Typography */
+  --tt-font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --tt-font-size-xs: 12px;
+  --tt-font-size-sm: 14px;
+  --tt-font-size-base: 16px;
+  --tt-font-size-lg: 18px;
+  --tt-font-size-xl: 24px;
+  --tt-font-size-2xl: 32px;
+  
+  /* TrangoTech Spacing */
+  --tt-spacing-xs: 4px;
+  --tt-spacing-sm: 8px;
+  --tt-spacing-md: 16px;
+  --tt-spacing-lg: 24px;
+  --tt-spacing-xl: 32px;
+  
+  /* TrangoTech Border Radius */
+  --tt-radius-sm: 4px;
+  --tt-radius-md: 8px;
+  --tt-radius-lg: 12px;
+  --tt-radius-full: 9999px;
+}
+
+/* TrangoTech Card Component */
+.tt-card {
+  background: var(--tt-bg-white);
+  border-radius: var(--tt-radius-md);
+  box-shadow: var(--tt-shadow);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.tt-card:hover {
+  box-shadow: var(--tt-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.tt-card-header {
+  padding: var(--tt-spacing-lg);
+  border-bottom: 1px solid var(--tt-border-color);
+}
+
+.tt-card-body {
+  padding: var(--tt-spacing-lg);
+}
+
+.tt-card-footer {
+  padding: var(--tt-spacing-md) var(--tt-spacing-lg);
+  background: var(--tt-bg-light);
+  border-top: 1px solid var(--tt-border-color);
+}
+
+/* TrangoTech Button Styles */
+.tt-btn {
+  font-family: var(--tt-font-family);
+  font-weight: 600;
+  padding: var(--tt-spacing-sm) var(--tt-spacing-lg);
+  border-radius: var(--tt-radius-md);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tt-spacing-sm);
+}
+
+.tt-btn-primary {
+  background: var(--tt-primary-red);
+  color: white;
+}
+
+.tt-btn-primary:hover {
+  background: #7A1125;
+}
+
+.tt-btn-secondary {
+  background: var(--tt-secondary-blue);
+  color: white;
+}
+
+.tt-btn-secondary:hover {
+  background: #0A3670;
+}
+
+.tt-btn-outline {
+  background: transparent;
+  border: 2px solid var(--tt-primary-red);
+  color: var(--tt-primary-red);
+}
+
+.tt-btn-outline:hover {
+  background: var(--tt-primary-red);
+  color: white;
+}
+
+/* TrangoTech Input Styles */
+.tt-input {
+  width: 100%;
+  padding: var(--tt-spacing-sm) var(--tt-spacing-md);
+  border: 2px solid var(--tt-border-color);
+  border-radius: var(--tt-radius-md);
+  font-family: var(--tt-font-family);
+  font-size: var(--tt-font-size-base);
+  transition: all 0.2s ease;
+}
+
+.tt-input:focus {
+  outline: none;
+  border-color: var(--tt-primary-red);
+  box-shadow: 0 0 0 3px rgba(142, 20, 46, 0.1);
+}
+
+/* TrangoTech Avatar Styles */
+.tt-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--tt-radius-full);
+  overflow: hidden;
+  border: 2px solid var(--tt-border-color);
+}
+
+.tt-avatar-lg {
+  width: 64px;
+  height: 64px;
+}
+
+.tt-avatar-sm {
+  width: 32px;
+  height: 32px;
+}
+
+/* TrangoTech Badge Styles */
+.tt-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--tt-spacing-xs) var(--tt-spacing-sm);
+  border-radius: var(--tt-radius-sm);
+  font-size: var(--tt-font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tt-badge-primary {
+  background: var(--tt-primary-red);
+  color: white;
+}
+
+.tt-badge-secondary {
+  background: var(--tt-secondary-blue);
+  color: white;
+}
+
+.tt-badge-success {
+  background: #28A745;
+  color: white;
+}
+
+.tt-badge-warning {
+  background: #FFC107;
+  color: #212529;
+}
+
+/* TrangoTech Event Card Specific Styles */
+.tt-event-card {
+  position: relative;
+}
+
+.tt-event-card-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.tt-event-card-date {
+  position: absolute;
+  top: var(--tt-spacing-md);
+  left: var(--tt-spacing-md);
+  background: var(--tt-primary-red);
+  color: white;
+  padding: var(--tt-spacing-sm) var(--tt-spacing-md);
+  border-radius: var(--tt-radius-md);
+  text-align: center;
+  min-width: 60px;
+}
+
+.tt-event-card-date-day {
+  font-size: var(--tt-font-size-xl);
+  font-weight: bold;
+  line-height: 1;
+}
+
+.tt-event-card-date-month {
+  font-size: var(--tt-font-size-sm);
+  text-transform: uppercase;
+}
+
+/* TrangoTech Profile Head Styles */
+.tt-profile-head {
+  background: linear-gradient(135deg, var(--tt-primary-red) 0%, var(--tt-secondary-blue) 100%);
+  color: white;
+  padding: var(--tt-spacing-xl);
+  border-radius: var(--tt-radius-lg);
+}
+
+.tt-profile-info {
+  display: flex;
+  align-items: center;
+  gap: var(--tt-spacing-lg);
+}
+
+.tt-profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: var(--tt-radius-full);
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tt-profile-details h1 {
+  font-size: var(--tt-font-size-2xl);
+  margin-bottom: var(--tt-spacing-sm);
+}
+
+.tt-profile-stats {
+  display: flex;
+  gap: var(--tt-spacing-xl);
+  margin-top: var(--tt-spacing-lg);
+}
+
+.tt-profile-stat {
+  text-align: center;
+}
+
+.tt-profile-stat-value {
+  font-size: var(--tt-font-size-xl);
+  font-weight: bold;
+  display: block;
+}
+
+.tt-profile-stat-label {
+  font-size: var(--tt-font-size-sm);
+  opacity: 0.8;
+}
+
+/* TrangoTech Community Card Styles */
+.tt-community-card {
+  text-align: center;
+  padding: var(--tt-spacing-xl);
+}
+
+.tt-community-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto var(--tt-spacing-md);
+  background: var(--tt-bg-light);
+  border-radius: var(--tt-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--tt-font-size-2xl);
+}
+
+.tt-community-name {
+  font-size: var(--tt-font-size-lg);
+  font-weight: bold;
+  margin-bottom: var(--tt-spacing-sm);
+}
+
+.tt-community-members {
+  color: var(--tt-text-light);
+  font-size: var(--tt-font-size-sm);
+}
+
+/* TrangoTech Utility Classes */
+.tt-text-primary {
+  color: var(--tt-primary-red);
+}
+
+.tt-text-secondary {
+  color: var(--tt-secondary-blue);
+}
+
+.tt-bg-primary {
+  background-color: var(--tt-primary-red);
+}
+
+.tt-bg-secondary {
+  background-color: var(--tt-secondary-blue);
+}
+
+.tt-shadow {
+  box-shadow: var(--tt-shadow);
+}
+
+.tt-shadow-hover:hover {
+  box-shadow: var(--tt-shadow-hover);
+}
+
+/* TrangoTech Responsive Grid */
+.tt-grid {
+  display: grid;
+  gap: var(--tt-spacing-lg);
+}
+
+.tt-grid-cols-1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.tt-grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.tt-grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.tt-grid-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 768px) {
+  .tt-grid-cols-2,
+  .tt-grid-cols-3,
+  .tt-grid-cols-4 {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .tt-grid-cols-3,
+  .tt-grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* TrangoTech Animation Classes */
+.tt-fade-in {
+  animation: ttFadeIn 0.3s ease-in-out;
+}
+
+.tt-slide-up {
+  animation: ttSlideUp 0.3s ease-out;
+}
+
+@keyframes ttFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ttSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* TrangoTech Loading States */
+.tt-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: ttSkeletonLoading 1.5s infinite;
+}
+
+@keyframes ttSkeletonLoading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

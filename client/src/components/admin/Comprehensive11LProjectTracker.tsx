@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import EnhancedHierarchicalTreeView from './EnhancedHierarchicalTreeView';
 import ErrorBoundary from './ErrorBoundary';
+import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -1107,6 +1108,18 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal for item details */}
+      {selectedItem && (
+        <JiraStyleItemDetailModal
+          selectedItem={selectedItem}
+          onClose={() => setSelectedItem(null)}
+          onSignOff={(reviewArea) => {
+            console.log('Sign off:', reviewArea);
+            // Handle sign off logic here
+          }}
+        />
+      )}
     </div>
   );
 };

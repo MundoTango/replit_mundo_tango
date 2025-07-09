@@ -53,6 +53,12 @@ import TimelineDebug from "@/pages/timeline-debug";
 import SimpleTest from "@/pages/simple-test";
 import FixModalTest from "@/pages/fix-modal-test";
 import NavigationTest from "@/pages/navigation-test";
+import TTfilesDemo from "@/pages/TTfilesDemo";
+import TangoCommunities from "@/pages/tango-communities";
+import HousingMarketplace from "@/pages/housing-marketplace";
+import GlobalStatistics from "@/pages/global-statistics";
+import DatabaseSecurity from "@/pages/database-security";
+import TestApp from "@/pages/test-app";
 
 // Simple error boundary component
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -143,6 +149,10 @@ function Router() {
       <Route path="/" component={Moments} />
       <Route path="/moments" component={Moments} />
       <Route path="/community" component={Community} />
+      <Route path="/tango-communities" component={TangoCommunities} />
+      <Route path="/housing-marketplace" component={HousingMarketplace} />
+      <Route path="/global-statistics" component={GlobalStatistics} />
+      <Route path="/database-security" component={DatabaseSecurity} />
       <Route path="/organizer" component={OrganizerDashboard} />
       <Route path="/teacher" component={TeacherDashboard} />
       <Route path="/friends" component={Friends} />
@@ -174,6 +184,7 @@ function Router() {
       <Route path="/navigation-test" component={NavigationTest} />
       <Route path="/enhanced-timeline-old" component={EnhancedTimeline} />
       <Route path="/route-test" component={RouteTest} />
+      <Route path="/ttfiles-demo" component={TTfilesDemo} />
       <Route component={NotFound} />
     </Switch>
   );

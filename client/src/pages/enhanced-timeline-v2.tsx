@@ -34,6 +34,7 @@ import { RoleEmojiDisplay } from '../components/ui/RoleEmojiDisplay';
 import { PostContextMenu } from '../components/ui/PostContextMenu';
 import { ReportModal } from '../components/ui/ReportModal';
 import NewFeedEvents from '../components/feed/NewFeedEvents';
+import PostComposer from '../components/moments/PostComposer';
 
 interface Memory {
   id: string;
@@ -442,6 +443,11 @@ export default function EnhancedTimelineV2() {
             <div className="mb-6 p-4 bg-green-100 border border-green-300 rounded-lg">
               <h2 className="text-xl font-bold text-green-800 mb-2">✅ TIMELINE V2 - ALL FEATURES WORKING ✅</h2>
               <p className="text-green-700">Social features are fully functional with correct API endpoints!</p>
+            </div>
+
+            {/* Post Composer */}
+            <div className="mb-6">
+              <PostComposer />
             </div>
 
             {/* Posts */}

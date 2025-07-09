@@ -388,6 +388,15 @@ const AdminCenter: React.FC = () => {
             <h3 className="font-semibold text-gray-900 mb-1">System Health</h3>
             <p className="text-sm text-gray-600">Check performance and logs</p>
           </button>
+
+          <a 
+            href="/ttfiles-demo"
+            className="p-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:shadow-md transition-all text-left group block"
+          >
+            <Code className="w-8 h-8 text-white mb-3 group-hover:scale-110 transition-transform" />
+            <h3 className="font-semibold text-white mb-1">TTfiles Demo</h3>
+            <p className="text-sm text-indigo-100">View TrangoTech vintage components</p>
+          </a>
         </div>
       </div>
     </div>
@@ -1764,7 +1773,7 @@ const AdminCenter: React.FC = () => {
       case 'daily-activity': return <DailyActivityView />;
       case 'project-tracker': return (
         <ErrorBoundary fallbackMessage="Error loading project hierarchy. Please refresh the page.">
-          <EnhancedHierarchicalTreeView />
+          <Comprehensive11LProjectTracker />
         </ErrorBoundary>
       );
       case 'feature-deep-dive': return <PlatformFeatureDeepDive />;

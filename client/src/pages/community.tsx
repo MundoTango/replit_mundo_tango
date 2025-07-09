@@ -38,7 +38,24 @@ export default function CommunityPage() {
           </div>
           
           {/* Enhanced navigation cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <Link href="/tango-communities">
+              <div className="group bg-white/90 backdrop-blur-sm rounded-3xl border border-indigo-100/50 p-8 hover:scale-105 hover:shadow-2xl hover:shadow-purple-100/30 transition-all duration-300 cursor-pointer">
+                <div className="flex flex-col items-center text-center">
+                  <div className="relative mb-6">
+                    <div className="p-4 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
+                      <Globe className="h-10 w-10 text-white" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-pink-400 to-rose-400 rounded-full flex items-center justify-center animate-pulse">
+                      <Users className="h-3 w-3 text-white" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">Browse Communities</h3>
+                  <p className="text-gray-600 leading-relaxed">Explore and join tango communities from around the world</p>
+                </div>
+              </div>
+            </Link>
+
             <Link href="/moments">
               <div className="group bg-white/90 backdrop-blur-sm rounded-3xl border border-indigo-100/50 p-8 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-100/30 transition-all duration-300 cursor-pointer">
                 <div className="flex flex-col items-center text-center">

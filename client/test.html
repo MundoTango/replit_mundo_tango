@@ -3,12 +3,29 @@
 <head>
     <title>Test Page</title>
 </head>
-<body style="background-color: yellow; color: black; padding: 50px;">
-    <h1>Static HTML Test Page</h1>
-    <p>If you can see this yellow page, the server is working.</p>
-    <p>Current time: <span id="time"></span></p>
+<body>
+    <h1>Test Page - Server is Working!</h1>
+    <p>If you can see this, the server is serving static files correctly.</p>
     <script>
-        document.getElementById('time').innerText = new Date().toLocaleTimeString();
+        // Try to unregister any service workers that might be causing issues
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                    console.log('Service worker unregistered:', registration);
+                }
+            });
+        }
+        
+        // Clear all caches
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => {
+                    caches.delete(name);
+                    console.log('Cache deleted:', name);
+                });
+            });
+        }
     </script>
 </body>
 </html>
