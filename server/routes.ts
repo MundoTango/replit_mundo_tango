@@ -27,6 +27,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
   await setupAuth(app);
 
+  // Allow public access to non-API routes (for Vite dev server)
+  app.use((req, res, next) => {
+    // Skip authentication for non-API routes in development
+    if (process.env.NODE_ENV === 'development' && !req.path.startsWith('/api')) {
+      return next();
+    }
+    // Skip authentication for WebSocket connections
+    if (req.path === '/api/ws' || req.headers.upgrade === 'websocket') {
+      return next();
+    }
+    next();
+  });
+
   // Public endpoints (accessible during onboarding) - MUST come before setUserContext middleware
   
   // Get community roles for registration - accessible during onboarding

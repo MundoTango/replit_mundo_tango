@@ -2,11 +2,11 @@ import React from 'react';
 import TTEventCard from '@/components/ttfiles/TTEventCard';
 import TTProfileHead from '@/components/ttfiles/TTProfileHead';
 import TTCommunityCard from '@/components/ttfiles/TTCommunityCard';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import '../styles/ttfiles.css';
 
 const TTfilesDemo = () => {
-  const [, setLocation] = useNavigate();
+  const [, setLocation] = useLocation();
 
   // Sample data
   const sampleEvent = {
