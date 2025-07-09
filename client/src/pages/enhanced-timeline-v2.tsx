@@ -29,10 +29,10 @@ import {
 
 // Import all the social feature components
 import { FacebookReactionSelector } from '../components/ui/FacebookReactionSelector';
-import RichTextCommentEditor from '../components/ui/RichTextCommentEditor';
-import RoleEmojiDisplay from '../components/ui/RoleEmojiDisplay';
-import PostContextMenu from '../components/ui/PostContextMenu';
-import ReportModal from '../components/ui/ReportModal';
+import { RichTextCommentEditor } from '../components/ui/RichTextCommentEditor';
+import { RoleEmojiDisplay } from '../components/ui/RoleEmojiDisplay';
+import { PostContextMenu } from '../components/ui/PostContextMenu';
+import { ReportModal } from '../components/ui/ReportModal';
 import NewFeedEvents from '../components/feed/NewFeedEvents';
 
 interface Memory {
