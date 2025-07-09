@@ -250,11 +250,10 @@ const EnhancedTimeline = () => {
                       <p className="text-green-700">You're now viewing the Timeline with the new Facebook-inspired design!</p>
                     </div>
                     {posts.map((post, index) => (
-                      <FacebookInspiredMemoryCard
+                      <EnhancedPostItem
                         key={post.id}
                         post={post}
                         onLike={() => handleLikePost(post.id)}
-                        onComment={() => {}}
                         onShare={() => handleSharePost(post.id)}
                       />
                     ))}
