@@ -1,0 +1,314 @@
+[Report Only] Refused to connect to 'https://replit.com/public/offline.html' because it violates the following Content Security Policy directive: "connect-src 'none'".
+
+service-worker.js:24 [Report Only] Refused to connect to 'https://replit.com/public/offline.html' because it violates the following Content Security Policy directive: "connect-src 'none'".
+
+_app-47f5cf28e18519c8.js:38 
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-47f5cf28e18519c8.js:38 [LaunchDarkly] LaunchDarkly client initialized
+MundoTangoApp:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+framework-2c5ea3c6193269ac.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this error
+framework-2c5ea3c6193269ac.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Unrecognized feature: 'battery'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+framework-2c5ea3c6193269ac.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-2c5ea3c6193269ac.js:1Understand this warning
+workspace_iframe.html:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+js?key=AIzaSyDNTpCEGecFMPYg_1OOYiAFn9z6dCr0X8Y&libraries=places:1486 Google Maps JavaScript API has been loaded directly without loading=async. This can result in suboptimal performance. For best-practice loading patterns please see https://goo.gle/js-api-loading
+Uca @ js?key=AIzaSyDNTpCEGecFMPYg_1OOYiAFn9z6dCr0X8Y&libraries=places:1486Understand this warning
+client:536 WebSocket connection to 'wss://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/?token=4LvC_3UCo1G0' failed: 
+setupWebSocket @ client:536Understand this error
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=4LvC_3UCo1G0' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)
+setupWebSocket @ client:536
+fallback @ client:509
+(anonymous) @ client:555Understand this error
+web-client-content-script.js:2 Uncaught TypeError: Failed to execute 'observe' on 'MutationObserver': parameter 1 is not of type 'Node'.
+    at HTMLIFrameElement.<anonymous> (web-client-content-script.js:2:402720)
+(anonymous) @ web-client-content-script.js:2Understand this error
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+supabaseClient.ts:17 ⚠️ VITE_SUPABASE_URL not configured or invalid - real-time features will be disabled
+(anonymous) @ supabaseClient.ts:17Understand this warning
+App.tsx:144 Router state: {user: undefined, isLoading: true, isAuthenticated: false}
+App.tsx:102 === FORCE CACHE CLEAR START ===
+analytics.ts:119 📊 Plausible Analytics is live on mundo-tango.replit.dev
+main.tsx:57 Found active service workers: 1
+stallwart.build.js:1 stallwart: failed ping 3
+App.tsx:107 Found service workers: 1
+main.tsx:60 Service worker unregistered: true
+App.tsx:111 Unregistered service worker: false
+App.tsx:118 Found caches: ['life-ceo-v4']
+main.tsx:71 Cache status: {currentVersion: 'life-ceo-v4', expectedVersion: 'life-ceo-v4', isValid: true, lastChecked: Wed Jul 09 2025 13:20:20 GMT+0200 (Central European Summer Time)}
+App.tsx:122 Deleted cache life-ceo-v4: true
+App.tsx:128 Cleared localStorage
+App.tsx:132 Cleared sessionStorage
+App.tsx:136 Cache buster: 1752060020989
+App.tsx:138 === FORCE CACHE CLEAR COMPLETE ===
+App.tsx:144 Router state: {user: {…}, isLoading: false, isAuthenticated: true}
+App.tsx:168 User flow check: {needsOnboarding: false, needsCodeOfConduct: false, formStatus: 2, isOnboardingComplete: true, codeOfConductAccepted: true}
+App.tsx:189 Showing main app
+App.tsx:193 🔍 Current path: /
+App.tsx:194 🔍 Should match enhanced-timeline: false
+TrangoTechSidebar.tsx:91 Sidebar routes: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+EnhancedPostFeed.tsx:43 [EnhancedPostFeed] Component mounted at 2025-07-09T11:20:21.295Z
+EnhancedPostFeed.tsx:43 [EnhancedPostFeed] Component mounted at 2025-07-09T11:20:21.668Z
+analytics.ts:125 Analytics tracking active - events will be sent to Plausible
+socket-context.tsx:24 WebSocket connected
+image_1752059944700.png:1  GET https://replit.com/@admin3304/attached_assets/image_1752059944700.png 404 (Not Found)
+Image
+_ @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1
+oq @ framework-2c5ea3c6193269ac.js:1
+oQ @ framework-2c5ea3c6193269ac.js:1Understand this error
+image_1752059973380.png:1  GET https://replit.com/@admin3304/attached_assets/image_1752059973380.png 404 (Not Found)
