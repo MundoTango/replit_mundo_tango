@@ -6011,9 +6011,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all groups with membership status for user
   app.get('/api/groups', async (req, res) => {
     try {
-      // Default to user ID 3 (Scott Boddye) for testing
-      const userId = req.user?.id || 3;
-      const user = await storage.getUser(userId);
+      // Use flexible authentication pattern to get user
+      let user;
+      if ((req as any).user?.id) {
+        user = await storage.getUser((req as any).user.id);
+      } else if ((req as any).user?.claims?.sub) {
+        user = await storage.getUserByReplitId((req as any).user.claims.sub);
+      } else if ((req as any).session?.passport?.user?.claims?.sub) {
+        user = await storage.getUserByReplitId((req as any).session.passport.user.claims.sub);
+      }
+      
+      // Fall back to Scott Boddye (user 7) for development
+      if (!user) {
+        user = await storage.getUser(7);
+      }
+      
+      const userId = user?.id;
       
       // Get all groups (not just city groups)
       const allGroups = await storage.getAllGroups();
