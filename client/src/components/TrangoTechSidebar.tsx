@@ -161,9 +161,14 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         <nav className="mt-4">
           {/* Mini Profile Section */}
           <div className="px-4 mb-6">
-            <div
-              onClick={() => handleLinkClick('/profile')}
-              className="p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all cursor-pointer"
+            <Link
+              href="/profile"
+              onClick={() => {
+                if (window.innerWidth < 1024) {
+                  setIsOpen(false);
+                }
+              }}
+              className="p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all cursor-pointer block"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-white shadow-sm">
@@ -198,7 +203,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   </span>
                 ))}
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* Navigation Menu */}
