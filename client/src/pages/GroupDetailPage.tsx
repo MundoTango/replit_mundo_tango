@@ -1,441 +1,286 @@
-import React, { useState } from 'react';
-import { useParams } from 'wouter';
+import { useEffect, useState } from 'react';
+import { useParams, Link } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, MapPin, Users, Heart, MessageCircle, Share, UserPlus, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
-import EnhancedPostItem from '@/components/moments/EnhancedPostItem';
-import DashboardLayout from '../layouts/DashboardLayout';
-import { GroupAdminToolbar } from '@/components/GroupAdminToolbar';
-import { canAccessGroupAdmin, getAdminRoleDisplay } from '@/utils/adminAccess';
-import { EnhancedMembersSection } from '@/components/EnhancedMembersSection';
-
-interface GroupMember {
-  id: number;
-  name: string;
-  username: string;
-  profileImage?: string;
-  role: string;
-  joinedAt: string;
-}
-
-interface GroupEvent {
-  id: number;
-  title: string;
-  description: string;
-  date: string;
-  location: string;
-  attendeeCount: number;
-  organizer: {
-    name: string;
-    avatar?: string;
-  };
-}
-
-interface GroupMemory {
-  id: number;
-  content: string;
-  author: {
-    name: string;
-    username: string;
-    avatar?: string;
-  };
-  createdAt: string;
-  likes: number;
-  comments: number;
-  images?: string[];
-}
+import { Card, CardContent } from '@/components/ui/card';
+import { Users, Calendar, Image, MapPin, UserPlus, Bell, BellOff } from 'lucide-react';
+import DashboardLayout from '@/layouts/DashboardLayout';
+import { apiRequest } from '@/lib/queryClient';
+import { toast } from '@/hooks/use-toast';
 
 interface GroupDetail {
   id: number;
   name: string;
   slug: string;
-  description: string;
-  city: string;
-  country: string;
-  memberCount: number;
-  isPrivate: boolean;
-  coverImage?: string;
-  imageUrl?: string; // City photo URL for backward compatibility
+  type: string;
   emoji: string;
+  imageUrl?: string;
+  description?: string;
+  city?: string;
+  country?: string;
+  memberCount: number;
+  eventCount?: number;
   isJoined: boolean;
   userRole?: string;
-  members: GroupMember[];
-  recentEvents: GroupEvent[];
-  recentMemories: GroupMemory[];
+  isPublic: boolean;
+  createdAt: string;
+  members?: any[];
+  recentEvents?: any[];
+  recentMemories?: any[];
 }
 
-const GroupDetailPage: React.FC = () => {
+export default function GroupDetailPage() {
   const { slug } = useParams();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('overview');
 
-  const { data: groupData, isLoading } = useQuery<{ data: GroupDetail }>({
-    queryKey: ['/api/groups', slug],
-    queryFn: async () => {
-      const response = await fetch(`/api/groups/${slug}`, {
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch group details');
-      }
-      return response.json();
-    },
-    enabled: !!slug
+  // Fetch group details
+  const { data: group, isLoading } = useQuery({
+    queryKey: [`/api/groups/${slug}`],
+    enabled: !!slug,
   });
 
+  // Join group mutation
   const joinGroupMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/user/join-group/${slug}`, {
-        method: 'POST',
-        credentials: 'include'
+      return apiRequest(`/api/groups/${slug}/join`, {
+        method: 'POST'
       });
-      if (!response.ok) throw new Error('Failed to join group');
-      return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/groups/${slug}`] });
       toast({
-        title: "Success!",
-        description: "You've joined the group successfully",
+        title: 'Success',
+        description: 'You have joined the group!',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/groups', slug] });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to join group. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to join group',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Leave group mutation
+  const leaveGroupMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest(`/api/groups/${slug}/leave`, {
+        method: 'POST'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/groups/${slug}`] });
+      toast({
+        title: 'Success',
+        description: 'You have left the group',
+      });
+    }
+  });
+
+  // Follow group mutation
+  const followGroupMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest(`/api/groups/${slug}/follow`, {
+        method: 'POST'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/groups/${slug}`] });
+      toast({
+        title: 'Success',
+        description: 'You are now following this group!',
+      });
+    }
+  });
+
+  // Unfollow group mutation
+  const unfollowGroupMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest(`/api/groups/${slug}/unfollow`, {
+        method: 'POST'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/groups/${slug}`] });
+      toast({
+        title: 'Success',
+        description: 'You have unfollowed this group',
       });
     }
   });
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
-      </div>
-    );
-  }
-
-  if (!groupData?.data) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Group not found</h2>
-          <p className="text-gray-600">The group you're looking for doesn't exist.</p>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
-  const group = groupData.data;
+  if (!group?.data) {
+    return (
+      <DashboardLayout>
+        <Card className="max-w-md mx-auto mt-20">
+          <CardContent className="pt-6 text-center">
+            <h2 className="text-2xl font-bold mb-2">Group not found</h2>
+            <p className="text-muted-foreground mb-4">The group you're looking for doesn't exist.</p>
+            <Link href="/groups">
+              <Button>Back to Groups</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </DashboardLayout>
+    );
+  }
+
+  const groupData = group.data as GroupDetail;
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Hero Banner with City Photo */}
-      <div className="relative h-80 bg-gradient-to-r from-pink-500 to-purple-600 overflow-hidden">
-        {(group.coverImage || group.imageUrl) && (
-          <img
-            src={group.coverImage || group.imageUrl}
-            alt={group.name}
-            className="absolute inset-0 w-full h-full object-cover"
+      <div className="max-w-6xl mx-auto">
+        {/* Header Section */}
+        <div className="relative h-64 rounded-xl overflow-hidden mb-8">
+          <img 
+            src={groupData.imageUrl || 'https://images.pexels.com/photos/1701194/pexels-photo-1701194.jpeg'} 
+            alt={groupData.name}
+            className="w-full h-full object-cover"
           />
-        )}
-        <div className="absolute inset-0 bg-black bg-opacity-50" />
-        
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="absolute bottom-6 left-6 text-white">
+            <h1 className="text-4xl font-bold flex items-center gap-3">
+              <span className="text-5xl">{groupData.emoji}</span>
+              {groupData.name}
+            </h1>
+            {groupData.city && (
+              <p className="text-xl mt-2 flex items-center gap-2">
+                <MapPin className="w-5 h-5" />
+                {groupData.city}, {groupData.country}
+              </p>
+            )}
+          </div>
+        </div>
 
-        
-        {/* Group Info at Bottom */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent pt-16 pb-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center space-x-4">
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-4xl shadow-lg">
-                {group.emoji || '🏙️'}
-              </div>
-              <div className="text-white">
-                <h1 className="text-3xl font-bold drop-shadow-lg">{group.name.replace(/^Tango\s+/, '')}</h1>
-                <div className="flex items-center space-x-4 mt-2">
-                  <div className="flex items-center space-x-1">
-                    <Users className="h-4 w-4" />
-                    <span>{group.memberCount} members</span>
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Members</p>
+                      <p className="text-3xl font-bold">{groupData.memberCount || groupData.members?.length || 0}</p>
+                    </div>
+                    <Users className="w-8 h-8 text-muted-foreground" />
                   </div>
-                  {group.isPrivate && (
-                    <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                      Private
-                    </Badge>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Events</p>
+                      <p className="text-3xl font-bold">{groupData.eventCount || groupData.recentEvents?.length || 0}</p>
+                    </div>
+                    <Calendar className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Description */}
+            {groupData.description && (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold mb-3">About</h2>
+                  <p className="text-muted-foreground">{groupData.description}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Recent Activity */}
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
+                <div className="space-y-4">
+                  <p className="text-center text-muted-foreground py-8">
+                    No recent activity to show
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Actions */}
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-4">Actions</h3>
+                <div className="space-y-3">
+                  {groupData.isJoined ? (
+                    <Button 
+                      onClick={() => leaveGroupMutation.mutate()}
+                      disabled={leaveGroupMutation.isPending}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      Leave Group
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={() => joinGroupMutation.mutate()}
+                      disabled={joinGroupMutation.isPending}
+                      className="w-full"
+                    >
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Join Group
+                    </Button>
+                  )}
+
+                  {!groupData.isJoined && (
+                    <Button 
+                      onClick={() => followGroupMutation.mutate()}
+                      disabled={followGroupMutation.isPending}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Follow for Updates
+                    </Button>
                   )}
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+
+            {/* Group Info */}
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-4">Group Information</h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Type</span>
+                    <span className="capitalize">{groupData.type} Group</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Privacy</span>
+                    <span>{groupData.isPublic ? 'Public' : 'Private'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Created</span>
+                    <span>{new Date(groupData.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
-
-      {/* Action Bar */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="members">Members</TabsTrigger>
-                <TabsTrigger value="events">Events</TabsTrigger>
-                <TabsTrigger value="housing">Housing</TabsTrigger>
-                <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            
-            <div className="flex items-center space-x-3">
-              {group.isJoined ? (
-                <div className="flex items-center space-x-2">
-                  <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-                    ✓ Member
-                  </Badge>
-                  {group.userRole && (() => {
-                    const roleDisplay = getAdminRoleDisplay(group.userRole);
-                    return (
-                      <Badge 
-                        variant="outline" 
-                        className={roleDisplay.color}
-                      >
-                        {roleDisplay.icon} {roleDisplay.label}
-                      </Badge>
-                    );
-                  })()}
-                </div>
-              ) : (
-                <Button
-                  onClick={() => joinGroupMutation.mutate()}
-                  disabled={joinGroupMutation.isPending}
-                  className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
-                >
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  {group.isPrivate ? 'Request to Join' : 'Join Group'}
-                </Button>
-              )}
-              <Button variant="outline" size="sm">
-                <Share className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Admin Toolbar - Only visible to administrative roles */}
-      {(() => {
-        // Check if current user has admin access using comprehensive role system
-        const hasAdminAccess = group.userRole && 
-                              canAccessGroupAdmin(group.userRole, group.type) &&
-                              group.members?.some(member => member.userId === 3); // Scott Boddye's user ID
-
-        return hasAdminAccess ? (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <GroupAdminToolbar 
-              group={{
-                id: group.id,
-                name: group.name,
-                userRole: group.userRole,
-                memberCount: group.memberCount,
-                isPrivate: group.isPrivate,
-                description: group.description,
-                coverImage: group.coverImage
-              }}
-              onUpdate={(updates: any) => {
-                console.log('Group update requested:', updates);
-                // TODO: Implement group update functionality
-              }}
-            />
-          </div>
-        ) : null;
-      })()}
-
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsContent value="overview" className="space-y-8">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4">About</h3>
-              <p className="text-gray-600 leading-relaxed">
-                {group.description}
-              </p>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-                <Users className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-gray-900">{group.memberCount}</div>
-                <div className="text-sm text-gray-600">Members</div>
-              </div>
-              <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-                <Calendar className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-gray-900">{group.recentEvents?.length || 0}</div>
-                <div className="text-sm text-gray-600">Upcoming Events</div>
-              </div>
-              <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-                <MessageCircle className="h-8 w-8 text-purple-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-gray-900">{group.recentMemories?.length || 0}</div>
-                <div className="text-sm text-gray-600">Recent Memories</div>
-              </div>
-            </div>
-
-            {/* Recent Memories Feed */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-6">Recent Memories</h3>
-              {group.recentMemories?.length > 0 ? (
-                <div className="space-y-6">
-                  {group.recentMemories.map((memory) => {
-                    const transformedPost = {
-                      id: memory.id,
-                      content: memory.content,
-                      imageUrl: memory.images?.[0] || null,
-                      videoUrl: null,
-                      userId: memory.author.username,
-                      createdAt: memory.createdAt,
-                      user: {
-                        name: memory.author.name,
-                        username: memory.author.username,
-                        profileImage: memory.author.avatar
-                      },
-                      likes: memory.likes || 0,
-                      comments: memory.comments || 0,
-                      isLiked: false,
-                      hashtags: [],
-                      location: null,
-                      hasConsent: true,
-                      mentions: [],
-                      emotionTags: []
-                    };
-                    
-                    return (
-                      <EnhancedPostItem 
-                        key={memory.id} 
-                        post={transformedPost}
-                        onLike={(postId: number) => {
-                          console.log('Liked memory:', postId);
-                        }}
-                        onShare={(post: any) => {
-                          console.log('Shared memory:', post);
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <MessageCircle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>No memories shared yet</p>
-                  <p className="text-sm mt-1">Be the first to share a memory with this group!</p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="members">
-            <EnhancedMembersSection 
-              members={group.members || []} 
-              memberCount={group.memberCount} 
-            />
-          </TabsContent>
-
-          <TabsContent value="events">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-6">Upcoming Events</h3>
-              {group.recentEvents?.length > 0 ? (
-                <div className="space-y-4">
-                  {group.recentEvents.map((event) => (
-                    <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{event.title}</h4>
-                          <p className="text-gray-600 text-sm mt-1">{event.description}</p>
-                          <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500">
-                            <div className="flex items-center space-x-1">
-                              <Calendar className="h-4 w-4" />
-                              <span>{new Date(event.date).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <MapPin className="h-4 w-4" />
-                              <span>{event.location}</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <Users className="h-4 w-4" />
-                              <span>{event.attendeeCount} attending</span>
-                            </div>
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          View Event
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>No upcoming events</p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="housing">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-6">Housing & Accommodation</h3>
-              <div className="text-center py-12 text-gray-500">
-                <div className="mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">🏠</span>
-                  </div>
-                </div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Housing Coming Soon</h4>
-                <p className="text-sm text-gray-600 max-w-md mx-auto">
-                  Find or offer accommodation for tango events, festivals, and workshops. 
-                  Connect with local hosts and fellow dancers for authentic cultural exchanges.
-                </p>
-                <div className="mt-6">
-                  <Button variant="outline" disabled>
-                    <span className="mr-2">🔔</span>
-                    Get Notified When Available
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="recommendations">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-6">Local Recommendations</h3>
-              <div className="text-center py-12 text-gray-500">
-                <div className="mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">⭐</span>
-                  </div>
-                </div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Recommendations Coming Soon</h4>
-                <p className="text-sm text-gray-600 max-w-md mx-auto">
-                  Discover the best milongas, restaurants, shops, and cultural experiences 
-                  recommended by local tango community members.
-                </p>
-                <div className="mt-6">
-                  <Button variant="outline" disabled>
-                    <span className="mr-2">🔔</span>
-                    Get Notified When Available
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
     </DashboardLayout>
   );
-};
-
-export default GroupDetailPage;
+}

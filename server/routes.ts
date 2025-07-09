@@ -6006,6 +6006,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
+
   // Get all groups with membership status for user
   app.get('/api/groups', async (req, res) => {
     try {

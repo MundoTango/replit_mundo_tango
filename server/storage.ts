@@ -228,8 +228,11 @@ export interface IStorage {
   // City Group Automation Methods
   createGroup(group: InsertGroup): Promise<Group>;
   updateGroup(groupId: number, updates: Partial<Group>): Promise<Group>;
+  getGroupById(groupId: number): Promise<Group | undefined>;
   getGroupBySlug(slug: string): Promise<Group | undefined>;
   getGroupsByCity(city: string): Promise<Group[]>;
+  getAllGroups(): Promise<Group[]>;
+  getGroupMembers(groupId: number): Promise<any[]>;
   
   // Event-Group Assignment Methods
   createEventGroupAssignment(assignment: { eventId: number; groupId: number; assignedAt: Date; assignmentType: string }): Promise<any>;
@@ -1820,6 +1823,11 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async getGroupById(groupId: number): Promise<Group | undefined> {
+    const result = await db.select().from(groups).where(eq(groups.id, groupId)).limit(1);
+    return result[0];
+  }
+
   async getGroupBySlug(slug: string): Promise<Group | undefined> {
     const result = await db.select().from(groups).where(eq(groups.slug, slug)).limit(1);
     return result[0];
@@ -1831,6 +1839,27 @@ export class DatabaseStorage implements IStorage {
 
   async getAllGroups(): Promise<Group[]> {
     return await db.select().from(groups).orderBy(desc(groups.createdAt));
+  }
+
+  async getGroupMembers(groupId: number): Promise<any[]> {
+    const result = await db.select({
+      id: groupMembers.id,
+      userId: groupMembers.userId,
+      role: groupMembers.role,
+      status: groupMembers.status,
+      joinedAt: groupMembers.joinedAt,
+      user: {
+        id: users.id,
+        name: users.name,
+        username: users.username,
+        profileImage: users.profileImage
+      }
+    })
+    .from(groupMembers)
+    .leftJoin(users, eq(groupMembers.userId, users.id))
+    .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.status, 'active')));
+    
+    return result;
   }
 
   async followGroup(groupId: number, userId: number): Promise<void> {
