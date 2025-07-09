@@ -1,6 +1,6 @@
-// Life CEO Service Worker v3.0 - Updated January 9, 2025
-// IMPORTANT: Cache version updated to force refresh of all cached content
-const CACHE_NAME = 'life-ceo-v3';
+// Life CEO Service Worker v4.0 - Updated January 9, 2025
+// IMPORTANT: Cache version updated to v4 with network-first strategy
+const CACHE_NAME = 'life-ceo-v4';
 const urlsToCache = [
   '/',
   '/life-ceo',
@@ -62,27 +62,25 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // For all other requests, try cache first
+  // For all other requests, try network first (to ensure fresh content)
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then(response => {
-        if (response) {
+        // Don't cache non-successful responses
+        if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
-        return fetch(event.request)
-          .then(response => {
-            // Don't cache non-successful responses
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-            // Clone the response for caching
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-            return response;
+        // Clone the response for caching
+        const responseToCache = response.clone();
+        caches.open(CACHE_NAME)
+          .then(cache => {
+            cache.put(event.request, responseToCache);
           });
+        return response;
+      })
+      .catch(() => {
+        // If network fails, try cache
+        return caches.match(event.request);
       })
   );
 });
