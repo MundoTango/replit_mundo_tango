@@ -8720,6 +8720,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ========================================================================
+  // Daily Activities API Endpoints (before tenant middleware)
+  // ========================================================================
+  
+  // Create a new daily activity
+  app.post('/api/daily-activities', setUserContext, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.passport?.user?.claims?.id || req.user?.id || 7;
+      const { projectId, projectName, activityType, description, metadata } = req.body;
+      
+      const activity = await storage.createDailyActivity({
+        user_id: userId,
+        project_id: projectId,
+        project_name: projectName,
+        activity_type: activityType,
+        description: description,
+        metadata: metadata || {},
+        timestamp: new Date()
+      });
+      
+      res.json({
+        success: true,
+        data: activity
+      });
+    } catch (error) {
+      console.error('Error creating daily activity:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create daily activity'
+      });
+    }
+  });
+  
+  // Get daily activities for a user
+  app.get('/api/daily-activities/user/:userId', setUserContext, async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      const { date } = req.query;
+      
+      const activities = await storage.getDailyActivities(
+        parseInt(userId), 
+        date ? new Date(date as string) : undefined
+      );
+      
+      res.json({
+        success: true,
+        data: activities
+      });
+    } catch (error) {
+      console.error('Error fetching user daily activities:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch daily activities'
+      });
+    }
+  });
+  
+  // Get all daily activities for admin view
+  app.get('/api/daily-activities', setUserContext, async (req: Request, res: Response) => {
+    try {
+      const { date } = req.query;
+      
+      const activities = await storage.getAllDailyActivities(
+        date ? new Date(date as string) : new Date()
+      );
+      
+      res.json({
+        success: true,
+        data: activities
+      });
+    } catch (error) {
+      console.error('Error fetching all daily activities:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch daily activities'
+      });
+    }
+  });
+  
+  // Get daily activities by project
+  app.get('/api/daily-activities/project/:projectId', setUserContext, async (req: Request, res: Response) => {
+    try {
+      const { projectId } = req.params;
+      
+      const activities = await storage.getDailyActivitiesByProjectId(projectId);
+      
+      res.json({
+        success: true,
+        data: activities
+      });
+    } catch (error) {
+      console.error('Error fetching project daily activities:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch daily activities'
+      });
+    }
+  });
+  
+  // Update a daily activity
+  app.patch('/api/daily-activities/:id', setUserContext, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const activity = await storage.updateDailyActivity(id, updates);
+      
+      res.json({
+        success: true,
+        data: activity
+      });
+    } catch (error) {
+      console.error('Error updating daily activity:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update daily activity'
+      });
+    }
+  });
+
+  // ========================================================================
   // RBAC/ABAC Routes Integration
   // ========================================================================
   app.use('/api/rbac', rbacRoutes);
@@ -9114,126 +9234,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const userId = req.user?.id || req.user?.claims?.sub || req.session?.passport?.user?.claims?.sub || 7;
     return await storage.getUser(userId);
   };
-
-  // ========================================================================
-  // Daily Activities API Endpoints
-  // ========================================================================
-  
-  // Create a new daily activity
-  app.post('/api/daily-activities', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const userId = req.session?.passport?.user?.claims?.id || req.user?.id || 7;
-      const { projectId, projectName, activityType, description, metadata } = req.body;
-      
-      const activity = await storage.createDailyActivity({
-        user_id: userId,
-        project_id: projectId,
-        project_name: projectName,
-        activity_type: activityType,
-        description: description,
-        metadata: metadata || {},
-        timestamp: new Date()
-      });
-      
-      res.json({
-        success: true,
-        data: activity
-      });
-    } catch (error) {
-      console.error('Error creating daily activity:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to create daily activity'
-      });
-    }
-  });
-  
-  // Get daily activities for a user
-  app.get('/api/daily-activities/user/:userId', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const { userId } = req.params;
-      const { date } = req.query;
-      
-      const activities = await storage.getDailyActivities(
-        parseInt(userId), 
-        date ? new Date(date as string) : undefined
-      );
-      
-      res.json({
-        success: true,
-        data: activities
-      });
-    } catch (error) {
-      console.error('Error fetching user daily activities:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch daily activities'
-      });
-    }
-  });
-  
-  // Get all daily activities for admin view
-  app.get('/api/daily-activities', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const { date } = req.query;
-      
-      const activities = await storage.getAllDailyActivities(
-        date ? new Date(date as string) : new Date()
-      );
-      
-      res.json({
-        success: true,
-        data: activities
-      });
-    } catch (error) {
-      console.error('Error fetching all daily activities:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch daily activities'
-      });
-    }
-  });
-  
-  // Get daily activities by project
-  app.get('/api/daily-activities/project/:projectId', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const { projectId } = req.params;
-      
-      const activities = await storage.getDailyActivitiesByProjectId(projectId);
-      
-      res.json({
-        success: true,
-        data: activities
-      });
-    } catch (error) {
-      console.error('Error fetching project daily activities:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch daily activities'
-      });
-    }
-  });
-  
-  // Update a daily activity
-  app.patch('/api/daily-activities/:id', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const { id } = req.params;
-      const updates = req.body;
-      
-      const activity = await storage.updateDailyActivity(id, updates);
-      
-      res.json({
-        success: true,
-        data: activity
-      });
-    } catch (error) {
-      console.error('Error updating daily activity:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to update daily activity'
-      });
-    }
-  });
 
   // ========================================================================
   // Host Homes Extended API Endpoints
