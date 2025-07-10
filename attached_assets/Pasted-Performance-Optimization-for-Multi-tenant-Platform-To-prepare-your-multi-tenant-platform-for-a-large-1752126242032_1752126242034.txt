@@ -1,0 +1,912 @@
+Performance Optimization for Multi-tenant Platform
+To prepare your multi-tenant platform for a large influx of users and ensure it remains performant under heavy load, I'll outline several optimization strategies across different layers of your architecture.
+1. Database Optimizations
+“-- Add additional indexes for frequently queried columns
+CREATE INDEX IF NOT EXISTS idx_tenant_users_composite ON public.tenant_users(tenant_id, user_id, is_admin);
+CREATE INDEX IF NOT EXISTS idx_content_sharing_composite ON public.content_sharing(content_type, content_id, source_tenant_id);
+CREATE INDEX IF NOT EXISTS idx_user_journeys_status ON public.user_journeys(status);
+CREATE INDEX IF NOT EXISTS idx_journey_activities_datetime ON public.journey_activities(start_datetime);
+
+-- Add GIN indexes for JSONB and array columns for faster searches
+CREATE INDEX IF NOT EXISTS idx_tenant_users_interests_gin ON public.tenant_users USING gin(interests);
+CREATE INDEX IF NOT EXISTS idx_tenant_users_notification_prefs ON public.tenant_users USING gin(notification_preferences);
+CREATE INDEX IF NOT EXISTS idx_user_journeys_locations ON public.user_journeys USING gin(locations);
+CREATE INDEX IF NOT EXISTS idx_user_view_preferences_selected_tenant_ids ON public.user_view_preferences USING gin(selected_tenant_ids);
+
+-- Optimize tenant identification with a partial index
+CREATE INDEX IF NOT EXISTS idx_tenants_active ON public.tenants(slug) WHERE is_active = true;
+
+-- Add index for domain lookups
+CREATE INDEX IF NOT EXISTS idx_tenants_domain ON public.tenants(domain) WHERE domain IS NOT NULL;
+
+-- Add index for timestamp columns that are frequently used in range queries
+CREATE INDEX IF NOT EXISTS idx_journey_activities_date_range ON public.journey_activities(journey_id, start_datetime, end_datetime);
+CREATE INDEX IF NOT EXISTS idx_user_journeys_date_range ON public.user_journeys(start_date, end_date);
+
+-- Add index for frequently filtered columns
+CREATE INDEX IF NOT EXISTS idx_user_journeys_public ON public.user_journeys(is_public) WHERE is_public = true;”
+
+“-- Create materialized views for frequently accessed data
+-- This will significantly speed up common queries by pre-computing results
+
+-- Materialized view for user community memberships with counts
+CREATE MATERIALIZED VIEW IF NOT EXISTS private.mv_user_communities AS
+SELECT 
+    tu.user_id,
+    t.id AS tenant_id,
+    t.name AS tenant_name,
+    t.slug AS tenant_slug,
+    t.logo_url,
+    tu.role,
+    tu.is_admin,
+    tu.expertise_level,
+    tu.interests,
+    tu.display_in_feed,
+    count(tu2.*) AS member_count,
+    (
+        SELECT count(*) 
+        FROM public.posts 
+        WHERE tenant_id = t.id 
+        AND created_at > (now() - interval '30 days')
+    ) AS recent_activity_count
+FROM 
+    public.tenant_users tu
+    JOIN public.tenants t ON tu.tenant_id = t.id
+    LEFT JOIN public.tenant_users tu2 ON t.id = tu2.tenant_id
+WHERE 
+    t.is_active = true
+GROUP BY
+    tu.user_id, t.id, t.name, t.slug, t.logo_url, tu.role, 
+    tu.is_admin, tu.expertise_level, tu.interests, tu.display_in_feed;
+
+-- Create index on the materialized view
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_user_communities_user_tenant ON private.mv_user_communities(user_id, tenant_id);
+
+-- Create a function to refresh the materialized view
+CREATE OR REPLACE FUNCTION private.refresh_mv_user_communities()
+RETURNS trigger AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY private.mv_user_communities;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Create triggers to refresh the materialized view when data changes
+CREATE TRIGGER refresh_mv_user_communities_tenant_users
+AFTER INSERT OR UPDATE OR DELETE ON public.tenant_users
+FOR EACH STATEMENT EXECUTE FUNCTION private.refresh_mv_user_communities();
+
+CREATE TRIGGER refresh_mv_user_communities_tenants
+AFTER INSERT OR UPDATE OR DELETE ON public.tenants
+FOR EACH STATEMENT EXECUTE FUNCTION private.refresh_mv_user_communities();
+
+CREATE TRIGGER refresh_mv_user_communities_posts
+AFTER INSERT OR DELETE ON public.posts
+FOR EACH STATEMENT EXECUTE FUNCTION private.refresh_mv_user_communities();”
+
+“-- Optimize the get_cross_community_content function for better performance
+CREATE OR REPLACE FUNCTION public.get_cross_community_content(
+    content_type text,
+    tenant_ids uuid[] DEFAULT NULL,
+    limit_count integer DEFAULT 20,
+    offset_count integer DEFAULT 0
+)
+RETURNS SETOF jsonb AS $$
+DECLARE
+    user_tenants uuid[];
+    query_tenants uuid[];
+BEGIN
+    -- Get user's tenant memberships (optimized with materialized view)
+    -- This is much faster than the original query for users with many memberships
+    SELECT array_agg(tenant_id) INTO user_tenants
+    FROM private.mv_user_communities
+    WHERE user_id = auth.uid();
+    
+    -- If tenant_ids is provided, use those (must be a subset of user's tenants)
+    IF tenant_ids IS NOT NULL AND array_length(tenant_ids, 1) > 0 THEN
+        -- Use a more efficient array intersection
+        SELECT array_agg(t) INTO query_tenants
+        FROM unnest(tenant_ids) t
+        WHERE t = ANY(user_tenants);
+    ELSE
+        -- Otherwise use all user's tenants
+        query_tenants := user_tenants;
+    END IF;
+    
+    -- Return empty if no valid tenants
+    IF query_tenants IS NULL OR array_length(query_tenants, 1) = 0 THEN
+        RETURN;
+    END IF;
+    
+    -- Query based on content type with optimized queries
+    CASE content_type
+        WHEN 'posts' THEN
+            RETURN QUERY
+            -- Use a CTE to improve query planning
+            WITH filtered_posts AS (
+                SELECT 
+                    p.id,
+                    p.tenant_id,
+                    t.name AS tenant_name,
+                    p.user_id,
+                    p.content,
+                    p.created_at,
+                    p.total_likes,
+                    p.total_comments
+                FROM public.posts p
+                -- Use JOIN LATERAL for better performance with array conditions
+                JOIN LATERAL (
+                    SELECT unnest(query_tenants) AS tenant_id
+                ) q ON p.tenant_id = q.tenant_id
+                JOIN public.tenants t ON p.tenant_id = t.id
+                WHERE p.deleted_at IS NULL
+                ORDER BY p.created_at DESC
+                LIMIT limit_count
+                OFFSET offset_count
+            )
+            SELECT jsonb_build_object(
+                'id', fp.id,
+                'content_type', 'post',
+                'tenant_id', fp.tenant_id,
+                'tenant_name', fp.tenant_name,
+                'user_id', fp.user_id,
+                'content', fp.content,
+                'created_at', fp.created_at,
+                'likes', fp.total_likes,
+                'comments', fp.total_comments
+            )
+            FROM filtered_posts fp;
+            
+        WHEN 'events' THEN
+            RETURN QUERY
+            -- Use a CTE to improve query planning
+            WITH filtered_events AS (
+                SELECT 
+                    e.id,
+                    e.tenant_id,
+                    t.name AS tenant_name,
+                    e.title,
+                    e.description,
+                    e.start_date,
+                    e.location_name,
+                    e.image_url
+                FROM public.events e
+                -- Use JOIN LATERAL for better performance with array conditions
+                JOIN LATERAL (
+                    SELECT unnest(query_tenants) AS tenant_id
+                ) q ON e.tenant_id = q.tenant_id
+                JOIN public.tenants t ON e.tenant_id = t.id
+                WHERE e.deleted_at IS NULL
+                AND e.start_date >= CURRENT_DATE
+                ORDER BY e.start_date ASC
+                LIMIT limit_count
+                OFFSET offset_count
+            )
+            SELECT jsonb_build_object(
+                'id', fe.id,
+                'content_type', 'event',
+                'tenant_id', fe.tenant_id,
+                'tenant_name', fe.tenant_name,
+                'title', fe.title,
+                'description', fe.description,
+                'start_date', fe.start_date,
+                'location_name', fe.location_name,
+                'image_url', fe.image_url
+            )
+            FROM filtered_events fe;
+            
+        ELSE
+            RAISE EXCEPTION 'Unsupported content type: %', content_type;
+    END CASE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';”
+“-- Create a connection pooling configuration function
+-- This helps manage database connections efficiently
+CREATE OR REPLACE FUNCTION private.set_pooling_config()
+RETURNS void AS $$
+BEGIN
+    -- Set statement timeout to prevent long-running queries
+    EXECUTE 'ALTER ROLE postgres SET statement_timeout = ''30s''';
+    
+    -- Set idle in transaction session timeout
+    EXECUTE 'ALTER ROLE postgres SET idle_in_transaction_session_timeout = ''60s''';
+    
+    -- Set client connection count limit per user
+    EXECUTE 'ALTER ROLE postgres CONNECTION LIMIT 100';
+    
+    -- Set work memory for complex operations
+    EXECUTE 'ALTER ROLE postgres SET work_mem = ''16MB''';
+    
+    -- Set maintenance work memory for index creation, etc.
+    EXECUTE 'ALTER ROLE postgres SET maintenance_work_mem = ''128MB''';
+    
+    -- Set effective cache size hint for query planner
+    EXECUTE 'ALTER SYSTEM SET effective_cache_size = ''4GB''';
+    
+    -- Set shared buffers (adjust based on your instance size)
+    EXECUTE 'ALTER SYSTEM SET shared_buffers = ''1GB''';
+    
+    -- Set max connections (adjust based on your instance size)
+    EXECUTE 'ALTER SYSTEM SET max_connections = ''200''';
+    
+    -- Apply changes
+    EXECUTE 'SELECT pg_reload_conf()';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Create a table partitioning function for large tables
+-- This example shows how to partition the journey_activities table by month
+CREATE OR REPLACE FUNCTION private.setup_journey_activities_partitioning()
+RETURNS void AS $$
+BEGIN
+    -- Create partitioned table
+    EXECUTE '
+    CREATE TABLE IF NOT EXISTS public.journey_activities_partitioned (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        journey_id uuid NOT NULL,
+        tenant_id uuid,
+        activity_type text NOT NULL,
+        title text NOT NULL,
+        description text,
+        location jsonb,
+        start_datetime timestamptz NOT NULL,
+        end_datetime timestamptz,
+        external_url text,
+        content_reference_id uuid,
+        content_reference_type text,
+        settings jsonb DEFAULT ''{}''::jsonb,
+        created_at timestamptz DEFAULT now(),
+        updated_at timestamptz DEFAULT now()
+    ) PARTITION BY RANGE (start_datetime)';
+    
+    -- Create partitions for the next 12 months
+    FOR i IN 0..11 LOOP
+        EXECUTE format('
+        CREATE TABLE IF NOT EXISTS public.journey_activities_p%s 
+        PARTITION OF public.journey_activities_partitioned
+        FOR VALUES FROM (''%s'') TO (''%s'')',
+        to_char(CURRENT_DATE + (i * interval ''1 month''), 'YYYYMM'),
+        date_trunc('month', CURRENT_DATE + (i * interval '1 month')),
+        date_trunc('month', CURRENT_DATE + ((i + 1) * interval '1 month'))
+        );
+    END LOOP;
+    
+    -- Create indexes on partitioned table
+    EXECUTE '
+    CREATE INDEX IF NOT EXISTS idx_journey_activities_part_journey_id 
+    ON public.journey_activities_partitioned(journey_id)';
+    
+    EXECUTE '
+    CREATE INDEX IF NOT EXISTS idx_journey_activities_part_tenant_id 
+    ON public.journey_activities_partitioned(tenant_id)';
+    
+    EXECUTE '
+    CREATE INDEX IF NOT EXISTS idx_journey_activities_part_start_datetime 
+    ON public.journey_activities_partitioned(start_datetime)';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';”
+“// tenant-middleware-optimized.ts
+// Purpose: Optimized middleware to handle tenant identification with caching
+// This Edge Function identifies the current tenant from the request with Redis caching
+
+import { createClient } from 'jsr:@supabase/supabase-js@^2'
+import { connect } from 'npm:@upstash/redis@1.22.0'
+
+interface TenantInfo {
+  id: string
+  slug: string
+  name: string
+  logo_url: string | null
+  primary_color: string | null
+  secondary_color: string | null
+  domain: string | null
+  settings: Record<string, any>
+}
+
+interface CachedTenant {
+  tenant: TenantInfo
+  cachedAt: number
+}
+
+// Initialize Redis client
+const redis = connect({
+  url: Deno.env.get('UPSTASH_REDIS_URL')!,
+  token: Deno.env.get('UPSTASH_REDIS_TOKEN')!,
+})
+
+// Cache TTL in seconds (10 minutes)
+const CACHE_TTL = 600
+
+Deno.serve(async (req) => {
+  try {
+    // Get tenant information from request
+    const url = new URL(req.url)
+    const host = req.headers.get('host') || ''
+    const tenantSlug = url.searchParams.get('tenant') || 
+                       req.headers.get('x-tenant') || 
+                       host.split('.')[0]
+    
+    // Skip middleware for non-tenant requests
+    if (tenantSlug === 'api' || tenantSlug === 'www' || !tenantSlug) {
+      return new Response(JSON.stringify({ 
+        error: 'No tenant specified' 
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Check cache first
+    const cacheKey = `tenant:${tenantSlug}`
+    let tenant: TenantInfo | null = null
+    let cachedData: CachedTenant | null = null
+    
+    try {
+      cachedData = await redis.get(cacheKey) as CachedTenant | null
+    } catch (cacheError) {
+      console.error('Redis cache error:', cacheError)
+      // Continue without cache if Redis is unavailable
+    }
+    
+    // Use cached tenant if available and not expired
+    if (cachedData && (Date.now() - cachedData.cachedAt < CACHE_TTL * 1000)) {
+      tenant = cachedData.tenant
+    } else {
+      // Create Supabase admin client
+      const supabaseAdmin = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      )
+
+      // Get tenant information
+      const { data: fetchedTenant, error: tenantError } = await supabaseAdmin
+        .from('tenants')
+        .select('id, slug, name, logo_url, primary_color, secondary_color, domain, settings')
+        .eq('slug', tenantSlug)
+        .eq('is_active', true)
+        .single()
+
+      if (tenantError || !fetchedTenant) {
+        return new Response(JSON.stringify({ 
+          error: 'Tenant not found or inactive',
+          details: tenantError?.message
+        }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+      
+      tenant = fetchedTenant as TenantInfo
+      
+      // Cache the tenant data
+      try {
+        await redis.set(cacheKey, {
+          tenant,
+          cachedAt: Date.now()
+        }, { ex: CACHE_TTL })
+      } catch (cacheError) {
+        console.error('Redis cache set error:', cacheError)
+        // Continue without caching if Redis is unavailable
+      }
+    }
+
+    // Get user information if authenticated
+    const authHeader = req.headers.get('Authorization')
+    let userData = null
+
+    if (authHeader) {
+      // Create a user-specific cache key
+      const userCacheKey = `tenant:${tenantSlug}:user:${authHeader.slice(-10)}`
+      let cachedUserData = null
+      
+      try {
+        cachedUserData = await redis.get(userCacheKey)
+      } catch (cacheError) {
+        console.error('Redis user cache error:', cacheError)
+      }
+      
+      if (cachedUserData) {
+        userData = cachedUserData
+      } else {
+        const supabaseAdmin = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        )
+        
+        const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(
+          authHeader.replace('Bearer ', '')
+        )
+
+        if (!userError && user) {
+          // Check if user belongs to this tenant
+          const { data: tenantUser } = await supabaseAdmin
+            .from('tenant_users')
+            .select('role, is_admin')
+            .eq('tenant_id', tenant.id)
+            .eq('user_id', user.id)
+            .single()
+
+          if (tenantUser) {
+            userData = {
+              id: user.id,
+              email: user.email,
+              role: tenantUser.role,
+              is_admin: tenantUser.is_admin
+            }
+            
+            // Cache user data
+            try {
+              await redis.set(userCacheKey, userData, { ex: 300 }) // 5 minute TTL for user data
+            } catch (cacheError) {
+              console.error('Redis user cache set error:', cacheError)
+            }
+          }
+        }
+      }
+    }
+
+    // Return tenant information and user data
+    return new Response(JSON.stringify({
+      tenant,
+      user: userData
+    }), {
+      status: 200,
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=60' // Allow CDN/browser caching for 1 minute
+      }
+    })
+  } catch (error) {
+    console.error('Tenant middleware error:', error)
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error',
+      details: error.message
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+})”
+“// batch-processor.ts
+// Purpose: Process operations in batches to reduce database load
+// This Edge Function handles batch operations for notifications, updates, etc.
+
+import { createClient } from 'jsr:@supabase/supabase-js@^2'
+import { connect } from 'npm:@upstash/redis@1.22.0'
+
+interface BatchJob {
+  operation: string
+  payload: Record<string, any>
+  priority: number
+  tenant_id?: string
+  user_id?: string
+  created_at: number
+}
+
+// Initialize Redis client
+const redis = connect({
+  url: Deno.env.get('UPSTASH_REDIS_URL')!,
+  token: Deno.env.get('UPSTASH_REDIS_TOKEN')!,
+})
+
+// Queue names
+const NOTIFICATION_QUEUE = 'notification_queue'
+const ANALYTICS_QUEUE = 'analytics_queue'
+const CONTENT_UPDATE_QUEUE = 'content_update_queue'
+
+Deno.serve(async (req) => {
+  try {
+    // Only allow POST requests
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    const url = new URL(req.url)
+    const path = url.pathname.split('/').filter(Boolean)
+    
+    // Handle different endpoints
+    if (path[1] === 'enqueue') {
+      return await handleEnqueue(req)
+    } else if (path[1] === 'process') {
+      return await handleProcess(req)
+    } else {
+      return new Response(JSON.stringify({ error: 'Invalid endpoint' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+  } catch (error) {
+    console.error('Batch processor error:', error)
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error',
+      details: error.message
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+})
+
+// Handle job enqueuing
+async function handleEnqueue(req: Request): Promise<Response> {
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: 'Authorization required' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+
+  const body = await req.json()
+  const { queue, operation, payload, priority = 1, tenant_id } = body
+  
+  if (!queue || !operation || !payload) {
+    return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+  
+  // Create Supabase client with user's auth token
+  const supabaseClient = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_ANON_KEY')!,
+    {
+      global: {
+        headers: { Authorization: authHeader }
+      }
+    }
+  )
+  
+  // Get user ID
+  const { data: { user } } = await supabaseClient.auth.getUser()
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Invalid authentication' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+  
+  // Create job
+  const job: BatchJob = {
+    operation,
+    payload,
+    priority,
+    tenant_id,
+    user_id: user.id,
+    created_at: Date.now()
+  }
+  
+  // Add to appropriate queue
+  let queueName: string
+  switch (queue) {
+    case 'notification':
+      queueName = NOTIFICATION_QUEUE
+      break
+    case 'analytics':
+      queueName = ANALYTICS_QUEUE
+      break
+    case 'content_update':
+      queueName = CONTENT_UPDATE_QUEUE
+      break
+    default:
+      return new Response(JSON.stringify({ error: 'Invalid queue name' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }
+  
+  // Add job to queue
+  await redis.lpush(queueName, job)
+  
+  return new Response(JSON.stringify({ 
+    success: true,
+    message: 'Job added to queue',
+    job_id: crypto.randomUUID()
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  })
+}
+
+// Handle batch processing (triggered by cron or manual request)
+async function handleProcess(req: Request): Promise<Response> {
+  // Verify this is an internal call with admin key
+  const adminKey = req.headers.get('x-admin-key')
+  if (adminKey !== Deno.env.get('BATCH_PROCESSOR_ADMIN_KEY')) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+  
+  const body = await req.json()
+  const { queue, batch_size = 100 } = body
+  
+  if (!queue) {
+    return new Response(JSON.stringify({ error: 'Queue name required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+  
+  // Determine queue name
+  let queueName: string
+  switch (queue) {
+    case 'notification':
+      queueName = NOTIFICATION_QUEUE
+      break
+    case 'analytics':
+      queueName = ANALYTICS_QUEUE
+      break
+    case 'content_update':
+      queueName = CONTENT_UPDATE_QUEUE
+      break
+    default:
+      return new Response(JSON.stringify({ error: 'Invalid queue name' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }
+  
+  // Create admin Supabase client
+  const supabaseAdmin = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  )
+  
+  // Process jobs in batch
+  const jobs: BatchJob[] = []
+  for (let i = 0; i < batch_size; i++) {
+    const job = await redis.rpop(queueName) as BatchJob | null
+    if (!job) break
+    jobs.push(job)
+  }
+  
+  if (jobs.length === 0) {
+    return new Response(JSON.stringify({ 
+      success: true,
+      message: 'No jobs to process',
+      processed: 0
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+  
+  // Group jobs by operation for batch processing
+  const groupedJobs: Record<string, BatchJob[]> = {}
+  for (const job of jobs) {
+    if (!groupedJobs[job.operation]) {
+      groupedJobs[job.operation] = []
+    }
+    groupedJobs[job.operation].push(job)
+  }
+  
+  // Process each group
+  const results: Record<string, any> = {}
+  for (const [operation, operationJobs] of Object.entries(groupedJobs)) {
+    try {
+      switch (operation) {
+        case 'send_notifications':
+          results[operation] = await processBatchNotifications(supabaseAdmin, operationJobs)
+          break
+        case 'update_content':
+          results[operation] = await processBatchContentUpdates(supabaseAdmin, operationJobs)
+          break
+        case 'record_analytics':
+          results[operation] = await processBatchAnalytics(supabaseAdmin, operationJobs)
+          break
+        default:
+          results[operation] = { error: 'Unsupported operation', count: operationJobs.length }
+      }
+    } catch (error) {
+      results[operation] = { error: error.message, count: operationJobs.length }
+    }
+  }
+  
+  return new Response(JSON.stringify({ 
+    success: true,
+    processed: jobs.length,
+    results
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  })
+}
+
+// Process batch notifications
+async function processBatchNotifications(supabase: any, jobs: BatchJob[]): Promise<any> {
+  // Group notifications by tenant for more efficient processing
+  const tenantGroups: Record<string, BatchJob[]> = {}
+  
+  for (const job of jobs) {
+    const tenantId = job.tenant_id || 'global'
+    if (!tenantGroups[tenantId]) {
+      tenantGroups[tenantId] = []
+    }
+    tenantGroups[tenantId].push(job)
+  }
+  
+  const results = []
+  
+  // Process each tenant group
+  for (const [tenantId, tenantJobs] of Object.entries(tenantGroups)) {
+    // Prepare notifications in batch
+    const notifications = tenantJobs.map(job => ({
+      user_id: job.user_id,
+      tenant_id: job.tenant_id,
+      type: job.payload.type,
+      title: job.payload.title,
+      message: job.payload.message,
+      data: job.payload.data,
+      is_read: false,
+      created_at: new Date()
+    }))
+    
+    // Insert notifications in a single batch
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert(notifications)
+      .select('id')
+    
+    results.push({
+      tenant_id: tenantId,
+      count: tenantJobs.length,
+      success: !error,
+      error: error?.message
+    })
+  }
+  
+  return results
+}
+
+// Process batch content updates
+async function processBatchContentUpdates(supabase: any, jobs: BatchJob[]): Promise<any> {
+  // Group by content type and ID for efficient updates
+  const contentGroups: Record<string, Record<string, BatchJob[]>> = {}
+  
+  for (const job of jobs) {
+    const contentType = job.payload.content_type
+    const contentId = job.payload.content_id
+    
+    if (!contentGroups[contentType]) {
+      contentGroups[contentType] = {}
+    }
+    
+    if (!contentGroups[contentType][contentId]) {
+      contentGroups[contentType][contentId] = []
+    }
+    
+    contentGroups[contentType][contentId].push(job)
+  }
+  
+  const results = []
+  
+  // Process each content group
+  for (const [contentType, contentItems] of Object.entries(contentGroups)) {
+    for (const [contentId, contentJobs] of Object.entries(contentItems)) {
+      // Get the most recent job for this content
+      const latestJob = contentJobs.reduce((latest, current) => 
+        current.created_at > latest.created_at ? current : latest
+      )
+      
+      // Update the content
+      let data, error
+      
+      switch (contentType) {
+        case 'posts':
+          ({ data, error } = await supabase
+            .from('posts')
+            .update({
+              ...latestJob.payload.updates,
+              updated_at: new Date()
+            })
+            .eq('id', contentId))
+          break
+        case 'events':
+          ({ data, error } = await supabase
+            .from('events')
+            .update({
+              ...latestJob.payload.updates,
+              updated_at: new Date()
+            })
+            .eq('id', contentId))
+          break
+        default:
+          error = { message: `Unsupported content type: ${contentType}` }
+      }
+      
+      results.push({
+        content_type: contentType,
+        content_id: contentId,
+        jobs_count: contentJobs.length,
+        success: !error,
+        error: error?.message
+      })
+    }
+  }
+  
+  return results
+}
+
+// Process batch analytics
+async function processBatchAnalytics(supabase: any, jobs: BatchJob[]): Promise<any> {
+  // Group analytics by event type
+  const eventGroups: Record<string, BatchJob[]> = {}
+  
+  for (const job of jobs) {
+    const eventType = job.payload.event_type
+    if (!eventGroups[eventType]) {
+      eventGroups[eventType] = []
+    }
+    eventGroups[eventType].push(job)
+  }
+  
+  const results = []
+  
+  // Process each event type
+  for (const [eventType, eventJobs] of Object.entries(eventGroups)) {
+    // Prepare analytics events in batch
+    const events = eventJobs.map(job => ({
+      event_type: eventType,
+      user_id: job.user_id,
+      tenant_id: job.tenant_id,
+      properties: job.payload.properties,
+      created_at: new Date(job.created_at)
+    }))
+    
+    // Insert analytics events in a single batch
+    const { data, error } = await supabase
+      .from('analytics_events')
+      .insert(events)
+    
+    results.push({
+      event_type: eventType,
+      count: eventJobs.length,
+      success: !error,
+      error: error?.message
+    })
+  }
+  
+  return results
+}”
+“
+
+Performance Optimization Strategies for Your Multi-tenant Platform
+To prepare your platform for a large influx of users, I've outlined comprehensive optimization strategies across different layers of your architecture:
+1. Database Optimizations
+Additional Indexes
+I've created specialized indexes for frequently queried columns, including composite indexes for tenant-user relationships and GIN indexes for JSONB and array columns. These will significantly speed up queries, especially those involving tenant filtering and complex data structures.
+Materialized Views
+The materialized view for user communities pre-computes frequently accessed data, reducing the need for expensive joins and aggregations at query time. This is particularly important for the community membership data that's accessed on almost every page load.
+Function Optimizations
+I've optimized the cross-community content function to use more efficient query patterns, including CTEs and JOIN LATERAL operations that perform better with array conditions. This will make your feed and content discovery features much faster.
+Connection Pooling and Table Partitioning
+The connection pooling configuration helps manage database connections efficiently, preventing connection exhaustion during traffic spikes. Table partitioning for large tables like journey_activities improves query performance by limiting scans to relevant partitions.
+2. Edge Function Optimizations
+Caching with Redis
+The optimized tenant middleware uses Redis to cache tenant and user data, dramatically reducing database load for tenant identification. This is critical since tenant context is needed for almost every request.
+Batch Processing
+The batch processor Edge Function handles operations like notifications, content updates, and analytics in batches, reducing database load and improving throughput. This is especially important for high-volume operations like notifications during peak usage.
+3. Additional Recommendations
+CDN Integration: Configure Supabase Storage with a CDN for static assets
+Rate Limiting: Implement rate limiting on API endpoints to prevent abuse
+Horizontal Scaling: Consider upgrading your Supabase plan for more resources
+Background Processing: Move heavy operations to background jobs
+Client-side Caching: Implement client-side caching for frequently accessed data
+Pagination: Ensure all list endpoints use proper pagination
+Monitoring: Set up monitoring to identify bottlenecks early
+Implementation Plan
+First Phase: Apply database indexes and optimize existing functions
+Second Phase: Implement materialized views and connection pooling
+Third Phase: Deploy optimized Edge Functions with caching
+Fourth Phase: Set up batch processing for high-volume operations
+These optimizations will significantly improve your platform's performance and scalability, allowing it to handle a large influx of users without degradation in service quality.
+Would you like me to explain any specific optimization in more detail or provide additional recommendations for a particular aspect of your platform?
+
+
+
