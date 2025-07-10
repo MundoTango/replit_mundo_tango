@@ -325,79 +325,106 @@ const AdminCenter: React.FC = () => {
 
   const renderOverview = () => (
     <div className="space-y-6">
-      {/* Platform Statistics */}
+      {/* Platform Statistics with MT Design */}
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Platform Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            title="Total Users"
-            value={stats?.totalUsers?.toLocaleString() || '0'}
-            subtitle="Registered members"
-            icon={<Users className="w-5 h-5 text-blue-600" />}
-            trend="+12% this month"
-          />
-          <StatCard
-            title="Active Users"
-            value={stats?.activeUsers?.toLocaleString() || '0'}
-            subtitle="Last 30 days"
-            icon={<Activity className="w-5 h-5 text-green-600" />}
-            trend="+8% this month"
-          />
-          <StatCard
-            title="Total Events"
-            value={stats?.totalEvents?.toLocaleString() || '0'}
-            subtitle="All time"
-            icon={<Globe className="w-5 h-5 text-purple-600" />}
-            trend="+15% this month"
-          />
-          <StatCard
-            title="System Health"
-            value={`${stats?.systemHealth || 95}%`}
-            subtitle="Overall performance"
-            icon={<Zap className="w-5 h-5 text-orange-600" />}
-            trend="Excellent"
-          />
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Platform Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-blue-500 rounded-xl">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xs font-medium text-blue-600">+12%</span>
+            </div>
+            <div className="text-2xl font-bold text-gray-800">{stats?.totalUsers?.toLocaleString() || '0'}</div>
+            <div className="text-sm text-gray-600 mt-1">Total Users</div>
+            <div className="text-xs text-gray-500 mt-1">Registered members</div>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-green-500 rounded-xl">
+                <Activity className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xs font-medium text-green-600">+8%</span>
+            </div>
+            <div className="text-2xl font-bold text-gray-800">{stats?.activeUsers?.toLocaleString() || '0'}</div>
+            <div className="text-sm text-gray-600 mt-1">Active Users</div>
+            <div className="text-xs text-gray-500 mt-1">Last 30 days</div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-purple-500 rounded-xl">
+                <Globe className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xs font-medium text-purple-600">+15%</span>
+            </div>
+            <div className="text-2xl font-bold text-gray-800">{stats?.totalEvents?.toLocaleString() || '0'}</div>
+            <div className="text-sm text-gray-600 mt-1">Total Events</div>
+            <div className="text-xs text-gray-500 mt-1">All time</div>
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-orange-500 rounded-xl">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xs font-medium text-orange-600">Excellent</span>
+            </div>
+            <div className="text-2xl font-bold text-gray-800">{stats?.systemHealth || 95}%</div>
+            <div className="text-sm text-gray-600 mt-1">System Health</div>
+            <div className="text-xs text-gray-500 mt-1">Overall performance</div>
+          </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions with MT Styling */}
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <button 
             onClick={() => setSelectedTab('users')}
-            className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all text-left group"
+            className="p-5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl hover:shadow-xl transition-all text-left group transform hover:-translate-y-1"
           >
-            <Users className="w-8 h-8 text-blue-600 mb-3 group-hover:scale-110 transition-transform" />
-            <h3 className="font-semibold text-gray-900 mb-1">Manage Users</h3>
+            <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl inline-flex mb-3 group-hover:scale-110 transition-transform">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="font-semibold text-gray-800 mb-1">Manage Users</h3>
             <p className="text-sm text-gray-600">View and manage user accounts</p>
           </button>
 
           <button 
             onClick={() => setSelectedTab('compliance')}
-            className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all text-left group"
+            className="p-5 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl hover:shadow-xl transition-all text-left group transform hover:-translate-y-1"
           >
-            <Shield className="w-8 h-8 text-green-600 mb-3 group-hover:scale-110 transition-transform" />
-            <h3 className="font-semibold text-gray-900 mb-1">Compliance Center</h3>
-            <p className="text-sm text-gray-600">Monitor GDPR and security compliance</p>
+            <div className="p-3 bg-gradient-to-r from-green-500 to-green-600 rounded-xl inline-flex mb-3 group-hover:scale-110 transition-transform">
+              <Shield className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="font-semibold text-gray-800 mb-1">Compliance Center</h3>
+            <p className="text-sm text-gray-600">Monitor GDPR and security</p>
           </button>
 
           <button 
             onClick={() => setSelectedTab('system')}
-            className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all text-left group"
+            className="p-5 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl hover:shadow-xl transition-all text-left group transform hover:-translate-y-1"
           >
-            <Activity className="w-8 h-8 text-purple-600 mb-3 group-hover:scale-110 transition-transform" />
-            <h3 className="font-semibold text-gray-900 mb-1">System Health</h3>
+            <div className="p-3 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl inline-flex mb-3 group-hover:scale-110 transition-transform">
+              <Activity className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="font-semibold text-gray-800 mb-1">System Health</h3>
             <p className="text-sm text-gray-600">Check performance and logs</p>
           </button>
 
           <a 
             href="/ttfiles-demo"
-            className="p-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:shadow-md transition-all text-left group block"
+            className="p-5 bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-2xl hover:shadow-xl transition-all text-left group block transform hover:-translate-y-1"
           >
-            <Code className="w-8 h-8 text-white mb-3 group-hover:scale-110 transition-transform" />
+            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl inline-flex mb-3 group-hover:scale-110 transition-transform">
+              <Code className="w-6 h-6 text-white" />
+            </div>
             <h3 className="font-semibold text-white mb-1">TTfiles Demo</h3>
-            <p className="text-sm text-indigo-100">View TrangoTech vintage components</p>
+            <p className="text-sm text-white/90">View TrangoTech vintage components</p>
           </a>
         </div>
       </div>
@@ -476,13 +503,13 @@ const AdminCenter: React.FC = () => {
 
   const renderCompliance = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Compliance Center</h2>
-        <div className="flex items-center gap-3">
-          <div className="text-sm text-gray-500">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-gray-800">Compliance Center</h2>
+        <div className="flex flex-col sm:flex-row items-end gap-3">
+          <div className="text-sm text-gray-600">
             Last audit: {compliance?.lastAudit || 'Never'}
             {compliance?.auditType && (
-              <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+              <span className="ml-2 px-2 py-1 bg-gradient-to-r from-blue-100 to-purple-100 text-purple-700 text-xs rounded-full font-medium">
                 {compliance.auditType}
               </span>
             )}
@@ -490,7 +517,7 @@ const AdminCenter: React.FC = () => {
           <button 
             onClick={refreshCompliance}
             disabled={complianceRefreshing}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transform hover:-translate-y-0.5"
           >
             {complianceRefreshing ? (
               <>
@@ -507,12 +534,12 @@ const AdminCenter: React.FC = () => {
         </div>
       </div>
 
-      {/* Monitoring Status */}
+      {/* Monitoring Status with MT Styling */}
       {monitoringStatus && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-          <div className="flex items-center justify-between">
+        <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl p-5 shadow-md">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
               <div>
                 <h3 className="font-semibold text-green-900">Automated Monitoring Active</h3>
                 <p className="text-sm text-green-700">
@@ -520,27 +547,27 @@ const AdminCenter: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div className="text-sm text-green-600">
+            <div className="text-sm text-green-600 font-medium">
               {compliance?.executionTimeMs && `Last audit: ${compliance.executionTimeMs}ms`}
             </div>
           </div>
         </div>
       )}
 
-      {/* Audit History */}
+      {/* Audit History with MT Styling */}
       {auditHistory.length > 0 && (
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Audit History</h3>
+        <div className="bg-white rounded-2xl p-6 shadow-lg">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Audit History</h3>
           <div className="space-y-3">
             {auditHistory.slice(0, 5).map((audit, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl hover:shadow-md transition-all">
                 <div className="flex items-center gap-3">
                   <div className={`w-3 h-3 rounded-full ${
-                    audit.overallScore >= 85 ? 'bg-green-500' : 
-                    audit.overallScore >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+                    audit.overallScore >= 85 ? 'bg-green-500 shadow-lg shadow-green-500/50' : 
+                    audit.overallScore >= 70 ? 'bg-yellow-500 shadow-lg shadow-yellow-500/50' : 'bg-red-500 shadow-lg shadow-red-500/50'
                   }`}></div>
                   <div>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-gray-800">
                       {new Date(audit.timestamp).toLocaleDateString()} at{' '}
                       {new Date(audit.timestamp).toLocaleTimeString()}
                     </div>
@@ -549,7 +576,10 @@ const AdminCenter: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="text-lg font-semibold text-gray-900">
+                <div className={`text-lg font-bold ${
+                  audit.overallScore >= 85 ? 'text-green-600' : 
+                  audit.overallScore >= 70 ? 'text-yellow-600' : 'text-red-600'
+                }`}>
                   {audit.overallScore}%
                 </div>
               </div>
@@ -558,20 +588,20 @@ const AdminCenter: React.FC = () => {
         </div>
       )}
 
-      {/* Overall Compliance Score */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+      {/* Overall Compliance Score with MT Styling */}
+      <div className="bg-gradient-to-r from-pink-50 to-purple-100 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Overall Compliance Score</h3>
+            <h3 className="text-lg font-semibold text-gray-800">Overall Compliance Score</h3>
             <p className="text-sm text-gray-600">Comprehensive security and privacy assessment</p>
           </div>
-          <div className="text-3xl font-bold text-blue-600">
+          <div className="text-3xl font-bold text-purple-600">
             {compliance?.overallScore || 78}%
           </div>
         </div>
-        <div className="w-full bg-blue-200 rounded-full h-3">
+        <div className="w-full bg-purple-200 rounded-full h-3">
           <div 
-            className="h-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
+            className="h-3 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full transition-all duration-500"
             style={{ width: `${compliance?.overallScore || 78}%` }}
           />
         </div>
@@ -605,29 +635,35 @@ const AdminCenter: React.FC = () => {
         />
       </div>
 
-      {/* Issues Summary */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Issues & Recommendations</h3>
+      {/* Issues Summary with MT Styling */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Issues & Recommendations</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
+          <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-xl hover:shadow-md transition-all">
+            <div className="p-2 bg-red-500 rounded-lg">
+              <AlertTriangle className="w-5 h-5 text-white" />
+            </div>
             <div>
-              <div className="font-semibold text-red-900">{compliance?.criticalIssues || 0}</div>
-              <div className="text-sm text-red-600">Critical Issues</div>
+              <div className="font-bold text-red-800 text-xl">{compliance?.criticalIssues || 0}</div>
+              <div className="text-sm text-red-700">Critical Issues</div>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-lg">
-            <Clock className="w-5 h-5 text-yellow-600" />
+          <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl hover:shadow-md transition-all">
+            <div className="p-2 bg-yellow-500 rounded-lg">
+              <Clock className="w-5 h-5 text-white" />
+            </div>
             <div>
-              <div className="font-semibold text-yellow-900">{compliance?.warnings || 2}</div>
-              <div className="text-sm text-yellow-600">Warnings</div>
+              <div className="font-bold text-yellow-800 text-xl">{compliance?.warnings || 2}</div>
+              <div className="text-sm text-yellow-700">Warnings</div>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
-            <CheckCircle className="w-5 h-5 text-green-600" />
+          <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl hover:shadow-md transition-all">
+            <div className="p-2 bg-green-500 rounded-lg">
+              <CheckCircle className="w-5 h-5 text-white" />
+            </div>
             <div>
-              <div className="font-semibold text-green-900">Active</div>
-              <div className="text-sm text-green-600">Monitoring</div>
+              <div className="font-bold text-green-800 text-xl">Active</div>
+              <div className="text-sm text-green-700">Monitoring</div>
             </div>
           </div>
         </div>
@@ -637,67 +673,88 @@ const AdminCenter: React.FC = () => {
 
   const renderUserManagement = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">User Management</h2>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-gray-800">User Management</h2>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <button className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
             <Users className="w-4 h-4 inline mr-2" />
             Export Users
           </button>
         </div>
       </div>
 
-      {/* User Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Users"
-          value={stats?.totalUsers || 0}
-          icon={<Users className="w-5 h-5" />}
-          bgColor="bg-blue-50"
-        />
-        <StatCard
-          title="Active Today"
-          value={stats?.activeUsers || 0}
-          icon={<Activity className="w-5 h-5" />}
-          bgColor="bg-green-50"
-        />
-        <StatCard
-          title="Suspended"
-          value="3"
-          icon={<Ban className="w-5 h-5" />}
-          bgColor="bg-red-50"
-        />
-        <StatCard
-          title="Pending Approval"
-          value="7"
-          icon={<Clock className="w-5 h-5" />}
-          bgColor="bg-yellow-50"
-        />
+      {/* User Stats Cards with MT Design */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-blue-500 rounded-xl">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">{stats?.totalUsers || 0}</div>
+          <div className="text-sm text-gray-600 mt-1">Total Users</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-green-500 rounded-xl">
+              <Activity className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">{stats?.activeUsers || 0}</div>
+          <div className="text-sm text-gray-600 mt-1">Active Today</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-red-500 rounded-xl">
+              <Ban className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">3</div>
+          <div className="text-sm text-gray-600 mt-1">Suspended</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-yellow-500 rounded-xl">
+              <Clock className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">7</div>
+          <div className="text-sm text-gray-600 mt-1">Pending Approval</div>
+        </div>
       </div>
 
-      {/* User Actions */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+      {/* User Actions with MT Styling */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <UserX className="w-5 h-5 text-orange-600" />
+          <button className="flex items-center gap-3 p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl hover:shadow-md transition-all transform hover:-translate-y-0.5 group">
+            <div className="p-2 bg-orange-500 rounded-lg group-hover:scale-110 transition-transform">
+              <UserX className="w-5 h-5 text-white" />
+            </div>
             <div className="text-left">
-              <div className="font-medium">Moderate Users</div>
-              <div className="text-sm text-gray-500">Review flagged accounts</div>
+              <div className="font-medium text-gray-800">Moderate Users</div>
+              <div className="text-sm text-gray-600">Review flagged accounts</div>
             </div>
           </button>
-          <button className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <Shield className="w-5 h-5 text-blue-600" />
+          <button className="flex items-center gap-3 p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl hover:shadow-md transition-all transform hover:-translate-y-0.5 group">
+            <div className="p-2 bg-blue-500 rounded-lg group-hover:scale-110 transition-transform">
+              <Shield className="w-5 h-5 text-white" />
+            </div>
             <div className="text-left">
-              <div className="font-medium">Manage Roles</div>
-              <div className="text-sm text-gray-500">Assign admin permissions</div>
+              <div className="font-medium text-gray-800">Manage Roles</div>
+              <div className="text-sm text-gray-600">Assign admin permissions</div>
             </div>
           </button>
-          <button className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <Database className="w-5 h-5 text-green-600" />
+          <button className="flex items-center gap-3 p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl hover:shadow-md transition-all transform hover:-translate-y-0.5 group">
+            <div className="p-2 bg-green-500 rounded-lg group-hover:scale-110 transition-transform">
+              <Database className="w-5 h-5 text-white" />
+            </div>
             <div className="text-left">
-              <div className="font-medium">Bulk Operations</div>
-              <div className="text-sm text-gray-500">Mass user actions</div>
+              <div className="font-medium text-gray-800">Bulk Operations</div>
+              <div className="text-sm text-gray-600">Mass user actions</div>
             </div>
           </button>
         </div>
@@ -707,69 +764,88 @@ const AdminCenter: React.FC = () => {
 
   const renderContentModeration = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Content Moderation</h2>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-gray-800">Content Moderation</h2>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+          <button className="px-4 py-2 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
             <Flag className="w-4 h-4 inline mr-2" />
             Review Reports
           </button>
         </div>
       </div>
 
-      {/* Content Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Posts"
-          value={stats?.totalPosts || 0}
-          icon={<FileText className="w-5 h-5" />}
-          bgColor="bg-blue-50"
-        />
-        <StatCard
-          title="Flagged Content"
-          value="12"
-          icon={<Flag className="w-5 h-5" />}
-          bgColor="bg-red-50"
-        />
-        <StatCard
-          title="Auto-Moderated"
-          value="89"
-          icon={<Shield className="w-5 h-5" />}
-          bgColor="bg-green-50"
-        />
-        <StatCard
-          title="Appeals"
-          value="4"
-          icon={<MessageSquare className="w-5 h-5" />}
-          bgColor="bg-yellow-50"
-        />
+      {/* Content Stats with MT Design */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-blue-500 rounded-xl">
+              <FileText className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">{stats?.totalPosts || 0}</div>
+          <div className="text-sm text-gray-600 mt-1">Total Posts</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-red-500 rounded-xl">
+              <Flag className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">12</div>
+          <div className="text-sm text-gray-600 mt-1">Flagged Content</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-green-500 rounded-xl">
+              <Shield className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">89</div>
+          <div className="text-sm text-gray-600 mt-1">Auto-Moderated</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-yellow-500 rounded-xl">
+              <MessageSquare className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">4</div>
+          <div className="text-sm text-gray-600 mt-1">Appeals</div>
+        </div>
       </div>
 
-      {/* Recent Reports */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Reports</h3>
+      {/* Recent Reports with MT Styling */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Reports</h3>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-xl">
+            <div className="flex items-start gap-3 mb-3 md:mb-0">
+              <div className="p-2 bg-red-500 rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-white" />
+              </div>
               <div>
-                <div className="font-medium">Inappropriate content reported</div>
-                <div className="text-sm text-gray-500">Post ID: #1234 • 2 hours ago</div>
+                <div className="font-medium text-gray-800">Inappropriate content reported</div>
+                <div className="text-sm text-gray-600">Post ID: #1234 • 2 hours ago</div>
               </div>
             </div>
-            <button className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700">
+            <button className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg text-sm hover:shadow-md transition-all">
               Review
             </button>
           </div>
-          <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-yellow-600" />
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl">
+            <div className="flex items-start gap-3 mb-3 md:mb-0">
+              <div className="p-2 bg-yellow-500 rounded-lg">
+                <Clock className="w-5 h-5 text-white" />
+              </div>
               <div>
-                <div className="font-medium">Spam detection triggered</div>
-                <div className="text-sm text-gray-500">User: @user123 • 4 hours ago</div>
+                <div className="font-medium text-gray-800">Spam detection triggered</div>
+                <div className="text-sm text-gray-600">User: @user123 • 4 hours ago</div>
               </div>
             </div>
-            <button className="px-3 py-1 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700">
+            <button className="px-4 py-2 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-lg text-sm hover:shadow-md transition-all">
               Review
             </button>
           </div>
@@ -780,68 +856,85 @@ const AdminCenter: React.FC = () => {
 
   const renderAnalytics = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Platform Analytics</h2>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-gray-800">Platform Analytics</h2>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
             <TrendingUp className="w-4 h-4 inline mr-2" />
             Export Report
           </button>
         </div>
       </div>
 
-      {/* Analytics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard
-          title="Daily Active Users"
-          value="2,847"
-          subtitle="+12% from yesterday"
-          icon={<Users className="w-5 h-5" />}
-          trend="+12%"
-          bgColor="bg-green-50"
-        />
-        <StatCard
-          title="Page Views"
-          value="18,392"
-          subtitle="+8.2% from last week"
-          icon={<Eye className="w-5 h-5" />}
-          trend="+8.2%"
-          bgColor="bg-blue-50"
-        />
-        <StatCard
-          title="Engagement Rate"
-          value="74.3%"
-          subtitle="+2.1% improvement"
-          icon={<TrendingUp className="w-5 h-5" />}
-          trend="+2.1%"
-          bgColor="bg-purple-50"
-        />
+      {/* Analytics Cards with MT Design */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-green-500 rounded-xl">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xs font-medium text-green-600">+12%</span>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">2,847</div>
+          <div className="text-sm text-gray-600 mt-1">Daily Active Users</div>
+          <div className="text-xs text-gray-500 mt-1">+12% from yesterday</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-blue-500 rounded-xl">
+              <Eye className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xs font-medium text-blue-600">+8.2%</span>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">18,392</div>
+          <div className="text-sm text-gray-600 mt-1">Page Views</div>
+          <div className="text-xs text-gray-500 mt-1">+8.2% from last week</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-purple-500 rounded-xl">
+              <TrendingUp className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xs font-medium text-purple-600">+2.1%</span>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">74.3%</div>
+          <div className="text-sm text-gray-600 mt-1">Engagement Rate</div>
+          <div className="text-xs text-gray-500 mt-1">+2.1% improvement</div>
+        </div>
       </div>
 
-      {/* Geographic Analytics */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Locations</h3>
+      {/* Geographic Analytics with MT Styling */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Top Locations</h3>
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-3 bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl">
             <div className="flex items-center gap-3">
-              <Globe className="w-4 h-4 text-blue-600" />
-              <span>Buenos Aires, Argentina</span>
+              <div className="p-1.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg">
+                <Globe className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-medium text-gray-800">Buenos Aires, Argentina</span>
             </div>
-            <span className="text-sm text-gray-500">1,247 users</span>
+            <span className="text-sm text-purple-600 font-semibold">1,247 users</span>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
             <div className="flex items-center gap-3">
-              <Globe className="w-4 h-4 text-blue-600" />
-              <span>Barcelona, Spain</span>
+              <div className="p-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg">
+                <Globe className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-medium text-gray-800">Barcelona, Spain</span>
             </div>
-            <span className="text-sm text-gray-500">892 users</span>
+            <span className="text-sm text-blue-600 font-semibold">892 users</span>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-3 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
             <div className="flex items-center gap-3">
-              <Globe className="w-4 h-4 text-blue-600" />
-              <span>Paris, France</span>
+              <div className="p-1.5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg">
+                <Globe className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-medium text-gray-800">Paris, France</span>
             </div>
-            <span className="text-sm text-gray-500">634 users</span>
+            <span className="text-sm text-green-600 font-semibold">634 users</span>
           </div>
         </div>
       </div>
@@ -850,59 +943,74 @@ const AdminCenter: React.FC = () => {
 
   const renderEventManagement = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Event Management</h2>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-gray-800">Event Management</h2>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+          <button className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
             <Calendar className="w-4 h-4 inline mr-2" />
             Create Event
           </button>
         </div>
       </div>
 
-      {/* Event Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Events"
-          value={stats?.totalEvents || 0}
-          icon={<Calendar className="w-5 h-5" />}
-          bgColor="bg-green-50"
-        />
-        <StatCard
-          title="This Month"
-          value="47"
-          icon={<Calendar className="w-5 h-5" />}
-          bgColor="bg-blue-50"
-        />
-        <StatCard
-          title="Pending Approval"
-          value="8"
-          icon={<Clock className="w-5 h-5" />}
-          bgColor="bg-yellow-50"
-        />
-        <StatCard
-          title="Featured Events"
-          value="12"
-          icon={<TrendingUp className="w-5 h-5" />}
-          bgColor="bg-purple-50"
-        />
+      {/* Event Stats with MT Design */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-green-500 rounded-xl">
+              <Calendar className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">{stats?.totalEvents || 0}</div>
+          <div className="text-sm text-gray-600 mt-1">Total Events</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-blue-500 rounded-xl">
+              <Calendar className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">47</div>
+          <div className="text-sm text-gray-600 mt-1">This Month</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-yellow-500 rounded-xl">
+              <Clock className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">8</div>
+          <div className="text-sm text-gray-600 mt-1">Pending Approval</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-purple-500 rounded-xl">
+              <TrendingUp className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">12</div>
+          <div className="text-sm text-gray-600 mt-1">Featured Events</div>
+        </div>
       </div>
 
-      {/* Event Categories */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Categories</h3>
+      {/* Event Categories with MT Styling */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Event Categories</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 border border-gray-200 rounded-lg">
+          <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl hover:shadow-md transition-all transform hover:-translate-y-0.5">
             <div className="text-2xl font-bold text-blue-600">15</div>
-            <div className="text-sm text-gray-600">Milongas</div>
+            <div className="text-sm text-gray-700 font-medium">Milongas</div>
           </div>
-          <div className="p-4 border border-gray-200 rounded-lg">
+          <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl hover:shadow-md transition-all transform hover:-translate-y-0.5">
             <div className="text-2xl font-bold text-green-600">8</div>
-            <div className="text-sm text-gray-600">Workshops</div>
+            <div className="text-sm text-gray-700 font-medium">Workshops</div>
           </div>
-          <div className="p-4 border border-gray-200 rounded-lg">
+          <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl hover:shadow-md transition-all transform hover:-translate-y-0.5">
             <div className="text-2xl font-bold text-purple-600">6</div>
-            <div className="text-sm text-gray-600">Festivals</div>
+            <div className="text-sm text-gray-700 font-medium">Festivals</div>
           </div>
         </div>
       </div>
@@ -1111,79 +1219,102 @@ const AdminCenter: React.FC = () => {
 
   const renderSystemHealth = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">System Health Monitor</h2>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-gray-800">System Health Monitor</h2>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+          <button className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
             <Monitor className="w-4 h-4 inline mr-2" />
             Refresh Status
           </button>
         </div>
       </div>
 
-      {/* System Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard
-          title="Server Uptime"
-          value="99.9%"
-          subtitle="30-day average"
-          icon={<Server className="w-5 h-5" />}
-          bgColor="bg-green-50"
-        />
-        <StatCard
-          title="Response Time"
-          value="127ms"
-          subtitle="Average API response"
-          icon={<Zap className="w-5 h-5" />}
-          bgColor="bg-blue-50"
-        />
-        <StatCard
-          title="Database Load"
-          value="23%"
-          subtitle="Current utilization"
-          icon={<Database className="w-5 h-5" />}
-          bgColor="bg-yellow-50"
-        />
-        <StatCard
-          title="Storage Used"
-          value="67%"
-          subtitle="of allocated space"
-          icon={<HardDrive className="w-5 h-5" />}
-          bgColor="bg-purple-50"
-        />
+      {/* System Stats with MT Design */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-green-500 rounded-xl">
+              <Server className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">99.9%</div>
+          <div className="text-sm text-gray-600 mt-1">Server Uptime</div>
+          <div className="text-xs text-gray-500 mt-1">30-day average</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-blue-500 rounded-xl">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">127ms</div>
+          <div className="text-sm text-gray-600 mt-1">Response Time</div>
+          <div className="text-xs text-gray-500 mt-1">Average API response</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-yellow-500 rounded-xl">
+              <Database className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">23%</div>
+          <div className="text-sm text-gray-600 mt-1">Database Load</div>
+          <div className="text-xs text-gray-500 mt-1">Current utilization</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-purple-500 rounded-xl">
+              <HardDrive className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-800">67%</div>
+          <div className="text-sm text-gray-600 mt-1">Storage Used</div>
+          <div className="text-xs text-gray-500 mt-1">of allocated space</div>
+        </div>
       </div>
 
-      {/* Service Status */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Service Status</h3>
+      {/* Service Status with MT Styling */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Service Status</h3>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
             <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span>Web Application</span>
+              <div className="p-1.5 bg-green-500 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-medium text-gray-800">Web Application</span>
             </div>
-            <span className="text-sm text-green-600 font-medium">Operational</span>
+            <span className="text-sm text-green-600 font-semibold">Operational</span>
           </div>
-          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
             <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span>Database</span>
+              <div className="p-1.5 bg-green-500 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-medium text-gray-800">Database</span>
             </div>
-            <span className="text-sm text-green-600 font-medium">Operational</span>
+            <span className="text-sm text-green-600 font-semibold">Operational</span>
           </div>
-          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
             <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span>WebSocket Services</span>
+              <div className="p-1.5 bg-green-500 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-medium text-gray-800">WebSocket Services</span>
             </div>
-            <span className="text-sm text-green-600 font-medium">Operational</span>
+            <span className="text-sm text-green-600 font-semibold">Operational</span>
           </div>
-          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
             <div className="flex items-center gap-3">
-              <Wifi className="w-5 h-5 text-green-600" />
-              <span>CDN</span>
+              <div className="p-1.5 bg-green-500 rounded-lg">
+                <Wifi className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-medium text-gray-800">CDN</span>
             </div>
-            <span className="text-sm text-green-600 font-medium">Operational</span>
+            <span className="text-sm text-green-600 font-semibold">Operational</span>
           </div>
         </div>
       </div>
@@ -1813,35 +1944,35 @@ const AdminCenter: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-blue-50 to-cyan-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 flex">
       <TrangoTechSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       
       <div className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : ''}`}>
-        <div className="min-h-screen bg-gray-50">
-          {/* Header */}
-          <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-            <div className="max-w-7xl mx-auto px-6 py-4">
-              <div className="flex items-center justify-between">
+        <div className="min-h-screen">
+          {/* MT Style Header */}
+          <div className="bg-gradient-to-r from-pink-600 to-blue-600 sticky top-0 z-10 shadow-xl">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl">
-                    <Shield className="w-6 h-6 text-white" />
+                  <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+                    <Shield className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Admin Center</h1>
-                    <p className="text-sm text-gray-500">Mundo Tango Platform Administration</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white">Admin Center</h1>
+                    <p className="text-sm text-white/80">Mundo Tango Platform Administration</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   {/* Back to App Button */}
                   <button 
                     onClick={() => window.location.href = '/moments'}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm"
+                    className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-xl hover:bg-white transition-all duration-200 shadow-lg group"
                   >
-                    <ArrowLeft className="w-4 h-4 text-gray-600" />
+                    <ArrowLeft className="w-4 h-4 text-gray-700 group-hover:text-pink-600 transition-colors" />
                     <span className="text-gray-700 font-medium">Back to App</span>
                   </button>
                   
-                  <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                  <div className="px-4 py-2 bg-gradient-to-r from-green-400 to-emerald-400 text-white rounded-full text-sm font-medium shadow-lg">
                     System Healthy
                   </div>
                 </div>
@@ -1849,35 +1980,40 @@ const AdminCenter: React.FC = () => {
             </div>
           </div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <nav className="flex space-x-8">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setSelectedTab(tab.id)}
-                className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  selectedTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-                {tab.isNew && (
-                  <Badge className="bg-green-100 text-green-800 text-xs ml-1">NEW</Badge>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
+          {/* MT Style Navigation Tabs */}
+          <div className="bg-white/80 backdrop-blur-sm border-b border-pink-200/50 shadow-md">
+            <div className="max-w-7xl mx-auto px-4 md:px-6">
+              <nav className="flex flex-nowrap md:flex-wrap gap-2 md:gap-6 overflow-x-auto py-2 md:py-0">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setSelectedTab(tab.id)}
+                    className={`flex items-center gap-2 py-3 md:py-4 px-3 md:px-4 border-b-3 font-medium text-xs md:text-sm transition-all whitespace-nowrap rounded-t-xl ${
+                      selectedTab === tab.id
+                        ? 'border-pink-500 text-pink-600 bg-gradient-to-t from-pink-50 to-transparent'
+                        : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className={selectedTab === tab.id ? 'text-pink-600' : 'text-gray-500'}>
+                      {tab.icon}
+                    </span>
+                    <span className="hidden md:inline">{tab.label}</span>
+                    <span className="md:hidden">{tab.label.split(' ')[0]}</span>
+                    {tab.isNew && (
+                      <Badge className="bg-gradient-to-r from-green-400 to-emerald-400 text-white text-xs ml-1 shadow-sm">NEW</Badge>
+                    )}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </div>
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          {renderContent()}
-        </div>
+          {/* Main Content Area with MT Styling */}
+          <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-4 md:p-6">
+              {renderContent()}
+            </div>
+          </div>
         </div>
       </div>
     </div>
