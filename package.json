@@ -79,6 +79,8 @@
     "@types/uuid": "^10.0.0",
     "axios": "^1.10.0",
     "bcrypt": "^6.0.0",
+    "bull": "^4.16.5",
+    "bullmq": "^5.56.3",
     "chokidar": "^4.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
