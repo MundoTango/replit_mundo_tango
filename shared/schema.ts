@@ -1518,3 +1518,6 @@ export type HostHome = typeof hostHomes.$inferSelect;
 export type InsertHostHome = z.infer<typeof insertHostHomeSchema>;
 export type HostReview = typeof hostReviews.$inferSelect;
 export type InsertHostReview = z.infer<typeof insertHostReviewSchema>;
+
+// Export from hostHomes module
+export { homeAmenities, homePhotos } from './schema/hostHomes';

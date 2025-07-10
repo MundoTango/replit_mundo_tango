@@ -6,13 +6,13 @@ import { setupVite, serveStatic, log } from "./vite";
 import { authMiddleware } from "./middleware/auth";
 import { setupUpload } from "./middleware/upload";
 import { storage } from "./storage";
-import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema, insertCustomRoleRequestSchema, roles, userProfiles, userRoles, groups, users, events, eventRsvps, groupMembers, follows, posts, hostHomes, recommendations } from "../shared/schema";
+import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema, insertCustomRoleRequestSchema, roles, userProfiles, userRoles, groups, users, events, eventRsvps, groupMembers, follows, posts, hostHomes, homeAmenities, homePhotos, recommendations } from "../shared/schema";
 import { z } from "zod";
 import { SocketService } from "./services/socketService";
 import { WebSocketServer } from "ws";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { db } from "./db";
-import { eq, sql, desc, and, isNotNull, count, inArray, gt } from "drizzle-orm";
+import { eq, sql, desc, and, isNotNull, count, inArray, gt, gte, lte } from "drizzle-orm";
 import { uploadMedia, uploadMediaWithMetadata, deleteMedia, deleteMediaWithMetadata, getSignedUrl, initializeStorageBucket } from "./services/uploadService";
 import { setUserContext, auditSecurityEvent, checkResourcePermission, rateLimit } from "./middleware/security";
 import { authService, UserRole } from "./services/authService";
@@ -9635,6 +9635,261 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: 'Failed to fetch real-time statistics'
+      });
+    }
+  });
+
+  // Host Home API endpoints
+  app.post('/api/host-homes', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const hostHomeData = req.body;
+
+      // Create host home with validated data
+      const hostHome = await db.insert(hostHomes).values({
+        userId,
+        propertyType: hostHomeData.propertyType,
+        roomType: hostHomeData.roomType,
+        title: hostHomeData.title,
+        description: hostHomeData.description,
+        address: hostHomeData.address,
+        city: hostHomeData.city,
+        state: hostHomeData.state,
+        country: hostHomeData.country,
+        zipCode: hostHomeData.zipCode,
+        latitude: hostHomeData.latitude,
+        longitude: hostHomeData.longitude,
+        maxGuests: hostHomeData.maxGuests,
+        bedrooms: hostHomeData.bedrooms,
+        beds: hostHomeData.beds,
+        bathrooms: hostHomeData.bathrooms,
+        basePrice: hostHomeData.basePrice,
+        cleaningFee: hostHomeData.cleaningFee,
+        currency: hostHomeData.currency,
+        instantBook: hostHomeData.instantBook,
+        minimumStay: hostHomeData.minimumStay,
+        checkInTime: hostHomeData.checkInTime,
+        checkOutTime: hostHomeData.checkOutTime,
+        status: 'pending_review',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+
+      // Save amenities
+      if (hostHomeData.amenities && hostHomeData.amenities.length > 0) {
+        await db.insert(homeAmenities).values(
+          hostHomeData.amenities.map((amenity: string) => ({
+            homeId: hostHome[0].id,
+            amenity
+          }))
+        );
+      }
+
+      // Save photos
+      if (hostHomeData.photos && hostHomeData.photos.length > 0) {
+        await db.insert(homePhotos).values(
+          hostHomeData.photos.map((url: string, index: number) => ({
+            homeId: hostHome[0].id,
+            url,
+            isPrimary: index === 0,
+            sortOrder: index
+          }))
+        );
+      }
+
+      res.json({
+        success: true,
+        message: 'Host home created successfully',
+        data: hostHome[0]
+      });
+    } catch (error) {
+      console.error('Error creating host home:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create host home'
+      });
+    }
+  });
+
+  // Upload photos for host homes
+  app.post('/api/upload/host-home-photos', isAuthenticated, upload.array('files', 10), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      
+      if (!files || files.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'No files uploaded'
+        });
+      }
+
+      // Process uploaded files and return URLs
+      const urls = files.map(file => `/uploads/${file.filename}`);
+
+      res.json({
+        success: true,
+        urls
+      });
+    } catch (error) {
+      console.error('Error uploading host home photos:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to upload photos'
+      });
+    }
+  });
+
+  // Get all host homes (for marketplace)
+  app.get('/api/host-homes', async (req, res) => {
+    try {
+      const { city, minPrice, maxPrice, guests, instantBook } = req.query;
+
+      let query = db.select({
+        id: hostHomes.id,
+        title: hostHomes.title,
+        description: hostHomes.description,
+        propertyType: hostHomes.propertyType,
+        roomType: hostHomes.roomType,
+        city: hostHomes.city,
+        state: hostHomes.state,
+        country: hostHomes.country,
+        latitude: hostHomes.latitude,
+        longitude: hostHomes.longitude,
+        maxGuests: hostHomes.maxGuests,
+        bedrooms: hostHomes.bedrooms,
+        beds: hostHomes.beds,
+        bathrooms: hostHomes.bathrooms,
+        basePrice: hostHomes.basePrice,
+        cleaningFee: hostHomes.cleaningFee,
+        currency: hostHomes.currency,
+        instantBook: hostHomes.instantBook,
+        minimumStay: hostHomes.minimumStay,
+        photos: sql<string[]>`array_agg(DISTINCT home_photos.url)`,
+        amenities: sql<string[]>`array_agg(DISTINCT home_amenities.amenity)`,
+        host: {
+          id: users.id,
+          name: users.name,
+          username: users.username,
+          profileImage: users.profileImage
+        }
+      })
+      .from(hostHomes)
+      .leftJoin(homePhotos, eq(homePhotos.homeId, hostHomes.id))
+      .leftJoin(homeAmenities, eq(homeAmenities.homeId, hostHomes.id))
+      .leftJoin(users, eq(hostHomes.userId, users.id))
+      .where(eq(hostHomes.status, 'active'))
+      .groupBy(hostHomes.id, users.id);
+
+      // Apply filters
+      const conditions = [eq(hostHomes.status, 'active')];
+      
+      if (city) {
+        conditions.push(eq(hostHomes.city, city as string));
+      }
+      
+      if (minPrice) {
+        conditions.push(gte(hostHomes.basePrice, parseFloat(minPrice as string)));
+      }
+      
+      if (maxPrice) {
+        conditions.push(lte(hostHomes.basePrice, parseFloat(maxPrice as string)));
+      }
+      
+      if (guests) {
+        conditions.push(gte(hostHomes.maxGuests, parseInt(guests as string)));
+      }
+      
+      if (instantBook === 'true') {
+        conditions.push(eq(hostHomes.instantBook, true));
+      }
+
+      const homes = await query.where(and(...conditions));
+
+      res.json({
+        success: true,
+        data: homes
+      });
+    } catch (error) {
+      console.error('Error fetching host homes:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch host homes'
+      });
+    }
+  });
+
+  // Get single host home details
+  app.get('/api/host-homes/:id', async (req, res) => {
+    try {
+      const homeId = parseInt(req.params.id);
+
+      const [home] = await db.select({
+        id: hostHomes.id,
+        title: hostHomes.title,
+        description: hostHomes.description,
+        propertyType: hostHomes.propertyType,
+        roomType: hostHomes.roomType,
+        address: hostHomes.address,
+        city: hostHomes.city,
+        state: hostHomes.state,
+        country: hostHomes.country,
+        zipCode: hostHomes.zipCode,
+        latitude: hostHomes.latitude,
+        longitude: hostHomes.longitude,
+        maxGuests: hostHomes.maxGuests,
+        bedrooms: hostHomes.bedrooms,
+        beds: hostHomes.beds,
+        bathrooms: hostHomes.bathrooms,
+        basePrice: hostHomes.basePrice,
+        cleaningFee: hostHomes.cleaningFee,
+        currency: hostHomes.currency,
+        instantBook: hostHomes.instantBook,
+        minimumStay: hostHomes.minimumStay,
+        checkInTime: hostHomes.checkInTime,
+        checkOutTime: hostHomes.checkOutTime,
+        host: {
+          id: users.id,
+          name: users.name,
+          username: users.username,
+          profileImage: users.profileImage,
+          bio: users.bio
+        }
+      })
+      .from(hostHomes)
+      .leftJoin(users, eq(hostHomes.userId, users.id))
+      .where(eq(hostHomes.id, homeId));
+
+      if (!home) {
+        return res.status(404).json({
+          success: false,
+          message: 'Host home not found'
+        });
+      }
+
+      // Get photos
+      const photos = await db.select()
+        .from(homePhotos)
+        .where(eq(homePhotos.homeId, homeId))
+        .orderBy(homePhotos.sortOrder);
+
+      // Get amenities
+      const amenities = await db.select({ amenity: homeAmenities.amenity })
+        .from(homeAmenities)
+        .where(eq(homeAmenities.homeId, homeId));
+
+      res.json({
+        success: true,
+        data: {
+          ...home,
+          photos: photos.map(p => p.url),
+          amenities: amenities.map(a => a.amenity)
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching host home:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch host home'
       });
     }
   });

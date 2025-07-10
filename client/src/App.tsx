@@ -66,6 +66,7 @@ import DatabaseSecurity from "@/pages/database-security";
 import TestApp from "@/pages/test-app";
 import FeatureNavigation from "@/pages/feature-navigation";
 import LiveGlobalStatistics from "@/pages/LiveGlobalStatistics";
+import HostOnboarding from "@/pages/HostOnboarding";
 
 // Simple error boundary component
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -224,6 +225,7 @@ function Router() {
       <Route path="/community-world-map" component={CommunityWorldMap} />
       <Route path="/tango-communities" component={TangoCommunities} />
       <Route path="/housing-marketplace" component={HousingMarketplace} />
+      <Route path="/host-onboarding" component={HostOnboarding} />
       <Route path="/global-statistics" component={GlobalStatistics} />
       <Route path="/live-statistics" component={LiveGlobalStatistics} />
       <Route path="/database-security" component={DatabaseSecurity} />
