@@ -16,6 +16,26 @@
 - **Security**: Tenant switching capability restricted to users with super_admin role only
 - **Implementation Status**: TenantSwitcher integrated into TrangoTechSidebar, visible only to super admins
 
+**UPDATE (January 10, 2025 - Global Statistics Dashboard Implementation)**: Live Platform Metrics
+- **Statistics API Routes**: Created comprehensive `/api/statistics/global` and `/api/statistics/realtime` endpoints
+  - Global stats: Total users, active cities, events, connections, groups, memories, active tenants
+  - Tenant-specific stats: Filtered metrics based on current tenant context
+  - Top cities ranking: Displays most active locations by user count
+  - Real-time metrics: 24-hour activity including new users, events, posts, and active users
+- **Global Statistics Dashboard Component**: Created interactive dashboard with:
+  - Dynamic switching between global and tenant-specific views based on context
+  - Real-time data updates with 30-second refresh for main stats, 10-second for activity
+  - Visual progress bars and trend indicators
+  - Responsive grid layout with card-based metrics
+  - Activity tabs showing top cities and recent activity
+- **Admin Center Integration**: Added as new tab "Global Statistics" with globe icon
+  - Positioned after Overview tab for logical flow
+  - Marked as "new" feature with badge indicator
+- **Multi-tenant Support**: Dashboard respects tenant context from TenantSwitcher
+  - Shows platform-wide stats when no tenant selected
+  - Shows tenant-specific stats when tenant is active
+  - Headers and descriptions update dynamically based on context
+
 **UPDATE (January 9, 2025 - Five Key Automation Systems Implementation)**: Complete Automation Framework Using 23L
 - **Automation 1**: City group assignment during registration - automatically detects user location and assigns to city group
 - **Automation 2**: Professional group assignment - maps tango roles to professional groups (Teachers Network, DJs United, etc.)

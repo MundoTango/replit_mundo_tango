@@ -23,6 +23,7 @@ import { getNotionEntries, getNotionEntryBySlug, getNotionFilterOptions } from "
 import { CityPhotoService } from "./services/cityPhotoService";
 import rbacRoutes from "./rbacRoutes";
 import tenantRoutes from "./routes/tenantRoutes";
+import { registerStatisticsRoutes } from "./routes/statisticsRoutes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
@@ -8727,6 +8728,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Multi-Tenant Routes Integration
   // ========================================================================
   app.use('/api', tenantRoutes);
+  
+  // ========================================================================
+  // Statistics Routes
+  // ========================================================================
+  registerStatisticsRoutes(app);
   
   // Evolution service routes (super admin only)
   const evolutionRoutes = await import('./routes/evolutionRoutes.js');
