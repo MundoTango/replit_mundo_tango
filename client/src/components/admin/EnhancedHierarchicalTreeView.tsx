@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ChevronDown, ChevronRight, Eye, Clock, CheckCircle2, Users, Code2, Smartphone, Monitor, Globe, Circle, Zap, Target, CheckSquare, FileText, Folder, FolderOpen } from 'lucide-react';
-import MinimalTestModal from './MinimalTestModal';
+import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
 import { comprehensiveProjectData, ProjectItem, getAllTeams, getProjectStats } from '../../../../COMPREHENSIVE_PROJECT_DATA';
 
 // Move large data structure outside component to prevent initialization errors
@@ -606,14 +606,19 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
         {filteredData.map(item => renderSimpleTreeItem(item))}
       </div>
       
-      <MinimalTestModal
-        isOpen={!!selectedItem}
-        onClose={() => {
-          console.log('Closing minimal test modal');
-          setSelectedItem(null);
-        }}
-        title={selectedItem?.title || "Project Details"}
-      />
+      {selectedItem && (
+        <JiraStyleItemDetailModal
+          selectedItem={selectedItem}
+          onClose={() => {
+            console.log('Closing project detail modal');
+            setSelectedItem(null);
+          }}
+          onSignOff={(reviewArea) => {
+            console.log(`Sign off requested for: ${reviewArea}`);
+            // Handle sign-off logic here if needed
+          }}
+        />
+      )}
     </div>
   );
 };
