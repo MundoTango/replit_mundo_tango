@@ -1,135 +1,102 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, Clock, Activity, CheckCircle2, AlertCircle, Code2, Users, Monitor, Smartphone, FileText } from 'lucide-react';
-import { comprehensiveProjectData, ProjectItem } from '@/../../COMPREHENSIVE_PROJECT_DATA';
-import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
+import { Calendar, Activity, CheckCircle2, Code2, FileText, AlertCircle, Monitor, Smartphone, Users, RefreshCw } from 'lucide-react';
+import { JiraStyleItemDetailModal } from './JiraStyleItemDetailModal';
+import { ProjectItem } from '@/data/comprehensive-project-data';
+import { comprehensiveProjectData } from '@/data/comprehensive-project-data';
+import { apiRequest } from '@/lib/queryClient';
+
+interface DailyActivity {
+  id: string;
+  project_id: string;
+  project_name: string;
+  activity_type: 'created' | 'updated' | 'completed' | 'reviewed' | 'blocked';
+  description: string;
+  metadata: { changes?: string[] };
+  timestamp: string;
+  created_at: string;
+}
 
 interface ActivityItem {
   item: ProjectItem;
   type: 'created' | 'updated' | 'completed' | 'reviewed' | 'blocked';
   timestamp: Date;
   changes?: string[];
+  rawData?: DailyActivity;
 }
 
-const DailyActivityView: React.FC = () => {
-  const [selectedItem, setSelectedItem] = React.useState<ProjectItem | null>(null);
+function DailyActivityView() {
+  const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Real activities from today - January 7, 2025
-  const todayActivities = useMemo<ActivityItem[]>(() => {
+  // Fetch daily activities from API
+  const { data: apiActivities = [], isLoading, refetch } = useQuery({
+    queryKey: ['/api/daily-activities', selectedDate.toISOString().split('T')[0]],
+    queryFn: async () => {
+      const result = await apiRequest(
+        `/api/daily-activities?date=${selectedDate.toISOString().split('T')[0]}`
+      );
+      return result.data || [];
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Convert API activities and merge with project data
+  const todayActivities = useMemo(() => {
     const activities: ActivityItem[] = [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
-    // Ensure data exists before accessing
-    if (!comprehensiveProjectData || comprehensiveProjectData.length === 0) {
-      return [];
-    }
-
-    // Actual work done today based on our conversation
-    const recentItems: { item: ProjectItem; type: ActivityItem['type']; changes?: string[] }[] = [];
-
-    // 1. Enhanced Hierarchical Tree View Implementation
-    if (comprehensiveProjectData[1]?.children?.[1]?.children?.[2]) { // Admin Center -> Project Tracker
-      recentItems.push({
-        item: comprehensiveProjectData[1].children[1].children[2],
-        type: 'completed',
-        changes: [
-          'Implemented 6-level project hierarchy (Platform→Section→Feature→Project→Task→Sub-task)',
-          'Created tree view, cards view, and dual view modes',
-          'Added team management with filtering and visual badges',
-          'Traced evolution from TrangoTech EventCard to DetailedCard'
-        ]
+    // Process API activities
+    apiActivities.forEach((activity: DailyActivity) => {
+      // Try to find matching project item from comprehensive data
+      let projectItem: ProjectItem | undefined;
+      
+      // Search through project data to find matching item
+      comprehensiveProjectData.forEach(section => {
+        if (projectItem) return;
+        
+        const searchInChildren = (items: ProjectItem[]) => {
+          items.forEach(item => {
+            if (item.id === activity.project_id || item.title === activity.project_name) {
+              projectItem = item;
+              return;
+            }
+            if (item.children) {
+              searchInChildren(item.children);
+            }
+          });
+        };
+        
+        if (section.id === activity.project_id || section.title === activity.project_name) {
+          projectItem = section;
+        } else if (section.children) {
+          searchInChildren(section.children);
+        }
       });
-    }
 
-    // 2. Comprehensive Project Data Display Fix
-    if (comprehensiveProjectData[2]?.children?.[0]) { // Technical Infrastructure -> Frontend Architecture
-      recentItems.push({
-        item: comprehensiveProjectData[2].children[0],
-        type: 'completed',
-        changes: [
-          'Fixed import issue to display all 576 project features',
-          'Created COMPREHENSIVE_PROJECT_DATA.ts with complete Life CEO system',
-          'Made tree items interactive with click handlers',
-          'Added modal popup showing detailed card information'
-        ]
-      });
-    }
-
-    // 3. Daily Activity View Creation
-    if (comprehensiveProjectData[1]?.children?.[1]?.children?.[7]) { // Admin Center -> Daily Activity View
-      recentItems.push({
-        item: {
-          id: 'daily-activity-view',
-          title: 'Daily Activity View',
-          description: 'Real-time activity tracking with timeline visualization',
-          type: 'Feature',
-          status: 'Completed',
-          completion: 100,
-          priority: 'High',
-          team: ['Frontend', 'UX']
-        },
-        type: 'created',
-        changes: [
-          'Created DailyActivityView component with timeline display',
-          'Added activity types (created/updated/completed/reviewed/blocked)',
-          'Integrated into Admin Center between Overview and Project Tracker tabs',
-          'Applied 23L framework analysis throughout implementation'
-        ]
-      });
-    }
-
-    // 4. 23L Framework Documentation
-    if (comprehensiveProjectData[2]?.children?.[3]) { // Technical Infrastructure -> Documentation
-      recentItems.push({
-        item: comprehensiveProjectData[2].children[3],
-        type: 'updated',
-        changes: [
-          'Generated 6 comprehensive 23L framework documents',
-          'Created final summary and project evolution timeline',
-          'Documented technical implementation guide',
-          'System readiness increased to 87%'
-        ]
-      });
-    }
-
-    // 5. TTFiles to Current State Evolution Documentation
-    if (comprehensiveProjectData[2]?.children?.[3]) {
-      recentItems.push({
-        item: {
-          id: 'tt-evolution',
-          title: 'TrangoTech Evolution Documentation',
-          description: 'Complete history from TTFiles to current implementation',
-          type: 'Task',
-          status: 'Completed',
-          completion: 100,
-          priority: 'High',
-          team: ['Documentation']
-        },
-        type: 'completed',
-        changes: [
-          'Documented Phase 1: Original TrangoTech EventCard.jsx, ProfileHead.jsx, CommunityCard.jsx',
-          'Documented Phase 2: Migration to Mundo Tango with 7 core pages',
-          'Documented Phase 3: Enhanced features, role system, media management',
-          'Created PROJECT_TRACKER_TT_EVOLUTION.md with complete timeline'
-        ]
-      });
-    }
-
-    // Add timestamps
-    recentItems.forEach((activity, index) => {
-      const timestamp = new Date();
-      timestamp.setHours(9 + index * 2, Math.floor(Math.random() * 60), 0, 0);
+      // Create activity item
       activities.push({
-        ...activity,
-        timestamp
+        item: projectItem || {
+          id: activity.project_id,
+          title: activity.project_name,
+          description: activity.description,
+          type: 'Feature',
+          status: 'In Progress',
+          completion: 50,
+          priority: 'Medium',
+          team: []
+        },
+        type: activity.activity_type,
+        timestamp: new Date(activity.timestamp),
+        changes: activity.metadata.changes || [activity.description],
+        rawData: activity
       });
     });
 
     return activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  }, []);
+  }, [apiActivities]);
 
   const getActivityIcon = (type: ActivityItem['type']) => {
     switch (type) {
@@ -174,10 +141,24 @@ const DailyActivityView: React.FC = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Calendar className="h-6 w-6 text-blue-600" />
-          <h2 className="text-2xl font-bold">Today's Activity</h2>
+          <h2 className="text-2xl font-bold">Daily Activity</h2>
+          <input
+            type="date"
+            value={selectedDate.toISOString().split('T')[0]}
+            onChange={(e) => setSelectedDate(new Date(e.target.value))}
+            className="px-3 py-1 border rounded-md text-sm"
+          />
           <Badge className="bg-blue-100 text-blue-800">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </Badge>
+          <button
+            onClick={() => refetch()}
+            disabled={isLoading}
+            className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50"
+            title="Refresh activities"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </button>
         </div>
         <div className="flex gap-2">
           <Badge variant="outline" className="bg-emerald-50">
@@ -201,77 +182,95 @@ const DailyActivityView: React.FC = () => {
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
             Activity Timeline
+            {isLoading && <span className="text-sm font-normal text-gray-500">(Loading...)</span>}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {todayActivities.map((activity, index) => (
-              <div 
-                key={index} 
-                className="flex gap-4 p-4 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                onClick={() => setSelectedItem(activity.item)}
-              >
-                {/* Time */}
-                <div className="flex-none text-sm text-gray-500 w-20">
-                  {formatTime(activity.timestamp)}
-                </div>
-
-                {/* Activity Icon */}
-                <div className="flex-none">
-                  {getActivityIcon(activity.type)}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="font-medium">{activity.item.title}</h4>
-                      <p className="text-sm text-gray-600">{activity.item.description}</p>
-                    </div>
-                    <Badge className={getActivityColor(activity.type)}>
-                      {activity.type}
-                    </Badge>
-                  </div>
-
-                  {/* Changes */}
-                  {activity.changes && activity.changes.length > 0 && (
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      {activity.changes.map((change, idx) => (
-                        <li key={idx} className="flex items-center gap-2">
-                          <span className="w-1 h-1 bg-gray-400 rounded-full" />
-                          {change}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  {/* Progress */}
-                  <div className="flex gap-4 items-center text-xs">
-                    {activity.item.completion !== undefined && (
-                      <div className="flex items-center gap-2">
-                        <Monitor className="h-3 w-3 text-gray-500" />
-                        <Progress value={activity.item.completion} className="h-1.5 w-16" />
-                        <span className="text-gray-600">{activity.item.completion}%</span>
-                      </div>
-                    )}
-                    {activity.item.mobileCompletion !== undefined && (
-                      <div className="flex items-center gap-2">
-                        <Smartphone className="h-3 w-3 text-gray-500" />
-                        <Progress value={activity.item.mobileCompletion} className="h-1.5 w-16" />
-                        <span className="text-gray-600">{activity.item.mobileCompletion}%</span>
-                      </div>
-                    )}
-                    {activity.item.team && (
-                      <div className="flex items-center gap-1">
-                        <Users className="h-3 w-3 text-gray-500" />
-                        <span className="text-gray-600">{activity.item.team.join(', ')}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center space-y-3">
+                <RefreshCw className="h-8 w-8 text-gray-400 animate-spin mx-auto" />
+                <p className="text-gray-500">Loading activities...</p>
               </div>
-            ))}
-          </div>
+            </div>
+          ) : todayActivities.length === 0 ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center space-y-3">
+                <Activity className="h-8 w-8 text-gray-400 mx-auto" />
+                <p className="text-gray-500">No activities recorded for this date</p>
+                <p className="text-sm text-gray-400">Activities will appear here as you work on projects</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {todayActivities.map((activity, index) => (
+                <div 
+                  key={index} 
+                  className="flex gap-4 p-4 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => setSelectedItem(activity.item)}
+                >
+                  {/* Time */}
+                  <div className="flex-none text-sm text-gray-500 w-20">
+                    {formatTime(activity.timestamp)}
+                  </div>
+
+                  {/* Activity Icon */}
+                  <div className="flex-none">
+                    {getActivityIcon(activity.type)}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="font-medium">{activity.item.title}</h4>
+                        <p className="text-sm text-gray-600">{activity.item.description}</p>
+                      </div>
+                      <Badge className={getActivityColor(activity.type)}>
+                        {activity.type}
+                      </Badge>
+                    </div>
+
+                    {/* Changes */}
+                    {activity.changes && activity.changes.length > 0 && (
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        {activity.changes.map((change, idx) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <span className="w-1 h-1 bg-gray-400 rounded-full" />
+                            {change}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {/* Progress */}
+                    <div className="flex gap-4 items-center text-xs">
+                      {activity.item.completion !== undefined && (
+                        <div className="flex items-center gap-2">
+                          <Monitor className="h-3 w-3 text-gray-500" />
+                          <Progress value={activity.item.completion} className="h-1.5 w-16" />
+                          <span className="text-gray-600">{activity.item.completion}%</span>
+                        </div>
+                      )}
+                      {activity.item.mobileCompletion !== undefined && (
+                        <div className="flex items-center gap-2">
+                          <Smartphone className="h-3 w-3 text-gray-500" />
+                          <Progress value={activity.item.mobileCompletion} className="h-1.5 w-16" />
+                          <span className="text-gray-600">{activity.item.mobileCompletion}%</span>
+                        </div>
+                      )}
+                      {activity.item.team && (
+                        <div className="flex items-center gap-1">
+                          <Users className="h-3 w-3 text-gray-500" />
+                          <span className="text-gray-600">{activity.item.team.join(', ')}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -280,11 +279,10 @@ const DailyActivityView: React.FC = () => {
         <JiraStyleItemDetailModal
           selectedItem={selectedItem}
           onClose={() => setSelectedItem(null)}
-          onSignOff={() => {}}
         />
       )}
     </div>
   );
-};
+}
 
 export default DailyActivityView;

@@ -29,6 +29,9 @@ import {
   lifeCeoChatMessages,
   lifeCeoConversations,
   codeOfConductAgreements,
+  dailyActivities,
+  hostHomes,
+  hostReviews,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -74,7 +77,13 @@ import {
   type LifeCeoChatMessage,
   type InsertLifeCeoChatMessage,
   type LifeCeoConversation,
-  type InsertLifeCeoConversation
+  type InsertLifeCeoConversation,
+  type DailyActivity,
+  type InsertDailyActivity,
+  type HostHome,
+  type InsertHostHome,
+  type HostReview,
+  type InsertHostReview
 } from '../shared/schema';
 import { db, pool } from './db';
 import { eq, desc, asc, sql, and, or, gte, lte, count, ilike, inArray } from 'drizzle-orm';
@@ -306,6 +315,29 @@ export interface IStorage {
     missingDocumentation: any[];
     suggestionItems: any[];
   }>;
+  
+  // Daily Activities Tracking
+  createDailyActivity(activity: InsertDailyActivity): Promise<DailyActivity>;
+  getDailyActivities(userId: number, date?: Date): Promise<DailyActivity[]>;
+  getAllDailyActivities(date?: Date): Promise<DailyActivity[]>;
+  getDailyActivitiesByProjectId(projectId: string): Promise<DailyActivity[]>;
+  updateDailyActivity(id: string, updates: Partial<DailyActivity>): Promise<DailyActivity>;
+  
+  // Host Homes Management
+  createHostHome(home: InsertHostHome): Promise<HostHome>;
+  updateHostHome(id: number, updates: Partial<HostHome>): Promise<HostHome>;
+  getHostHomeById(id: number): Promise<HostHome | undefined>;
+  getHostHomesByCity(city: string): Promise<HostHome[]>;
+  getActiveHostHomes(): Promise<HostHome[]>;
+  getHostHomesByUser(userId: number): Promise<HostHome[]>;
+  verifyHostHome(id: number, verifiedBy: number, status: string, notes?: string): Promise<HostHome>;
+  deactivateHostHome(id: number): Promise<void>;
+  
+  // Host Reviews
+  createHostReview(review: InsertHostReview): Promise<HostReview>;
+  getHostReviews(homeId: string): Promise<HostReview[]>;
+  getHostReviewByUserAndHome(userId: number, homeId: string): Promise<HostReview | undefined>;
+  addHostResponse(reviewId: string, response: string): Promise<HostReview>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2790,6 +2822,181 @@ export class DatabaseStorage implements IStorage {
       UPDATE event_types SET is_active = false WHERE id = ${id}
     `);
     return result.rowCount > 0;
+  }
+
+  // Daily Activities Tracking Implementation
+  async createDailyActivity(activity: InsertDailyActivity): Promise<DailyActivity> {
+    const [result] = await db.insert(dailyActivities).values(activity).returning();
+    return result;
+  }
+
+  async getDailyActivities(userId: number, date?: Date): Promise<DailyActivity[]> {
+    let query = db.select().from(dailyActivities).where(eq(dailyActivities.user_id, userId));
+    
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      query = query.where(and(
+        gte(dailyActivities.timestamp, startOfDay),
+        lte(dailyActivities.timestamp, endOfDay)
+      ));
+    }
+    
+    return await query.orderBy(desc(dailyActivities.timestamp));
+  }
+
+  async getAllDailyActivities(date?: Date): Promise<DailyActivity[]> {
+    let query = db.select().from(dailyActivities);
+    
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      query = query.where(and(
+        gte(dailyActivities.timestamp, startOfDay),
+        lte(dailyActivities.timestamp, endOfDay)
+      ));
+    }
+    
+    return await query.orderBy(desc(dailyActivities.timestamp));
+  }
+
+  async getDailyActivitiesByProjectId(projectId: string): Promise<DailyActivity[]> {
+    return await db.select()
+      .from(dailyActivities)
+      .where(eq(dailyActivities.project_id, projectId))
+      .orderBy(desc(dailyActivities.timestamp));
+  }
+
+  async updateDailyActivity(id: string, updates: Partial<DailyActivity>): Promise<DailyActivity> {
+    const [result] = await db.update(dailyActivities)
+      .set(updates)
+      .where(eq(dailyActivities.id, id))
+      .returning();
+    return result;
+  }
+
+  // Host Homes Management Implementation
+  async createHostHome(home: InsertHostHome): Promise<HostHome> {
+    const [result] = await db.insert(hostHomes).values(home).returning();
+    return result;
+  }
+
+  async updateHostHome(id: number, updates: Partial<HostHome>): Promise<HostHome> {
+    const [result] = await db.update(hostHomes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(hostHomes.id, id))
+      .returning();
+    return result;
+  }
+
+  async getHostHomeById(id: number): Promise<HostHome | undefined> {
+    const [result] = await db.select()
+      .from(hostHomes)
+      .where(eq(hostHomes.id, id))
+      .limit(1);
+    return result;
+  }
+
+  async getHostHomesByCity(city: string): Promise<HostHome[]> {
+    const result = await db.execute(sql`
+      SELECT * FROM host_homes 
+      WHERE city = ${city} 
+      AND is_active = true 
+      AND is_verified = true
+      ORDER BY created_at DESC
+    `);
+    return result.rows as HostHome[];
+  }
+
+  async getActiveHostHomes(): Promise<HostHome[]> {
+    const result = await db.execute(sql`
+      SELECT * FROM host_homes 
+      WHERE is_active = true 
+      AND is_verified = true
+      ORDER BY created_at DESC
+    `);
+    return result.rows as HostHome[];
+  }
+
+  async getHostHomesByUser(userId: number): Promise<HostHome[]> {
+    return await db.select()
+      .from(hostHomes)
+      .where(eq(hostHomes.hostId, userId))
+      .orderBy(desc(hostHomes.createdAt));
+  }
+
+  async verifyHostHome(id: number, verifiedBy: number, status: string, notes?: string): Promise<HostHome> {
+    const result = await db.execute(sql`
+      UPDATE host_homes 
+      SET is_verified = ${status === 'approved'},
+          verification_status = ${status},
+          verification_notes = ${notes || null},
+          verified_by = ${verifiedBy},
+          verified_at = ${new Date()},
+          updated_at = ${new Date()}
+      WHERE id = ${id}
+      RETURNING *
+    `);
+    return result.rows[0] as HostHome;
+  }
+
+  async deactivateHostHome(id: number): Promise<void> {
+    await db.update(hostHomes)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(hostHomes.id, id));
+  }
+
+  // Host Reviews Implementation
+  async createHostReview(review: InsertHostReview): Promise<HostReview> {
+    const result = await db.execute(sql`
+      INSERT INTO host_reviews (
+        home_id, reviewer_id, rating, review_text,
+        cleanliness_rating, communication_rating, 
+        location_rating, value_rating
+      ) VALUES (
+        ${review.home_id}, ${review.reviewer_id}, ${review.rating}, 
+        ${review.review_text || null}, ${review.cleanliness_rating || null}, 
+        ${review.communication_rating || null}, ${review.location_rating || null}, 
+        ${review.value_rating || null}
+      ) RETURNING *
+    `);
+    return result.rows[0] as HostReview;
+  }
+
+  async getHostReviews(homeId: string): Promise<HostReview[]> {
+    const result = await db.execute(sql`
+      SELECT * FROM host_reviews 
+      WHERE home_id = ${parseInt(homeId)}
+      ORDER BY created_at DESC
+    `);
+    return result.rows as HostReview[];
+  }
+
+  async getHostReviewByUserAndHome(userId: number, homeId: string): Promise<HostReview | undefined> {
+    const result = await db.execute(sql`
+      SELECT * FROM host_reviews 
+      WHERE reviewer_id = ${userId} 
+      AND home_id = ${parseInt(homeId)}
+      LIMIT 1
+    `);
+    return result.rows[0] as HostReview | undefined;
+  }
+
+  async addHostResponse(reviewId: string, response: string): Promise<HostReview> {
+    const result = await db.execute(sql`
+      UPDATE host_reviews 
+      SET host_response = ${response}, 
+          host_response_at = ${new Date()}
+      WHERE id = ${reviewId}
+      RETURNING *
+    `);
+    return result.rows[0] as HostReview;
   }
 }
 

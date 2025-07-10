@@ -1458,3 +1458,63 @@ export type UserJourney = typeof userJourneys.$inferSelect;
 export type InsertUserJourney = z.infer<typeof insertUserJourneySchema>;
 export type JourneyActivity = typeof journeyActivities.$inferSelect;
 export type InsertJourneyActivity = z.infer<typeof insertJourneyActivitySchema>;
+
+// Daily activities tracking for project management
+export const dailyActivities = pgTable("daily_activities", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: integer("user_id").references(() => users.id).notNull(),
+  project_id: text("project_id").notNull(),
+  project_title: text("project_title").notNull(),
+  activity_type: text("activity_type").notNull(), // created, updated, completed, reviewed, blocked
+  description: text("description").notNull(),
+  changes: jsonb("changes").array().default([]), // Array of change descriptions
+  team: text("team").array().default([]),
+  tags: text("tags").array().default([]),
+  completion_before: integer("completion_before"),
+  completion_after: integer("completion_after"),
+  timestamp: timestamp("timestamp").defaultNow(),
+  metadata: jsonb("metadata").default({}).notNull(),
+}, (table) => [
+  index("idx_daily_activities_user_id").on(table.user_id),
+  index("idx_daily_activities_timestamp").on(table.timestamp),
+  index("idx_daily_activities_project_id").on(table.project_id),
+]);
+
+// Host reviews for marketplace
+export const hostReviews = pgTable("host_reviews", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  home_id: integer("home_id").references(() => hostHomes.id).notNull(),
+  reviewer_id: integer("reviewer_id").references(() => users.id).notNull(),
+  rating: integer("rating").notNull(), // 1-5 stars
+  review_text: text("review_text"),
+  cleanliness_rating: integer("cleanliness_rating"),
+  communication_rating: integer("communication_rating"),
+  location_rating: integer("location_rating"),
+  value_rating: integer("value_rating"),
+  host_response: text("host_response"),
+  host_response_at: timestamp("host_response_at"),
+  created_at: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_host_reviews_home_id").on(table.home_id),
+  index("idx_host_reviews_reviewer_id").on(table.reviewer_id),
+  unique().on(table.home_id, table.reviewer_id),
+]);
+
+// Insert schemas
+export const insertDailyActivitySchema = createInsertSchema(dailyActivities).omit({
+  id: true,
+  timestamp: true,
+});
+
+export const insertHostReviewSchema = createInsertSchema(hostReviews).omit({
+  id: true,
+  created_at: true,
+});
+
+// Types
+export type DailyActivity = typeof dailyActivities.$inferSelect;
+export type InsertDailyActivity = z.infer<typeof insertDailyActivitySchema>;
+export type HostHome = typeof hostHomes.$inferSelect;
+export type InsertHostHome = z.infer<typeof insertHostHomeSchema>;
+export type HostReview = typeof hostReviews.$inferSelect;
+export type InsertHostReview = z.infer<typeof insertHostReviewSchema>;

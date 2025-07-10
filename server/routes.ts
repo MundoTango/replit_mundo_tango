@@ -9115,61 +9115,342 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return await storage.getUser(userId);
   };
 
-  // Automation 4: Create host home with automatic geocoding
-  app.post('/api/host-homes', setUserContext, async (req, res) => {
+  // ========================================================================
+  // Daily Activities API Endpoints
+  // ========================================================================
+  
+  // Create a new daily activity
+  app.post('/api/daily-activities', isAuthenticated, async (req: Request, res: Response) => {
     try {
-      // Get current user
-      const user = await getCurrentUser(req);
-      if (!user) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
-
-      const { title, description, address, city, country, pricePerNight, amenities, maxGuests, photos } = req.body;
-
-      // Create host home
-      const [hostHome] = await db.insert(hostHomes).values({
-        hostId: user.id,
-        title,
-        description,
-        address,
-        city,
-        country,
-        pricePerNight: pricePerNight ? parseInt(pricePerNight) * 100 : null, // Convert to cents
-        amenities: amenities || [],
-        maxGuests: parseInt(maxGuests) || 2,
-        photos: photos || [],
-        isActive: true
-      }).returning();
-
-      // Automation: Geocode the address
-      if (address || city) {
-        const { geocodeAddress } = await import('../utils/geocodingService');
-        const geocoded = await geocodeAddress(address, city, country);
-        
-        if (geocoded) {
-          await db.update(hostHomes)
-            .set({ 
-              lat: geocoded.lat, 
-              lng: geocoded.lng,
-              city: city || geocoded.address_components.city,
-              country: country || geocoded.address_components.country
-            })
-            .where(eq(hostHomes.id, hostHome.id));
-          
-          console.log(`🏠 Host home geocoded: ${geocoded.lat}, ${geocoded.lng}`);
-        }
-      }
-
-      res.json({ 
-        success: true, 
-        message: 'Host home created successfully and added to map!',
-        data: hostHome 
+      const userId = req.session?.passport?.user?.claims?.id || req.user?.id || 7;
+      const { projectId, projectName, activityType, description, metadata } = req.body;
+      
+      const activity = await storage.createDailyActivity({
+        user_id: userId,
+        project_id: projectId,
+        project_name: projectName,
+        activity_type: activityType,
+        description: description,
+        metadata: metadata || {},
+        timestamp: new Date()
+      });
+      
+      res.json({
+        success: true,
+        data: activity
       });
     } catch (error) {
-      console.error('Error creating host home:', error);
-      res.status(500).json({ success: false, message: 'Failed to create host home' });
+      console.error('Error creating daily activity:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create daily activity'
+      });
     }
   });
+  
+  // Get daily activities for a user
+  app.get('/api/daily-activities/user/:userId', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      const { date } = req.query;
+      
+      const activities = await storage.getDailyActivities(
+        parseInt(userId), 
+        date ? new Date(date as string) : undefined
+      );
+      
+      res.json({
+        success: true,
+        data: activities
+      });
+    } catch (error) {
+      console.error('Error fetching user daily activities:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch daily activities'
+      });
+    }
+  });
+  
+  // Get all daily activities for admin view
+  app.get('/api/daily-activities', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { date } = req.query;
+      
+      const activities = await storage.getAllDailyActivities(
+        date ? new Date(date as string) : new Date()
+      );
+      
+      res.json({
+        success: true,
+        data: activities
+      });
+    } catch (error) {
+      console.error('Error fetching all daily activities:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch daily activities'
+      });
+    }
+  });
+  
+  // Get daily activities by project
+  app.get('/api/daily-activities/project/:projectId', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { projectId } = req.params;
+      
+      const activities = await storage.getDailyActivitiesByProjectId(projectId);
+      
+      res.json({
+        success: true,
+        data: activities
+      });
+    } catch (error) {
+      console.error('Error fetching project daily activities:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch daily activities'
+      });
+    }
+  });
+  
+  // Update a daily activity
+  app.patch('/api/daily-activities/:id', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const activity = await storage.updateDailyActivity(id, updates);
+      
+      res.json({
+        success: true,
+        data: activity
+      });
+    } catch (error) {
+      console.error('Error updating daily activity:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update daily activity'
+      });
+    }
+  });
+
+  // ========================================================================
+  // Host Homes Extended API Endpoints
+  // ========================================================================
+  
+  // Get host home by ID
+  app.get('/api/host-homes/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const home = await storage.getHostHomeById(parseInt(id));
+      
+      if (!home) {
+        return res.status(404).json({
+          success: false,
+          message: 'Host home not found'
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: home
+      });
+    } catch (error) {
+      console.error('Error fetching host home:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch host home'
+      });
+    }
+  });
+  
+  // Get host homes by city
+  app.get('/api/host-homes/city/:city', async (req, res) => {
+    try {
+      const { city } = req.params;
+      const homes = await storage.getHostHomesByCity(city);
+      
+      res.json({
+        success: true,
+        data: homes
+      });
+    } catch (error) {
+      console.error('Error fetching host homes by city:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch host homes'
+      });
+    }
+  });
+  
+  // Get all active host homes
+  app.get('/api/host-homes', async (req, res) => {
+    try {
+      const homes = await storage.getActiveHostHomes();
+      
+      res.json({
+        success: true,
+        data: homes
+      });
+    } catch (error) {
+      console.error('Error fetching active host homes:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch host homes'
+      });
+    }
+  });
+  
+  // Get host homes by user
+  app.get('/api/host-homes/user/:userId', isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const homes = await storage.getHostHomesByUser(parseInt(userId));
+      
+      res.json({
+        success: true,
+        data: homes
+      });
+    } catch (error) {
+      console.error('Error fetching user host homes:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch host homes'
+      });
+    }
+  });
+  
+  // Update host home
+  app.patch('/api/host-homes/:id', isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const home = await storage.updateHostHome(parseInt(id), updates);
+      
+      res.json({
+        success: true,
+        data: home
+      });
+    } catch (error) {
+      console.error('Error updating host home:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update host home'
+      });
+    }
+  });
+  
+  // Verify host home (admin only)
+  app.post('/api/host-homes/:id/verify', isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, notes } = req.body;
+      const verifiedBy = req.user?.id || 7; // Default to admin
+      
+      const home = await storage.verifyHostHome(parseInt(id), verifiedBy, status, notes);
+      
+      res.json({
+        success: true,
+        data: home
+      });
+    } catch (error) {
+      console.error('Error verifying host home:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to verify host home'
+      });
+    }
+  });
+  
+  // Deactivate host home
+  app.delete('/api/host-homes/:id', isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      await storage.deactivateHostHome(parseInt(id));
+      
+      res.json({
+        success: true,
+        message: 'Host home deactivated successfully'
+      });
+    } catch (error) {
+      console.error('Error deactivating host home:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to deactivate host home'
+      });
+    }
+  });
+  
+  // Create host review
+  app.post('/api/host-homes/:homeId/reviews', isAuthenticated, async (req, res) => {
+    try {
+      const { homeId } = req.params;
+      const userId = req.user?.id || 7;
+      const reviewData = {
+        ...req.body,
+        home_id: parseInt(homeId),
+        reviewer_id: userId
+      };
+      
+      const review = await storage.createHostReview(reviewData);
+      
+      res.json({
+        success: true,
+        data: review
+      });
+    } catch (error) {
+      console.error('Error creating host review:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create review'
+      });
+    }
+  });
+  
+  // Get host reviews
+  app.get('/api/host-homes/:homeId/reviews', async (req, res) => {
+    try {
+      const { homeId } = req.params;
+      const reviews = await storage.getHostReviews(homeId);
+      
+      res.json({
+        success: true,
+        data: reviews
+      });
+    } catch (error) {
+      console.error('Error fetching host reviews:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch reviews'
+      });
+    }
+  });
+  
+  // Add host response to review
+  app.post('/api/host-reviews/:reviewId/respond', isAuthenticated, async (req, res) => {
+    try {
+      const { reviewId } = req.params;
+      const { response } = req.body;
+      
+      const review = await storage.addHostResponse(reviewId, response);
+      
+      res.json({
+        success: true,
+        data: review
+      });
+    } catch (error) {
+      console.error('Error adding host response:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to add response'
+      });
+    }
+  });
+
+  // Duplicate route removed - already defined above
 
   // Automation 5: Create recommendation with automatic geocoding
   app.post('/api/recommendations', setUserContext, async (req, res) => {
