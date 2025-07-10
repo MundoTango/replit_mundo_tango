@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation, Link } from 'wouter';
+import TenantSwitcher from './TenantSwitcher';
 import { 
   Heart, 
   UsersRound, 
@@ -204,6 +205,12 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                 ))}
               </div>
             </a>
+          </div>
+
+          {/* Community Selection */}
+          <div className="px-4 mb-6">
+            <div className="text-xs uppercase font-semibold text-gray-500 tracking-wide mb-3">Community</div>
+            <TenantSwitcher />
           </div>
 
           {/* Navigation Menu */}

@@ -4,6 +4,7 @@ import { tenants, tenantUsers, userViewPreferences, users, posts, events, groups
 import { eq, and, inArray, or, sql } from 'drizzle-orm';
 import { isAuthenticated } from '../replitAuth';
 import { tenantMiddleware, requireTenant, requireTenantAdmin } from '../middleware/tenantMiddleware';
+import { getUserId, requireSuperAdmin, flexibleAuth } from '../utils/authHelper';
 import { z } from 'zod';
 
 const router = Router();
@@ -27,9 +28,9 @@ router.get('/tenants', async (req, res) => {
 });
 
 // Get user's tenants with membership info
-router.get('/tenants/user', isAuthenticated, async (req, res) => {
+router.get('/tenants/user', flexibleAuth, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.userId || getUserId(req);
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -79,9 +80,9 @@ router.get('/tenants/user', isAuthenticated, async (req, res) => {
 });
 
 // Get or create user view preferences
-router.get('/tenants/view-preferences', isAuthenticated, async (req, res) => {
+router.get('/tenants/view-preferences', flexibleAuth, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.userId || getUserId(req);
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }

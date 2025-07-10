@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTenant } from '../contexts/TenantContext';
+import { useAuth } from '@/hooks/useAuth';
+import { defineAbilitiesFor } from '@/utils/abilities';
 import { ChevronDown, Building2, Check, Settings, Globe, Users } from 'lucide-react';
 import {
   DropdownMenu,
@@ -13,10 +15,11 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { useNavigate } from '@tanstack/react-router';
+import { useLocation } from 'wouter';
 
 const TenantSwitcher = () => {
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
+  const { user } = useAuth();
   const { 
     currentTenant, 
     userTenants, 
@@ -53,6 +56,12 @@ const TenantSwitcher = () => {
       setSelectedTenantIds([...selectedTenantIds, tenantId]);
     }
   };
+
+  // Check if user has permission to switch tenants
+  const abilities = defineAbilitiesFor(user);
+  if (!abilities.can('switch', 'Tenant')) {
+    return null; // Don't show tenant switcher if user doesn't have permission
+  }
 
   if (isLoading) {
     return (

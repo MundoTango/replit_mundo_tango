@@ -463,6 +463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const user = await storage.getUserByReplitId('44164221');
         if (user) {
           const userRoles = await storage.getUserRoles(user.id);
+          const isSuperAdmin = userRoles.some(r => r.roleName === 'super_admin');
           return res.json({
             id: user.id,
             name: user.name,
@@ -473,7 +474,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             codeOfConductAccepted: user.codeOfConductAccepted,
             profileImage: user.profileImage,
             replitId: '44164221',
-            roles: userRoles
+            roles: userRoles,
+            isSuperAdmin
           });
         }
       }
@@ -511,6 +513,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      const isSuperAdmin = userRoles.includes('super_admin');
+      
       res.json({
         id: user.id,
         name: user.name,
@@ -521,7 +525,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         codeOfConductAccepted: user.codeOfConductAccepted,
         profileImage: user.profileImage,
         replitId: replitId,
-        roles: userRoles
+        roles: userRoles,
+        isSuperAdmin
       });
     } catch (error: any) {
       console.error("Auth user error:", error);

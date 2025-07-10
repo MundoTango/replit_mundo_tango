@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SocketProvider } from "@/contexts/socket-context";
 import { AuthProvider } from "@/contexts/auth-context";
+import { TenantProvider } from "@/contexts/TenantContext";
 import { useAuth } from "@/hooks/useAuth";
 import { initAnalytics, analytics } from "@/lib/analytics";
 import { ThemeProvider } from "@/lib/theme/theme-provider";
@@ -276,18 +277,20 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider>
-          <SocketProvider>
-            <TooltipProvider>
-              <Toaster />
-              <CacheUpdateNotifier />
-              <ErrorBoundary>
-                <Router />
-              </ErrorBoundary>
-              <ThemeManager />
-            </TooltipProvider>
-          </SocketProvider>
-        </ThemeProvider>
+        <TenantProvider>
+          <ThemeProvider>
+            <SocketProvider>
+              <TooltipProvider>
+                <Toaster />
+                <CacheUpdateNotifier />
+                <ErrorBoundary>
+                  <Router />
+                </ErrorBoundary>
+                <ThemeManager />
+              </TooltipProvider>
+            </SocketProvider>
+          </ThemeProvider>
+        </TenantProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
