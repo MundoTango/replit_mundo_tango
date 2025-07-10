@@ -22,6 +22,7 @@ import { supabase } from "./supabaseClient";
 import { getNotionEntries, getNotionEntryBySlug, getNotionFilterOptions } from "./notion.js";
 import { CityPhotoService } from "./services/cityPhotoService";
 import rbacRoutes from "./rbacRoutes";
+import tenantRoutes from "./routes/tenantRoutes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Replit Auth middleware
@@ -8716,6 +8717,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // RBAC/ABAC Routes Integration
   // ========================================================================
   app.use('/api/rbac', rbacRoutes);
+  
+  // ========================================================================
+  // Multi-Tenant Routes Integration
+  // ========================================================================
+  app.use('/api', tenantRoutes);
   
   // Evolution service routes (super admin only)
   const evolutionRoutes = await import('./routes/evolutionRoutes.js');

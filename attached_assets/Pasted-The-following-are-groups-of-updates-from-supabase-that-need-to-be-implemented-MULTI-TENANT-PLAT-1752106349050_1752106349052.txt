@@ -1,0 +1,855 @@
+The following are groups of updates from supabase that need to be implemented.
+“/*
+MULTI-TENANT PLATFORM ARCHITECTURE WITH CROSS-COMMUNITY INTEGRATION
+===================================================================
+
+This architecture enables:
+1. Users to join multiple communities (tenants) simultaneously
+2. Cross-community content sharing and discovery
+3. Community relationships and connections
+4. AI-powered recommendations across communities
+5. User journeys that span multiple communities
+
+CORE COMPONENTS:
+---------------
+1. Multi-tenant database schema with proper isolation
+2. Row-level security policies for data protection
+3. Cross-community content sharing mechanism
+4. User journey planning across communities
+5. Edge functions for AI-powered recommendations
+
+*/
+
+-- TENANTS TABLE: Core table for managing different communities
+CREATE TABLE public.tenants (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    slug text UNIQUE NOT NULL,
+    name text NOT NULL,
+    description text,
+    logo_url text,
+    primary_color text,
+    secondary_color text,
+    domain text UNIQUE,
+    is_active boolean DEFAULT true,
+    settings jsonb DEFAULT '{}'::jsonb,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.tenants ENABLE ROW LEVEL SECURITY;
+
+-- TENANT_USERS: Junction table for user membership across communities
+CREATE TABLE public.tenant_users (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    role text NOT NULL DEFAULT 'member',
+    is_admin boolean DEFAULT false,
+    display_in_feed boolean DEFAULT true,
+    notification_preferences jsonb DEFAULT '{"email": true, "push": true}'::jsonb,
+    expertise_level text DEFAULT 'beginner',
+    interests text[] DEFAULT '{}'::text[],
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    UNIQUE(tenant_id, user_id)
+);
+ALTER TABLE public.tenant_users ENABLE ROW LEVEL SECURITY;
+
+-- USER_VIEW_PREFERENCES: Stores how users want to view content across communities
+CREATE TABLE public.user_view_preferences (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    view_mode text NOT NULL DEFAULT 'single_community', -- 'single_community', 'all_communities', 'custom'
+    selected_tenant_id uuid REFERENCES public.tenants(id),
+    selected_tenant_ids uuid[] DEFAULT '{}'::uuid[],
+    custom_filters jsonb DEFAULT '{}'::jsonb,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    UNIQUE(user_id)
+);
+ALTER TABLE public.user_view_preferences ENABLE ROW LEVEL SECURITY;
+
+-- CONTENT_SHARING: Manages cross-community content sharing
+CREATE TABLE public.content_sharing (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    content_type text NOT NULL, -- 'post', 'event', 'group', etc.
+    content_id uuid NOT NULL,
+    source_tenant_id uuid NOT NULL REFERENCES public.tenants(id),
+    shared_tenant_id uuid NOT NULL REFERENCES public.tenants(id),
+    shared_by uuid REFERENCES auth.users(id),
+    is_approved boolean DEFAULT false,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    UNIQUE(content_type, content_id, shared_tenant_id)
+);
+ALTER TABLE public.content_sharing ENABLE ROW LEVEL SECURITY;
+
+-- COMMUNITY_CONNECTIONS: Defines relationships between communities
+CREATE TABLE public.community_connections (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id_1 uuid NOT NULL REFERENCES public.tenants(id),
+    tenant_id_2 uuid NOT NULL REFERENCES public.tenants(id),
+    relationship_type text NOT NULL, -- 'related', 'partner', 'parent_child'
+    is_bidirectional boolean DEFAULT true,
+    settings jsonb DEFAULT '{}'::jsonb,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+    UNIQUE(tenant_id_1, tenant_id_2),
+    CHECK (tenant_id_1 != tenant_id_2)
+);
+ALTER TABLE public.community_connections ENABLE ROW LEVEL SECURITY;
+
+-- USER_JOURNEYS: Tracks cross-community activities and plans
+CREATE TABLE public.user_journeys (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid NOT NULL REFERENCES auth.users(id),
+    title text NOT NULL,
+    description text,
+    start_date date,
+    end_date date,
+    locations jsonb[] DEFAULT '{}'::jsonb[],
+    tenant_ids uuid[] DEFAULT '{}'::uuid[],
+    journey_type text DEFAULT 'travel', -- 'travel', 'learning', 'experience'
+    status text DEFAULT 'planning', -- 'planning', 'active', 'completed'
+    is_public boolean DEFAULT false,
+    settings jsonb DEFAULT '{}'::jsonb,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.user_journeys ENABLE ROW LEVEL SECURITY;
+
+-- JOURNEY_ACTIVITIES: Tracks activities within a journey
+CREATE TABLE public.journey_activities (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    journey_id uuid NOT NULL REFERENCES public.user_journeys(id) ON DELETE CASCADE,
+    tenant_id uuid REFERENCES public.tenants(id),
+    activity_type text NOT NULL, -- 'event', 'class', 'practice', 'sightseeing'
+    title text NOT NULL,
+    description text,
+    location jsonb,
+    start_datetime timestamptz,
+    end_datetime timestamptz,
+    external_url text,
+    content_reference_id uuid, -- Optional reference to content in the platform
+    content_reference_type text, -- 'event', 'post', etc.
+    settings jsonb DEFAULT '{}'::jsonb,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.journey_activities ENABLE ROW LEVEL SECURITY;
+
+-- Modify users table to include tenant-specific fields
+ALTER TABLE public.users 
+    ADD COLUMN IF NOT EXISTS is_super_admin boolean DEFAULT false,
+    ADD COLUMN IF NOT EXISTS primary_tenant_id uuid REFERENCES public.tenants(id);
+
+-- Add tenant_id to all content tables
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS tenant_id uuid REFERENCES public.tenants(id);
+ALTER TABLE public.events ADD COLUMN IF NOT EXISTS tenant_id uuid REFERENCES public.tenants(id);
+ALTER TABLE public.groups ADD COLUMN IF NOT EXISTS tenant_id uuid REFERENCES public.tenants(id);
+
+-- Create indexes for better performance
+CREATE INDEX idx_tenant_users_tenant_id ON public.tenant_users(tenant_id);
+CREATE INDEX idx_tenant_users_user_id ON public.tenant_users(user_id);
+CREATE INDEX idx_users_primary_tenant_id ON public.users(primary_tenant_id);
+CREATE INDEX idx_posts_tenant_id ON public.posts(tenant_id);
+CREATE INDEX idx_events_tenant_id ON public.events(tenant_id);
+CREATE INDEX idx_groups_tenant_id ON public.groups(tenant_id);
+CREATE INDEX idx_user_journeys_user_id ON public.user_journeys(user_id);
+CREATE INDEX idx_user_journeys_tenant_ids ON public.user_journeys USING gin(tenant_ids);
+CREATE INDEX idx_journey_activities_journey_id ON public.journey_activities(journey_id);
+CREATE INDEX idx_journey_activities_tenant_id ON public.journey_activities(tenant_id);
+CREATE INDEX idx_content_sharing_content_id ON public.content_sharing(content_id);
+CREATE INDEX idx_content_sharing_source_tenant_id ON public.content_sharing(source_tenant_id);
+CREATE INDEX idx_content_sharing_shared_tenant_id ON public.content_sharing(shared_tenant_id);
+
+/*
+ROW LEVEL SECURITY POLICIES
+--------------------------
+These policies ensure data isolation between tenants while allowing
+cross-community access where appropriate.
+*/
+
+-- Tenant policies
+CREATE POLICY "Super admins can manage tenants" ON public.tenants
+    FOR ALL TO authenticated
+    USING ((SELECT is_super_admin FROM public.users WHERE auth_user_id = auth.uid()));
+
+-- Tenant users policies
+CREATE POLICY "Users can view their own tenant memberships" ON public.tenant_users
+    FOR SELECT TO authenticated
+    USING (user_id = auth.uid());
+
+CREATE POLICY "Tenant admins can manage users" ON public.tenant_users
+    FOR ALL TO authenticated
+    USING (tenant_id IN (SELECT tenant_id FROM public.tenant_users WHERE user_id = auth.uid() AND is_admin = true));
+
+CREATE POLICY "Super admins can manage all tenant users" ON public.tenant_users
+    FOR ALL TO authenticated
+    USING ((SELECT is_super_admin FROM public.users WHERE auth_user_id = auth.uid()));
+
+-- User view preferences policies
+CREATE POLICY "Users can manage their own view preferences" ON public.user_view_preferences
+    FOR ALL TO authenticated
+    USING (user_id = auth.uid());
+
+-- Content sharing policies
+CREATE POLICY "Tenant admins can manage content sharing" ON public.content_sharing
+    FOR ALL TO authenticated
+    USING (
+        source_tenant_id IN (SELECT tenant_id FROM public.tenant_users WHERE user_id = auth.uid() AND is_admin = true)
+        OR shared_tenant_id IN (SELECT tenant_id FROM public.tenant_users WHERE user_id = auth.uid() AND is_admin = true)
+    );
+
+-- Community connections policies
+CREATE POLICY "Super admins can manage community connections" ON public.community_connections
+    FOR ALL TO authenticated
+    USING ((SELECT is_super_admin FROM public.users WHERE auth_user_id = auth.uid()));
+
+-- User journeys policies
+CREATE POLICY "Users can manage their own journeys" ON public.user_journeys
+    FOR ALL TO authenticated
+    USING (user_id = auth.uid());
+
+CREATE POLICY "Users can view public journeys" ON public.user_journeys
+    FOR SELECT TO authenticated
+    USING (is_public = true);
+
+-- Journey activities policies
+CREATE POLICY "Users can manage activities in their own journeys" ON public.journey_activities
+    FOR ALL TO authenticated
+    USING (journey_id IN (SELECT id FROM public.user_journeys WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can view activities in public journeys" ON public.journey_activities
+    FOR SELECT TO authenticated
+    USING (journey_id IN (SELECT id FROM public.user_journeys WHERE is_public = true));
+
+-- Content policies (example for posts)
+CREATE POLICY "Users can view posts in their tenants" ON public.posts
+    FOR SELECT TO authenticated
+    USING (tenant_id IN (SELECT tenant_id FROM public.tenant_users WHERE user_id = auth.uid()));
+
+/*
+HELPER FUNCTIONS
+---------------
+These functions provide core functionality for the multi-tenant system
+and cross-community features.
+*/
+
+-- Function to get the current user's tenants
+CREATE OR REPLACE FUNCTION public.get_user_tenants()
+RETURNS TABLE(tenant_id uuid, tenant_name text, tenant_slug text, is_admin boolean) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, t.name, t.slug, tu.is_admin
+    FROM public.tenants t
+    JOIN public.tenant_users tu ON t.id = tu.tenant_id
+    WHERE tu.user_id = auth.uid()
+    AND t.is_active = true;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Function to get the current tenant based on request headers
+CREATE OR REPLACE FUNCTION public.get_current_tenant_id()
+RETURNS uuid AS $$
+DECLARE
+    tenant_slug text;
+    tenant_id uuid;
+BEGIN
+    -- Get tenant from request header
+    tenant_slug := current_setting('request.headers', true)::jsonb->>'x-tenant';
+    
+    -- If no tenant header, try to get from host
+    IF tenant_slug IS NULL THEN
+        tenant_slug := split_part(current_setting('request.headers', true)::jsonb->>'host', '.', 1);
+    END IF;
+    
+    -- Get tenant ID from slug
+    SELECT id INTO tenant_id
+    FROM public.tenants
+    WHERE slug = tenant_slug
+    AND is_active = true;
+    
+    -- If still no tenant, use user's primary tenant
+    IF tenant_id IS NULL THEN
+        SELECT primary_tenant_id INTO tenant_id
+        FROM public.users
+        WHERE auth_user_id = auth.uid();
+    END IF;
+    
+    RETURN tenant_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Function to automatically set tenant_id on insert
+CREATE OR REPLACE FUNCTION public.set_tenant_id()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.tenant_id := public.get_current_tenant_id();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Function to get content across multiple communities
+CREATE OR REPLACE FUNCTION public.get_cross_community_content(
+    content_type text,
+    tenant_ids uuid[] DEFAULT NULL,
+    limit_count integer DEFAULT 20,
+    offset_count integer DEFAULT 0
+)
+RETURNS SETOF jsonb AS $$
+DECLARE
+    user_tenants uuid[];
+    query_tenants uuid[];
+BEGIN
+    -- Get user's tenant memberships
+    SELECT array_agg(tenant_id) INTO user_tenants
+    FROM public.tenant_users
+    WHERE user_id = auth.uid();
+    
+    -- If tenant_ids is provided, use those (must be a subset of user's tenants)
+    IF tenant_ids IS NOT NULL THEN
+        SELECT array_agg(t) INTO query_tenants
+        FROM unnest(tenant_ids) t
+        WHERE t = ANY(user_tenants);
+    ELSE
+        -- Otherwise use all user's tenants
+        query_tenants := user_tenants;
+    END IF;
+    
+    -- Return empty if no valid tenants
+    IF query_tenants IS NULL OR array_length(query_tenants, 1) = 0 THEN
+        RETURN;
+    END IF;
+    
+    -- Query based on content type
+    CASE content_type
+        WHEN 'posts' THEN
+            RETURN QUERY
+            SELECT jsonb_build_object(
+                'id', p.id,
+                'content_type', 'post',
+                'tenant_id', p.tenant_id,
+                'tenant_name', t.name,
+                'user_id', p.user_id,
+                'content', p.content,
+                'created_at', p.created_at,
+                'likes', p.total_likes,
+                'comments', p.total_comments
+            )
+            FROM public.posts p
+            JOIN public.tenants t ON p.tenant_id = t.id
+            WHERE p.tenant_id = ANY(query_tenants)
+            AND p.deleted_at IS NULL
+            ORDER BY p.created_at DESC
+            LIMIT limit_count
+            OFFSET offset_count;
+            
+        WHEN 'events' THEN
+            RETURN QUERY
+            SELECT jsonb_build_object(
+                'id', e.id,
+                'content_type', 'event',
+                'tenant_id', e.tenant_id,
+                'tenant_name', t.name,
+                'title', e.title,
+                'description', e.description,
+                'start_date', e.start_date,
+                'location_name', e.location_name,
+                'image_url', e.image_url
+            )
+            FROM public.events e
+            JOIN public.tenants t ON e.tenant_id = t.id
+            WHERE e.tenant_id = ANY(query_tenants)
+            AND e.deleted_at IS NULL
+            AND e.start_date >= CURRENT_DATE
+            ORDER BY e.start_date ASC
+            LIMIT limit_count
+            OFFSET offset_count;
+            
+        ELSE
+            RAISE EXCEPTION 'Unsupported content type: %', content_type;
+    END CASE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Function to get journey recommendations
+CREATE OR REPLACE FUNCTION public.get_journey_recommendations(
+    journey_id uuid,
+    limit_count integer DEFAULT 10
+)
+RETURNS TABLE(
+    tenant_id uuid,
+    tenant_name text,
+    activity_type text,
+    title text,
+    description text,
+    start_date timestamptz,
+    location jsonb,
+    relevance_score numeric
+) AS $$
+BEGIN
+    -- This is a placeholder for what would be a more complex recommendation algorithm
+    RETURN QUERY
+    WITH journey AS (
+        SELECT 
+            j.tenant_ids,
+            j.start_date,
+            j.end_date,
+            j.locations
+        FROM 
+            public.user_journeys j
+        WHERE 
+            j.id = journey_id
+            AND j.user_id = auth.uid()
+    ),
+    journey_locations AS (
+        SELECT 
+            (loc->>'country')::text AS country,
+            (loc->>'city')::text AS city
+        FROM 
+            journey j,
+            unnest(j.locations) loc
+    )
+    SELECT 
+        e.tenant_id,
+        t.name AS tenant_name,
+        'event'::text AS activity_type,
+        e.title,
+        e.description,
+        e.start_date,
+        jsonb_build_object(
+            'country', e.country,
+            'city', e.city,
+            'latitude', e.latitude,
+            'longitude', e.longitude
+        ) AS location,
+        -- Simple relevance scoring based on location match and date proximity
+        CASE 
+            WHEN e.country = ANY(SELECT country FROM journey_locations) AND 
+                 e.city = ANY(SELECT city FROM journey_locations) THEN 1.0
+            WHEN e.country = ANY(SELECT country FROM journey_locations) THEN 0.7
+            ELSE 0.3
+        END AS relevance_score
+    FROM 
+        public.events e
+        JOIN public.tenants t ON e.tenant_id = t.id,
+        journey j
+    WHERE 
+        e.tenant_id = ANY(SELECT unnest(j.tenant_ids))
+        AND e.start_date BETWEEN j.start_date AND j.end_date
+        AND e.deleted_at IS NULL
+    ORDER BY 
+        relevance_score DESC,
+        e.start_date ASC
+    LIMIT limit_count;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+/*
+TRIGGERS
+--------
+These triggers automate tenant-specific operations.
+*/
+
+-- Apply the tenant_id trigger to content tables
+CREATE TRIGGER set_tenant_id_on_posts
+    BEFORE INSERT ON public.posts
+    FOR EACH ROW
+    EXECUTE FUNCTION public.set_tenant_id();
+
+CREATE TRIGGER set_tenant_id_on_events
+    BEFORE INSERT ON public.events
+    FOR EACH ROW
+    EXECUTE FUNCTION public.set_tenant_id();
+
+CREATE TRIGGER set_tenant_id_on_groups
+    BEFORE INSERT ON public.groups
+    FOR EACH ROW
+    EXECUTE FUNCTION public.set_tenant_id();
+
+/*
+VIEWS
+-----
+These views provide simplified access to cross-community data.
+*/
+
+-- Create a view for user's community memberships with additional info
+CREATE OR REPLACE VIEW public.user_communities AS
+SELECT 
+    tu.user_id,
+    t.id AS tenant_id,
+    t.name AS tenant_name,
+    t.slug AS tenant_slug,
+    t.logo_url,
+    tu.role,
+    tu.is_admin,
+    tu.expertise_level,
+    tu.interests,
+    tu.display_in_feed,
+    (
+        SELECT count(*) 
+        FROM public.tenant_users 
+        WHERE tenant_id = t.id
+    ) AS member_count,
+    (
+        SELECT count(*) 
+        FROM public.posts 
+        WHERE tenant_id = t.id 
+        AND created_at > (now() - interval '30 days')
+    ) AS recent_activity_count
+FROM 
+    public.tenant_users tu
+    JOIN public.tenants t ON tu.tenant_id = t.id
+WHERE 
+    t.is_active = true;”
+
+“// tenant-middleware.ts
+// Purpose: Middleware to handle tenant identification and context setting
+// This Edge Function identifies the current tenant from the request and provides tenant information
+
+import { createClient } from 'jsr:@supabase/supabase-js@^2'
+
+interface TenantInfo {
+  id: string
+  slug: string
+  name: string
+  logo_url: string | null
+  primary_color: string | null
+  secondary_color: string | null
+  domain: string | null
+  settings: Record<string, any>
+}
+
+Deno.serve(async (req) => {
+  try {
+    // Get tenant information from request
+    const url = new URL(req.url)
+    const host = req.headers.get('host') || ''
+    const tenantSlug = url.searchParams.get('tenant') || 
+                       req.headers.get('x-tenant') || 
+                       host.split('.')[0]
+    
+    // Skip middleware for non-tenant requests
+    if (tenantSlug === 'api' || tenantSlug === 'www' || !tenantSlug) {
+      return new Response(JSON.stringify({ 
+        error: 'No tenant specified' 
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Create Supabase admin client
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
+
+    // Get tenant information
+    const { data: tenant, error: tenantError } = await supabaseAdmin
+      .from('tenants')
+      .select('id, slug, name, logo_url, primary_color, secondary_color, domain, settings')
+      .eq('slug', tenantSlug)
+      .eq('is_active', true)
+      .single()
+
+    if (tenantError || !tenant) {
+      return new Response(JSON.stringify({ 
+        error: 'Tenant not found or inactive',
+        details: tenantError?.message
+      }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Get user information if authenticated
+    const authHeader = req.headers.get('Authorization')
+    let userData = null
+
+    if (authHeader) {
+      const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(
+        authHeader.replace('Bearer ', '')
+      )
+
+      if (!userError && user) {
+        // Check if user belongs to this tenant
+        const { data: tenantUser } = await supabaseAdmin
+          .from('tenant_users')
+          .select('role, is_admin')
+          .eq('tenant_id', tenant.id)
+          .eq('user_id', user.id)
+          .single()
+
+        if (tenantUser) {
+          userData = {
+            id: user.id,
+            email: user.email,
+            role: tenantUser.role,
+            is_admin: tenantUser.is_admin
+          }
+        }
+      }
+    }
+
+    // Return tenant information and user data
+    return new Response(JSON.stringify({
+      tenant: tenant as TenantInfo,
+      user: userData
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  } catch (error) {
+    console.error('Tenant middleware error:', error)
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error',
+      details: error.message
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+})”
+“// cross-community-ai-recommendations.ts
+// Purpose: Generate AI-powered recommendations that span multiple communities
+// This Edge Function uses OpenAI to create personalized journey recommendations
+
+import { createClient } from 'jsr:@supabase/supabase-js@^2'
+import OpenAI from 'npm:openai@4.24.0'
+
+interface JourneyRequest {
+  query: string
+  user_interests?: string[]
+  communities?: string[]
+  start_date?: string
+  end_date?: string
+  location?: string
+  budget?: string
+}
+
+interface JourneyRecommendation {
+  title: string
+  description: string
+  itinerary: {
+    date: string
+    location: string
+    activities: {
+      time: string
+      activity: string
+      community: string
+      description: string
+    }[]
+  }[]
+  communities_involved: string[]
+  estimated_budget: string
+  travel_tips: string[]
+  journey_id?: string
+}
+
+Deno.serve(async (req) => {
+  try {
+    // Only allow POST requests
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Get authorization header
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Authorization required' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Create Supabase client with user's auth token
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      {
+        global: {
+          headers: { Authorization: authHeader }
+        }
+      }
+    )
+
+    // Parse request body
+    const journeyRequest = await req.json() as JourneyRequest
+
+    // Get user's communities and interests
+    const { data: userCommunities, error: communitiesError } = await supabaseClient
+      .from('user_communities')
+      .select('tenant_name, tenant_slug, expertise_level, interests')
+      
+    if (communitiesError) {
+      return new Response(JSON.stringify({ 
+        error: 'Failed to fetch user communities',
+        details: communitiesError.message
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Filter communities if specified in request
+    let relevantCommunities = userCommunities
+    if (journeyRequest.communities && journeyRequest.communities.length > 0) {
+      relevantCommunities = userCommunities.filter(c => 
+        journeyRequest.communities!.includes(c.tenant_slug)
+      )
+    }
+
+    if (relevantCommunities.length === 0) {
+      return new Response(JSON.stringify({ 
+        error: 'No relevant communities found for this user'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Get community-specific events and activities
+    const communityPromises = relevantCommunities.map(async (community) => {
+      const { data: events } = await supabaseClient
+        .from('events')
+        .select('title, description, start_date, location_name, city, country')
+        .eq('tenant_slug', community.tenant_slug)
+        .gte('start_date', journeyRequest.start_date || new Date().toISOString())
+        .lte('start_date', journeyRequest.end_date || new Date(Date.now() + 180*24*60*60*1000).toISOString())
+        .order('start_date', { ascending: true })
+        .limit(10)
+      
+      return {
+        community: community.tenant_name,
+        slug: community.tenant_slug,
+        expertise: community.expertise_level,
+        interests: community.interests,
+        events: events || []
+      }
+    })
+
+    const communitiesData = await Promise.all(communityPromises)
+
+    // Initialize OpenAI client
+    const openai = new OpenAI({
+      apiKey: Deno.env.get('OPENAI_API_KEY')!
+    })
+
+    // Prepare context for AI
+    const aiContext = {
+      query: journeyRequest.query,
+      user_interests: journeyRequest.user_interests || [],
+      communities: communitiesData,
+      date_range: {
+        start: journeyRequest.start_date || "flexible",
+        end: journeyRequest.end_date || "flexible"
+      },
+      location: journeyRequest.location || "Europe",
+      budget: journeyRequest.budget || "moderate"
+    }
+
+    // Generate AI recommendation
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: `You are a cross-community travel and activity planner specializing in creating personalized itineraries. 
+          Your task is to create a detailed journey plan that incorporates multiple communities/interests the user belongs to.
+          Focus on creating a cohesive experience that balances different activities while maintaining a logical travel route.
+          Include specific events from the provided community data when relevant.
+          Format your response as a structured JSON object without any additional text.`
+        },
+        {
+          role: "user",
+          content: JSON.stringify(aiContext)
+        }
+      ],
+      response_format: { type: "json_object" }
+    })
+
+    // Parse the AI response
+    const aiRecommendation = JSON.parse(completion.choices[0].message.content || "{}") as JourneyRecommendation
+
+    // Save the recommendation to the database if user is logged in
+    const { data: { user } } = await supabaseClient.auth.getUser()
+    
+    if (user) {
+      // Create a new journey entry
+      const { data: journey, error: journeyError } = await supabaseClient
+        .from('user_journeys')
+        .insert({
+          user_id: user.id,
+          title: aiRecommendation.title,
+          description: aiRecommendation.description,
+          start_date: journeyRequest.start_date ? new Date(journeyRequest.start_date) : null,
+          end_date: journeyRequest.end_date ? new Date(journeyRequest.end_date) : null,
+          locations: aiRecommendation.itinerary.map(day => ({
+            city: day.location.split(',')[0].trim(),
+            country: day.location.split(',').slice(-1)[0].trim()
+          })),
+          tenant_ids: communitiesData.map(c => c.slug),
+          journey_type: 'travel',
+          status: 'planning',
+          is_public: false,
+          settings: {
+            query: journeyRequest.query,
+            ai_generated: true,
+            budget: journeyRequest.budget || "moderate"
+          }
+        })
+        .select()
+        .single()
+      
+      if (!journeyError && journey) {
+        // Add journey activities
+        const journeyActivities = aiRecommendation.itinerary.flatMap(day => 
+          day.activities.map(activity => ({
+            journey_id: journey.id,
+            tenant_id: communitiesData.find(c => c.community === activity.community)?.slug,
+            activity_type: activity.activity.toLowerCase().includes('class') ? 'class' : 
+                          activity.activity.toLowerCase().includes('event') ? 'event' : 'activity',
+            title: activity.activity,
+            description: activity.description,
+            location: { 
+              name: day.location,
+              time: activity.time
+            },
+            start_datetime: `${day.date}T${activity.time.split('-')[0].trim()}:00`,
+            settings: {
+              community: activity.community,
+              ai_generated: true
+            }
+          }))
+        )
+        
+        if (journeyActivities.length > 0) {
+          await supabaseClient
+            .from('journey_activities')
+            .insert(journeyActivities)
+        }
+        
+        // Include the journey ID in the response
+        aiRecommendation.journey_id = journey.id
+      }
+    }
+
+    return new Response(JSON.stringify(aiRecommendation), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  } catch (error) {
+    console.error('AI recommendation error:', error)
+    return new Response(JSON.stringify({ 
+      error: 'Failed to generate recommendations',
+      details: error.message
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+})”

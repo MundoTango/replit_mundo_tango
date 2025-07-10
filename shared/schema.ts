@@ -1277,3 +1277,184 @@ export type LifeCeoChatMessage = typeof lifeCeoChatMessages.$inferSelect;
 export type InsertLifeCeoChatMessage = z.infer<typeof insertLifeCeoChatMessageSchema>;
 export type LifeCeoConversation = typeof lifeCeoConversations.$inferSelect;
 export type InsertLifeCeoConversation = z.infer<typeof insertLifeCeoConversationSchema>;
+
+// Multi-Tenant Platform Tables
+export const tenants = pgTable("tenants", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").unique().notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  logo_url: text("logo_url"),
+  primary_color: text("primary_color").default('#FF1744'),
+  secondary_color: text("secondary_color").default('#3F51B5'),
+  domain: text("domain").unique(),
+  is_active: boolean("is_active").default(true),
+  settings: jsonb("settings").default({}).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_tenants_slug").on(table.slug),
+  index("idx_tenants_is_active").on(table.is_active),
+]);
+
+export const tenantUsers = pgTable("tenant_users", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenant_id: uuid("tenant_id").references(() => tenants.id).notNull(),
+  user_id: integer("user_id").references(() => users.id).notNull(),
+  role: text("role").notNull().default('member'),
+  is_admin: boolean("is_admin").default(false),
+  display_in_feed: boolean("display_in_feed").default(true),
+  notification_preferences: jsonb("notification_preferences").default({email: true, push: true}).notNull(),
+  expertise_level: text("expertise_level").default('beginner'),
+  interests: text("interests").array().default([]),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique().on(table.tenant_id, table.user_id),
+  index("idx_tenant_users_tenant_id").on(table.tenant_id),
+  index("idx_tenant_users_user_id").on(table.user_id),
+]);
+
+export const userViewPreferences = pgTable("user_view_preferences", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: integer("user_id").references(() => users.id).notNull(),
+  view_mode: text("view_mode").notNull().default('single_community'),
+  selected_tenant_id: uuid("selected_tenant_id").references(() => tenants.id),
+  selected_tenant_ids: uuid("selected_tenant_ids").array().default([]),
+  custom_filters: jsonb("custom_filters").default({}).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique().on(table.user_id),
+  index("idx_user_view_preferences_user_id").on(table.user_id),
+]);
+
+export const contentSharing = pgTable("content_sharing", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  content_type: text("content_type").notNull(),
+  content_id: uuid("content_id").notNull(),
+  source_tenant_id: uuid("source_tenant_id").references(() => tenants.id).notNull(),
+  shared_tenant_id: uuid("shared_tenant_id").references(() => tenants.id).notNull(),
+  shared_by: integer("shared_by").references(() => users.id),
+  is_approved: boolean("is_approved").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique().on(table.content_type, table.content_id, table.shared_tenant_id),
+  index("idx_content_sharing_content_id").on(table.content_id),
+  index("idx_content_sharing_source_tenant_id").on(table.source_tenant_id),
+  index("idx_content_sharing_shared_tenant_id").on(table.shared_tenant_id),
+]);
+
+export const communityConnections = pgTable("community_connections", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenant_id_1: uuid("tenant_id_1").references(() => tenants.id).notNull(),
+  tenant_id_2: uuid("tenant_id_2").references(() => tenants.id).notNull(),
+  relationship_type: text("relationship_type").notNull(),
+  is_bidirectional: boolean("is_bidirectional").default(true),
+  settings: jsonb("settings").default({}).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique().on(table.tenant_id_1, table.tenant_id_2),
+]);
+
+export const userJourneys = pgTable("user_journeys", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: integer("user_id").references(() => users.id).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  start_date: timestamp("start_date"),
+  end_date: timestamp("end_date"),
+  locations: jsonb("locations").array().default([]),
+  tenant_ids: uuid("tenant_ids").array().default([]),
+  journey_type: text("journey_type").default('travel'),
+  status: text("status").default('planning'),
+  is_public: boolean("is_public").default(false),
+  settings: jsonb("settings").default({}).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_user_journeys_user_id").on(table.user_id),
+  // Note: GIN index for tenant_ids array would be added via migration
+]);
+
+export const journeyActivities = pgTable("journey_activities", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  journey_id: uuid("journey_id").references(() => userJourneys.id).notNull(),
+  tenant_id: uuid("tenant_id").references(() => tenants.id),
+  activity_type: text("activity_type").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  location: jsonb("location"),
+  start_datetime: timestamp("start_datetime"),
+  end_datetime: timestamp("end_datetime"),
+  external_url: text("external_url"),
+  content_reference_id: uuid("content_reference_id"),
+  content_reference_type: text("content_reference_type"),
+  settings: jsonb("settings").default({}).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_journey_activities_journey_id").on(table.journey_id),
+  index("idx_journey_activities_tenant_id").on(table.tenant_id),
+]);
+
+// Multi-Tenant Schemas
+export const insertTenantSchema = createInsertSchema(tenants).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export const insertTenantUserSchema = createInsertSchema(tenantUsers).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export const insertUserViewPreferencesSchema = createInsertSchema(userViewPreferences).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export const insertContentSharingSchema = createInsertSchema(contentSharing).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export const insertCommunityConnectionSchema = createInsertSchema(communityConnections).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export const insertUserJourneySchema = createInsertSchema(userJourneys).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export const insertJourneyActivitySchema = createInsertSchema(journeyActivities).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
+// Multi-Tenant Types
+export type Tenant = typeof tenants.$inferSelect;
+export type InsertTenant = z.infer<typeof insertTenantSchema>;
+export type TenantUser = typeof tenantUsers.$inferSelect;
+export type InsertTenantUser = z.infer<typeof insertTenantUserSchema>;
+export type UserViewPreferences = typeof userViewPreferences.$inferSelect;
+export type InsertUserViewPreferences = z.infer<typeof insertUserViewPreferencesSchema>;
+export type ContentSharing = typeof contentSharing.$inferSelect;
+export type InsertContentSharing = z.infer<typeof insertContentSharingSchema>;
+export type CommunityConnection = typeof communityConnections.$inferSelect;
+export type InsertCommunityConnection = z.infer<typeof insertCommunityConnectionSchema>;
+export type UserJourney = typeof userJourneys.$inferSelect;
+export type InsertUserJourney = z.infer<typeof insertUserJourneySchema>;
+export type JourneyActivity = typeof journeyActivities.$inferSelect;
+export type InsertJourneyActivity = z.infer<typeof insertJourneyActivitySchema>;
