@@ -6613,6 +6613,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get posts for a specific group
+  app.get('/api/groups/:slug/posts', setUserContext, async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const { page = 1, limit = 20 } = req.query;
+      const offset = (Number(page) - 1) * Number(limit);
+      
+      // Find the group by slug
+      const group = await storage.getGroupBySlug(slug);
+      if (!group) {
+        return res.status(404).json({
+          success: false,
+          message: 'Group not found',
+          data: null
+        });
+      }
+      
+      // Get posts for this group
+      const groupPosts = await db.select({
+        id: posts.id,
+        content: posts.content,
+        author: {
+          id: users.id,
+          name: users.name,
+          username: users.username,
+          profileImage: users.profileImage
+        },
+        createdAt: posts.createdAt,
+        visibility: posts.visibility,
+        location: posts.location,
+        city: posts.city,
+        country: posts.country,
+        likesCount: sql<number>`(SELECT COUNT(*) FROM ${postLikes} WHERE ${postLikes.postId} = ${posts.id})`,
+        commentsCount: sql<number>`(SELECT COUNT(*) FROM ${postComments} WHERE ${postComments.postId} = ${posts.id})`,
+        isLiked: sql<boolean>`EXISTS(SELECT 1 FROM ${postLikes} WHERE ${postLikes.postId} = ${posts.id} AND ${postLikes.userId} = ${req.user?.id || 0})`,
+        mediaAssets: sql<any[]>`
+          COALESCE(
+            (SELECT json_agg(json_build_object(
+              'id', ma.id,
+              'fileUrl', ma.file_url,
+              'fileType', ma.file_type,
+              'mimeType', ma.mime_type,
+              'thumbnailUrl', ma.thumbnail_url
+            ))
+            FROM ${mediaAssets} ma
+            WHERE ma.entity_type = 'post' AND ma.entity_id = ${posts.id}
+            ), '[]'::json
+          )`
+      })
+      .from(posts)
+      .leftJoin(users, eq(posts.userId, users.id))
+      .where(and(
+        eq(posts.groupId, group.id),
+        isNull(posts.deletedAt)
+      ))
+      .orderBy(desc(posts.createdAt))
+      .limit(Number(limit))
+      .offset(offset);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Group posts retrieved successfully',
+        data: groupPosts
+      });
+      
+    } catch (error) {
+      console.error('Error getting group posts:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get group posts',
+        data: null
+      });
+    }
+  });
+
   // Create a new group
   app.post('/api/groups/create', isAuthenticated, async (req, res) => {
     try {

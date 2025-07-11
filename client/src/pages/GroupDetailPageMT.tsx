@@ -77,6 +77,12 @@ export default function GroupDetailPageMT() {
   const [events, setEvents] = useState<any[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Post data state
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(false);
+  const [postsPage, setPostsPage] = useState(1);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
 
   // Fetch member details with roles when members tab is active
   React.useEffect(() => {
@@ -109,6 +115,46 @@ export default function GroupDetailPageMT() {
         .catch(() => setLoadingEvents(false));
     }
   }, [activeTab, slug]);
+  
+  // Fetch group posts when posts tab is active
+  React.useEffect(() => {
+    if (activeTab === 'posts' && slug) {
+      fetchPosts();
+    }
+  }, [activeTab, slug, postsPage]);
+  
+  const fetchPosts = async () => {
+    setLoadingPosts(true);
+    try {
+      const response = await fetch(`/api/groups/${slug}/posts?page=${postsPage}&limit=10`);
+      const data = await response.json();
+      
+      if (data.success) {
+        if (postsPage === 1) {
+          setPosts(data.data || []);
+        } else {
+          setPosts(prev => [...prev, ...(data.data || [])]);
+        }
+        setHasMorePosts((data.data || []).length === 10);
+      }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+  
+  const formatTimeAgo = (date: string) => {
+    const now = new Date();
+    const postDate = new Date(date);
+    const seconds = Math.floor((now.getTime() - postDate.getTime()) / 1000);
+    
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+    return postDate.toLocaleDateString();
+  };
 
   // Fetch group details with members
   const { data: response, isLoading, error } = useQuery({
@@ -228,35 +274,47 @@ export default function GroupDetailPageMT() {
         )}
 
         {/* Group Activities */}
-        <div className="mt-info-card">
-          <div className="mt-info-card-header">
-            <Zap className="mt-info-card-icon" />
-            <h3 className="mt-info-card-title">What we do</h3>
-          </div>
-          <div className="mt-info-card-content space-y-3">
-            <div className="flex items-start gap-3">
-              <Music className="h-5 w-5 text-pink-500 mt-0.5" />
-              <div>
-                <h4 className="font-semibold">Weekly Milongas</h4>
-                <p className="text-sm">Join us every Friday for social dancing</p>
-              </div>
+        {group.activities && group.activities.length > 0 && (
+          <div className="mt-info-card">
+            <div className="mt-info-card-header">
+              <Zap className="mt-info-card-icon" />
+              <h3 className="mt-info-card-title">What we do</h3>
             </div>
-            <div className="flex items-start gap-3">
-              <BookOpen className="h-5 w-5 text-blue-500 mt-0.5" />
-              <div>
-                <h4 className="font-semibold">Workshops</h4>
-                <p className="text-sm">Monthly workshops with guest teachers</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <Trophy className="h-5 w-5 text-purple-500 mt-0.5" />
-              <div>
-                <h4 className="font-semibold">Performances</h4>
-                <p className="text-sm">Showcase your skills at our events</p>
-              </div>
+            <div className="mt-info-card-content space-y-3">
+              {group.activities.map((activity: any, index: number) => (
+                <div key={index} className="flex items-start gap-3">
+                  {activity.icon === 'music' && <Music className="h-5 w-5 text-pink-500 mt-0.5" />}
+                  {activity.icon === 'book' && <BookOpen className="h-5 w-5 text-blue-500 mt-0.5" />}
+                  {activity.icon === 'trophy' && <Trophy className="h-5 w-5 text-purple-500 mt-0.5" />}
+                  {!activity.icon && <Zap className="h-5 w-5 text-purple-500 mt-0.5" />}
+                  <div>
+                    <h4 className="font-semibold">{activity.title}</h4>
+                    <p className="text-sm">{activity.description}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
+        
+        {/* Group Tags/Interests */}
+        {group.tags && group.tags.length > 0 && (
+          <div className="mt-info-card">
+            <div className="mt-info-card-header">
+              <Heart className="mt-info-card-icon" />
+              <h3 className="mt-info-card-title">Our Interests</h3>
+            </div>
+            <div className="mt-info-card-content">
+              <div className="flex flex-wrap gap-2">
+                {group.tags.map((tag: string, index: number) => (
+                  <span key={index} className="px-3 py-1 bg-gradient-to-r from-pink-100 to-purple-100 text-sm rounded-full text-gray-700">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Sidebar Info */}
@@ -614,77 +672,129 @@ export default function GroupDetailPageMT() {
   };
 
   const renderPostsTab = () => (
-    <div className="space-y-6">
-      {/* Create Post */}
-      {isMember && (
-        <div className="mt-info-card">
-          <div className="flex gap-3">
-            <div className="mt-member-avatar">
-              {user?.profileImage ? (
-                <img src={user.profileImage} alt={user.name} className="w-full h-full rounded-full object-cover" />
-              ) : (
-                user?.name?.charAt(0) || 'U'
-              )}
-            </div>
-            <div className="flex-1">
-              <button className="w-full text-left px-4 py-3 bg-gray-100 rounded-lg text-gray-500 hover:bg-gray-200 transition-colors">
-                Share something with the group...
-              </button>
-              <div className="flex gap-2 mt-3">
-                <Button variant="ghost" size="sm" className="text-pink-600 hover:bg-pink-50">
-                  <Image className="h-4 w-4 mr-2" />
-                  Photo
-                </Button>
-                <Button variant="ghost" size="sm" className="text-blue-600 hover:bg-blue-50">
-                  <Video className="h-4 w-4 mr-2" />
-                  Video
-                </Button>
-                <Button variant="ghost" size="sm" className="text-purple-600 hover:bg-purple-50">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Event
-                </Button>
+      <div className="space-y-6">
+        {/* Create Post */}
+        {isMember && (
+          <div className="mt-info-card">
+            <div className="flex gap-3">
+              <div className="mt-member-avatar">
+                {user?.profileImage ? (
+                  <img src={user.profileImage} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  user?.name?.charAt(0) || 'U'
+                )}
+              </div>
+              <div className="flex-1">
+                <button 
+                  onClick={() => setLocation(`/groups/${slug}/create-post`)}
+                  className="w-full text-left px-4 py-3 bg-gray-100 rounded-lg text-gray-500 hover:bg-gray-200 transition-colors"
+                >
+                  Share something with the group...
+                </button>
+                <div className="flex gap-2 mt-3">
+                  <Button variant="ghost" size="sm" className="text-pink-600 hover:bg-pink-50">
+                    <Image className="h-4 w-4 mr-2" />
+                    Photo
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-blue-600 hover:bg-blue-50">
+                    <Video className="h-4 w-4 mr-2" />
+                    Video
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-purple-600 hover:bg-purple-50">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Event
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Posts List */}
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="mt-info-card">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="mt-member-avatar">
-              M{i}
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold">Member {i}</h4>
-              <p className="text-sm text-gray-500">2 hours ago</p>
-            </div>
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
+        )}
+  
+        {/* Posts List */}
+        {loadingPosts && postsPage === 1 ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-pink-500"></div>
           </div>
-          <p className="mb-4">
-            Just had an amazing practice session! Working on my ochos and feeling great progress. 
-            Who else is practicing today? 💃
-          </p>
-          <div className="flex items-center gap-6 text-gray-500">
-            <button className="flex items-center gap-2 hover:text-pink-500 transition-colors">
-              <Heart className="h-5 w-5" />
-              <span className="text-sm font-medium">12</span>
-            </button>
-            <button className="flex items-center gap-2 hover:text-blue-500 transition-colors">
-              <MessageCircle className="h-5 w-5" />
-              <span className="text-sm font-medium">5</span>
-            </button>
-            <button className="flex items-center gap-2 hover:text-green-500 transition-colors">
-              <Share2 className="h-5 w-5" />
-              <span className="text-sm font-medium">Share</span>
-            </button>
+        ) : posts.length > 0 ? (
+          <>
+            {posts.map((post) => (
+              <div key={post.id} className="mt-info-card">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="mt-member-avatar cursor-pointer" onClick={() => setLocation(`/u/${post.author.username}`)}>
+                    {post.author.profileImage ? (
+                      <img src={post.author.profileImage} alt={post.author.name} className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      post.author.name?.charAt(0) || 'U'
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold cursor-pointer hover:underline" onClick={() => setLocation(`/u/${post.author.username}`)}>
+                      {post.author.name}
+                    </h4>
+                    <p className="text-sm text-gray-500">{formatTimeAgo(post.createdAt)}</p>
+                  </div>
+                  <Button variant="ghost" size="sm">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <p className="mb-4 whitespace-pre-wrap">{post.content}</p>
+                
+                {/* Media Assets */}
+                {post.mediaAssets && post.mediaAssets.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    {post.mediaAssets.map((media: any) => (
+                      <div key={media.id} className="relative rounded-lg overflow-hidden">
+                        {media.fileType === 'image' ? (
+                          <img src={media.fileUrl} alt="" className="w-full h-48 object-cover" />
+                        ) : media.fileType === 'video' ? (
+                          <video src={media.fileUrl} className="w-full h-48 object-cover" controls />
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-6 text-gray-500">
+                  <button className={`flex items-center gap-2 transition-colors ${post.isLiked ? 'text-pink-500' : 'hover:text-pink-500'}`}>
+                    <Heart className={`h-5 w-5 ${post.isLiked ? 'fill-current' : ''}`} />
+                    <span className="text-sm font-medium">{post.likesCount || 0}</span>
+                  </button>
+                  <button className="flex items-center gap-2 hover:text-blue-500 transition-colors">
+                    <MessageCircle className="h-5 w-5" />
+                    <span className="text-sm font-medium">{post.commentsCount || 0}</span>
+                  </button>
+                  <button className="flex items-center gap-2 hover:text-green-500 transition-colors">
+                    <Share2 className="h-5 w-5" />
+                    <span className="text-sm font-medium">Share</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+            
+            {/* Load More */}
+            {hasMorePosts && (
+              <div className="text-center">
+                <Button
+                  onClick={() => setPostsPage(prev => prev + 1)}
+                  disabled={loadingPosts}
+                  className="mt-action-button mt-action-button-secondary"
+                >
+                  {loadingPosts ? 'Loading...' : 'Load More Posts'}
+                </Button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="mt-empty-state">
+            <MessageCircle className="mt-empty-icon" />
+            <h3 className="mt-empty-title">No posts yet</h3>
+            <p className="mt-empty-description">
+              {isMember ? 'Be the first to share something with the group!' : 'Join the group to see and create posts.'}
+            </p>
           </div>
-        </div>
-      ))}
-    </div>
+        )}
+      </div>
   );
 
   return (
