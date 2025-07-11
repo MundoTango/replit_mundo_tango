@@ -6566,35 +6566,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all events for this group's city
       let groupEvents = [];
       if (group.type === 'city' && group.city) {
-        groupEvents = await db.select({
-          id: events.id,
-          title: events.title,
-          description: events.description,
-          startDate: events.startDate,
-          endDate: events.endDate,
-          location: events.location,
-          city: events.city,
-          country: events.country,
-          latitude: events.latitude,
-          longitude: events.longitude,
-          host: {
-            id: users.id,
-            name: users.name,
-            username: users.username,
-            profileImage: users.profileImage
-          },
-          attendeeCount: events.attendeeCount,
-          imageUrl: events.imageUrl,
-          isRecurring: events.isRecurring,
-          frequency: events.frequency
-        })
-        .from(events)
-        .leftJoin(users, eq(events.userId, users.id))
-        .where(and(
-          eq(events.city, group.city),
-          gt(events.startDate, new Date())
-        ))
-        .orderBy(events.startDate);
+        const rawEvents = await db.select()
+          .from(events)
+          .leftJoin(users, eq(events.userId, users.id))
+          .where(and(
+            eq(events.city, group.city),
+            gt(events.startDate, new Date())
+          ))
+          .orderBy(events.startDate);
+        
+        // Transform raw events to include host object
+        groupEvents = rawEvents.map(row => ({
+          id: row.events.id,
+          title: row.events.title,
+          description: row.events.description,
+          startDate: row.events.startDate,
+          endDate: row.events.endDate,
+          location: row.events.location,
+          city: row.events.city,
+          country: row.events.country,
+          latitude: row.events.latitude,
+          longitude: row.events.longitude,
+          host: row.users ? {
+            id: row.users.id,
+            name: row.users.name,
+            username: row.users.username,
+            profileImage: row.users.profileImage
+          } : null,
+          attendeeCount: row.events.attendeeCount || 0,
+          imageUrl: row.events.imageUrl,
+          isRecurring: row.events.isRecurring,
+          frequency: row.events.frequency
+        }));
       }
       
       res.status(200).json({
