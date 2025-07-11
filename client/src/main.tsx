@@ -1,10 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
-import { CacheMonitor } from "./utils/cache-monitor";
-
-// Initialize cache monitoring
-const monitor = CacheMonitor.getInstance();
 
 // Register service worker with updated cache version
 if ('serviceWorker' in navigator) {
@@ -65,17 +61,6 @@ if ('serviceWorker' in navigator) {
     console.log('Cleared old theme from localStorage');
   }
 }
-
-// Start cache monitoring
-monitor.startMonitoring();
-
-// Log cache status on startup
-monitor.checkCacheStatus().then(status => {
-  console.log('Cache status:', status);
-  if (!status.isValid) {
-    console.warn('Cache version mismatch detected. Update available.');
-  }
-});
 
 const rootElement = document.getElementById("root");
 

@@ -16,15 +16,17 @@ interface CommunityCardProps {
   };
   onJoin?: (communityId: number) => void;
   onLeave?: (communityId: number) => void;
+  onClick?: () => void;
 }
 
 const CommunityCard: React.FC<CommunityCardProps> = ({ 
   community, 
   onJoin, 
-  onLeave 
+  onLeave,
+  onClick 
 }) => {
   return (
-    <div className="bg-white rounded-[12px] shadow-md overflow-hidden mb-4">
+    <div className="bg-white rounded-[12px] shadow-md overflow-hidden mb-4 cursor-pointer hover:shadow-lg transition-shadow" onClick={onClick}>
       {/* Community Image */}
       <div className="relative h-40 bg-gradient-to-r from-[#8E142E] to-[#0D448A]">
         {community.imageUrl ? (
@@ -78,11 +80,12 @@ const CommunityCard: React.FC<CommunityCardProps> = ({
           <Button
             variant={community.isJoined ? "outlined" : "contained"}
             size="small"
-            onClick={() => 
+            onClick={(e) => {
+              e.stopPropagation();
               community.isJoined 
                 ? onLeave?.(community.id) 
                 : onJoin?.(community.id)
-            }
+            }}
             sx={{
               backgroundColor: community.isJoined ? 'transparent' : '#0D448A',
               color: community.isJoined ? '#0D448A' : 'white',

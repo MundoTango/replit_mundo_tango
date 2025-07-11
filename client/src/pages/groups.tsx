@@ -4,6 +4,7 @@ import { Search, Plus, Users, Globe, Lock, Star, MapPin, UserPlus, Calendar, Mes
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
+import CommunityCard from '@/components/Community/CommunityCard';
 
 export default function GroupsPage() {
   console.log('🎯 GROUPS PAGE COMPONENT RENDERING - v5 ROLE-BASED GROUPS');
@@ -198,8 +199,14 @@ export default function GroupsPage() {
               />
             </div>
             <button 
-              className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
-              onClick={() => setLocation('/groups/create')}
+              className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#8E142E] to-[#0D448A] text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+              onClick={() => {
+                toast({
+                  title: "Coming Soon",
+                  description: "Community creation feature will be available soon!",
+                  variant: "default",
+                });
+              }}
             >
               <Plus className="h-5 w-5" />
               Create Community
@@ -239,11 +246,19 @@ export default function GroupsPage() {
             {filteredGroups.map((group: any) => (
               <CommunityCard
                 key={group.id}
-                group={group}
-                eventCount={getEventCount(group.id)}
+                community={{
+                  id: group.id,
+                  name: group.name,
+                  description: group.description || 'Connect with fellow tango enthusiasts and share your passion.',
+                  imageUrl: group.image_url,
+                  location: group.city && group.country ? `${group.city}, ${group.country}` : (group.city || group.country || 'Global'),
+                  memberCount: group.member_count || 0,
+                  eventCount: getEventCount(group.id),
+                  isJoined: group.membershipStatus === 'member'
+                }}
                 onJoin={() => joinGroupMutation.mutate(group.slug)}
                 onLeave={() => leaveGroupMutation.mutate(group.slug)}
-                onViewDetails={() => setLocation(`/groups/${group.slug}`)}
+                onClick={() => setLocation(`/groups/${group.slug}`)}
               />
             ))}
           </div>
@@ -261,114 +276,3 @@ export default function GroupsPage() {
   );
 }
 
-// Community Card Component
-interface CommunityCardProps {
-  group: any;
-  eventCount: number;
-  onJoin: () => void;
-  onLeave: () => void;
-  onViewDetails: () => void;
-}
-
-function CommunityCard({ group, eventCount, onJoin, onLeave, onViewDetails }: CommunityCardProps) {
-  // Get gradient based on type
-  const getGradient = () => {
-    if (group.type === 'city') return 'from-blue-500 to-purple-600';
-    if (group.type === 'role') {
-      if (group.role_type === 'organizer') return 'from-pink-500 to-purple-600';
-      if (group.role_type === 'musician') return 'from-purple-500 to-indigo-600';
-      if (group.role_type === 'teacher') return 'from-orange-500 to-pink-600';
-    }
-    if (group.type === 'practice') return 'from-purple-500 to-pink-600';
-    if (group.type === 'festival') return 'from-indigo-500 to-purple-600';
-    return 'from-pink-500 to-blue-600';
-  };
-
-  // Get location display
-  const getLocation = () => {
-    if (group.city === 'Global') return '🌍 Global';
-    if (group.city && group.country) return `📍 ${group.city}, ${group.country}`;
-    return '📍 ' + (group.city || group.country || 'Global');
-  };
-
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow">
-      {/* Gradient Header */}
-      <div className={`h-32 bg-gradient-to-br ${getGradient()} p-6 text-white relative`}>
-        <h3 className="text-xl font-bold mb-2">{group.name}</h3>
-        <div className="text-sm opacity-90">{getLocation()}</div>
-      </div>
-
-      {/* Content */}
-      <div className="p-6">
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {group.description || 'Connect with fellow tango enthusiasts and share your passion.'}
-        </p>
-
-        {/* Stats */}
-        <div className="flex items-center gap-6 mb-4">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-600">
-              <span className="font-semibold text-gray-900">{group.member_count || 0}</span> members
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-600">
-              <span className="font-semibold text-gray-900">{eventCount}</span> events
-            </span>
-          </div>
-        </div>
-
-        {/* Rating */}
-        <div className="flex items-center gap-1 mb-4">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              className={`h-4 w-4 ${
-                star <= 4 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-              }`}
-            />
-          ))}
-          <span className="text-sm text-gray-600 ml-2">4.{Math.floor(Math.random() * 9)}</span>
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-3">
-          {group.membershipStatus === 'member' ? (
-            <>
-              <button
-                onClick={onLeave}
-                className="flex-1 py-2 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-              >
-                Leave Community
-              </button>
-              <button
-                onClick={onViewDetails}
-                className="py-2 px-4 text-purple-600 font-medium hover:text-purple-700"
-              >
-                View Details
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={onJoin}
-                className="flex-1 py-2 px-4 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
-              >
-                Join Community
-              </button>
-              <button
-                onClick={onViewDetails}
-                className="py-2 px-4 text-purple-600 font-medium hover:text-purple-700"
-              >
-                View Details
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
