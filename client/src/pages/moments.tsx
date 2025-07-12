@@ -1,11 +1,18 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import ModernPostCreator from '@/components/moments/ModernPostCreator';
 import EnhancedPostFeed from '@/components/moments/EnhancedPostFeed';
 import EventsBoard from '@/components/events/EventsBoard';
 import { Sparkles, Heart } from 'lucide-react';
+import { withPerformance } from '@/lib/performance';
 
-export default function MomentsPage() {
+function MomentsPage() {
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  const handlePostCreated = useCallback(() => {
+    // Instead of reloading the page, just refresh the feed
+    setRefreshKey(prev => prev + 1);
+  }, []);
   return (
     <DashboardLayout>
       {/* Enhanced gradient background with brand colors */}
@@ -40,8 +47,8 @@ export default function MomentsPage() {
             {/* Main content area with enhanced styling */}
             <div className="flex-1 lg:w-0 lg:flex-[0_0_68%] max-w-none">
               <div className="space-y-6">
-                <ModernPostCreator onPostCreated={() => window.location.reload()} />
-                <EnhancedPostFeed />
+                <ModernPostCreator onPostCreated={handlePostCreated} />
+                <EnhancedPostFeed key={refreshKey} />
               </div>
             </div>
             
@@ -57,3 +64,6 @@ export default function MomentsPage() {
     </DashboardLayout>
   );
 }
+
+// Export without performance wrapper for now to avoid breaking changes
+export default MomentsPage;

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Heart, Search, X, Tag, Filter, Sparkles, Users, Globe, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import EnhancedPostItem from './EnhancedPostItem';
+import { withPerformance, useDebounce } from '@/lib/performance';
 
 interface Post {
   id: number;
@@ -38,14 +39,16 @@ interface Post {
   shareCount?: number;
 }
 
-export default function EnhancedPostFeed() {
+function EnhancedPostFeed() {
   const { user } = useAuth();
-  console.log('[EnhancedPostFeed] Component mounted at', new Date().toISOString());
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [filterBy, setFilterBy] = useState<'all' | 'following' | 'nearby'>('all');
   const [filterTags, setFilterTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  
+  // Debounce tag input for better performance
+  const debouncedTagInput = useDebounce(tagInput, 300);
 
 
   // Fetch posts
@@ -86,11 +89,11 @@ export default function EnhancedPostFeed() {
     }
   });
 
-  const handleLike = (postId: number) => {
+  const handleLike = useCallback((postId: number) => {
     likeMutation.mutate(postId);
-  };
+  }, [likeMutation]);
 
-  const handleShare = (post: Post) => {
+  const handleShare = useCallback((post: Post) => {
     if (navigator.share) {
       navigator.share({
         title: `Post by ${post.user.name}`,
@@ -104,18 +107,18 @@ export default function EnhancedPostFeed() {
         description: "Post content copied to clipboard"
       });
     }
-  };
+  }, [toast]);
 
-  const addTag = () => {
+  const addTag = useCallback(() => {
     if (tagInput.trim() && !filterTags.includes(tagInput.trim())) {
       setFilterTags([...filterTags, tagInput.trim()]);
       setTagInput('');
     }
-  };
+  }, [tagInput, filterTags]);
 
-  const removeTag = (tag: string) => {
-    setFilterTags(filterTags.filter(t => t !== tag));
-  };
+  const removeTag = useCallback((tag: string) => {
+    setFilterTags(prev => prev.filter(t => t !== tag));
+  }, []);
 
   const getFilterIcon = (filter: string) => {
     switch (filter) {
@@ -311,3 +314,5 @@ export default function EnhancedPostFeed() {
     </div>
   );
 }
+
+export default withPerformance(EnhancedPostFeed);

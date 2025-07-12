@@ -46,7 +46,7 @@ interface ProjectMetrics {
 export default function HierarchyDashboard() {
   const [metrics, setMetrics] = useState<ProjectMetrics | null>(null);
   const [loading, setLoading] = useState(true);
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(false); // Disabled auto-refresh to prevent 404 errors
 
   useEffect(() => {
     fetchMetrics();

@@ -99,70 +99,8 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
 
-  // Force complete cache clear and service worker unregistration
-  React.useEffect(() => {
-    const forceCacheClear = async () => {
-      console.log('=== FORCE CACHE CLEAR START ===');
-      
-      // 1. Aggressively unregister ALL service workers
-      if ('serviceWorker' in navigator) {
-        try {
-          // Get all registrations
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          console.log('Found service workers:', registrations.length);
-          
-          // Try multiple methods to kill service workers
-          for (const registration of registrations) {
-            // Method 1: Normal unregister
-            const success = await registration.unregister();
-            console.log('Unregistered service worker:', success);
-            
-            // Method 2: Force update then unregister
-            if (!success) {
-              await registration.update();
-              const retry = await registration.unregister();
-              console.log('Retry unregister after update:', retry);
-            }
-          }
-          
-          // Method 3: Clear controller
-          if (navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
-          }
-          
-        } catch (error) {
-          console.error('Error unregistering service workers:', error);
-        }
-      }
-      
-      // 2. Delete ALL caches
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        console.log('Found caches:', cacheNames);
-        
-        for (const cacheName of cacheNames) {
-          const deleted = await caches.delete(cacheName);
-          console.log(`Deleted cache ${cacheName}:`, deleted);
-        }
-      }
-      
-      // 3. Clear localStorage
-      localStorage.clear();
-      console.log('Cleared localStorage');
-      
-      // 4. Clear sessionStorage
-      sessionStorage.clear();
-      console.log('Cleared sessionStorage');
-      
-      // 5. Add cache-busting to all requests
-      window.CACHE_BUSTER = Date.now();
-      console.log('Cache buster:', window.CACHE_BUSTER);
-      
-      console.log('=== FORCE CACHE CLEAR COMPLETE ===');
-    };
-    
-    forceCacheClear();
-  }, []);
+  // Removed aggressive cache clearing that was causing performance issues
+  // Service workers and caching are essential for good performance
 
   console.log("Router state:", { user, isLoading, isAuthenticated });
 
