@@ -4,15 +4,17 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MapPin, Search, Navigation, ExternalLink } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { GoogleMap, LoadScript, Marker, Autocomplete } from '@react-google-maps/api';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-const libraries: ("places" | "drawing" | "geometry" | "localContext" | "visualization")[] = ['places'];
-
-const mapContainerStyle = {
-  width: '100%',
-  height: '400px',
-  borderRadius: '8px',
-};
+// Fix Leaflet icon issues
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
 
 const defaultCenter = {
   lat: -34.603722, // Buenos Aires default
@@ -24,196 +26,71 @@ interface LocationStepProps {
   updateData: (data: any) => void;
 }
 
+interface AddressSuggestion {
+  display_name: string;
+  lat: string;
+  lon: string;
+  address: {
+    house_number?: string;
+    road?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postcode?: string;
+  };
+}
+
+// Custom component to handle map clicks in Leaflet
+function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click: (e) => {
+      onMapClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
 export default function LocationStep({ data, updateData }: LocationStepProps) {
-  const [isGeocoding, setIsGeocoding] = useState(false);
-  const [mapUrl, setMapUrl] = useState('');
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [marker, setMarker] = useState<google.maps.Marker | null>(null);
-  const [center, setCenter] = useState(defaultCenter);
-  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(
+    data.latitude && data.longitude ? [data.latitude, data.longitude] : null
+  );
+  const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const mapRef = useRef<L.Map | null>(null);
   const suggestionsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Check if we have Google Maps API key - moved to top to avoid hoisting issues
-  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  
-  // Debug Google Maps API key
-  console.log('Google Maps API Key exists:', !!googleMapsApiKey);
-  console.log('Google Maps API Key length:', googleMapsApiKey?.length);
-  console.log('Google Maps API Key (first 10 chars):', googleMapsApiKey?.substring(0, 10));
 
-  // Update center when coordinates change
-  useEffect(() => {
-    if (data.latitude && data.longitude) {
-      const newCenter = { lat: data.latitude, lng: data.longitude };
-      setCenter(newCenter);
-      
-      // Update marker position
-      if (marker && map) {
-        marker.setPosition(newCenter);
-        map.panTo(newCenter);
-      }
-    }
-  }, [data.latitude, data.longitude, map, marker]);
-
-  const onMapLoad = useCallback((map: google.maps.Map) => {
-    setMap(map);
-    
-    // Create marker
-    const newMarker = new google.maps.Marker({
-      position: center,
-      map: map,
-      draggable: true,
-      animation: google.maps.Animation.DROP,
+  // Handle map click
+  const handleMapClick = async (lat: number, lng: number) => {
+    setMarkerPosition([lat, lng]);
+    updateData({
+      latitude: lat,
+      longitude: lng,
     });
-    
-    setMarker(newMarker);
-    
-    // Handle marker drag
-    newMarker.addListener('dragend', () => {
-      const position = newMarker.getPosition();
-      if (position) {
+
+    // Reverse geocode using OpenStreetMap Nominatim
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
+      );
+      const data = await response.json();
+      
+      if (data && data.address) {
         updateData({
-          latitude: position.lat(),
-          longitude: position.lng(),
-        });
-        
-        // Reverse geocode to get address
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ location: position }, (results, status) => {
-          if (status === 'OK' && results && results[0]) {
-            const components = results[0].address_components;
-            let streetNumber = '';
-            let streetName = '';
-            let city = '';
-            let state = '';
-            let country = '';
-            let zipCode = '';
-            
-            components?.forEach((component) => {
-              const types = component.types;
-              if (types.includes('street_number')) streetNumber = component.long_name;
-              if (types.includes('route')) streetName = component.long_name;
-              if (types.includes('locality')) city = component.long_name;
-              if (types.includes('administrative_area_level_1')) state = component.short_name;
-              if (types.includes('country')) country = component.long_name;
-              if (types.includes('postal_code')) zipCode = component.long_name;
-            });
-            
-            updateData({
-              address: `${streetNumber} ${streetName}`.trim(),
-              city,
-              state,
-              country,
-              zipCode,
-            });
-          }
+          address: [data.address.house_number, data.address.road].filter(Boolean).join(' ') || '',
+          city: data.address.city || data.address.town || data.address.village || '',
+          state: data.address.state || '',
+          country: data.address.country || '',
+          zipCode: data.address.postcode || '',
         });
       }
-    });
-  }, [center, updateData]);
-
-  const onMapClick = useCallback((e: google.maps.MapMouseEvent) => {
-    if (e.latLng && marker) {
-      const lat = e.latLng.lat();
-      const lng = e.latLng.lng();
-      
-      marker.setPosition(e.latLng);
-      updateData({
-        latitude: lat,
-        longitude: lng,
-      });
-      
-      // Reverse geocode
-      const geocoder = new google.maps.Geocoder();
-      geocoder.geocode({ location: e.latLng }, (results, status) => {
-        if (status === 'OK' && results && results[0]) {
-          const components = results[0].address_components;
-          let streetNumber = '';
-          let streetName = '';
-          let city = '';
-          let state = '';
-          let country = '';
-          let zipCode = '';
-          
-          components?.forEach((component) => {
-            const types = component.types;
-            if (types.includes('street_number')) streetNumber = component.long_name;
-            if (types.includes('route')) streetName = component.long_name;
-            if (types.includes('locality')) city = component.long_name;
-            if (types.includes('administrative_area_level_1')) state = component.short_name;
-            if (types.includes('country')) country = component.long_name;
-            if (types.includes('postal_code')) zipCode = component.long_name;
-          });
-          
-          updateData({
-            address: `${streetNumber} ${streetName}`.trim(),
-            city,
-            state,
-            country,
-            zipCode,
-          });
-        }
-      });
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
     }
-  }, [marker, updateData]);
+  };
 
-  const onPlaceChanged = useCallback(() => {
-    if (autocompleteRef.current) {
-      const place = autocompleteRef.current.getPlace();
-      
-      if (place.geometry && place.geometry.location) {
-        const lat = place.geometry.location.lat();
-        const lng = place.geometry.location.lng();
-        
-        updateData({
-          latitude: lat,
-          longitude: lng,
-        });
-        
-        if (map && marker) {
-          map.panTo(place.geometry.location);
-          map.setZoom(17);
-          marker.setPosition(place.geometry.location);
-        }
-        
-        // Parse address components
-        if (place.address_components) {
-          let streetNumber = '';
-          let streetName = '';
-          let city = '';
-          let state = '';
-          let country = '';
-          let zipCode = '';
-          
-          place.address_components.forEach((component) => {
-            const types = component.types;
-            if (types.includes('street_number')) streetNumber = component.long_name;
-            if (types.includes('route')) streetName = component.long_name;
-            if (types.includes('locality')) city = component.long_name;
-            if (types.includes('administrative_area_level_1')) state = component.short_name;
-            if (types.includes('country')) country = component.long_name;
-            if (types.includes('postal_code')) zipCode = component.long_name;
-          });
-          
-          updateData({
-            address: `${streetNumber} ${streetName}`.trim(),
-            city,
-            state,
-            country,
-            zipCode,
-          });
-        }
-      }
-    }
-  }, [map, marker, updateData]);
-
-  const onAutocompleteLoad = useCallback((autocomplete: google.maps.places.Autocomplete) => {
-    autocompleteRef.current = autocomplete;
-  }, []);
+  // Removed Google Maps place changed and autocomplete load handlers
 
   // Manual geocoding function for verify button
   const geocodeAddress = useCallback(async () => {
@@ -241,12 +118,10 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
           longitude: parseFloat(lon),
         });
         
-        // Update map if using Google Maps
-        if (map && marker) {
-          const newPos = new google.maps.LatLng(parseFloat(lat), parseFloat(lon));
-          map.panTo(newPos);
-          map.setZoom(17);
-          marker.setPosition(newPos);
+        // Update map position
+        setMarkerPosition([parseFloat(lat), parseFloat(lon)]);
+        if (mapRef.current) {
+          mapRef.current.setView([parseFloat(lat), parseFloat(lon)], 17);
         }
         
         toast({
@@ -270,7 +145,7 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
     } finally {
       setIsGeocoding(false);
     }
-  }, [data.address, data.city, data.state, data.country, map, marker, updateData]);
+  }, [data.address, data.city, data.state, data.country, updateData]);
 
   // Address autocomplete search using OpenStreetMap
   const searchAddressSuggestions = useCallback(async (query: string) => {
@@ -329,6 +204,7 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
       city: address.city || address.town || address.village || address.municipality || '',
       state: address.state || address.province || '',
       country: address.country || '',
+      zipCode: address.postcode || '', // Add zip code from address
       latitude: parseFloat(suggestion.lat),
       longitude: parseFloat(suggestion.lon),
     });
@@ -336,19 +212,17 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
     setShowSuggestions(false);
     setAddressSuggestions([]);
 
-    // Update map if available
-    if (map && marker) {
-      const newPos = new google.maps.LatLng(parseFloat(suggestion.lat), parseFloat(suggestion.lon));
-      map.panTo(newPos);
-      map.setZoom(17);
-      marker.setPosition(newPos);
+    // Update map position
+    setMarkerPosition([parseFloat(suggestion.lat), parseFloat(suggestion.lon)]);
+    if (mapRef.current) {
+      mapRef.current.setView([parseFloat(suggestion.lat), parseFloat(suggestion.lon)], 17);
     }
 
     toast({
       title: 'Address selected',
       description: 'Location has been updated on the map.',
     });
-  }, [updateData, map, marker, toast]);
+  }, [updateData, toast]);
 
   const getDirectionsUrl = () => {
     if (data.latitude && data.longitude) {
@@ -371,91 +245,51 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
         <p className="text-gray-600">Your address is only shared with guests after they've made a reservation</p>
       </div>
 
-      {/* Google Maps integration */}
-      {googleMapsApiKey ? (
-        <LoadScript
-          googleMapsApiKey={googleMapsApiKey}
-          libraries={libraries}
-          onLoad={() => console.log('Google Maps loaded successfully')}
-          onError={(error) => {
-            console.error('Error loading Google Maps:', error);
-            toast({
-              title: 'Map Loading Error',
-              description: 'Failed to load Google Maps. Please check your internet connection.',
-              variant: 'destructive',
-            });
-          }}
-        >
-          <div className="space-y-4">
-            {/* Autocomplete search box */}
-            <div className="relative">
-              <Label htmlFor="search-address">Search for your address</Label>
-              <Autocomplete
-                onLoad={onAutocompleteLoad}
-                onPlaceChanged={onPlaceChanged}
-              >
-                <div className="relative">
-                  <Input
-                    id="search-address"
-                    ref={inputRef}
-                    placeholder="Start typing your address..."
-                    className="mt-1 pr-10"
-                  />
-                  <Search className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
-                </div>
-              </Autocomplete>
-            </div>
-
-            {/* Interactive Google Map */}
-            <div className="rounded-lg overflow-hidden border border-gray-200">
-              <GoogleMap
-                mapContainerStyle={mapContainerStyle}
-                center={center}
-                zoom={15}
-                onLoad={onMapLoad}
-                onClick={onMapClick}
-                options={{
-                  streetViewControl: true,
-                  mapTypeControl: true,
-                  fullscreenControl: true,
-                }}
-              />
-            </div>
-
-            {/* Directions links */}
-            {data.latitude && data.longitude && (
-              <div className="flex gap-4">
-                <a
-                  href={getDirectionsUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
-                >
-                  <Navigation className="h-4 w-4" />
-                  Get Google Maps directions
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-                <a
-                  href={getAppleMapsUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
-                >
-                  <Navigation className="h-4 w-4" />
-                  Open in Apple Maps
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-            )}
-          </div>
-        </LoadScript>
-      ) : (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm text-yellow-800">
-            Google Maps integration requires an API key. Please add VITE_GOOGLE_MAPS_API_KEY to your environment variables.
-          </p>
+      {/* OpenStreetMap/Leaflet integration */}
+      <div className="space-y-4">
+        {/* Interactive Leaflet Map */}
+        <div className="rounded-lg overflow-hidden border border-gray-200" style={{ height: '400px' }}>
+          <MapContainer
+            center={markerPosition || [defaultCenter.lat, defaultCenter.lng]}
+            zoom={markerPosition ? 17 : 15}
+            style={{ height: '100%', width: '100%' }}
+            ref={mapRef}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <MapClickHandler onMapClick={handleMapClick} />
+            {markerPosition && <Marker position={markerPosition} />}
+          </MapContainer>
         </div>
-      )}
+
+        {/* Directions links */}
+        {data.latitude && data.longitude && (
+          <div className="flex gap-4">
+            <a
+              href={getDirectionsUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
+            >
+              <Navigation className="h-4 w-4" />
+              Get Google Maps directions
+              <ExternalLink className="h-3 w-3" />
+            </a>
+            <a
+              href={getAppleMapsUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
+            >
+              <Navigation className="h-4 w-4" />
+              Open in Apple Maps
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        )}
+      </div>
 
       <div className="space-y-4">
         <div className="relative">

@@ -10409,7 +10409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Host Home API endpoints
-  app.post('/api/host-homes', isAuthenticated, async (req, res) => {
+  app.post('/api/host-homes', setUserContext, async (req, res) => {
     try {
       const userId = req.user!.id;
       const hostHomeData = req.body;
@@ -10481,7 +10481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload photos for host homes
-  app.post('/api/upload/host-home-photos', isAuthenticated, upload.array('files', 10), async (req, res) => {
+  app.post('/api/upload/host-home-photos', setUserContext, upload.array('files', 10), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
       
