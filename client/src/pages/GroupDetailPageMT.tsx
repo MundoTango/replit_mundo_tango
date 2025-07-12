@@ -16,6 +16,9 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import EventMap from '@/components/EventMap';
 import { Filter } from 'lucide-react';
+import CommunityMapWithLayers from '@/components/Community/CommunityMapWithLayers';
+import HostHomesList from '@/components/Housing/HostHomesList';
+import RecommendationsList from '@/components/Recommendations/RecommendationsList';
 import '../styles/ttfiles.css';
 import '../styles/mt-group.css';
 
@@ -797,6 +800,97 @@ export default function GroupDetailPageMT() {
       </div>
   );
 
+  const renderHousingTab = () => {
+    return (
+      <div className="space-y-6">
+        {/* Host Onboarding for Super Admin */}
+        {user?.isSuperAdmin && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="h-5 w-5 text-purple-600" />
+              <span className="font-semibold text-purple-900">Super Admin Actions</span>
+            </div>
+            <Button
+              onClick={() => setLocation('/host-onboarding')}
+              className="mt-action-button mt-action-button-primary"
+            >
+              <Home className="h-4 w-4" />
+              Start Host Onboarding
+            </Button>
+          </div>
+        )}
+        
+        <HostHomesList 
+          city={group.city} 
+          groupSlug={slug}
+          showFilters={true}
+        />
+      </div>
+    );
+  };
+
+  const renderRecommendationsTab = () => {
+    return (
+      <div className="space-y-6">
+        <RecommendationsList 
+          city={group.city} 
+          groupSlug={slug}
+          showFilters={true}
+        />
+      </div>
+    );
+  };
+
+  const renderMapTab = () => {
+    // Get coordinates for the city if available
+    const getCoordinatesForCity = (city: string) => {
+      const cityCoordinates: { [key: string]: [number, number] } = {
+        'Buenos Aires': [-34.6037, -58.3816],
+        'Paris': [48.8566, 2.3522],
+        'New York': [40.7128, -74.0060],
+        'London': [51.5074, -0.1278],
+        'Berlin': [52.5200, 13.4050],
+        'Barcelona': [41.3851, 2.1734],
+        'Rome': [41.9028, 12.4964],
+        'Tokyo': [35.6762, 139.6503],
+        'Sydney': [-33.8688, 151.2093],
+        'Mexico City': [19.4326, -99.1332],
+      };
+      return cityCoordinates[city] || [-34.6037, -58.3816]; // Default to Buenos Aires
+    };
+
+    const cityCenter = group.city ? getCoordinatesForCity(group.city) : [-34.6037, -58.3816];
+
+    return (
+      <div className="space-y-6">
+        <div className="mt-info-card">
+          <div className="mt-info-card-header">
+            <MapPin className="mt-info-card-icon" />
+            <h3 className="mt-info-card-title">Community Map</h3>
+          </div>
+          <div className="mt-info-card-content p-0">
+            <div className="p-4 border-b border-gray-200">
+              <p className="text-gray-600">
+                Explore events, housing, and recommendations in {group.city || 'your city'}. 
+                Filter by friend connections, local vs visitor recommendations, and property types.
+              </p>
+            </div>
+            
+            {/* Map Container */}
+            <div className="h-[600px] relative">
+              <CommunityMapWithLayers
+                groupSlug={slug}
+                city={group.city}
+                country={group.country}
+                center={cityCenter}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <DashboardLayout>
       <div className="max-w-7xl mx-auto">
@@ -909,7 +1003,10 @@ export default function GroupDetailPageMT() {
                 { id: 'about', label: 'About', icon: Info },
                 { id: 'posts', label: 'Posts', icon: MessageCircle },
                 { id: 'events', label: 'Events', icon: Calendar },
+                { id: 'housing', label: 'Housing', icon: Home },
+                { id: 'recommendations', label: 'Recommendations', icon: Star },
                 { id: 'members', label: 'Members', icon: Users },
+                { id: 'map', label: 'Map', icon: MapPin },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -935,6 +1032,9 @@ export default function GroupDetailPageMT() {
             {activeTab === 'members' && renderMembersTab()}
             {activeTab === 'events' && renderEventsTab()}
             {activeTab === 'posts' && renderPostsTab()}
+            {activeTab === 'housing' && renderHousingTab()}
+            {activeTab === 'recommendations' && renderRecommendationsTab()}
+            {activeTab === 'map' && renderMapTab()}
           </div>
         </div>
       </div>

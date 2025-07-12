@@ -6143,18 +6143,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const followedGroupIds = followedGroups.filter(g => g.isFollowing).map(g => g.groupId);
 
       // Mark membership and follow status for each group
-      const groupsWithStatus = allGroups.map((group: any) => {
+      const groupsWithStatus = await Promise.all(allGroups.map(async (group: any) => {
         const isJoined = joinedGroupIds.includes(group.id);
         const isFollowing = followedGroupIds.includes(group.id);
         
+        // Fetch city photo if it's a city group and doesn't have an image
+        let finalImageUrl = group.imageUrl;
+        if (group.type === 'city' && group.city && !group.imageUrl) {
+          try {
+            const { CityPhotoService } = await import('./services/cityPhotoService.js');
+            const photoResult = await CityPhotoService.fetchCityPhoto(group.city, group.country);
+            if (photoResult?.url) {
+              finalImageUrl = photoResult.url;
+              // Update the group with the fetched photo for future use
+              await storage.updateGroup(group.id, {
+                imageUrl: photoResult.url,
+                coverImage: photoResult.url
+              });
+            }
+          } catch (photoError) {
+            console.error('Error fetching city photo:', photoError);
+          }
+        }
+        
         return {
           ...group,
+          imageUrl: finalImageUrl,
+          image_url: finalImageUrl, // Keep both for compatibility
           membershipStatus: isJoined ? 'member' : (isFollowing ? 'following' : 'not_member'),
           isJoined,
           isFollowing,
           memberCount: group.memberCount || 0
         };
-      });
+      }));
 
       // Add cache-control headers to prevent stale data
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -9124,6 +9145,187 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: 'Failed to fetch city groups'
+      });
+    }
+  });
+
+  // Get map data for community map (events, housing, recommendations)
+  app.get('/api/community/map-data', setUserContext, async (req: Request, res: Response) => {
+    try {
+      const { city, groupSlug } = req.query;
+      const userId = req.user?.id;
+      
+      const mapData = [];
+      
+      // Fetch events for the city
+      let eventsQuery = db
+        .select({
+          id: events.id,
+          title: events.title,
+          description: events.description,
+          location: events.location,
+          startDate: events.startDate,
+          latitude: events.latitude,
+          longitude: events.longitude,
+        })
+        .from(events)
+        .where(sql`${events.latitude} IS NOT NULL AND ${events.longitude} IS NOT NULL`);
+      
+      if (city) {
+        eventsQuery = db
+          .select({
+            id: events.id,
+            title: events.title,
+            description: events.description,
+            location: events.location,
+            startDate: events.startDate,
+            latitude: events.latitude,
+            longitude: events.longitude,
+          })
+          .from(events)
+          .where(sql`${events.latitude} IS NOT NULL AND ${events.longitude} IS NOT NULL AND ${events.city} = ${city}`);
+      }
+      
+      const eventsData = await eventsQuery.limit(50);
+      
+      // Add events to map data
+      eventsData.forEach(event => {
+        if (event.latitude && event.longitude) {
+          mapData.push({
+            id: event.id,
+            type: 'event',
+            title: event.title,
+            description: event.description || '',
+            latitude: event.latitude,
+            longitude: event.longitude,
+            address: event.location,
+            metadata: {
+              date: event.startDate?.toISOString(),
+              friendLevel: Math.floor(Math.random() * 3) + 1, // Mock friend level for demo
+            }
+          });
+        }
+      });
+      
+      // Fetch host homes (housing)
+      let housingQuery = db
+        .select({
+          id: hostHomes.id,
+          title: hostHomes.title,
+          description: hostHomes.description,
+          propertyType: hostHomes.propertyType,
+          roomType: hostHomes.roomType,
+          address: hostHomes.address,
+          latitude: hostHomes.latitude,
+          longitude: hostHomes.longitude,
+          price: hostHomes.basePrice,
+        })
+        .from(hostHomes)
+        .where(sql`${hostHomes.latitude} IS NOT NULL AND ${hostHomes.longitude} IS NOT NULL`);
+      
+      if (city) {
+        housingQuery = db
+          .select({
+            id: hostHomes.id,
+            title: hostHomes.title,
+            description: hostHomes.description,
+            propertyType: hostHomes.propertyType,
+            roomType: hostHomes.roomType,
+            address: hostHomes.address,
+            latitude: hostHomes.latitude,
+            longitude: hostHomes.longitude,
+            price: hostHomes.basePrice,
+          })
+          .from(hostHomes)
+          .where(sql`${hostHomes.latitude} IS NOT NULL AND ${hostHomes.longitude} IS NOT NULL AND ${hostHomes.city} = ${city}`);
+      }
+      
+      const housingData = await housingQuery.limit(50);
+      
+      // Add housing to map data
+      housingData.forEach(home => {
+        if (home.latitude && home.longitude) {
+          mapData.push({
+            id: home.id,
+            type: 'housing',
+            title: home.title,
+            description: home.description || '',
+            latitude: home.latitude,
+            longitude: home.longitude,
+            address: home.address,
+            metadata: {
+              price: `$${home.price}/night`,
+              propertyType: home.roomType,
+              friendLevel: Math.floor(Math.random() * 3) + 1, // Mock friend level for demo
+            }
+          });
+        }
+      });
+      
+      // Fetch recommendations
+      let recommendationsQuery = db
+        .select({
+          id: recommendations.id,
+          title: recommendations.title,
+          description: recommendations.description,
+          address: recommendations.address,
+          latitude: recommendations.latitude,
+          longitude: recommendations.longitude,
+          rating: recommendations.rating,
+          recommendedBy: recommendations.recommendedBy,
+        })
+        .from(recommendations)
+        .where(sql`${recommendations.latitude} IS NOT NULL AND ${recommendations.longitude} IS NOT NULL`);
+      
+      if (city) {
+        recommendationsQuery = db
+          .select({
+            id: recommendations.id,
+            title: recommendations.title,
+            description: recommendations.description,
+            address: recommendations.address,
+            latitude: recommendations.latitude,
+            longitude: recommendations.longitude,
+            rating: recommendations.rating,
+            recommendedBy: recommendations.recommendedBy,
+          })
+          .from(recommendations)
+          .where(sql`${recommendations.latitude} IS NOT NULL AND ${recommendations.longitude} IS NOT NULL AND ${recommendations.city} = ${city}`);
+      }
+      
+      const recommendationsData = await recommendationsQuery.limit(50);
+      
+      // Add recommendations to map data
+      recommendationsData.forEach(rec => {
+        if (rec.latitude && rec.longitude) {
+          mapData.push({
+            id: rec.id,
+            type: 'recommendation',
+            title: rec.title,
+            description: rec.description || '',
+            latitude: rec.latitude,
+            longitude: rec.longitude,
+            address: rec.address,
+            metadata: {
+              rating: rec.rating,
+              isLocal: rec.recommendedBy === 'locals',
+              friendLevel: Math.floor(Math.random() * 3) + 1, // Mock friend level for demo
+            }
+          });
+        }
+      });
+      
+      res.json({
+        code: 200,
+        message: 'Map data fetched successfully',
+        data: mapData
+      });
+    } catch (error) {
+      console.error('Error fetching map data:', error);
+      res.status(500).json({
+        code: 500,
+        message: 'Failed to fetch map data',
+        data: []
       });
     }
   });

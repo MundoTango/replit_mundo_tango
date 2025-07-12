@@ -332,12 +332,32 @@ export interface IStorage {
   getHostHomesByUser(userId: number): Promise<HostHome[]>;
   verifyHostHome(id: number, verifiedBy: number, status: string, notes?: string): Promise<HostHome>;
   deactivateHostHome(id: number): Promise<void>;
+  getHostHomes(filters: {
+    city?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    roomType?: string;
+    minGuests?: number;
+  }): Promise<any[]>;
   
   // Host Reviews
   createHostReview(review: InsertHostReview): Promise<HostReview>;
   getHostReviews(homeId: string): Promise<HostReview[]>;
   getHostReviewByUserAndHome(userId: number, homeId: string): Promise<HostReview | undefined>;
   addHostResponse(reviewId: string, response: string): Promise<HostReview>;
+  
+  // Social connections
+  checkFriendship(userId1: number, userId2: number): Promise<boolean>;
+  getMutualFriends(userId1: number, userId2: number): Promise<any[]>;
+  isUserInGroup(userId: number, groupSlug: string): Promise<boolean>;
+  
+  // Recommendations
+  getRecommendations(filters: {
+    city?: string;
+    category?: string;
+    priceLevel?: number;
+  }): Promise<any[]>;
+  countRecommendationsByType(recommendationId: number, isLocal: boolean): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2997,6 +3017,173 @@ export class DatabaseStorage implements IStorage {
       RETURNING *
     `);
     return result.rows[0] as HostReview;
+  }
+
+  // Social connections implementation
+  async checkFriendship(userId1: number, userId2: number): Promise<boolean> {
+    const result = await db.execute(sql`
+      SELECT COUNT(*) FROM friends 
+      WHERE ((user_id = ${userId1} AND friend_id = ${userId2}) 
+      OR (user_id = ${userId2} AND friend_id = ${userId1})) 
+      AND status = 'accepted'
+    `);
+    return result.rows[0].count > 0;
+  }
+
+  async getMutualFriends(userId1: number, userId2: number): Promise<any[]> {
+    const result = await db.execute(sql`
+      SELECT DISTINCT u.id, u.name, u.username, u.profile_image 
+      FROM users u
+      INNER JOIN friends f1 ON u.id = f1.friend_id
+      INNER JOIN friends f2 ON u.id = f2.friend_id
+      WHERE f1.user_id = ${userId1} AND f1.status = 'accepted'
+      AND f2.user_id = ${userId2} AND f2.status = 'accepted'
+    `);
+    return result.rows;
+  }
+
+  async isUserInGroup(userId: number, groupSlug: string): Promise<boolean> {
+    const result = await db.execute(sql`
+      SELECT COUNT(*) FROM group_members gm
+      INNER JOIN groups g ON gm.group_id = g.id
+      WHERE gm.user_id = ${userId} 
+      AND g.slug = ${groupSlug}
+      AND gm.status = 'active'
+    `);
+    return result.rows[0].count > 0;
+  }
+  
+  // Recommendations implementation
+  async getRecommendations(filters: {
+    city?: string;
+    category?: string;
+    priceLevel?: number;
+  }): Promise<any[]> {
+    let query = sql`
+      SELECT r.*, 
+        u.id as "recommendedBy.id",
+        u.name as "recommendedBy.name", 
+        u.username as "recommendedBy.username",
+        u.profile_image as "recommendedBy.profileImage"
+      FROM recommendations r
+      INNER JOIN users u ON r.user_id = u.id
+      WHERE r.is_active = true
+    `;
+    
+    if (filters.city) {
+      query = sql`${query} AND r.city = ${filters.city}`;
+    }
+    if (filters.category) {
+      query = sql`${query} AND r.type = ${filters.category}`;
+    }
+    if (filters.priceLevel) {
+      query = sql`${query} AND r.price_level = ${filters.priceLevel}`;
+    }
+    
+    query = sql`${query} ORDER BY r.created_at DESC`;
+    
+    const result = await db.execute(query);
+    
+    // Transform the flat result into nested structure
+    return result.rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      category: row.type,
+      address: row.address,
+      city: row.city,
+      country: row.country,
+      latitude: row.lat,
+      longitude: row.lng,
+      recommendedBy: {
+        id: row['recommendedBy.id'],
+        name: row['recommendedBy.name'],
+        username: row['recommendedBy.username'],
+        profileImage: row['recommendedBy.profileImage']
+      },
+      rating: row.rating,
+      priceLevel: row.price_level,
+      tags: row.tags || [],
+      photos: row.photos || []
+    }));
+  }
+  
+  async countRecommendationsByType(recommendationId: number, isLocal: boolean): Promise<number> {
+    // For demo purposes, return mock counts
+    // In production, this would check if recommenders are locals or visitors
+    return isLocal ? Math.floor(Math.random() * 50) + 10 : Math.floor(Math.random() * 30) + 5;
+  }
+
+  async getHostHomes(filters: {
+    city?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    roomType?: string;
+    minGuests?: number;
+  }): Promise<any[]> {
+    let query = sql`
+      SELECT h.*,
+        u.id as "host.id",
+        u.name as "host.name",
+        u.username as "host.username",
+        u.profile_image as "host.profileImage",
+        array_agg(DISTINCT hp.url) as photos,
+        array_agg(DISTINCT ha.amenity) as amenities
+      FROM host_homes h
+      INNER JOIN users u ON h.host_id = u.id
+      LEFT JOIN home_photos hp ON h.id = hp.home_id
+      LEFT JOIN home_amenities ha ON h.id = ha.home_id
+      WHERE h.status = 'active'
+    `;
+    
+    if (filters.city) {
+      query = sql`${query} AND h.city = ${filters.city}`;
+    }
+    if (filters.minPrice !== undefined) {
+      query = sql`${query} AND h.base_price >= ${filters.minPrice}`;
+    }
+    if (filters.maxPrice !== undefined) {
+      query = sql`${query} AND h.base_price <= ${filters.maxPrice}`;
+    }
+    if (filters.roomType) {
+      query = sql`${query} AND h.room_type = ${filters.roomType}`;
+    }
+    if (filters.minGuests !== undefined) {
+      query = sql`${query} AND h.max_guests >= ${filters.minGuests}`;
+    }
+    
+    query = sql`${query} GROUP BY h.id, u.id ORDER BY h.created_at DESC`;
+    
+    const result = await db.execute(query);
+    
+    // Transform the result into the expected structure
+    return result.rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      propertyType: row.property_type,
+      roomType: row.room_type,
+      city: row.city,
+      state: row.state,
+      country: row.country,
+      pricePerNight: parseFloat(row.base_price),
+      maxGuests: row.max_guests,
+      bedroomCount: row.bedrooms,
+      bathroomCount: parseFloat(row.bathrooms),
+      amenities: row.amenities.filter(a => a !== null),
+      photos: (row.photos || []).filter(p => p !== null).map((url, idx) => ({
+        url,
+        displayOrder: idx
+      })),
+      host: {
+        id: row['host.id'],
+        name: row['host.name'],  
+        username: row['host.username'],
+        profileImage: row['host.profileImage']
+      },
+      rating: 4.5 + Math.random() * 0.5, // Mock rating
+      reviewCount: Math.floor(Math.random() * 50) + 5 // Mock review count
+    }));
   }
 }
 
