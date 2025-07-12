@@ -9516,6 +9516,343 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // ========================================================================
+  // Recommendations API Endpoints
+  // ========================================================================
+  
+  // Get recommendations with filters
+  app.get('/api/recommendations', async (req, res) => {
+    try {
+      const { groupId, city, category, priceLevel, isLocal, userId } = req.query;
+      
+      // Base query
+      let query = db.select({
+        id: recommendations.id,
+        userId: recommendations.userId,
+        title: recommendations.title,
+        description: recommendations.description,
+        category: recommendations.category,
+        isLocalRecommendation: recommendations.isLocalRecommendation,
+        address: recommendations.address,
+        city: recommendations.city,
+        latitude: recommendations.latitude,
+        longitude: recommendations.longitude,
+        googlePlaceId: recommendations.googlePlaceId,
+        rating: recommendations.rating,
+        priceLevel: recommendations.priceLevel,
+        photos: recommendations.photos,
+        tags: recommendations.tags,
+        createdAt: recommendations.createdAt,
+        recommender: {
+          id: users.id,
+          name: users.name,
+          username: users.username,
+          profileImage: users.profileImage,
+          city: users.city,
+          tangoRoles: users.tangoRoles,
+          isLocal: sql<boolean>`
+            CASE 
+              WHEN ${users.city} = ${recommendations.city} THEN true 
+              ELSE false 
+            END
+          `
+        }
+      })
+      .from(recommendations)
+      .leftJoin(users, eq(recommendations.userId, users.id))
+      .where(eq(recommendations.status, 'active'));
+      
+      const conditions = [eq(recommendations.status, 'active')];
+      
+      if (city) {
+        conditions.push(eq(recommendations.city, city as string));
+      }
+      
+      if (category && category !== 'all') {
+        conditions.push(eq(recommendations.category, category as string));
+      }
+      
+      if (priceLevel && priceLevel !== 'all') {
+        conditions.push(eq(recommendations.priceLevel, parseInt(priceLevel as string)));
+      }
+      
+      if (isLocal !== undefined) {
+        conditions.push(eq(recommendations.isLocalRecommendation, isLocal === 'true'));
+      }
+      
+      const recommendationsList = await query.where(and(...conditions));
+      
+      // If userId is provided, enhance with friend relationship data
+      if (userId) {
+        const enhancedRecommendations = await Promise.all(recommendationsList.map(async (rec) => {
+          // Check direct friendship
+          const [directFriend] = await db.select()
+            .from(follows)
+            .where(and(
+              eq(follows.followerId, parseInt(userId as string)),
+              eq(follows.followingId, rec.userId)
+            ));
+          
+          if (directFriend) {
+            return {
+              ...rec,
+              friendRelation: {
+                degree: 1,
+                type: 'direct' as const
+              }
+            };
+          }
+          
+          // Check friend of friend
+          const mutualFriends = await db.select({
+            friendName: users.name
+          })
+          .from(follows)
+          .innerJoin(users, eq(users.id, follows.followingId))
+          .where(and(
+            eq(follows.followerId, parseInt(userId as string)),
+            inArray(follows.followingId, 
+              db.select({ id: follows.followerId })
+                .from(follows)
+                .where(eq(follows.followingId, rec.userId))
+            )
+          ));
+          
+          if (mutualFriends.length > 0) {
+            return {
+              ...rec,
+              friendRelation: {
+                degree: 2,
+                type: 'friend_of_friend' as const,
+                mutualFriends: mutualFriends.map(f => f.friendName)
+              }
+            };
+          }
+          
+          // Otherwise it's a community member
+          return {
+            ...rec,
+            friendRelation: {
+              degree: 3,
+              type: 'community' as const
+            }
+          };
+        }));
+        
+        res.json({
+          success: true,
+          data: enhancedRecommendations
+        });
+      } else {
+        res.json({
+          success: true,
+          data: recommendationsList
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch recommendations'
+      });
+    }
+  });
+  
+  // Create a new recommendation
+  app.post('/api/recommendations', isAuthenticated, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const recommendationData = req.body;
+      
+      const [newRecommendation] = await db.insert(recommendations)
+        .values({
+          ...recommendationData,
+          userId,
+          status: 'active',
+          createdAt: new Date()
+        })
+        .returning();
+      
+      res.json({
+        success: true,
+        data: newRecommendation
+      });
+    } catch (error) {
+      console.error('Error creating recommendation:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create recommendation'
+      });
+    }
+  });
+  
+  // Get recommendation by ID
+  app.get('/api/recommendations/:id', async (req, res) => {
+    try {
+      const recommendationId = parseInt(req.params.id);
+      
+      const [recommendation] = await db.select({
+        id: recommendations.id,
+        userId: recommendations.userId,
+        title: recommendations.title,
+        description: recommendations.description,
+        category: recommendations.category,
+        isLocalRecommendation: recommendations.isLocalRecommendation,
+        address: recommendations.address,
+        city: recommendations.city,
+        latitude: recommendations.latitude,
+        longitude: recommendations.longitude,
+        googlePlaceId: recommendations.googlePlaceId,
+        rating: recommendations.rating,
+        priceLevel: recommendations.priceLevel,
+        photos: recommendations.photos,
+        tags: recommendations.tags,
+        createdAt: recommendations.createdAt,
+        recommender: {
+          id: users.id,
+          name: users.name,
+          username: users.username,
+          profileImage: users.profileImage,
+          city: users.city,
+          tangoRoles: users.tangoRoles
+        }
+      })
+      .from(recommendations)
+      .leftJoin(users, eq(recommendations.userId, users.id))
+      .where(eq(recommendations.id, recommendationId));
+      
+      if (!recommendation) {
+        return res.status(404).json({
+          success: false,
+          message: 'Recommendation not found'
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: recommendation
+      });
+    } catch (error) {
+      console.error('Error fetching recommendation:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch recommendation'
+      });
+    }
+  });
+  
+  // ========================================================================
+  // Community Map Data API Endpoints
+  // ========================================================================
+  
+  // Get all map data for a city (events, host homes, recommendations)
+  app.get('/api/community/map-data', async (req, res) => {
+    try {
+      const { city, startDate, endDate } = req.query;
+      
+      if (!city) {
+        return res.status(400).json({
+          success: false,
+          message: 'City parameter is required'
+        });
+      }
+      
+      // Fetch events
+      let eventsQuery = db.select({
+        id: events.id,
+        title: events.title,
+        location: events.location,
+        latitude: events.latitude,
+        longitude: events.longitude,
+        startDate: events.startDate,
+        attendeeCount: sql<number>`
+          (SELECT COUNT(*) FROM ${eventRsvps} 
+           WHERE ${eventRsvps.eventId} = ${events.id} 
+           AND ${eventRsvps.status} = 'going')
+        `,
+        host: {
+          name: users.name
+        }
+      })
+      .from(events)
+      .leftJoin(users, eq(events.userId, users.id))
+      .where(eq(events.city, city as string));
+      
+      const eventConditions = [eq(events.city, city as string)];
+      
+      if (startDate) {
+        eventConditions.push(gte(events.startDate, new Date(startDate as string)));
+      }
+      
+      if (endDate) {
+        eventConditions.push(lte(events.startDate, new Date(endDate as string)));
+      }
+      
+      const eventsList = await eventsQuery.where(and(...eventConditions));
+      
+      // Fetch host homes
+      const hostHomesList = await db.select({
+        id: hostHomes.id,
+        title: hostHomes.title,
+        address: hostHomes.address,
+        latitude: hostHomes.latitude,
+        longitude: hostHomes.longitude,
+        propertyType: hostHomes.propertyType,
+        pricePerNight: hostHomes.basePrice,
+        host: {
+          name: users.name
+        }
+      })
+      .from(hostHomes)
+      .leftJoin(users, eq(hostHomes.userId, users.id))
+      .where(and(
+        eq(hostHomes.city, city as string),
+        eq(hostHomes.status, 'active')
+      ));
+      
+      // Fetch recommendations
+      const recommendationsList = await db.select({
+        id: recommendations.id,
+        title: recommendations.title,
+        address: recommendations.address,
+        latitude: recommendations.latitude,
+        longitude: recommendations.longitude,
+        category: recommendations.category,
+        rating: recommendations.rating,
+        recommender: {
+          name: users.name,
+          isLocal: sql<boolean>`
+            CASE 
+              WHEN ${users.city} = ${recommendations.city} THEN true 
+              ELSE false 
+            END
+          `
+        }
+      })
+      .from(recommendations)
+      .leftJoin(users, eq(recommendations.userId, users.id))
+      .where(and(
+        eq(recommendations.city, city as string),
+        eq(recommendations.status, 'active')
+      ));
+      
+      res.json({
+        success: true,
+        data: {
+          events: eventsList,
+          hostHomes: hostHomesList,
+          recommendations: recommendationsList
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching map data:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch map data'
+      });
+    }
+  });
+
+  // ========================================================================
   // Host Homes Extended API Endpoints
   // ========================================================================
   
