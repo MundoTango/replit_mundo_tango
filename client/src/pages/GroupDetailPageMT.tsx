@@ -16,9 +16,9 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import EventMap from '@/components/EventMap';
 import { Filter } from 'lucide-react';
-import CommunityMapWithLayers from '@/components/Community/CommunityMapWithLayers';
-import HostHomesList from '@/components/Housing/HostHomesList';
-import RecommendationsList from '@/components/Recommendations/RecommendationsList';
+import { CommunityMapWithLayers } from '@/components/groups/CommunityMapWithLayers';
+import { HostHomesList } from '@/components/groups/HostHomesList';
+import { RecommendationsList } from '@/components/groups/RecommendationsList';
 import '../styles/ttfiles.css';
 import '../styles/mt-group.css';
 
@@ -821,9 +821,9 @@ export default function GroupDetailPageMT() {
         )}
         
         <HostHomesList 
-          city={group.city} 
-          groupSlug={slug}
-          showFilters={true}
+          groupId={group.id} 
+          groupCity={group.city}
+          isSuperAdmin={user?.isSuperAdmin}
         />
       </div>
     );
@@ -833,9 +833,8 @@ export default function GroupDetailPageMT() {
     return (
       <div className="space-y-6">
         <RecommendationsList 
-          city={group.city} 
-          groupSlug={slug}
-          showFilters={true}
+          groupId={group.id} 
+          groupCity={group.city}
         />
       </div>
     );
@@ -879,10 +878,9 @@ export default function GroupDetailPageMT() {
             {/* Map Container */}
             <div className="h-[600px] relative">
               <CommunityMapWithLayers
-                groupSlug={slug}
-                city={group.city}
-                country={group.country}
-                center={cityCenter}
+                groupCity={group.city}
+                centerLat={cityCenter[0]}
+                centerLng={cityCenter[1]}
               />
             </div>
           </div>
