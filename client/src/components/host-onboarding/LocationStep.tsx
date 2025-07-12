@@ -199,8 +199,13 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
   const handleSuggestionSelect = useCallback((suggestion: any) => {
     const { address } = suggestion;
     
+    // Build complete address with house number
+    const streetName = address.road || address.pedestrian || address.footway || '';
+    const houseNumber = address.house_number || '';
+    const fullAddress = houseNumber ? `${streetName} ${houseNumber}` : streetName;
+    
     updateData({
-      address: address.road || address.pedestrian || address.footway || '',
+      address: fullAddress,
       city: address.city || address.town || address.village || address.municipality || '',
       state: address.state || address.province || '',
       country: address.country || '',
@@ -409,29 +414,7 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
         </Button>
       </div>
 
-      {/* Map preview */}
-      {data.latitude && data.longitude && (
-        <div className="border rounded-lg overflow-hidden">
-          <div className="bg-gray-100 p-3 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-600">Property location (approximate)</span>
-          </div>
-          <div className="relative h-64">
-            <MapContainer
-              center={[data.latitude, data.longitude]}
-              zoom={15}
-              style={{ height: '100%', width: '100%' }}
-              scrollWheelZoom={false}
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <Marker position={[data.latitude, data.longitude]} />
-            </MapContainer>
-          </div>
-        </div>
-      )}
+
 
       {/* Privacy notice */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
