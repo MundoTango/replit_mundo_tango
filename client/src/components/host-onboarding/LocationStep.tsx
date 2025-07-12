@@ -39,6 +39,11 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
   
   // Check if we have Google Maps API key - moved to top to avoid hoisting issues
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  
+  // Debug Google Maps API key
+  console.log('Google Maps API Key exists:', !!googleMapsApiKey);
+  console.log('Google Maps API Key length:', googleMapsApiKey?.length);
+  console.log('Google Maps API Key (first 10 chars):', googleMapsApiKey?.substring(0, 10));
 
   // Update center when coordinates change
   useEffect(() => {
@@ -371,6 +376,15 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
         <LoadScript
           googleMapsApiKey={googleMapsApiKey}
           libraries={libraries}
+          onLoad={() => console.log('Google Maps loaded successfully')}
+          onError={(error) => {
+            console.error('Error loading Google Maps:', error);
+            toast({
+              title: 'Map Loading Error',
+              description: 'Failed to load Google Maps. Please check your internet connection.',
+              variant: 'destructive',
+            });
+          }}
         >
           <div className="space-y-4">
             {/* Autocomplete search box */}

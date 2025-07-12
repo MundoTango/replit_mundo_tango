@@ -84,31 +84,47 @@ export default function HostOnboarding() {
 
   const createHostHomeMutation = useMutation({
     mutationFn: async (data: Partial<OnboardingData>) => {
-      // First, upload photos
-      const photoUrls: string[] = [];
-      if (data.photos && data.photos.length > 0) {
-        const formData = new FormData();
-        data.photos.forEach((photo) => {
-          formData.append('files', photo);
-        });
+      try {
+        console.log('Starting host home creation with data:', data);
         
-        const uploadResponse = await apiRequest('POST', '/api/upload/host-home-photos', formData);
-        const uploadData = await uploadResponse.json();
-        
-        if (uploadData.urls) {
-          photoUrls.push(...uploadData.urls);
+        // First, upload photos
+        const photoUrls: string[] = [];
+        if (data.photos && data.photos.length > 0) {
+          console.log('Uploading photos:', data.photos.length);
+          const formData = new FormData();
+          data.photos.forEach((photo) => {
+            formData.append('files', photo);
+          });
+          
+          console.log('Sending photo upload request...');
+          const uploadResponse = await apiRequest('POST', '/api/upload/host-home-photos', formData);
+          console.log('Upload response status:', uploadResponse.status);
+          const uploadData = await uploadResponse.json();
+          console.log('Upload response data:', uploadData);
+          
+          if (uploadData.urls) {
+            photoUrls.push(...uploadData.urls);
+          }
         }
-      }
 
-      // Then create the host home
-      const hostHomeData = {
-        ...data,
-        photos: photoUrls,
-        status: 'pending_review',
-      };
-      
-      const response = await apiRequest('POST', '/api/host-homes', hostHomeData);
-      return await response.json();
+        // Then create the host home
+        const hostHomeData = {
+          ...data,
+          photos: photoUrls,
+          status: 'pending_review',
+        };
+        
+        console.log('Creating host home with data:', hostHomeData);
+        const response = await apiRequest('POST', '/api/host-homes', hostHomeData);
+        console.log('Host home response status:', response.status);
+        const result = await response.json();
+        console.log('Host home creation result:', result);
+        return result;
+      } catch (error) {
+        console.error('Error in createHostHomeMutation:', error);
+        console.error('Error stack:', error.stack);
+        throw error;
+      }
     },
     onSuccess: () => {
       toast({

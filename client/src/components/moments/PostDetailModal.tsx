@@ -227,24 +227,25 @@ export default function PostDetailModal({
       // Fallback to polling when Supabase is not configured
       console.log(`⚠️ Using polling fallback for post ${post.id} comments`);
       
-      const pollInterval = setInterval(async () => {
-        try {
-          const response = await fetch(`/api/posts/${post.id}/comments`, {
-            credentials: 'include'
-          });
-          const result = await response.json();
-          
-          if (result.success) {
-            queryClient.setQueryData(['/api/posts', post.id, 'comments'], result.data);
-          }
-        } catch (error) {
-          console.error('Error polling comments:', error);
-        }
-      }, 5000);
+      // Disable polling for now - will implement WebSocket later
+      // const pollInterval = setInterval(async () => {
+      //   try {
+      //     const response = await fetch(`/api/posts/${post.id}/comments`, {
+      //       credentials: 'include'
+      //     });
+      //     const result = await response.json();
+      //     
+      //     if (result.success) {
+      //       queryClient.setQueryData(['/api/posts', post.id, 'comments'], result.data);
+      //     }
+      //   } catch (error) {
+      //     console.error('Error polling comments:', error);
+      //   }
+      // }, 5000);
 
       return () => {
-        console.log(`🔌 Stopping comment polling for post ${post.id}`);
-        clearInterval(pollInterval);
+        console.log(`🔌 Polling disabled for post ${post.id}`);
+        // clearInterval(pollInterval);
       };
     }
   }, [isOpen, post.id, queryClient]);
