@@ -1,10 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
-function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem('accessToken');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
-}
-
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -17,10 +12,7 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const authHeaders = getAuthHeaders();
-  const headers: Record<string, string> = {
-    ...authHeaders,
-  };
+  const headers: Record<string, string> = {};
   
   let body: any = undefined;
   
@@ -38,7 +30,7 @@ export async function apiRequest(
     method,
     headers,
     body,
-    credentials: "include",
+    credentials: "include", // This ensures session cookies are sent with the request
   });
 
   await throwIfResNotOk(res);
@@ -51,12 +43,8 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const authHeaders = getAuthHeaders();
-    const headers: Record<string, string> = { ...authHeaders };
-
     const res = await fetch(queryKey[0] as string, {
-      headers,
-      credentials: "include",
+      credentials: "include", // Session cookies for authentication
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

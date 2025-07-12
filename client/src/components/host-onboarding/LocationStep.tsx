@@ -30,8 +30,12 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [marker, setMarker] = useState<google.maps.Marker | null>(null);
   const [center, setCenter] = useState(defaultCenter);
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const suggestionsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Check if we have Google Maps API key - moved to top to avoid hoisting issues
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -220,66 +224,36 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
     setIsGeocoding(true);
     
     try {
-      // Check if Google Maps is available
-      if (googleMapsApiKey && window.google && window.google.maps) {
-        const geocoder = new google.maps.Geocoder();
-        const fullAddress = `${data.address}, ${data.city}, ${data.state || ''}, ${data.country}`.trim();
+      // Always use OpenStreetMap for manual verification to avoid Google Maps issues
+      const fullAddress = `${data.address}, ${data.city}, ${data.state || ''}, ${data.country}`.trim();
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`);
+      const results = await response.json();
+
+      if (results && results.length > 0) {
+        const { lat, lon } = results[0];
+        updateData({
+          latitude: parseFloat(lat),
+          longitude: parseFloat(lon),
+        });
         
-        geocoder.geocode({ address: fullAddress }, (results, status) => {
-          if (status === 'OK' && results && results[0]) {
-            const location = results[0].geometry.location;
-            const lat = location.lat();
-            const lng = location.lng();
-            
-            updateData({
-              latitude: lat,
-              longitude: lng,
-            });
-            
-            if (map && marker) {
-              map.panTo(location);
-              map.setZoom(17);
-              marker.setPosition(location);
-            }
-            
-            toast({
-              title: 'Location verified',
-              description: 'We found your property on the map!',
-            });
-          } else {
-            toast({
-              title: 'Location not found',
-              description: 'Please check your address and try again.',
-              variant: 'destructive',
-            });
-          }
-          setIsGeocoding(false);
+        // Update map if using Google Maps
+        if (map && marker) {
+          const newPos = new google.maps.LatLng(parseFloat(lat), parseFloat(lon));
+          map.panTo(newPos);
+          map.setZoom(17);
+          marker.setPosition(newPos);
+        }
+        
+        toast({
+          title: 'Location verified',
+          description: 'We found your property on the map!',
         });
       } else {
-        // Fallback to OpenStreetMap Nominatim if Google Maps not available
-        const fullAddress = `${data.address}, ${data.city}, ${data.state || ''}, ${data.country}`.trim();
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`);
-        const results = await response.json();
-
-        if (results && results.length > 0) {
-          const { lat, lon } = results[0];
-          updateData({
-            latitude: parseFloat(lat),
-            longitude: parseFloat(lon),
-          });
-          
-          toast({
-            title: 'Location verified',
-            description: 'We found your property on the map!',
-          });
-        } else {
-          toast({
-            title: 'Location not found',
-            description: 'Please check your address and try again.',
-            variant: 'destructive',
-          });
-        }
-        setIsGeocoding(false);
+        toast({
+          title: 'Location not found',
+          description: 'Please check your address and try again.',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Geocoding error:', error);
@@ -288,9 +262,88 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
         description: 'Failed to verify location. Please try again.',
         variant: 'destructive',
       });
+    } finally {
       setIsGeocoding(false);
     }
-  }, [data.address, data.city, data.state, data.country, googleMapsApiKey, map, marker, updateData]);
+  }, [data.address, data.city, data.state, data.country, map, marker, updateData]);
+
+  // Address autocomplete search using OpenStreetMap
+  const searchAddressSuggestions = useCallback(async (query: string) => {
+    if (query.length < 3) {
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
+      );
+      const results = await response.json();
+      
+      const formattedResults = results.map((result: any) => ({
+        display_name: result.display_name,
+        lat: result.lat,
+        lon: result.lon,
+        address: result.address || {},
+      }));
+      
+      setAddressSuggestions(formattedResults);
+      setShowSuggestions(formattedResults.length > 0);
+    } catch (error) {
+      console.error('Error searching addresses:', error);
+      setAddressSuggestions([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  // Handle address input change with debouncing
+  const handleAddressChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    updateData({ address: value });
+
+    // Clear previous timeout
+    if (suggestionsTimeoutRef.current) {
+      clearTimeout(suggestionsTimeoutRef.current);
+    }
+
+    // Set new timeout for search
+    suggestionsTimeoutRef.current = setTimeout(() => {
+      searchAddressSuggestions(value);
+    }, 500);
+  }, [updateData, searchAddressSuggestions]);
+
+  // Handle suggestion selection
+  const handleSuggestionSelect = useCallback((suggestion: any) => {
+    const { address } = suggestion;
+    
+    updateData({
+      address: address.road || address.pedestrian || address.footway || '',
+      city: address.city || address.town || address.village || address.municipality || '',
+      state: address.state || address.province || '',
+      country: address.country || '',
+      latitude: parseFloat(suggestion.lat),
+      longitude: parseFloat(suggestion.lon),
+    });
+
+    setShowSuggestions(false);
+    setAddressSuggestions([]);
+
+    // Update map if available
+    if (map && marker) {
+      const newPos = new google.maps.LatLng(parseFloat(suggestion.lat), parseFloat(suggestion.lon));
+      map.panTo(newPos);
+      map.setZoom(17);
+      marker.setPosition(newPos);
+    }
+
+    toast({
+      title: 'Address selected',
+      description: 'Location has been updated on the map.',
+    });
+  }, [updateData, map, marker, toast]);
 
   const getDirectionsUrl = () => {
     if (data.latitude && data.longitude) {
@@ -391,15 +444,51 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
       )}
 
       <div className="space-y-4">
-        <div>
+        <div className="relative">
           <Label htmlFor="address">Street address</Label>
           <Input
             id="address"
             placeholder="123 Main Street"
             value={data.address || ''}
-            onChange={(e) => updateData({ address: e.target.value })}
+            onChange={handleAddressChange}
+            onFocus={() => data.address && searchAddressSuggestions(data.address)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             className="mt-1"
           />
+          
+          {/* Address suggestions dropdown */}
+          {showSuggestions && (
+            <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+              {isSearching ? (
+                <div className="p-3 text-center text-gray-500">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-pink-500 mx-auto"></div>
+                  <p className="mt-2 text-sm">Searching...</p>
+                </div>
+              ) : (
+                addressSuggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handleSuggestionSelect(suggestion)}
+                    className="w-full text-left px-3 py-2 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-0"
+                  >
+                    <p className="text-sm font-medium text-gray-900 line-clamp-1">
+                      {suggestion.display_name}
+                    </p>
+                    {suggestion.address && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {[
+                          suggestion.address.city || suggestion.address.town,
+                          suggestion.address.state,
+                          suggestion.address.country
+                        ].filter(Boolean).join(', ')}
+                      </p>
+                    )}
+                  </button>
+                ))
+              )}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
