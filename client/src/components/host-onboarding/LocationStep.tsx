@@ -203,6 +203,92 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
     autocompleteRef.current = autocomplete;
   }, []);
 
+  // Manual geocoding function for verify button
+  const geocodeAddress = useCallback(async () => {
+    if (!data.address || !data.city || !data.country) {
+      toast({
+        title: 'Missing information',
+        description: 'Please fill in address, city, and country before verifying location.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsGeocoding(true);
+    
+    try {
+      // Check if Google Maps is available
+      if (googleMapsApiKey && window.google && window.google.maps) {
+        const geocoder = new google.maps.Geocoder();
+        const fullAddress = `${data.address}, ${data.city}, ${data.state || ''}, ${data.country}`.trim();
+        
+        geocoder.geocode({ address: fullAddress }, (results, status) => {
+          if (status === 'OK' && results && results[0]) {
+            const location = results[0].geometry.location;
+            const lat = location.lat();
+            const lng = location.lng();
+            
+            updateData({
+              latitude: lat,
+              longitude: lng,
+            });
+            
+            if (map && marker) {
+              map.panTo(location);
+              map.setZoom(17);
+              marker.setPosition(location);
+            }
+            
+            toast({
+              title: 'Location verified',
+              description: 'We found your property on the map!',
+            });
+          } else {
+            toast({
+              title: 'Location not found',
+              description: 'Please check your address and try again.',
+              variant: 'destructive',
+            });
+          }
+          setIsGeocoding(false);
+        });
+      } else {
+        // Fallback to OpenStreetMap Nominatim if Google Maps not available
+        const fullAddress = `${data.address}, ${data.city}, ${data.state || ''}, ${data.country}`.trim();
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`);
+        const results = await response.json();
+
+        if (results && results.length > 0) {
+          const { lat, lon } = results[0];
+          updateData({
+            latitude: parseFloat(lat),
+            longitude: parseFloat(lon),
+          });
+          
+          toast({
+            title: 'Location verified',
+            description: 'We found your property on the map!',
+          });
+        } else {
+          toast({
+            title: 'Location not found',
+            description: 'Please check your address and try again.',
+            variant: 'destructive',
+          });
+        }
+        setIsGeocoding(false);
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to verify location. Please try again.',
+        variant: 'destructive',
+      });
+      setIsGeocoding(false);
+    }
+  }, [data.address, data.city, data.state, data.country, googleMapsApiKey, map, marker, updateData]);
+
   const getDirectionsUrl = () => {
     if (data.latitude && data.longitude) {
       return `https://www.google.com/maps/dir/?api=1&destination=${data.latitude},${data.longitude}`;
