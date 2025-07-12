@@ -42,6 +42,7 @@
 - **FormData Fix**: Fixed apiRequest function to properly handle FormData for file uploads
 - **Submit Error Resolution**: Fixed "Cannot read properties of undefined (reading 'charCodeAt')" error
 - **City Group Standardization**: Removed "Tango" prefix from all city group names (e.g. "Buenos Aires, Argentina")
+- **JavaScript Hoisting Fix**: Resolved "Cannot access 'googleMapsApiKey' before initialization" by moving variable declaration to top of component
 
 **UPDATE (January 10, 2025 - Host Onboarding System Implementation)**: Using 23L Framework
 - **Complete Host Onboarding Wizard**: 8-step React wizard inspired by Airbnb and VRBO

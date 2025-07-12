@@ -1,7 +1,9 @@
-# 23L Framework Analysis: Host Onboarding Geocode Error Fix
+# 23L Framework Analysis: Host Onboarding Geocode Error Fixes
 
 ## Executive Summary
-Fixed "ReferenceError: geocodeAddress is not defined" by implementing hybrid geocoding solution using Google Maps API with OpenStreetMap fallback.
+Fixed two critical errors in host onboarding location picker:
+1. "ReferenceError: geocodeAddress is not defined" - implemented hybrid geocoding solution
+2. "ReferenceError: Cannot access 'googleMapsApiKey' before initialization" - resolved JavaScript hoisting issue
 
 ## Layer-by-Layer Analysis
 
@@ -147,14 +149,42 @@ const geocodeAddress = useCallback(async () => {
 - [x] Map updates on successful geocoding
 - [x] Loading states work properly
 
+## Second Error Fix: JavaScript Hoisting Issue
+
+### Problem
+"ReferenceError: Cannot access 'googleMapsApiKey' before initialization"
+- Variable referenced in geocodeAddress function before declaration
+- JavaScript temporal dead zone violation
+
+### Solution
+Moved `googleMapsApiKey` declaration to top of component:
+```javascript
+export default function LocationStep({ data, updateData }: LocationStepProps) {
+  // State declarations...
+  
+  // Check if we have Google Maps API key - moved to top to avoid hoisting issues
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  
+  // Functions can now safely reference googleMapsApiKey
+  const geocodeAddress = useCallback(async () => {
+    if (googleMapsApiKey && window.google) {
+      // Use Google Maps
+    }
+  }, [googleMapsApiKey, ...]);
+}
+```
+
 ## Lessons Learned
 1. Always maintain backward compatibility during migrations
 2. Implement fallback solutions for paid APIs
 3. Test both with and without API keys
 4. Clear error messages improve user experience
+5. Declare variables before referencing them in functions
+6. Be aware of JavaScript hoisting and temporal dead zones
 
 ## Future Enhancements
 1. Add MapBox as third geocoding option
 2. Cache geocoding results locally
 3. Add address suggestions during typing
 4. Support what3words addressing
+5. Add TypeScript strict mode to catch more errors at compile time

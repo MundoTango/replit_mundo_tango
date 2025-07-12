@@ -32,6 +32,9 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
   const [center, setCenter] = useState(defaultCenter);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  
+  // Check if we have Google Maps API key - moved to top to avoid hoisting issues
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // Update center when coordinates change
   useEffect(() => {
@@ -302,9 +305,6 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
     }
     return '';
   };
-
-  // Check if we have Google Maps API key
-  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   return (
     <div className="space-y-8">
