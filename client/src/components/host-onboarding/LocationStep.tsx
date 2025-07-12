@@ -417,15 +417,18 @@ export default function LocationStep({ data, updateData }: LocationStepProps) {
             <span className="text-sm text-gray-600">Property location (approximate)</span>
           </div>
           <div className="relative h-64">
-            <iframe
-              src={mapUrl}
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen
-              aria-hidden="false"
-              tabIndex={0}
-            />
+            <MapContainer
+              center={[data.latitude, data.longitude]}
+              zoom={15}
+              style={{ height: '100%', width: '100%' }}
+              scrollWheelZoom={false}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={[data.latitude, data.longitude]} />
+            </MapContainer>
           </div>
         </div>
       )}
