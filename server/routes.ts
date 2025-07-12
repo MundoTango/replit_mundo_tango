@@ -9738,7 +9738,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { city = 'Buenos Aires' } = req.query;
       
       // Use pool directly instead of Drizzle db
-      const { pool } = require('./db');
+      const pool = (await import('./db')).pool;
       
       const eventsResult = await pool.query('SELECT count(*) as count FROM events WHERE city = $1', [city]);
       const homesResult = await pool.query('SELECT count(*) as count FROM host_homes WHERE city = $1', [city]);
@@ -9763,7 +9763,183 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get all map data for a city (events, host homes, recommendations)
+  // Get events for map display
+  app.get('/api/events/map', async (req, res) => {
+    try {
+      const { city } = req.query;
+      
+      // Use pool directly for simpler queries
+      const pool = (await import('./db')).pool;
+      
+      let query = `
+        SELECT id, title, location, latitude, longitude, start_date as "startDate", description
+        FROM events 
+        WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+      `;
+      const params: any[] = [];
+      
+      if (city) {
+        query += ' AND city = $1';
+        params.push(city);
+      }
+      
+      query += ' ORDER BY start_date DESC LIMIT 50';
+      
+      const result = await pool.query(query, params);
+      
+      // Transform to match expected format
+      const events = result.rows.map((event: any) => ({
+        id: event.id,
+        title: event.title,
+        location: event.location,
+        latitude: parseFloat(event.latitude),
+        longitude: parseFloat(event.longitude),
+        startDate: event.startDate,
+        attendeeCount: Math.floor(Math.random() * 50) + 10, // Mock for now
+        host: {
+          name: 'Event Host' // Mock for now
+        }
+      }));
+      
+      res.json({
+        success: true,
+        data: events
+      });
+    } catch (error) {
+      console.error('Error fetching events for map:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch events',
+        error: error.message
+      });
+    }
+  });
+  
+  // Get host homes for map display
+  app.get('/api/host-homes/map', async (req, res) => {
+    try {
+      const { city, propertyType } = req.query;
+      
+      // Use pool directly
+      const pool = (await import('./db')).pool;
+      
+      let query = `
+        SELECT id, title, address, lat as latitude, lng as longitude, 
+               price_per_night as "pricePerNight", host_id as "hostId"
+        FROM host_homes 
+        WHERE lat IS NOT NULL AND lng IS NOT NULL
+      `;
+      const params: any[] = [];
+      let paramIndex = 1;
+      
+      if (city) {
+        query += ` AND city = $${paramIndex}`;
+        params.push(city);
+        paramIndex++;
+      }
+      
+      // Property type filtering removed as column doesn't exist in current schema
+      
+      query += ' LIMIT 50';
+      
+      const result = await pool.query(query, params);
+      
+      // Transform to match expected format
+      const homes = result.rows.map((home: any) => ({
+        id: home.id,
+        title: home.title,
+        address: home.address,
+        latitude: parseFloat(home.latitude),
+        longitude: parseFloat(home.longitude),
+        propertyType: 'apartment', // Default as column doesn't exist
+        pricePerNight: home.pricePerNight,
+        host: {
+          name: 'Property Host' // Mock for now
+        },
+        friendRelation: {
+          type: 'community' // Mock for now
+        }
+      }));
+      
+      res.json({
+        success: true,
+        data: homes
+      });
+    } catch (error) {
+      console.error('Error fetching host homes for map:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch host homes',
+        error: error.message
+      });
+    }
+  });
+  
+  // Get recommendations for map display
+  app.get('/api/recommendations-map', async (req, res) => {
+    try {
+      const { city, category } = req.query;
+      
+      // Use pool directly
+      const pool = (await import('./db')).pool;
+      
+      let query = `
+        SELECT id, title, address, lat as latitude, lng as longitude, rating,
+               type as category, user_id as "recommenderId"
+        FROM recommendations 
+        WHERE lat IS NOT NULL AND lng IS NOT NULL
+      `;
+      const params: any[] = [];
+      let paramIndex = 1;
+      
+      if (city) {
+        query += ` AND city = $${paramIndex}`;
+        params.push(city);
+        paramIndex++;
+      }
+      
+      if (category && category !== 'all') {
+        query += ` AND category = $${paramIndex}`;
+        params.push(category);
+      }
+      
+      query += ' LIMIT 50';
+      
+      const result = await pool.query(query, params);
+      
+      // Transform to match expected format
+      const recommendations = result.rows.map((rec: any) => ({
+        id: rec.id,
+        title: rec.title,
+        address: rec.address,
+        latitude: parseFloat(rec.latitude),
+        longitude: parseFloat(rec.longitude),
+        category: rec.category || 'restaurant',
+        rating: parseFloat(rec.rating || 4.5),
+        recommender: {
+          name: 'Community Member', // Mock for now
+          isLocal: true // Default to true as column doesn't exist
+        },
+        friendRelation: {
+          type: 'community' // Mock for now
+        }
+      }));
+      
+      res.json({
+        success: true,
+        data: recommendations
+      });
+    } catch (error) {
+      console.error('Error fetching recommendations for map:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch recommendations',
+        error: error.message
+      });
+    }
+  });
+  
+  // Get all map data for a city (events, host homes, recommendations) - HARDCODED VERSION
   app.get('/api/community/map-data', async (req, res) => {
     try {
       const { city, startDate, endDate } = req.query;

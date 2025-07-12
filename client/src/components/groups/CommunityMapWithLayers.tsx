@@ -145,7 +145,7 @@ export function CommunityMapWithLayers({ groupCity, centerLat = -34.6037, center
         category: recommendationCategoryFilter !== 'all' ? recommendationCategoryFilter : ''
       });
       
-      const response = await fetch(`/api/recommendations/map?${params}`);
+      const response = await fetch(`/api/recommendations-map?${params}`);
       const data = await response.json();
       if (data.success) {
         setRecommendations(data.data);
@@ -301,7 +301,7 @@ export function CommunityMapWithLayers({ groupCity, centerLat = -34.6037, center
       </MapContainer>
       
       {/* Layer Controls */}
-      <div className="absolute top-4 left-4 z-[1000] bg-white rounded-lg shadow-lg p-4">
+      <div className="absolute top-4 left-4 z-[400] bg-white rounded-lg shadow-lg p-4" style={{ pointerEvents: 'auto' }}>
         <div className="flex items-center gap-2 mb-3">
           <Layers className="h-5 w-5" />
           <span className="font-semibold">Map Layers</span>
@@ -355,7 +355,7 @@ export function CommunityMapWithLayers({ groupCity, centerLat = -34.6037, center
       
       {/* Filters Panel */}
       {showFilters && (
-        <div className="absolute top-4 right-4 z-[1000] bg-white rounded-lg shadow-lg p-4 w-80">
+        <div className="absolute top-4 right-4 z-[400] bg-white rounded-lg shadow-lg p-4 w-80" style={{ pointerEvents: 'auto' }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Filters</h3>
             <button onClick={() => setShowFilters(false)}>
@@ -435,7 +435,7 @@ export function CommunityMapWithLayers({ groupCity, centerLat = -34.6037, center
       
       {/* Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-[999]">
+        <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-[350]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-pink-500"></div>
         </div>
       )}
