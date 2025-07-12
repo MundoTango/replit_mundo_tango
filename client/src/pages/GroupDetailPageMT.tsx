@@ -410,19 +410,19 @@ export default function GroupDetailPageMT() {
           <div className="mt-members-grid">
             {professionalMembers.map((member: any) => (
               <div 
-                key={member.userId} 
+                key={member.user.id} 
                 className="mt-member-card"
-                onClick={() => setLocation(`/u/${member.username}`)}
+                onClick={() => setLocation(`/u/${member.user.username}`)}
               >
                 <div className="mt-member-avatar">
-                  {member.profileImage ? (
-                    <img src={member.profileImage} alt={member.name} className="w-full h-full rounded-full object-cover" />
+                  {member.user.profileImage ? (
+                    <img src={member.user.profileImage} alt={member.user.name} className="w-full h-full rounded-full object-cover" />
                   ) : (
-                    member.name.charAt(0)
+                    member.user.name.charAt(0)
                   )}
                 </div>
                 <div className="mt-member-info">
-                  <p className="mt-member-name">{member.name}</p>
+                  <p className="mt-member-name">{member.user.name}</p>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {member.tangoRoles?.filter((role: string) => professionalRoles.includes(role)).map((role: string) => (
                       <span key={role} className="text-xs bg-gradient-to-r from-pink-500 to-purple-600 text-white px-2 py-0.5 rounded-full">
@@ -434,7 +434,7 @@ export default function GroupDetailPageMT() {
                     Joined {new Date(member.joinedAt).toLocaleDateString()}
                   </p>
                 </div>
-                {member.groupRole === 'admin' && (
+                {member.role === 'admin' && (
                   <span className="mt-member-badge">Admin</span>
                 )}
               </div>

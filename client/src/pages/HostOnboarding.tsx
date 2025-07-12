@@ -92,13 +92,11 @@ export default function HostOnboarding() {
           formData.append('files', photo);
         });
         
-        const uploadResponse = await apiRequest('/api/upload/host-home-photos', {
-          method: 'POST',
-          body: formData,
-        });
+        const uploadResponse = await apiRequest('POST', '/api/upload/host-home-photos', formData);
+        const uploadData = await uploadResponse.json();
         
-        if (uploadResponse.urls) {
-          photoUrls.push(...uploadResponse.urls);
+        if (uploadData.urls) {
+          photoUrls.push(...uploadData.urls);
         }
       }
 
@@ -109,10 +107,8 @@ export default function HostOnboarding() {
         status: 'pending_review',
       };
       
-      return apiRequest('/api/host-homes', {
-        method: 'POST',
-        body: JSON.stringify(hostHomeData),
-      });
+      const response = await apiRequest('POST', '/api/host-homes', hostHomeData);
+      return await response.json();
     },
     onSuccess: () => {
       toast({

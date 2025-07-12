@@ -18,15 +18,13 @@ interface Recommendation {
   priceLevel: number;
   photos: string[];
   tags: string[];
-  recommender: {
-    id: number;
-    name: string;
-    username: string;
-    profileImage: string | null;
-    isLocal: boolean;
-    city: string;
-    tangoRoles: string[];
-  };
+  // Flat structure from API
+  recommenderId: number;
+  recommenderName: string;
+  recommenderUsername: string;
+  recommenderProfileImage: string | null;
+  recommenderCity: string;
+  recommenderTangoRoles: string[];
   friendRelation?: {
     degree: number;
     type: 'direct' | 'friend_of_friend' | 'community';
@@ -139,18 +137,18 @@ export function RecommendationsList({ groupId, groupCity }: RecommendationsListP
     }
   };
 
-  const getRecommenderContext = (recommender: Recommendation['recommender'], category: string, groupCity?: string) => {
-    const isInGroupCity = recommender.city === groupCity;
-    const isLocal = recommender.isLocal && isInGroupCity;
+  const getRecommenderContext = (rec: Recommendation, category: string, groupCity?: string) => {
+    const isInGroupCity = rec.recommenderCity === groupCity;
+    const isLocal = rec.isLocalRecommendation && isInGroupCity;
     
     // Special logic for certain categories
     if (category === 'restaurant' && !isLocal) {
       // For restaurants, visitors might have valuable perspectives on authentic cuisine from their home country
-      if (recommender.city && recommender.city !== groupCity) {
+      if (rec.recommenderCity && rec.recommenderCity !== groupCity) {
         return (
           <div className="flex items-center gap-1 text-xs text-orange-600">
             <Globe className="h-3 w-3" />
-            <span>Visitor from {recommender.city}</span>
+            <span>Visitor from {rec.recommenderCity}</span>
           </div>
         );
       }
@@ -309,15 +307,15 @@ export function RecommendationsList({ groupId, groupCity }: RecommendationsListP
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
-                        {rec.recommender.profileImage ? (
-                          <img src={rec.recommender.profileImage} alt={rec.recommender.name} className="w-full h-full rounded-full object-cover" />
+                        {rec.recommenderProfileImage ? (
+                          <img src={rec.recommenderProfileImage} alt={rec.recommenderName} className="w-full h-full rounded-full object-cover" />
                         ) : (
-                          rec.recommender.name.charAt(0)
+                          rec.recommenderName.charAt(0)
                         )}
                       </div>
                       <div>
-                        <p className="text-sm font-medium">{rec.recommender.name}</p>
-                        {getRecommenderContext(rec.recommender, rec.category, groupCity)}
+                        <p className="text-sm font-medium">{rec.recommenderName}</p>
+                        {getRecommenderContext(rec, rec.category, groupCity)}
                       </div>
                     </div>
                     {getFriendshipBadge(rec.friendRelation)}

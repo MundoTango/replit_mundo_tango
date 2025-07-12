@@ -22,14 +22,22 @@ export async function apiRequest(
     ...authHeaders,
   };
   
+  let body: any = undefined;
+  
   if (data) {
-    headers["Content-Type"] = "application/json";
+    if (data instanceof FormData) {
+      // Don't set Content-Type for FormData - let browser set it with boundary
+      body = data;
+    } else {
+      headers["Content-Type"] = "application/json";
+      body = JSON.stringify(data);
+    }
   }
 
   const res = await fetch(url, {
     method,
     headers,
-    body: data ? JSON.stringify(data) : undefined,
+    body,
     credentials: "include",
   });
 
