@@ -4,6 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, Home, MapPin, Star, Users } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 // Fix for missing marker icons in production
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -42,6 +43,7 @@ interface MapItem {
   description?: string;
   type: 'cityGroup' | 'event' | 'home' | 'recommendation';
   city: string;
+  slug?: string;
   memberCount?: number;
   eventCount?: number;
   date?: string;
@@ -52,6 +54,7 @@ interface MapItem {
 
 export default function CommunityMapWithLayers() {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [, setLocation] = useLocation();
 
   // Fetch city groups
   const { data: cityGroups = [] } = useQuery({
@@ -81,11 +84,12 @@ export default function CommunityMapWithLayers() {
       lat: city.lat,
       lng: city.lng,
       title: city.name,
-      description: `${city.memberCount} members • ${city.eventCount} events`,
+      description: `${city.totalUsers || city.memberCount || 0} members • ${city.eventCount || 0} events`,
       type: 'cityGroup' as const,
       city: city.name,
-      memberCount: city.memberCount,
-      eventCount: city.eventCount,
+      slug: city.slug,
+      memberCount: city.totalUsers || city.memberCount || 0,
+      eventCount: city.eventCount || 0,
     })),
     // Events
     ...events.map((event: any) => ({
@@ -157,23 +161,102 @@ export default function CommunityMapWithLayers() {
   };
 
   const renderPopupContent = (item: MapItem) => {
+    // Enhanced popup for city groups
+    if (item.type === 'cityGroup') {
+      // City photo mapping based on CityPhotoService
+      const getCityImage = () => {
+        const cityPhotos: Record<string, string> = {
+          'Buenos Aires': 'https://images.pexels.com/photos/16228260/pexels-photo-16228260.jpeg?auto=compress&cs=tinysrgb&w=400&h=200&fit=crop',
+          'Montevideo': 'https://images.pexels.com/photos/5472862/pexels-photo-5472862.jpeg?auto=compress&cs=tinysrgb&w=400&h=200&fit=crop',
+          'Milan': 'https://images.pexels.com/photos/1797161/pexels-photo-1797161.jpeg?auto=compress&cs=tinysrgb&w=400&h=200&fit=crop',
+          'Paris': 'https://images.pexels.com/photos/161853/eiffel-tower-paris-france-tower-161853.jpeg?auto=compress&cs=tinysrgb&w=400&h=200&fit=crop',
+          'Warsaw': 'https://images.pexels.com/photos/1477430/pexels-photo-1477430.jpeg?auto=compress&cs=tinysrgb&w=400&h=200&fit=crop',
+          'São Paulo': 'https://images.pexels.com/photos/3619595/pexels-photo-3619595.jpeg?auto=compress&cs=tinysrgb&w=400&h=200&fit=crop',
+          'San Francisco': 'https://images.pexels.com/photos/208745/pexels-photo-208745.jpeg?auto=compress&cs=tinysrgb&w=400&h=200&fit=crop',
+          'Rosario': 'https://images.pexels.com/photos/2635011/pexels-photo-2635011.jpeg?auto=compress&cs=tinysrgb&w=400&h=200&fit=crop'
+        };
+        
+        // Try exact match first
+        if (cityPhotos[item.city]) {
+          return cityPhotos[item.city];
+        }
+        
+        // Try partial match
+        for (const [cityName, photoUrl] of Object.entries(cityPhotos)) {
+          if (item.city.toLowerCase().includes(cityName.toLowerCase())) {
+            return photoUrl;
+          }
+        }
+        
+        return null;
+      };
+      
+      const cityImage = getCityImage();
+      
+      return (
+        <div className="p-0 min-w-[280px] overflow-hidden">
+          {/* City Image Header */}
+          {cityImage && (
+            <div className="relative h-32 mb-3">
+              <img 
+                src={cityImage}
+                alt={item.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute bottom-2 left-3 right-3">
+                <h3 className="font-bold text-xl text-white drop-shadow-lg">{item.title}</h3>
+              </div>
+            </div>
+          )}
+          
+          {!cityImage && (
+            <div className="relative h-24 mb-3 bg-gradient-to-br from-purple-500 to-blue-500">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <h3 className="font-bold text-xl text-white drop-shadow-lg px-3 text-center">{item.title}</h3>
+              </div>
+            </div>
+          )}
+          
+          {/* Stats Section */}
+          <div className="px-4 pb-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-blue-50 rounded-lg p-3 text-center">
+                <Users className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+                <div className="text-lg font-bold text-gray-900">{item.memberCount || 0}</div>
+                <div className="text-xs text-gray-600">members</div>
+              </div>
+              <div className="bg-green-50 rounded-lg p-3 text-center">
+                <Calendar className="h-5 w-5 text-green-600 mx-auto mb-1" />
+                <div className="text-lg font-bold text-gray-900">{item.eventCount || 0}</div>
+                <div className="text-xs text-gray-600">events</div>
+              </div>
+            </div>
+            
+            <button 
+              className="w-full mt-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 px-4 rounded-lg font-medium text-sm hover:from-purple-700 hover:to-blue-700 transition-all"
+              onClick={() => {
+                // Navigate to the group detail page using slug
+                if (item.slug) {
+                  setLocation(`/groups/${item.slug}`);
+                } else {
+                  // Fallback to groups page with city filter
+                  setLocation(`/groups?city=${encodeURIComponent(item.city)}`);
+                }
+              }}
+            >
+              View Community
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    // Original popup design for other types
     return (
       <div className="p-2 min-w-[200px]">
         <h3 className="font-bold text-lg mb-1">{item.title}</h3>
         {item.description && <p className="text-sm text-gray-600 mb-2">{item.description}</p>}
-        
-        {item.type === 'cityGroup' && (
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-sm">
-              <Users className="h-4 w-4 text-blue-500" />
-              <span>{item.memberCount} members</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4 text-green-500" />
-              <span>{item.eventCount} events</span>
-            </div>
-          </div>
-        )}
         
         {item.type === 'event' && item.date && (
           <div className="flex items-center gap-2 text-sm">
