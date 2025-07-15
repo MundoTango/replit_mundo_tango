@@ -39,7 +39,8 @@ import {
   HardDrive,
   Wifi,
   GitCommit,
-  Brain
+  Brain,
+  RefreshCw
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -215,7 +216,6 @@ const AdminCenter: React.FC = () => {
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'statistics', label: 'Global Statistics', icon: <Globe className="w-4 h-4" />, isNew: true },
     { id: 'daily-activity', label: 'Daily Activity', icon: <Calendar className="w-4 h-4" />, isNew: true },
-    { id: 'performance', label: 'Performance', icon: <Zap className="w-4 h-4" />, isNew: true },
     { id: 'project-tracker', label: 'The Plan', icon: <GitCommit className="w-4 h-4" /> },
     { id: 'feature-deep-dive', label: 'Feature Deep Dive', icon: <Database className="w-4 h-4" /> },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
@@ -1219,64 +1219,112 @@ const AdminCenter: React.FC = () => {
     </div>
   );
 
-  const renderSystemHealth = () => (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <h2 className="text-xl font-bold text-gray-800">System Health Monitor</h2>
-        <div className="flex gap-3">
-          <button className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
-            <Monitor className="w-4 h-4 inline mr-2" />
-            Refresh Status
-          </button>
-        </div>
-      </div>
+  const renderSystemHealth = () => {
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [performanceKey, setPerformanceKey] = useState(0);
+    const [systemMetrics, setSystemMetrics] = useState({
+      uptime: 99.9,
+      responseTime: 127,
+      databaseLoad: 23,
+      storageUsed: 67
+    });
 
-      {/* System Stats with MT Design */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2 bg-green-500 rounded-xl">
-              <Server className="w-5 h-5 text-white" />
-            </div>
+    const handleRefreshAll = async () => {
+      setIsRefreshing(true);
+      
+      try {
+        // Force PerformanceMonitor to re-mount and collect fresh metrics
+        setPerformanceKey(prev => prev + 1);
+        
+        // Simulate fetching updated system metrics
+        // In production, this would call actual API endpoints
+        setSystemMetrics({
+          uptime: 99.8 + Math.random() * 0.2,
+          responseTime: 120 + Math.floor(Math.random() * 20),
+          databaseLoad: 20 + Math.floor(Math.random() * 10),
+          storageUsed: 65 + Math.floor(Math.random() * 5)
+        });
+        
+        // Add a small delay to show loading state
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.error('Error refreshing metrics:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <h2 className="text-xl font-bold text-gray-800">System Health Monitor</h2>
+          <div className="flex gap-3">
+            <button 
+              onClick={handleRefreshAll}
+              disabled={isRefreshing}
+              className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isRefreshing ? (
+                <>
+                  <RefreshCw className="w-4 h-4 inline mr-2 animate-spin" />
+                  Refreshing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 inline mr-2" />
+                  Refresh Status
+                </>
+              )}
+            </button>
           </div>
-          <div className="text-2xl font-bold text-gray-800">99.9%</div>
-          <div className="text-sm text-gray-600 mt-1">Server Uptime</div>
-          <div className="text-xs text-gray-500 mt-1">30-day average</div>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2 bg-blue-500 rounded-xl">
-              <Zap className="w-5 h-5 text-white" />
+        {/* System Stats with MT Design */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className={`bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 ${isRefreshing ? 'animate-pulse' : ''}`}>
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-green-500 rounded-xl">
+                <Server className="w-5 h-5 text-white" />
+              </div>
             </div>
+            <div className="text-2xl font-bold text-gray-800">{systemMetrics.uptime.toFixed(1)}%</div>
+            <div className="text-sm text-gray-600 mt-1">Server Uptime</div>
+            <div className="text-xs text-gray-500 mt-1">30-day average</div>
           </div>
-          <div className="text-2xl font-bold text-gray-800">127ms</div>
-          <div className="text-sm text-gray-600 mt-1">Response Time</div>
-          <div className="text-xs text-gray-500 mt-1">Average API response</div>
-        </div>
 
-        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2 bg-yellow-500 rounded-xl">
-              <Database className="w-5 h-5 text-white" />
+          <div className={`bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 ${isRefreshing ? 'animate-pulse' : ''}`}>
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-blue-500 rounded-xl">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
             </div>
+            <div className="text-2xl font-bold text-gray-800">{systemMetrics.responseTime}ms</div>
+            <div className="text-sm text-gray-600 mt-1">Response Time</div>
+            <div className="text-xs text-gray-500 mt-1">Average API response</div>
           </div>
-          <div className="text-2xl font-bold text-gray-800">23%</div>
-          <div className="text-sm text-gray-600 mt-1">Database Load</div>
-          <div className="text-xs text-gray-500 mt-1">Current utilization</div>
-        </div>
 
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2 bg-purple-500 rounded-xl">
-              <HardDrive className="w-5 h-5 text-white" />
+          <div className={`bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 ${isRefreshing ? 'animate-pulse' : ''}`}>
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-yellow-500 rounded-xl">
+                <Database className="w-5 h-5 text-white" />
+              </div>
             </div>
+            <div className="text-2xl font-bold text-gray-800">{systemMetrics.databaseLoad}%</div>
+            <div className="text-sm text-gray-600 mt-1">Database Load</div>
+            <div className="text-xs text-gray-500 mt-1">Current utilization</div>
           </div>
-          <div className="text-2xl font-bold text-gray-800">67%</div>
-          <div className="text-sm text-gray-600 mt-1">Storage Used</div>
-          <div className="text-xs text-gray-500 mt-1">of allocated space</div>
+
+          <div className={`bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 ${isRefreshing ? 'animate-pulse' : ''}`}>
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-purple-500 rounded-xl">
+                <HardDrive className="w-5 h-5 text-white" />
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-gray-800">{systemMetrics.storageUsed}%</div>
+            <div className="text-sm text-gray-600 mt-1">Storage Used</div>
+            <div className="text-xs text-gray-500 mt-1">of allocated space</div>
+          </div>
         </div>
-      </div>
 
       {/* Service Status with MT Styling */}
       <div className="bg-white rounded-2xl p-6 shadow-lg">
@@ -1320,8 +1368,14 @@ const AdminCenter: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Integrated Performance Monitor with MT Ocean Theme */}
+      <div className="mt-6">
+        <PerformanceMonitor key={performanceKey} />
+      </div>
     </div>
-  );
+    );
+  };
 
   const render23LFramework = () => {
     const [frameworkData, setFrameworkData] = useState<any>({
@@ -1907,7 +1961,6 @@ const AdminCenter: React.FC = () => {
       case 'overview': return renderOverview();
       case 'statistics': return <GlobalStatisticsDashboard />;
       case 'daily-activity': return <DailyActivityView />;
-      case 'performance': return <PerformanceMonitor />;
       case 'project-tracker': return (
         <ErrorBoundary fallbackMessage="Error loading project hierarchy. Please refresh the page.">
           <Comprehensive11LProjectTracker />
