@@ -159,7 +159,7 @@ export default function PostCard({ post }: PostCardProps) {
 
       {/* Post Content */}
       <CardContent className="p-4">
-        <p className="text-tango-black mb-4 whitespace-pre-wrap">{post.content}</p>
+        <p className="text-gray-900 mb-4 whitespace-pre-wrap">{post.content}</p>
         
         {/* Media */}
         {post.imageUrl && (
@@ -195,7 +195,7 @@ export default function PostCard({ post }: PostCardProps) {
             size="sm"
             onClick={handleLike}
             disabled={likeMutation.isPending}
-            className={`flex items-center space-x-2 ${isLiked ? 'text-red-500' : 'text-gray-600'} hover:text-tango-red`}
+            className={`flex items-center space-x-2 ${isLiked ? 'text-red-500' : 'text-gray-600'} hover:text-turquoise-500`}
           >
             <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
             <span>Like</span>
@@ -205,7 +205,7 @@ export default function PostCard({ post }: PostCardProps) {
             variant="ghost"
             size="sm"
             onClick={() => setShowComments(!showComments)}
-            className="flex items-center space-x-2 text-gray-600 hover:text-tango-red"
+            className="flex items-center space-x-2 text-gray-600 hover:text-turquoise-500"
           >
             <MessageCircle className="h-5 w-5" />
             <span>Comment</span>
@@ -215,7 +215,7 @@ export default function PostCard({ post }: PostCardProps) {
             variant="ghost"
             size="sm"
             onClick={handleShare}
-            className="flex items-center space-x-2 text-gray-600 hover:text-tango-red"
+            className="flex items-center space-x-2 text-gray-600 hover:text-turquoise-500"
           >
             <Share2 className="h-5 w-5" />
             <span>Share</span>
@@ -242,7 +242,7 @@ export default function PostCard({ post }: PostCardProps) {
                   size="sm"
                   onClick={handleComment}
                   disabled={commentMutation.isPending || !newComment.trim()}
-                  className="bg-tango-red hover:bg-tango-red/90"
+                  className="bg-gradient-to-r from-turquoise-500 to-blue-500 hover:from-turquoise-600 hover:to-blue-600 text-white"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
