@@ -53,33 +53,108 @@ interface MapItem {
   photos?: string[];
 }
 
-export default function CommunityMapWithLayers() {
+interface CommunityMapWithLayersProps {
+  city?: string;
+  groupSlug?: string;
+  layers?: {
+    events: boolean;
+    housing: boolean;
+    recommendations: boolean;
+  };
+  dateFilter?: {
+    startDate?: Date;
+    endDate?: Date;
+  };
+  eventFilters?: {
+    category: string;
+    priceRange: string;
+    timeOfDay: string;
+  };
+  friendFilter?: 'all' | 'direct' | 'friend-of-friend' | 'community';
+  recommendationType?: 'all' | 'local' | 'visitor';
+  showDirections?: boolean;
+}
+
+export default function CommunityMapWithLayers({
+  city,
+  groupSlug,
+  layers = { events: true, housing: true, recommendations: true },
+  dateFilter,
+  eventFilters,
+  friendFilter = 'all',
+  recommendationType = 'all',
+  showDirections = false
+}: CommunityMapWithLayersProps) {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [, setLocation] = useLocation();
   
-  // Layer visibility states
-  const [showEvents, setShowEvents] = useState(false);
-  const [showHomes, setShowHomes] = useState(false);
-  const [showRecommendations, setShowRecommendations] = useState(false);
+  // Use layer props for visibility
+  const showEvents = layers.events;
+  const showHomes = layers.housing;
+  const showRecommendations = layers.recommendations;
 
   // Fetch city groups
   const { data: cityGroups = [] } = useQuery({
-    queryKey: ['/api/community/city-groups'],
+    queryKey: ['/api/community/city-groups', { city }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (city) params.append('city', city);
+      
+      const response = await fetch(`/api/community/city-groups?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch city groups');
+      const data = await response.json();
+      return data.success ? data.data : [];
+    }
   });
 
-  // Fetch events with location
+  // Fetch events with location and filters
   const { data: events = [] } = useQuery({
-    queryKey: ['/api/community/events-map'],
+    queryKey: ['/api/community/events-map', { city, groupSlug, dateFilter, eventFilters }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (city) params.append('city', city);
+      if (groupSlug) params.append('groupSlug', groupSlug);
+      if (dateFilter?.startDate) params.append('startDate', dateFilter.startDate.toISOString());
+      if (dateFilter?.endDate) params.append('endDate', dateFilter.endDate.toISOString());
+      if (eventFilters?.category && eventFilters.category !== 'all') params.append('category', eventFilters.category);
+      if (eventFilters?.priceRange && eventFilters.priceRange !== 'all') params.append('priceRange', eventFilters.priceRange);
+      if (eventFilters?.timeOfDay && eventFilters.timeOfDay !== 'all') params.append('timeOfDay', eventFilters.timeOfDay);
+      
+      const response = await fetch(`/api/community/events-map?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch events');
+      return response.json();
+    }
   });
 
-  // Fetch host homes
+  // Fetch host homes with friend filter
   const { data: homes = [] } = useQuery({
-    queryKey: ['/api/community/homes-map'],
+    queryKey: ['/api/community/homes-map', { city, groupSlug, friendFilter }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (city) params.append('city', city);
+      if (groupSlug) params.append('groupSlug', groupSlug);
+      if (friendFilter && friendFilter !== 'all') params.append('friendFilter', friendFilter);
+      
+      const response = await fetch(`/api/community/homes-map?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch homes');
+      return response.json();
+    }
   });
 
-  // Fetch recommendations
+  // Fetch recommendations with filters
   const { data: recommendations = [] } = useQuery({
-    queryKey: ['/api/community/recommendations-map'],
+    queryKey: ['/api/community/recommendations-map', { city, groupSlug, friendFilter, recommendationType }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (city) params.append('city', city);
+      if (groupSlug) params.append('groupSlug', groupSlug);
+      if (friendFilter && friendFilter !== 'all') params.append('friendFilter', friendFilter);
+      if (recommendationType && recommendationType !== 'all') params.append('type', recommendationType);
+      
+      const response = await fetch(`/api/community/recommendations-map?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch recommendations');
+      return response.json();
+    }
   });
 
   // Combine all items for the map

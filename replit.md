@@ -61,6 +61,34 @@
 - **23L Framework Applied**: Used systematic layer-by-layer approach for comprehensive color migration
 - **Backwards Compatibility**: Legacy purple colors retained as secondary palette for smooth transition
 
+**UPDATE (January 15, 2025 - Guest Onboarding & Sophisticated Filtering Implementation)**: Complete Guest Booking System with Role-Based Views
+- **Guest Booking API**: Created comprehensive booking endpoints in server/routes.ts
+  - POST /api/guest-bookings - Create new booking request
+  - GET /api/guest-bookings - Get user's booking requests  
+  - GET /api/host-bookings - Get booking requests for host's properties
+  - PUT /api/guest-bookings/:id/status - Update booking status (approve/decline)
+- **Storage Layer**: Enhanced DatabaseStorage with booking methods
+  - createGuestBooking, getGuestBookingsByUser, getHostBookingRequests, updateGuestBookingStatus
+  - Fixed column reference from hostId to userId to match schema
+- **Role-Based Views**: Implemented in GroupDetailPageMT Community Hub tab
+  - Super admins see host management section with onboarding button
+  - Regular users see guest view with browsing instructions
+- **Sophisticated Filtering System**: Added LinkedIn-style relationship filters
+  - Friend relationship degrees: direct, friend-of-friend, community
+  - Local vs visitor recommendations (e.g., locals for steaks, Chinese visitors for authentic Chinese)
+  - Date range picker for events
+  - Event metadata filters: category, price range, time of day
+- **Component Updates**:
+  - CommunityToolbar: Added filter state management and UI controls
+  - HostHomesList: Accepts friendFilter prop with useEffect sync
+  - RecommendationsList: Accepts friendFilter and recommendationType props
+  - CommunityMapWithLayers: Enhanced with all filter props and API query parameters
+- **API Integration**: All map endpoints now support filtering
+  - Events: date range, category, price, time filters
+  - Housing: friend relationship filter
+  - Recommendations: friend filter and local/visitor type
+- **23L Framework Applied**: Comprehensive validation for guest onboarding functionality
+
 **UPDATE (January 12, 2025 - Performance Optimization)**: Comprehensive Performance Improvements Using 23L Framework
 - **Critical Cache Issue Fixed**: Removed aggressive `forceCacheClear()` from App.tsx that was clearing all caches on every page load
   - Result: Eliminated 2-3 second delays on page transitions

@@ -59,6 +59,12 @@ export default function CommunityToolbar({ city, groupSlug }: CommunityToolbarPr
     priceRange: 'all',
     timeOfDay: 'all'
   });
+  
+  // Friend relationship filter
+  const [friendFilter, setFriendFilter] = useState<'all' | 'direct' | 'friend-of-friend' | 'community'>('all');
+  
+  // Local vs visitor filter for recommendations
+  const [recommendationType, setRecommendationType] = useState<'all' | 'local' | 'visitor'>('all');
 
   return (
     <div className="w-full">
@@ -225,6 +231,39 @@ export default function CommunityToolbar({ city, groupSlug }: CommunityToolbarPr
                     </div>
                   </div>
                 )}
+                
+                {/* Friend Relationship Filter */}
+                {(mapLayers.housing || mapLayers.recommendations) && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Friend Connections</label>
+                    <select
+                      value={friendFilter}
+                      onChange={(e) => setFriendFilter(e.target.value as any)}
+                      className="w-full rounded-md border px-3 py-2"
+                    >
+                      <option value="all">All Users</option>
+                      <option value="direct">Direct Friends Only</option>
+                      <option value="friend-of-friend">Friends of Friends</option>
+                      <option value="community">Community Members</option>
+                    </select>
+                  </div>
+                )}
+                
+                {/* Local vs Visitor Filter for Recommendations */}
+                {mapLayers.recommendations && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Recommendation Type</label>
+                    <select
+                      value={recommendationType}
+                      onChange={(e) => setRecommendationType(e.target.value as any)}
+                      className="w-full rounded-md border px-3 py-2"
+                    >
+                      <option value="all">All Recommendations</option>
+                      <option value="local">From Locals (e.g., best steaks)</option>
+                      <option value="visitor">From Visitors (e.g., authentic Chinese food)</option>
+                    </select>
+                  </div>
+                )}
               </div>
             )}
           </Card>
@@ -237,6 +276,8 @@ export default function CommunityToolbar({ city, groupSlug }: CommunityToolbarPr
               layers={mapLayers}
               dateFilter={dateFilter}
               eventFilters={eventFilters}
+              friendFilter={friendFilter}
+              recommendationType={recommendationType}
               showDirections={true}
             />
           </div>
@@ -248,6 +289,7 @@ export default function CommunityToolbar({ city, groupSlug }: CommunityToolbarPr
             city={city} 
             groupSlug={groupSlug}
             showFilters={true}
+            friendFilter={friendFilter}
           />
         </TabsContent>
 
@@ -257,6 +299,8 @@ export default function CommunityToolbar({ city, groupSlug }: CommunityToolbarPr
             city={city}
             groupSlug={groupSlug}
             showFilters={true}
+            friendFilter={friendFilter}
+            recommendationType={recommendationType}
           />
         </TabsContent>
       </Tabs>

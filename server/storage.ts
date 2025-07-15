@@ -2957,7 +2957,7 @@ export class DatabaseStorage implements IStorage {
   async getHostHomesByUser(userId: number): Promise<HostHome[]> {
     return await db.select()
       .from(hostHomes)
-      .where(eq(hostHomes.hostId, userId))
+      .where(eq(hostHomes.userId, userId))
       .orderBy(desc(hostHomes.createdAt));
   }
 

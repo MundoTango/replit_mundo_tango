@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Star, MapPin, Users, Globe, Filter, Utensils, Coffee, ShoppingBag, Heart, Camera, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,15 +35,33 @@ interface RecommendationsListProps {
   groupSlug?: string;
   city?: string;
   showFilters?: boolean;
+  friendFilter?: 'all' | 'direct' | 'friend-of-friend' | 'community';
+  recommendationType?: 'all' | 'local' | 'visitor';
 }
 
-export default function RecommendationsList({ groupSlug, city, showFilters = true }: RecommendationsListProps) {
+export default function RecommendationsList({ 
+  groupSlug, 
+  city, 
+  showFilters = true,
+  friendFilter: propFriendFilter,
+  recommendationType: propRecommendationType 
+}: RecommendationsListProps) {
   const { user } = useAuth();
   const [filters, setFilters] = useState({
     category: 'all',
-    recommendationType: 'all', // all, locals, visitors, friends
-    priceLevel: 'all'
+    recommendationType: propRecommendationType || 'all',
+    priceLevel: 'all',
+    friendFilter: propFriendFilter || 'all'
   });
+
+  // Sync with prop changes
+  useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      ...(propFriendFilter && { friendFilter: propFriendFilter }),
+      ...(propRecommendationType && { recommendationType: propRecommendationType })
+    }));
+  }, [propFriendFilter, propRecommendationType]);
 
   // Fetch recommendations
   const { data: recommendations, isLoading } = useQuery({
@@ -55,6 +73,7 @@ export default function RecommendationsList({ groupSlug, city, showFilters = tru
       if (filters.category !== 'all') params.append('category', filters.category);
       if (filters.recommendationType !== 'all') params.append('type', filters.recommendationType);
       if (filters.priceLevel !== 'all') params.append('priceLevel', filters.priceLevel);
+      if (filters.friendFilter !== 'all') params.append('friendFilter', filters.friendFilter);
       
       const response = await fetch(`/api/recommendations?${params}`);
       if (!response.ok) throw new Error('Failed to fetch recommendations');

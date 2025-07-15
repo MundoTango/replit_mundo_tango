@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Home, MapPin, Users, Star, Filter, DollarSign, Bed, Shield, Heart } from 'lucide-react';
@@ -36,17 +36,25 @@ interface HostHomesListProps {
   groupSlug?: string;
   city?: string;
   showFilters?: boolean;
+  friendFilter?: 'all' | 'direct' | 'friend-of-friend' | 'community';
 }
 
-export default function HostHomesList({ groupSlug, city, showFilters = true }: HostHomesListProps) {
+export default function HostHomesList({ groupSlug, city, showFilters = true, friendFilter: propFriendFilter }: HostHomesListProps) {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [filters, setFilters] = useState({
     priceRange: { min: 0, max: 500 },
     roomType: 'all',
     maxGuests: 1,
-    friendFilter: 'all' // all, friends, friends-of-friends
+    friendFilter: propFriendFilter || 'all' // Use prop value if provided
   });
+
+  // Sync with prop changes
+  useEffect(() => {
+    if (propFriendFilter) {
+      setFilters(prev => ({ ...prev, friendFilter: propFriendFilter }));
+    }
+  }, [propFriendFilter]);
 
   // Fetch host homes
   const { data: homes, isLoading } = useQuery({

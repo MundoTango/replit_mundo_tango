@@ -841,10 +841,46 @@ export default function GroupDetailPageMT() {
   const renderCommunityHub = () => {
     return (
       <div className="space-y-6">
+        {/* Super admin sees host onboarding option */}
+        {user?.isSuperAdmin && (
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6 mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="h-6 w-6 text-purple-600" />
+                  <h3 className="text-lg font-bold text-purple-900">Super Admin Host Management</h3>
+                </div>
+                <p className="text-purple-700">Manage host homes and onboard new hosts for this community.</p>
+              </div>
+              <Button
+                onClick={() => setLocation('/host-onboarding')}
+                className="bg-gradient-to-br from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+              >
+                <Home className="h-4 w-4 mr-2" />
+                Start Host Onboarding
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* All users see the community toolbar */}
         <CommunityToolbar 
           city={group.city} 
           groupSlug={group.slug}
         />
+        
+        {/* Guest-specific messaging for non-super admins */}
+        {!user?.isSuperAdmin && (
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mt-4">
+            <div className="flex items-center gap-2">
+              <Info className="h-5 w-5 text-blue-600" />
+              <p className="text-blue-800">
+                Browse available host homes, local recommendations, and events in {group.city}. 
+                Click on any home to request a stay!
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
