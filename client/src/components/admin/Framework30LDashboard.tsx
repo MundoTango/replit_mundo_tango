@@ -38,7 +38,7 @@ interface LayerData {
   documentation: string[];
 }
 
-const Framework23LDashboard: React.FC = () => {
+const Framework30LDashboard: React.FC = () => {
   const [selectedLayer, setSelectedLayer] = useState<number>(1);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [isRunningAnalysis, setIsRunningAnalysis] = useState(false);
@@ -311,6 +311,85 @@ const Framework23LDashboard: React.FC = () => {
         components: ['Backup Strategy', 'Disaster Recovery', 'Incident Response', 'Status Page'],
         issues: ['DR plan not tested', 'No automated backups'],
         documentation: ['BUSINESS_CONTINUITY.md', 'DISASTER_RECOVERY.md']
+      },
+      
+      // Extended Layers (24-30) - Enhanced 30L Framework
+      {
+        id: 24,
+        name: "Developer Experience",
+        icon: <Code className="w-5 h-5" />,
+        description: "Developer tooling, documentation, onboarding, and productivity enhancements",
+        status: 'in-progress',
+        progress: 72,
+        components: ['Development Tools', 'API Documentation', 'Code Templates', 'Developer Portal'],
+        issues: ['API docs incomplete', 'Missing code generators'],
+        documentation: ['DEVELOPER_EXPERIENCE.md', 'API_REFERENCE.md']
+      },
+      {
+        id: 25,
+        name: "Community & Ecosystem",
+        icon: <Users className="w-5 h-5" />,
+        description: "Community building, plugin system, marketplace, and third-party integrations",
+        status: 'in-progress',
+        progress: 68,
+        components: ['Community Forums', 'Plugin System', 'Marketplace', 'Partner APIs'],
+        issues: ['Plugin system architecture needed', 'Community moderation tools'],
+        documentation: ['COMMUNITY_GUIDELINES.md', 'PLUGIN_ARCHITECTURE.md']
+      },
+      {
+        id: 26,
+        name: "Advanced AI Capabilities",
+        icon: <Brain className="w-5 h-5" />,
+        description: "Next-gen AI features, predictive modeling, autonomous agents, and ML pipelines",
+        status: 'in-progress',
+        progress: 55,
+        components: ['ML Pipeline', 'Predictive Models', 'Autonomous Agents', 'AI Orchestration'],
+        issues: ['ML infrastructure not scaled', 'Model versioning needed'],
+        documentation: ['ADVANCED_AI.md', 'ML_PIPELINE.md']
+      },
+      {
+        id: 27,
+        name: "Global Scalability",
+        icon: <Globe className="w-5 h-5" />,
+        description: "Multi-region deployment, CDN optimization, and global performance",
+        status: 'pending',
+        progress: 40,
+        components: ['Multi-Region Setup', 'CDN Strategy', 'Edge Computing', 'Global Load Balancing'],
+        issues: ['Single region deployment', 'No CDN implementation'],
+        documentation: ['GLOBAL_INFRASTRUCTURE.md', 'SCALABILITY_PLAN.md']
+      },
+      {
+        id: 28,
+        name: "Innovation & Future Tech",
+        icon: <Sparkles className="w-5 h-5" />,
+        description: "Emerging technologies, experimental features, and innovation pipeline",
+        status: 'pending',
+        progress: 30,
+        components: ['WebAssembly', 'Blockchain Integration', 'AR/VR Features', 'Quantum Ready'],
+        issues: ['Technology roadmap undefined', 'Innovation framework needed'],
+        documentation: ['INNOVATION_ROADMAP.md', 'FUTURE_TECH.md']
+      },
+      {
+        id: 29,
+        name: "Enterprise Compliance",
+        icon: <Shield className="w-5 h-5" />,
+        description: "Enterprise-grade compliance, certifications, and regulatory adherence",
+        status: 'in-progress',
+        progress: 62,
+        components: ['SOC2 Compliance', 'ISO Certification', 'HIPAA Ready', 'Enterprise SSO'],
+        issues: ['SOC2 audit pending', 'Enterprise SSO incomplete'],
+        documentation: ['ENTERPRISE_COMPLIANCE.md', 'CERTIFICATION_STATUS.md']
+      },
+      {
+        id: 30,
+        name: "Platform Evolution",
+        icon: <RefreshCw className="w-5 h-5" />,
+        description: "Self-improving system, automated updates, and continuous evolution",
+        status: 'in-progress',
+        progress: 58,
+        components: ['Auto-Updates', 'Self-Healing', 'Evolution Engine', 'Feedback Loop'],
+        issues: ['Evolution metrics not tracked', 'Manual update process'],
+        documentation: ['PLATFORM_EVOLUTION.md', 'SELF_IMPROVEMENT.md']
       }
     ];
     
@@ -335,11 +414,13 @@ const Framework23LDashboard: React.FC = () => {
           'Focus on Production Engineering layers (21-23) for production readiness',
           'Complete GDPR compliance implementation in Layer 3',
           'Improve test coverage in Layer 12',
-          'Deploy ML models for Layer 20 recommendations'
+          'Deploy ML models for Layer 20 recommendations',
+          'Scale global infrastructure (Layer 27) for multi-region deployment',
+          'Implement enterprise compliance (Layer 29) for SOC2 certification'
         ]
       };
       
-      console.log('23L Framework Analysis Report:', report);
+      console.log('30L Framework Analysis Report:', report);
       alert('Report generated! Check console for details.');
       setIsGeneratingReport(false);
     }, 2000);
@@ -350,7 +431,7 @@ const Framework23LDashboard: React.FC = () => {
     
     // Simulate self-reprompting analysis
     setTimeout(() => {
-      console.log('Running 23L self-reprompting analysis...');
+      console.log('Running 30L self-reprompting analysis...');
       alert('Self-analysis complete! Framework updated with latest insights.');
       setIsRunningAnalysis(false);
     }, 3000);
@@ -378,10 +459,10 @@ const Framework23LDashboard: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
             <Layers className="w-7 h-7 text-turquoise-600" />
-            23L Framework Dashboard
+            30L Framework Dashboard
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Comprehensive 23-Layer production validation system with 30L enhancements
+            Comprehensive 30-Layer production validation system with enhanced capabilities
           </p>
         </div>
         <div className="flex gap-3">
@@ -584,4 +665,4 @@ const Framework23LDashboard: React.FC = () => {
   );
 };
 
-export default Framework23LDashboard;
+export default Framework30LDashboard;
