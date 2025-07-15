@@ -17,6 +17,9 @@ import { useAuth } from '@/hooks/useAuth';
 import EventMap from '@/components/EventMap';
 import { Filter } from 'lucide-react';
 import CommunityToolbar from '@/components/CommunityToolbar';
+import CommunityMapWithLayers from '@/components/CommunityMapWithLayers';
+import HostHomesList from '@/components/Housing/HostHomesList';
+import RecommendationsList from '@/components/Recommendations/RecommendationsList';
 import '../styles/ttfiles.css';
 import '../styles/mt-group.css';
 
@@ -819,9 +822,9 @@ export default function GroupDetailPageMT() {
         )}
         
         <HostHomesList 
-          groupId={group.id} 
-          groupCity={group.city}
-          isSuperAdmin={user?.isSuperAdmin}
+          groupSlug={group.slug}
+          city={group.city}
+          showFilters={false}
         />
       </div>
     );
@@ -831,8 +834,9 @@ export default function GroupDetailPageMT() {
     return (
       <div className="space-y-6">
         <RecommendationsList 
-          groupId={group.id} 
-          groupCity={group.city}
+          groupSlug={group.slug}
+          city={group.city}
+          showFilters={false}
         />
       </div>
     );
