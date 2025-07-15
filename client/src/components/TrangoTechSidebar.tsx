@@ -144,9 +144,9 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         } transition-transform duration-300 ease-in-out bg-white w-64 text-gray-800 z-40 border-r border-gray-200 overflow-y-auto shadow-lg`}
       >
         {/* Gradient Header Bar */}
-        <div className="h-16 flex justify-between items-center px-4 bg-gradient-to-r from-pink-500 to-blue-500">
+        <div className="h-16 flex justify-between items-center px-4 bg-gradient-to-r from-turquoise-500 to-blue-500">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-pink-500 font-bold text-sm">
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-turquoise-500 font-bold text-sm">
               MT
             </div>
             <div className="text-xl font-bold text-white tracking-wide">

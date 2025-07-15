@@ -1,6 +1,6 @@
-// Life CEO Service Worker v5.0 - Updated January 9, 2025
-// IMPORTANT: Cache version updated to v5 to fix Groups page display issue
-const CACHE_NAME = 'life-ceo-v5';
+// Life CEO Service Worker v7.0 - Updated January 15, 2025
+// IMPORTANT: Cache version updated to v7 to force final turquoise-blue color update
+const CACHE_NAME = 'life-ceo-v7';
 const urlsToCache = [
   '/',
   '/life-ceo',

@@ -111,7 +111,7 @@ export default function TrangoTechPostComposer() {
   return (
     <div className="w-full">
       {/* TrangoTech Post Composer */}
-      <div className="bg-gradient-to-br from-coral-100 to-coral-200/50 rounded-xl p-6 mb-8 shadow-lg border border-coral-200/30">
+      <div className="bg-gradient-to-br from-turquoise-100 to-turquoise-200/50 rounded-xl p-6 mb-8 shadow-lg border border-turquoise-200/30">
         <div className="flex items-center gap-4">
           <div className="relative">
             {user?.profileImage ? (
@@ -121,7 +121,7 @@ export default function TrangoTechPostComposer() {
                 className="w-12 h-12 object-cover rounded-full border-2 border-white shadow-md"
               />
             ) : (
-              <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-purple-600 rounded-full border-2 border-white shadow-md flex items-center justify-center text-white font-bold text-lg">
+              <div className="w-12 h-12 bg-gradient-to-br from-turquoise-400 to-blue-600 rounded-full border-2 border-white shadow-md flex items-center justify-center text-white font-bold text-lg">
                 {user?.name?.charAt(0) || 'U'}
               </div>
             )}

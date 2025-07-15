@@ -112,14 +112,14 @@ export default function PostFeed() {
               <div className="w-14 h-14 bg-gradient-to-br from-blue-200 to-teal-200 rounded-2xl"></div>
               <div className="space-y-3">
                 <div className="h-5 bg-gradient-to-r from-blue-200 to-teal-200 rounded-xl w-32"></div>
-                <div className="h-4 bg-gradient-to-r from-coral-200 to-pink-200 rounded-xl w-24"></div>
+                <div className="h-4 bg-gradient-to-r from-turquoise-200 to-cyan-200 rounded-xl w-24"></div>
               </div>
             </div>
             <div className="space-y-3 mb-6">
               <div className="h-5 bg-gradient-to-r from-blue-200 to-teal-200 rounded-xl"></div>
               <div className="h-5 bg-gradient-to-r from-blue-200 to-teal-200 rounded-xl w-3/4"></div>
             </div>
-            <div className="h-64 bg-gradient-to-br from-coral-100 to-pink-100 rounded-3xl"></div>
+            <div className="h-64 bg-gradient-to-br from-turquoise-100 to-cyan-100 rounded-3xl"></div>
           </div>
         ))}
       </div>
@@ -129,7 +129,7 @@ export default function PostFeed() {
   if (!posts?.length) {
     return (
       <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-blue-100/50 p-16 text-center">
-        <div className="w-24 h-24 bg-gradient-to-br from-coral-400 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
+        <div className="w-24 h-24 bg-gradient-to-br from-turquoise-400 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
           <Heart className="h-12 w-12 text-white" />
         </div>
         <h3 className="text-3xl font-black bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent mb-4">
@@ -145,7 +145,7 @@ export default function PostFeed() {
   return (
     <div className="space-y-12 lg:space-y-16">
       {/* Tag Filter Section with indigo gradient */}
-      <div className="bg-gradient-to-r from-indigo-200 to-blue-100 rounded-lg p-8 md:p-10 shadow-inner mb-12">
+      <div className="bg-gradient-to-r from-turquoise-200 to-cyan-100 rounded-lg p-8 md:p-10 shadow-inner mb-12">
         <div className="flex items-center gap-3 mb-6">
           <div className="bg-indigo-600 p-3 rounded-full shadow-lg">
             <Tag className="h-6 w-6 text-white" />
@@ -218,8 +218,8 @@ export default function PostFeed() {
               onClick={() => setFilterBy(filter)}
               className={`px-8 py-4 text-lg font-bold rounded-2xl transition-all duration-300 transform hover:scale-105 ${
                 filterBy === filter
-                  ? 'bg-gradient-to-r from-coral-400 to-pink-500 text-white shadow-2xl shadow-coral-500/30'
-                  : 'text-blue-600 hover:bg-blue-50 hover:text-coral-600 bg-blue-50/30'
+                  ? 'bg-gradient-to-r from-turquoise-400 to-blue-500 text-white shadow-2xl shadow-turquoise-500/30'
+                  : 'text-blue-600 hover:bg-blue-50 hover:text-turquoise-600 bg-blue-50/30'
               }`}
             >
               {filter === 'all' ? 'All Moments' : filter === 'following' ? 'Following' : 'Nearby'}

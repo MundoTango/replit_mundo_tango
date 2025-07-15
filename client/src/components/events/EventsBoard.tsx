@@ -127,18 +127,18 @@ export default function EventsBoard() {
       {/* Compact Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="bg-gradient-to-br from-coral-400 to-pink-500 p-2 rounded-xl shadow-lg">
+          <div className="bg-gradient-to-br from-turquoise-400 to-blue-500 p-2 rounded-xl shadow-lg">
             <Calendar className="h-4 w-4 text-white" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-indigo-700">
+            <h3 className="text-xl font-bold text-turquoise-700">
               Upcoming Events
             </h3>
             <p className="text-slate-600 font-medium text-base">In your area & invitations</p>
           </div>
         </div>
-        <div className="bg-gradient-to-br from-coral-100 to-pink-100 p-1.5 rounded-xl">
-          <Sparkles className="h-4 w-4 text-coral-600" />
+        <div className="bg-gradient-to-br from-turquoise-100 to-cyan-100 p-1.5 rounded-xl">
+          <Sparkles className="h-4 w-4 text-turquoise-600" />
         </div>
       </div>
 
@@ -149,8 +149,8 @@ export default function EventsBoard() {
           return (
             <div
               key={event.id}
-              className="group bg-gradient-to-br from-blue-50/30 to-teal-50/30 p-4 rounded-xl border border-blue-100/50 
-                       hover:border-coral-300 hover:shadow-lg hover:bg-white/70 transition-all duration-300 cursor-pointer
+              className="group bg-gradient-to-br from-turquoise-50/30 to-cyan-50/30 p-4 rounded-xl border border-blue-100/50 
+                       hover:border-turquoise-300 hover:shadow-lg hover:bg-white/70 transition-all duration-300 cursor-pointer
                        transform hover:-translate-y-0.5 shadow-sm"
               onClick={() => handleEventClick(event.id)}
             >
@@ -176,7 +176,7 @@ export default function EventsBoard() {
                     </Badge>
                   )}
                 </div>
-                <h4 className="font-bold text-blue-900 text-base group-hover:text-coral-600 transition-colors line-clamp-2">
+                <h4 className="font-bold text-blue-900 text-base group-hover:text-turquoise-600 transition-colors line-clamp-2">
                     {event.title}
                   </h4>
 

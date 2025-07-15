@@ -153,7 +153,7 @@ export default function PostComposer() {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
       {/* Modern Momento Composer */}
       <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white font-semibold">
+        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-turquoise-500 to-blue-500 flex items-center justify-center text-white font-semibold">
           {user?.profileImage ? (
             <img
               src={user.profileImage}
@@ -168,7 +168,7 @@ export default function PostComposer() {
         <div className="flex-1">
           <button
             onClick={() => setShowExpandedComposer(true)}
-            className="w-full text-left p-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all duration-200 hover:border-pink-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200"
+            className="w-full text-left p-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all duration-200 hover:border-turquoise-300 focus:border-turquoise-500 focus:ring-2 focus:ring-turquoise-200"
           >
             <span className="text-gray-500 font-medium">Share your tango moment...</span>
           </button>
@@ -177,7 +177,7 @@ export default function PostComposer() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowExpandedComposer(true)}
-                className="flex items-center gap-2 text-gray-600 hover:text-pink-600 px-3 py-2 rounded-lg hover:bg-pink-50 transition-all duration-200"
+                className="flex items-center gap-2 text-gray-600 hover:text-turquoise-600 px-3 py-2 rounded-lg hover:bg-turquoise-50 transition-all duration-200"
               >
                 <Camera className="h-4 w-4" />
                 <span className="text-sm font-medium">Photo</span>
@@ -216,7 +216,7 @@ export default function PostComposer() {
               {/* Header */}
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white font-semibold">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-turquoise-500 to-blue-500 flex items-center justify-center text-white font-semibold">
                     {user?.profileImage ? (
                       <img
                         src={user.profileImage}
@@ -334,8 +334,8 @@ export default function PostComposer() {
                           onClick={() => setNewPost(prev => ({ ...prev, visibility: vis }))}
                           className={`px-3 py-1.5 text-sm rounded-lg transition-all flex items-center gap-1.5 font-medium ${
                             newPost.visibility === vis
-                              ? 'bg-gradient-to-r from-pink-500 to-blue-500 text-white'
-                              : 'border border-gray-200 text-gray-600 hover:border-pink-300 hover:bg-pink-50'
+                              ? 'bg-gradient-to-r from-turquoise-500 to-blue-500 text-white'
+                              : 'border border-gray-200 text-gray-600 hover:border-turquoise-300 hover:bg-turquoise-50'
                           }`}
                         >
                           {vis === 'Public' && <Globe className="h-3 w-3" />}
@@ -357,7 +357,7 @@ export default function PostComposer() {
                     <button 
                       onClick={handleCreatePost}
                       disabled={createPostMutation.isPending || !newPost.content.trim()}
-                      className="px-5 py-2.5 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-xl hover:from-pink-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                      className="px-5 py-2.5 bg-gradient-to-r from-turquoise-500 to-blue-500 text-white rounded-xl hover:from-turquoise-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                     >
                       {createPostMutation.isPending ? 'Sharing...' : 'Share Moment'}
                     </button>
