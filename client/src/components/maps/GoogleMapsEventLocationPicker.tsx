@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Loader } from '@googlemaps/js-api-loader';
+import { loadGoogleMaps, isGoogleMapsLoaded } from '@/lib/google-maps-loader';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MapPin, X } from 'lucide-react';
@@ -51,19 +51,14 @@ export default function GoogleMapsEventLocationPicker({
   // Initialize Google Maps
   useEffect(() => {
     const initializeGoogleMaps = async () => {
+      // Check if already loaded
+      if (isGoogleMapsLoaded()) {
+        setIsLoaded(true);
+        return;
+      }
+      
       try {
-        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-        if (!apiKey) {
-          throw new Error('Google Maps API key not configured');
-        }
-        
-        const loader = new Loader({
-          apiKey,
-          version: 'weekly',
-          libraries: ['places', 'geometry']
-        });
-
-        await loader.load();
+        await loadGoogleMaps();
         setIsLoaded(true);
         setError(null);
       } catch (err) {

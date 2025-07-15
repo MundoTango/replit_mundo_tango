@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Loader } from '@googlemaps/js-api-loader';
+import { loadGoogleMaps, isGoogleMapsLoaded } from '@/lib/google-maps-loader';
 import { MapPin, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,21 +48,14 @@ export default function GoogleMapsAutocomplete({
   // Initialize Google Maps
   useEffect(() => {
     const initializeGoogleMaps = async () => {
+      // Check if already loaded
+      if (isGoogleMapsLoaded()) {
+        setIsLoaded(true);
+        return;
+      }
+      
       try {
-        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-        console.log('Google Maps API Key check:', apiKey ? 'Available' : 'Missing');
-        if (!apiKey) {
-          console.error('Google Maps API key not found in environment variables');
-          throw new Error('Google Maps API key not configured');
-        }
-        
-        const loader = new Loader({
-          apiKey,
-          version: 'weekly',
-          libraries: ['places', 'geometry']
-        });
-
-        await loader.load();
+        await loadGoogleMaps();
         setIsLoaded(true);
       } catch (error) {
         console.error('Error loading Google Maps:', error);

@@ -11,6 +11,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { initAnalytics, analytics } from "@/lib/analytics";
 import { ThemeProvider } from "@/lib/theme/theme-provider";
 import ThemeManager from "@/components/theme/ThemeManager";
+import { performanceOptimizations } from "@/lib/performance-optimizations";
+import { setupGlobalErrorHandlers, setupQueryErrorHandling } from "@/lib/global-error-handler";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Onboarding from "@/pages/onboarding";
@@ -210,9 +212,21 @@ function Router() {
 }
 
 function App() {
-  // Initialize analytics on app startup
+  // Initialize analytics, error handlers, and performance optimizations on app startup
   useEffect(() => {
+    // Set up global error handlers
+    setupGlobalErrorHandlers();
+    
+    // Set up query error handling
+    setupQueryErrorHandling(queryClient);
+    
+    // Initialize analytics
     initAnalytics();
+    
+    // Initialize performance optimizations
+    if (performanceOptimizations) {
+      console.log('Performance optimizations initialized');
+    }
   }, []);
 
   return (
