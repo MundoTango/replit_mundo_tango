@@ -135,7 +135,7 @@ export default function PostCard({ post }: PostCardProps) {
   };
 
   return (
-    <Card className="card-shadow">
+    <Card className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-turquoise-100/50 hover:shadow-xl transition-shadow">
       {/* Post Header */}
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-center justify-between">
@@ -145,7 +145,7 @@ export default function PostCard({ post }: PostCardProps) {
               <AvatarFallback>{post.user?.name?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             <div>
-              <h4 className="font-semibold text-tango-black">{post.user?.name || 'Unknown User'}</h4>
+              <h4 className="font-semibold text-gray-900">{post.user?.name || 'Unknown User'}</h4>
               <p className="text-sm text-gray-500">
                 {formatTimeAgo(post.createdAt)} • @{post.user?.username}
               </p>
