@@ -130,59 +130,6 @@ const AdminCenter: React.FC = () => {
     databaseLoad: 23,
     storageUsed: 67
   });
-  
-  // 30L Framework state
-  const [frameworkData, setFrameworkData] = useState<any>({
-    layers: [
-      // Foundation Layers (1-4)
-      { id: 1, name: 'Expertise & Technical Proficiency', status: 'active', progress: 95 },
-      { id: 2, name: 'Research & Discovery', status: 'active', progress: 90 },
-      { id: 3, name: 'Legal & Compliance', status: 'active', progress: 85 },
-      { id: 4, name: 'UX/UI Design', status: 'active', progress: 88 },
-      
-      // Architecture Layers (5-8)
-      { id: 5, name: 'Data Architecture', status: 'active', progress: 92 },
-      { id: 6, name: 'Backend Development', status: 'active', progress: 94 },
-      { id: 7, name: 'Frontend Development', status: 'active', progress: 91 },
-      { id: 8, name: 'API & Integration', status: 'active', progress: 89 },
-      
-      // Operational Layers (9-12)
-      { id: 9, name: 'Security & Authentication', status: 'active', progress: 93 },
-      { id: 10, name: 'Deployment & Infrastructure', status: 'active', progress: 87 },
-      { id: 11, name: 'Analytics & Monitoring', status: 'active', progress: 82 },
-      { id: 12, name: 'Continuous Improvement', status: 'active', progress: 78 },
-      
-      // AI & Intelligence Layers (13-16)
-      { id: 13, name: 'AI Agent Orchestration', status: 'active', progress: 85 },
-      { id: 14, name: 'Context & Memory Management', status: 'active', progress: 88 },
-      { id: 15, name: 'Voice & Environmental Intelligence', status: 'active', progress: 76 },
-      { id: 16, name: 'Ethics & Behavioral Alignment', status: 'active', progress: 90 },
-      
-      // Human-Centric Layers (17-20)
-      { id: 17, name: 'Emotional Intelligence', status: 'active', progress: 83 },
-      { id: 18, name: 'Cultural Awareness', status: 'active', progress: 87 },
-      { id: 19, name: 'Energy Management', status: 'active', progress: 79 },
-      { id: 20, name: 'Proactive Intelligence', status: 'active', progress: 81 },
-      
-      // Production Engineering Layers (21-23)
-      { id: 21, name: 'Production Resilience Engineering', status: 'partial', progress: 65 },
-      { id: 22, name: 'User Safety Net', status: 'partial', progress: 58 },
-      { id: 23, name: 'Business Continuity', status: 'partial', progress: 52 },
-      
-      // Enhanced Development Layers (24-30)
-      { id: 24, name: 'Automated Testing & Validation', status: 'planned', progress: 25 },
-      { id: 25, name: 'Real-time Debugging & Diagnostics', status: 'active', progress: 45 },
-      { id: 26, name: 'Component Pattern Library', status: 'planned', progress: 30 },
-      { id: 27, name: 'Performance Benchmarking', status: 'partial', progress: 40 },
-      { id: 28, name: 'Error Recovery Patterns', status: 'planned', progress: 20 },
-      { id: 29, name: 'Development Workflow Optimization', status: 'planned', progress: 15 },
-      { id: 30, name: 'Cross-browser & Device Compatibility', status: 'planned', progress: 35 }
-    ],
-    overallProgress: 73
-  });
-  
-  const [selectedLayer, setSelectedLayer] = useState<any>(null);
-  const [editMode, setEditMode] = useState(false);
 
   // Fetch admin statistics
   const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
@@ -1432,6 +1379,48 @@ const AdminCenter: React.FC = () => {
   };
 
   const render23LFramework = () => {
+    const [frameworkData, setFrameworkData] = useState<any>({
+      layers: [
+        // Foundation Layers (1-4)
+        { id: 1, name: 'Expertise & Technical Proficiency', status: 'active', progress: 95 },
+        { id: 2, name: 'Research & Discovery', status: 'active', progress: 90 },
+        { id: 3, name: 'Legal & Compliance', status: 'active', progress: 85 },
+        { id: 4, name: 'UX/UI Design', status: 'active', progress: 88 },
+        
+        // Architecture Layers (5-8)
+        { id: 5, name: 'Data Architecture', status: 'active', progress: 92 },
+        { id: 6, name: 'Backend Development', status: 'active', progress: 94 },
+        { id: 7, name: 'Frontend Development', status: 'active', progress: 91 },
+        { id: 8, name: 'API & Integration', status: 'active', progress: 89 },
+        
+        // Operational Layers (9-12)
+        { id: 9, name: 'Security & Authentication', status: 'active', progress: 93 },
+        { id: 10, name: 'Deployment & Infrastructure', status: 'active', progress: 87 },
+        { id: 11, name: 'Analytics & Monitoring', status: 'active', progress: 82 },
+        { id: 12, name: 'Continuous Improvement', status: 'active', progress: 78 },
+        
+        // AI & Intelligence Layers (13-16)
+        { id: 13, name: 'AI Agent Orchestration', status: 'active', progress: 85 },
+        { id: 14, name: 'Context & Memory Management', status: 'active', progress: 88 },
+        { id: 15, name: 'Voice & Environmental Intelligence', status: 'active', progress: 76 },
+        { id: 16, name: 'Ethics & Behavioral Alignment', status: 'active', progress: 90 },
+        
+        // Human-Centric Layers (17-20)
+        { id: 17, name: 'Emotional Intelligence', status: 'active', progress: 83 },
+        { id: 18, name: 'Cultural Awareness', status: 'active', progress: 87 },
+        { id: 19, name: 'Energy Management', status: 'active', progress: 79 },
+        { id: 20, name: 'Proactive Intelligence', status: 'active', progress: 81 },
+        
+        // Production Engineering Layers (21-23)
+        { id: 21, name: 'Production Resilience Engineering', status: 'partial', progress: 65 },
+        { id: 22, name: 'User Safety Net', status: 'partial', progress: 58 },
+        { id: 23, name: 'Business Continuity', status: 'partial', progress: 52 }
+      ],
+      overallProgress: 87
+    });
+    
+    const [selectedLayer, setSelectedLayer] = useState<any>(null);
+    const [editMode, setEditMode] = useState(false);
     
     const updateLayerProgress = (layerId: number, newProgress: number) => {
       setFrameworkData((prev: any) => ({
@@ -1452,12 +1441,12 @@ const AdminCenter: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
-                <Layers className="w-6 h-6 text-turquoise-600" />
-                30L Framework Management
-                <Badge className="bg-turquoise-100 text-turquoise-800 text-xs">V5.0</Badge>
+                <Layers className="w-6 h-6 text-purple-600" />
+                23L Framework Management
+                <Badge className="bg-purple-100 text-purple-800 text-xs">V4.0</Badge>
               </h2>
               <p className="text-sm text-gray-600 mt-1">
-                Enhanced 30-Layer production validation system with development optimization layers
+                Comprehensive 23-Layer production validation system for continuous improvement
               </p>
             </div>
             <div className="flex gap-3">
