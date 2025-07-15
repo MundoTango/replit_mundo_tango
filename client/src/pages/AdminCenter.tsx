@@ -120,6 +120,16 @@ const AdminCenter: React.FC = () => {
     action: '',
     result: null as any
   });
+  
+  // System Health state - moved here to avoid hooks error
+  const [systemHealthRefreshing, setSystemHealthRefreshing] = useState(false);
+  const [performanceKey, setPerformanceKey] = useState(0);
+  const [systemMetrics, setSystemMetrics] = useState({
+    uptime: 99.9,
+    responseTime: 127,
+    databaseLoad: 23,
+    storageUsed: 67
+  });
 
   // Fetch admin statistics
   const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
@@ -1220,17 +1230,8 @@ const AdminCenter: React.FC = () => {
   );
 
   const renderSystemHealth = () => {
-    const [isRefreshing, setIsRefreshing] = useState(false);
-    const [performanceKey, setPerformanceKey] = useState(0);
-    const [systemMetrics, setSystemMetrics] = useState({
-      uptime: 99.9,
-      responseTime: 127,
-      databaseLoad: 23,
-      storageUsed: 67
-    });
-
     const handleRefreshAll = async () => {
-      setIsRefreshing(true);
+      setSystemHealthRefreshing(true);
       
       try {
         // Force PerformanceMonitor to re-mount and collect fresh metrics
@@ -1250,7 +1251,7 @@ const AdminCenter: React.FC = () => {
       } catch (error) {
         console.error('Error refreshing metrics:', error);
       } finally {
-        setIsRefreshing(false);
+        setSystemHealthRefreshing(false);
       }
     };
 
@@ -1261,10 +1262,10 @@ const AdminCenter: React.FC = () => {
           <div className="flex gap-3">
             <button 
               onClick={handleRefreshAll}
-              disabled={isRefreshing}
+              disabled={systemHealthRefreshing}
               className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isRefreshing ? (
+              {systemHealthRefreshing ? (
                 <>
                   <RefreshCw className="w-4 h-4 inline mr-2 animate-spin" />
                   Refreshing...
@@ -1281,7 +1282,7 @@ const AdminCenter: React.FC = () => {
 
         {/* System Stats with MT Design */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <div className={`bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 ${isRefreshing ? 'animate-pulse' : ''}`}>
+          <div className={`bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 ${systemHealthRefreshing ? 'animate-pulse' : ''}`}>
             <div className="flex items-start justify-between mb-3">
               <div className="p-2 bg-green-500 rounded-xl">
                 <Server className="w-5 h-5 text-white" />
@@ -1292,7 +1293,7 @@ const AdminCenter: React.FC = () => {
             <div className="text-xs text-gray-500 mt-1">30-day average</div>
           </div>
 
-          <div className={`bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 ${isRefreshing ? 'animate-pulse' : ''}`}>
+          <div className={`bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 ${systemHealthRefreshing ? 'animate-pulse' : ''}`}>
             <div className="flex items-start justify-between mb-3">
               <div className="p-2 bg-blue-500 rounded-xl">
                 <Zap className="w-5 h-5 text-white" />
@@ -1303,7 +1304,7 @@ const AdminCenter: React.FC = () => {
             <div className="text-xs text-gray-500 mt-1">Average API response</div>
           </div>
 
-          <div className={`bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 ${isRefreshing ? 'animate-pulse' : ''}`}>
+          <div className={`bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 ${systemHealthRefreshing ? 'animate-pulse' : ''}`}>
             <div className="flex items-start justify-between mb-3">
               <div className="p-2 bg-yellow-500 rounded-xl">
                 <Database className="w-5 h-5 text-white" />
@@ -1314,7 +1315,7 @@ const AdminCenter: React.FC = () => {
             <div className="text-xs text-gray-500 mt-1">Current utilization</div>
           </div>
 
-          <div className={`bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 ${isRefreshing ? 'animate-pulse' : ''}`}>
+          <div className={`bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 ${systemHealthRefreshing ? 'animate-pulse' : ''}`}>
             <div className="flex items-start justify-between mb-3">
               <div className="p-2 bg-purple-500 rounded-xl">
                 <HardDrive className="w-5 h-5 text-white" />
