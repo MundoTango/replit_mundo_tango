@@ -142,7 +142,7 @@ export default function PostCard({ post }: PostCardProps) {
           <div className="flex items-center space-x-3">
             <Avatar className="w-12 h-12">
               <AvatarImage src={post.user?.profileImage} alt={post.user?.name} />
-              <AvatarFallback>{post.user?.name?.charAt(0) || 'U'}</AvatarFallback>
+              <AvatarFallback className="bg-gradient-to-r from-turquoise-500 to-blue-500 text-white">{post.user?.name?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             <div>
               <h4 className="font-semibold text-gray-900">{post.user?.name || 'Unknown User'}</h4>
@@ -228,7 +228,7 @@ export default function PostCard({ post }: PostCardProps) {
             {/* Add Comment */}
             <div className="flex space-x-3">
               <Avatar className="w-8 h-8">
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarFallback className="bg-gradient-to-r from-turquoise-500 to-blue-500 text-white">U</AvatarFallback>
               </Avatar>
               <div className="flex-1 flex space-x-2">
                 <Textarea
@@ -256,11 +256,11 @@ export default function PostCard({ post }: PostCardProps) {
                   <div key={comment.id} className="flex space-x-3">
                     <Avatar className="w-8 h-8">
                       <AvatarImage src={comment.user?.profileImage} alt={comment.user?.name} />
-                      <AvatarFallback>{comment.user?.name?.charAt(0) || 'U'}</AvatarFallback>
+                      <AvatarFallback className="bg-gradient-to-r from-turquoise-500 to-blue-500 text-white">{comment.user?.name?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="bg-gray-100 rounded-lg p-3">
-                        <h5 className="font-medium text-sm text-tango-black">{comment.user?.name}</h5>
+                        <h5 className="font-medium text-sm text-gray-900">{comment.user?.name}</h5>
                         <p className="text-sm text-gray-700">{comment.content}</p>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
