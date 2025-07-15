@@ -11,6 +11,7 @@ import { EventTypesManager } from '@/components/admin/EventTypesManager';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalStatisticsDashboard } from '@/components/GlobalStatisticsDashboard';
 import PerformanceMonitor from '@/components/admin/PerformanceMonitor';
+import Framework23LDashboard from '@/components/admin/Framework23LDashboard';
 import { 
   Users, 
   Activity, 
