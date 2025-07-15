@@ -304,29 +304,6 @@ export default function CommunityMapWithLayers() {
         
         <FlyToCity city={selectedCity} />
       </MapContainer>
-      
-      {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 z-[1000]">
-        <h3 className="font-semibold mb-2">Map Legend</h3>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full" style={{ backgroundColor: LAYER_COLORS.cityGroup }}></div>
-            <span className="text-sm">City Groups</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full" style={{ backgroundColor: LAYER_COLORS.event }}></div>
-            <span className="text-sm">Events</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full" style={{ backgroundColor: LAYER_COLORS.home }}></div>
-            <span className="text-sm">Host Homes</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full" style={{ backgroundColor: LAYER_COLORS.recommendation }}></div>
-            <span className="text-sm">Recommendations</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import CommunityCard from '@/components/Community/CommunityCard';
+import EnhancedCityGroupCard from '@/components/Community/EnhancedCityGroupCard';
 
 export default function GroupsPage() {
   console.log('🎯 GROUPS PAGE COMPONENT RENDERING - v5 ROLE-BASED GROUPS');
@@ -243,24 +244,51 @@ export default function GroupsPage() {
           </div>
         ) : filteredGroups.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGroups.map((group: any) => (
-              <CommunityCard
-                key={group.id}
-                community={{
-                  id: group.id,
-                  name: group.name,
-                  description: group.description || 'Connect with fellow tango enthusiasts and share your passion.',
-                  imageUrl: group.image_url,
-                  location: group.city && group.country ? `${group.city}, ${group.country}` : (group.city || group.country || 'Global'),
-                  memberCount: group.member_count || 0,
-                  eventCount: getEventCount(group.id),
-                  isJoined: group.membershipStatus === 'member'
-                }}
-                onJoin={() => joinGroupMutation.mutate(group.slug)}
-                onLeave={() => leaveGroupMutation.mutate(group.slug)}
-                onClick={() => setLocation(`/groups/${group.slug}`)}
-              />
-            ))}
+            {filteredGroups.map((group: any) => {
+              // Use EnhancedCityGroupCard for city groups
+              if (group.type === 'city') {
+                return (
+                  <EnhancedCityGroupCard
+                    key={group.id}
+                    group={{
+                      id: group.id,
+                      name: group.name,
+                      slug: group.slug,
+                      description: group.description,
+                      imageUrl: group.image_url || group.imageUrl,
+                      city: group.city,
+                      country: group.country,
+                      memberCount: group.member_count || group.memberCount || 0,
+                      eventCount: getEventCount(group.id),
+                      isJoined: group.membershipStatus === 'member',
+                      type: group.type
+                    }}
+                    onJoin={() => joinGroupMutation.mutate(group.slug)}
+                    onLeave={() => leaveGroupMutation.mutate(group.slug)}
+                  />
+                );
+              }
+              
+              // Use regular CommunityCard for other groups
+              return (
+                <CommunityCard
+                  key={group.id}
+                  community={{
+                    id: group.id,
+                    name: group.name,
+                    description: group.description || 'Connect with fellow tango enthusiasts and share your passion.',
+                    imageUrl: group.image_url,
+                    location: group.city && group.country ? `${group.city}, ${group.country}` : (group.city || group.country || 'Global'),
+                    memberCount: group.member_count || 0,
+                    eventCount: getEventCount(group.id),
+                    isJoined: group.membershipStatus === 'member'
+                  }}
+                  onJoin={() => joinGroupMutation.mutate(group.slug)}
+                  onLeave={() => leaveGroupMutation.mutate(group.slug)}
+                  onClick={() => setLocation(`/groups/${group.slug}`)}
+                />
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-12">
