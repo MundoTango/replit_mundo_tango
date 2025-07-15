@@ -69,6 +69,7 @@ import FeatureNavigation from "@/pages/feature-navigation";
 import LiveGlobalStatistics from "@/pages/LiveGlobalStatistics";
 import HostOnboarding from "@/pages/HostOnboarding";
 import GuestOnboarding from "@/pages/GuestOnboarding";
+import PerformanceTest from "@/pages/PerformanceTest";
 
 // Simple error boundary component
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -206,6 +207,7 @@ function Router() {
       <Route path="/ttfiles-demo" component={TTfilesDemo} />
       <Route path="/ttfiles-help-center" component={TTfilesHelpCenter} />
       <Route path="/feature-navigation" component={FeatureNavigation} />
+      <Route path="/performance-test" component={PerformanceTest} />
       <Route component={NotFound} />
     </Switch>
   );
