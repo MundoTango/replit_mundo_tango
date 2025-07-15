@@ -16,9 +16,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import EventMap from '@/components/EventMap';
 import { Filter } from 'lucide-react';
-import { CommunityMapWithLayers } from '@/components/groups/CommunityMapWithLayers';
-import { HostHomesList } from '@/components/groups/HostHomesList';
-import { RecommendationsList } from '@/components/groups/RecommendationsList';
+import CommunityToolbar from '@/components/CommunityToolbar';
 import '../styles/ttfiles.css';
 import '../styles/mt-group.css';
 
@@ -840,6 +838,17 @@ export default function GroupDetailPageMT() {
     );
   };
 
+  const renderCommunityHub = () => {
+    return (
+      <div className="space-y-6">
+        <CommunityToolbar 
+          city={group.city} 
+          groupSlug={group.slug}
+        />
+      </div>
+    );
+  };
+
   const renderMapTab = () => {
     // Get coordinates for the city if available
     const getCoordinatesForCity = (city: string) => {
@@ -1001,10 +1010,8 @@ export default function GroupDetailPageMT() {
                 { id: 'about', label: 'About', icon: Info },
                 { id: 'posts', label: 'Posts', icon: MessageCircle },
                 { id: 'events', label: 'Events', icon: Calendar },
-                { id: 'housing', label: 'Housing', icon: Home },
-                { id: 'recommendations', label: 'Recommendations', icon: Star },
                 { id: 'members', label: 'Members', icon: Users },
-                { id: 'map', label: 'Map', icon: MapPin },
+                { id: 'community-hub', label: 'Community Hub', icon: MapPin },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1030,9 +1037,7 @@ export default function GroupDetailPageMT() {
             {activeTab === 'members' && renderMembersTab()}
             {activeTab === 'events' && renderEventsTab()}
             {activeTab === 'posts' && renderPostsTab()}
-            {activeTab === 'housing' && renderHousingTab()}
-            {activeTab === 'recommendations' && renderRecommendationsTab()}
-            {activeTab === 'map' && renderMapTab()}
+            {activeTab === 'community-hub' && renderCommunityHub()}
           </div>
         </div>
       </div>

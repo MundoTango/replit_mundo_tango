@@ -10291,6 +10291,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ========================================================================
+  // Guest Bookings API Endpoints
+  // ========================================================================
+  
+  // Create guest booking request
+  app.post('/api/guest-bookings', isAuthenticated, async (req, res) => {
+    try {
+      const guestId = req.user?.id || req.session?.passport?.user?.id || 7;
+      const bookingData = {
+        ...req.body,
+        guestId
+      };
+      
+      const booking = await storage.createGuestBooking(bookingData);
+      
+      res.json({
+        success: true,
+        data: booking
+      });
+    } catch (error) {
+      console.error('Error creating guest booking:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create booking request'
+      });
+    }
+  });
+  
+  // Get guest bookings for a user
+  app.get('/api/guest-bookings/my-bookings', isAuthenticated, async (req, res) => {
+    try {
+      const guestId = req.user?.id || req.session?.passport?.user?.id || 7;
+      const bookings = await storage.getGuestBookings(guestId);
+      
+      res.json({
+        success: true,
+        data: bookings
+      });
+    } catch (error) {
+      console.error('Error fetching guest bookings:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch bookings'
+      });
+    }
+  });
+  
+  // Get booking requests for host homes
+  app.get('/api/host-homes/:homeId/booking-requests', isAuthenticated, async (req, res) => {
+    try {
+      const { homeId } = req.params;
+      const bookings = await storage.getBookingRequestsForHome(parseInt(homeId));
+      
+      res.json({
+        success: true,
+        data: bookings
+      });
+    } catch (error) {
+      console.error('Error fetching booking requests:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch booking requests'
+      });
+    }
+  });
+  
+  // Update booking status (approve/reject)
+  app.patch('/api/guest-bookings/:bookingId/status', isAuthenticated, async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const { status, hostResponse } = req.body;
+      const hostId = req.user?.id || req.session?.passport?.user?.id || 7;
+      
+      // Verify the host owns the property
+      const booking = await storage.getGuestBookingById(parseInt(bookingId));
+      const home = await storage.getHostHomeById(booking.hostHomeId);
+      
+      if (home.hostId !== hostId) {
+        return res.status(403).json({
+          success: false,
+          message: 'Unauthorized'
+        });
+      }
+      
+      const updatedBooking = await storage.updateBookingStatus(
+        parseInt(bookingId), 
+        status, 
+        hostResponse
+      );
+      
+      res.json({
+        success: true,
+        data: updatedBooking
+      });
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update booking status'
+      });
+    }
+  });
+  
+  // Get single booking details
+  app.get('/api/guest-bookings/:bookingId', isAuthenticated, async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const booking = await storage.getGuestBookingById(parseInt(bookingId));
+      
+      if (!booking) {
+        return res.status(404).json({
+          success: false,
+          message: 'Booking not found'
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: booking
+      });
+    } catch (error) {
+      console.error('Error fetching booking:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch booking'
+      });
+    }
+  });
+
   // Duplicate route removed - already defined above
 
   // 📊 Live Global Statistics endpoints
@@ -10752,6 +10881,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: 'Failed to fetch host home'
+      });
+    }
+  });
+
+  // ========================================================================
+  // Guest Booking API Endpoints
+  // ========================================================================
+  
+  // Create guest booking request
+  app.post('/api/guest-bookings', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.id || 7;
+      const bookingData = {
+        ...req.body,
+        guestId: userId,
+        status: 'pending'
+      };
+      
+      const booking = await storage.createGuestBooking(bookingData);
+      
+      res.json({
+        success: true,
+        data: booking
+      });
+    } catch (error) {
+      console.error('Error creating guest booking:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create booking request'
+      });
+    }
+  });
+  
+  // Get guest bookings for a user
+  app.get('/api/guest-bookings', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.id || 7;
+      const bookings = await storage.getGuestBookings(userId);
+      
+      res.json({
+        success: true,
+        data: bookings
+      });
+    } catch (error) {
+      console.error('Error fetching guest bookings:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch bookings'
+      });
+    }
+  });
+  
+  // Get guest booking by ID
+  app.get('/api/guest-bookings/:id', isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const booking = await storage.getGuestBookingById(parseInt(id));
+      
+      if (!booking) {
+        return res.status(404).json({
+          success: false,
+          message: 'Booking not found'
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: booking
+      });
+    } catch (error) {
+      console.error('Error fetching guest booking:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch booking'
+      });
+    }
+  });
+  
+  // Update guest booking status (host action)
+  app.patch('/api/guest-bookings/:id/status', isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      const booking = await storage.updateGuestBookingStatus(parseInt(id), status);
+      
+      res.json({
+        success: true,
+        data: booking
+      });
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update booking status'
+      });
+    }
+  });
+  
+  // Get host's received booking requests
+  app.get('/api/host-bookings', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.id || 7;
+      const bookings = await storage.getHostBookingRequests(userId);
+      
+      res.json({
+        success: true,
+        data: bookings
+      });
+    } catch (error) {
+      console.error('Error fetching host bookings:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch booking requests'
       });
     }
   });

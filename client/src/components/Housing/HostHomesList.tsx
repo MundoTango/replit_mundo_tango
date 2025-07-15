@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { Home, MapPin, Users, Star, Filter, DollarSign, Bed, Shield, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -39,6 +40,7 @@ interface HostHomesListProps {
 
 export default function HostHomesList({ groupSlug, city, showFilters = true }: HostHomesListProps) {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [filters, setFilters] = useState({
     priceRange: { min: 0, max: 500 },
     roomType: 'all',
@@ -251,9 +253,16 @@ export default function HostHomesList({ groupSlug, city, showFilters = true }: H
                   )}
                 </div>
                 {home.host.id !== user?.id && (
-                  <Button variant="outline" size="sm">
-                    Contact
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setLocation(`/guest-onboarding?hostHomeId=${home.id}`)}
+                      className="bg-gradient-to-br from-pink-500 to-purple-600 text-white border-0 hover:from-pink-600 hover:to-purple-700"
+                    >
+                      Request Stay
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>

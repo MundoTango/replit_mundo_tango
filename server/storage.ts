@@ -32,6 +32,7 @@ import {
   dailyActivities,
   hostHomes,
   hostReviews,
+  guestBookings,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -83,7 +84,9 @@ import {
   type HostHome,
   type InsertHostHome,
   type HostReview,
-  type InsertHostReview
+  type InsertHostReview,
+  type GuestBooking,
+  type InsertGuestBooking
 } from '../shared/schema';
 import { db, pool } from './db';
 import { eq, desc, asc, sql, and, or, gte, lte, count, ilike, inArray } from 'drizzle-orm';
@@ -345,6 +348,13 @@ export interface IStorage {
   getHostReviews(homeId: string): Promise<HostReview[]>;
   getHostReviewByUserAndHome(userId: number, homeId: string): Promise<HostReview | undefined>;
   addHostResponse(reviewId: string, response: string): Promise<HostReview>;
+  
+  // Guest Bookings
+  createGuestBooking(booking: InsertGuestBooking): Promise<GuestBooking>;
+  getGuestBookingById(id: number): Promise<GuestBooking | undefined>;
+  getGuestBookings(guestId: number): Promise<GuestBooking[]>;
+  getBookingRequestsForHome(homeId: number): Promise<GuestBooking[]>;
+  updateBookingStatus(id: number, status: string, hostResponse?: string): Promise<GuestBooking>;
   
   // Social connections
   checkFriendship(userId1: number, userId2: number): Promise<boolean>;
@@ -3017,6 +3027,76 @@ export class DatabaseStorage implements IStorage {
       RETURNING *
     `);
     return result.rows[0] as HostReview;
+  }
+  
+  // Guest Bookings Implementation
+  async createGuestBooking(booking: InsertGuestBooking): Promise<GuestBooking> {
+    const [result] = await db.insert(guestBookings).values(booking).returning();
+    return result;
+  }
+  
+  async getGuestBookingById(id: number): Promise<GuestBooking | undefined> {
+    const [booking] = await db
+      .select()
+      .from(guestBookings)
+      .where(eq(guestBookings.id, id))
+      .limit(1);
+    return booking;
+  }
+  
+  async getGuestBookings(guestId: number): Promise<GuestBooking[]> {
+    return await db
+      .select()
+      .from(guestBookings)
+      .where(eq(guestBookings.guestId, guestId))
+      .orderBy(desc(guestBookings.createdAt));
+  }
+  
+  async getBookingRequestsForHome(homeId: number): Promise<GuestBooking[]> {
+    return await db
+      .select()
+      .from(guestBookings)
+      .where(eq(guestBookings.hostHomeId, homeId))
+      .orderBy(desc(guestBookings.createdAt));
+  }
+  
+  async updateBookingStatus(id: number, status: string, hostResponse?: string): Promise<GuestBooking> {
+    const updateData: any = {
+      status,
+      respondedAt: new Date(),
+    };
+    
+    if (hostResponse) {
+      updateData.hostResponse = hostResponse;
+    }
+    
+    const [result] = await db
+      .update(guestBookings)
+      .set(updateData)
+      .where(eq(guestBookings.id, id))
+      .returning();
+    
+    return result;
+  }
+
+  async updateGuestBookingStatus(id: number, status: string): Promise<GuestBooking> {
+    return this.updateBookingStatus(id, status);
+  }
+
+  async getHostBookingRequests(hostId: number): Promise<GuestBooking[]> {
+    // Get all host homes for this host
+    const homes = await this.getHostHomesByUser(hostId);
+    const homeIds = homes.map(h => h.id);
+    
+    if (homeIds.length === 0) {
+      return [];
+    }
+
+    // Get all bookings for these homes
+    return await db.select()
+      .from(guestBookings)
+      .where(inArray(guestBookings.hostHomeId, homeIds))
+      .orderBy(desc(guestBookings.createdAt));
   }
 
   // Social connections implementation

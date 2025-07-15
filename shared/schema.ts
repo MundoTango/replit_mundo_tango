@@ -981,6 +981,41 @@ export const insertHostHomeSchema = createInsertSchema(hostHomes).omit({
   updatedAt: true,
 });
 
+// Guest Bookings table
+export const guestBookings = pgTable("guest_bookings", {
+  id: serial("id").primaryKey(),
+  guestId: integer("guest_id").references(() => users.id).notNull(),
+  hostHomeId: integer("host_home_id").references(() => hostHomes.id).notNull(),
+  checkInDate: timestamp("check_in_date").notNull(),
+  checkOutDate: timestamp("check_out_date").notNull(),
+  guestCount: integer("guest_count").notNull().default(1),
+  purpose: text("purpose").notNull(),
+  message: text("message").notNull(),
+  hasReadRules: boolean("has_read_rules").notNull().default(false),
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending, approved, rejected, cancelled, completed
+  hostResponse: text("host_response"),
+  totalPrice: integer("total_price"), // in cents
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+}, (table) => [
+  index("idx_guest_bookings_guest").on(table.guestId),
+  index("idx_guest_bookings_home").on(table.hostHomeId),
+  index("idx_guest_bookings_status").on(table.status),
+  index("idx_guest_bookings_dates").on(table.checkInDate, table.checkOutDate),
+]);
+
+// Guest Bookings schema
+export const insertGuestBookingSchema = createInsertSchema(guestBookings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  status: true,
+  hostResponse: true,
+  totalPrice: true,
+  respondedAt: true,
+});
+
 // Recommendations schema
 export const insertRecommendationSchema = createInsertSchema(recommendations).omit({
   id: true,
@@ -1516,6 +1551,8 @@ export type DailyActivity = typeof dailyActivities.$inferSelect;
 export type InsertDailyActivity = z.infer<typeof insertDailyActivitySchema>;
 export type HostHome = typeof hostHomes.$inferSelect;
 export type InsertHostHome = z.infer<typeof insertHostHomeSchema>;
+export type GuestBooking = typeof guestBookings.$inferSelect;
+export type InsertGuestBooking = z.infer<typeof insertGuestBookingSchema>;
 export type HostReview = typeof hostReviews.$inferSelect;
 export type InsertHostReview = z.infer<typeof insertHostReviewSchema>;
 

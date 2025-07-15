@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 're
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, Home, MapPin, Star, Users, Layers } from 'lucide-react';
+import { Calendar, Home, MapPin, Star, Users, Layers, Navigation } from 'lucide-react';
 import { useLocation } from 'wouter';
 
 // Fix for missing marker icons in production
@@ -167,6 +167,21 @@ export default function CommunityMapWithLayers() {
     }
   };
 
+  // Helper function to generate Google Maps URL
+  const getGoogleMapsUrl = (lat: number, lng: number, title: string) => {
+    return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodeURIComponent(title)}`;
+  };
+
+  // Helper function to generate Apple Maps URL
+  const getAppleMapsUrl = (lat: number, lng: number, title: string) => {
+    return `https://maps.apple.com/?daddr=${lat},${lng}&q=${encodeURIComponent(title)}`;
+  };
+
+  // Helper function to detect if user is on iOS
+  const isIOS = () => {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+  };
+
   const renderPopupContent = (item: MapItem) => {
     // Enhanced popup for city groups
     if (item.type === 'cityGroup') {
@@ -259,6 +274,28 @@ export default function CommunityMapWithLayers() {
             >
               View Community
             </button>
+            
+            {/* Direction buttons */}
+            <div className="flex gap-2 mt-2">
+              <a 
+                href={getGoogleMapsUrl(item.lat, item.lng, item.title)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 px-3 rounded text-xs font-medium transition-colors"
+              >
+                <Navigation className="h-3 w-3" />
+                Google Maps
+              </a>
+              <a 
+                href={getAppleMapsUrl(item.lat, item.lng, item.title)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 px-3 rounded text-xs font-medium transition-colors"
+              >
+                <Navigation className="h-3 w-3" />
+                Apple Maps
+              </a>
+            </div>
           </div>
         </div>
       );
@@ -298,6 +335,28 @@ export default function CommunityMapWithLayers() {
             className="w-full h-24 object-cover rounded mt-2"
           />
         )}
+        
+        {/* Direction buttons for all item types */}
+        <div className="flex gap-2 mt-3 pt-3 border-t">
+          <a 
+            href={getGoogleMapsUrl(item.lat, item.lng, item.title)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 px-2 rounded text-xs font-medium transition-colors"
+          >
+            <Navigation className="h-3 w-3" />
+            Google
+          </a>
+          <a 
+            href={getAppleMapsUrl(item.lat, item.lng, item.title)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 px-2 rounded text-xs font-medium transition-colors"
+          >
+            <Navigation className="h-3 w-3" />
+            Apple
+          </a>
+        </div>
       </div>
     );
   };
