@@ -10,6 +10,7 @@ import DailyActivityView from '@/components/admin/DailyActivityView';
 import { EventTypesManager } from '@/components/admin/EventTypesManager';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalStatisticsDashboard } from '@/components/GlobalStatisticsDashboard';
+import PerformanceMonitor from '@/components/admin/PerformanceMonitor';
 import { 
   Users, 
   Activity, 
@@ -214,6 +215,7 @@ const AdminCenter: React.FC = () => {
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'statistics', label: 'Global Statistics', icon: <Globe className="w-4 h-4" />, isNew: true },
     { id: 'daily-activity', label: 'Daily Activity', icon: <Calendar className="w-4 h-4" />, isNew: true },
+    { id: 'performance', label: 'Performance', icon: <Zap className="w-4 h-4" />, isNew: true },
     { id: 'project-tracker', label: 'The Plan', icon: <GitCommit className="w-4 h-4" /> },
     { id: 'feature-deep-dive', label: 'Feature Deep Dive', icon: <Database className="w-4 h-4" /> },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
@@ -1905,6 +1907,7 @@ const AdminCenter: React.FC = () => {
       case 'overview': return renderOverview();
       case 'statistics': return <GlobalStatisticsDashboard />;
       case 'daily-activity': return <DailyActivityView />;
+      case 'performance': return <PerformanceMonitor />;
       case 'project-tracker': return (
         <ErrorBoundary fallbackMessage="Error loading project hierarchy. Please refresh the page.">
           <Comprehensive11LProjectTracker />
