@@ -123,6 +123,11 @@ const AdminCenter: React.FC = () => {
   
   // System Health state - moved here to avoid hooks error
   const [systemHealthRefreshing, setSystemHealthRefreshing] = useState(false);
+  
+  // Compliance state - must be declared at top level
+  const [complianceRefreshing, setComplianceRefreshing] = useState(false);
+  const [auditHistory, setAuditHistory] = useState([]);
+  const [monitoringStatus, setMonitoringStatus] = useState(null);
   const [performanceKey, setPerformanceKey] = useState(0);
   const [systemMetrics, setSystemMetrics] = useState({
     uptime: 99.9,
@@ -442,10 +447,6 @@ const AdminCenter: React.FC = () => {
       </div>
     </div>
   );
-
-  const [complianceRefreshing, setComplianceRefreshing] = useState(false);
-  const [auditHistory, setAuditHistory] = useState([]);
-  const [monitoringStatus, setMonitoringStatus] = useState(null);
 
   const refreshCompliance = async () => {
     setComplianceRefreshing(true);
