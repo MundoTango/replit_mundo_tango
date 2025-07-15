@@ -46,6 +46,7 @@ interface MapItem {
   slug?: string;
   memberCount?: number;
   eventCount?: number;
+  hostCount?: number;
   date?: string;
   price?: number;
   rating?: number;
@@ -84,12 +85,13 @@ export default function CommunityMapWithLayers() {
       lat: city.lat,
       lng: city.lng,
       title: city.name,
-      description: `${city.totalUsers || city.memberCount || 0} members • ${city.eventCount || 0} events`,
+      description: `${city.totalUsers || city.memberCount || 0} members • ${city.eventCount || 0} events • ${city.hostCount || 0} hosts`,
       type: 'cityGroup' as const,
       city: city.name,
       slug: city.slug,
       memberCount: city.totalUsers || city.memberCount || 0,
       eventCount: city.eventCount || 0,
+      hostCount: city.hostCount || 0,
     })),
     // Events
     ...events.map((event: any) => ({
@@ -220,16 +222,21 @@ export default function CommunityMapWithLayers() {
           
           {/* Stats Section */}
           <div className="px-4 pb-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-blue-50 rounded-lg p-3 text-center">
-                <Users className="h-5 w-5 text-blue-600 mx-auto mb-1" />
-                <div className="text-lg font-bold text-gray-900">{item.memberCount || 0}</div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-blue-50 rounded-lg p-2 text-center">
+                <Users className="h-4 w-4 text-blue-600 mx-auto mb-1" />
+                <div className="text-base font-bold text-gray-900">{item.memberCount || 0}</div>
                 <div className="text-xs text-gray-600">members</div>
               </div>
-              <div className="bg-green-50 rounded-lg p-3 text-center">
-                <Calendar className="h-5 w-5 text-green-600 mx-auto mb-1" />
-                <div className="text-lg font-bold text-gray-900">{item.eventCount || 0}</div>
+              <div className="bg-green-50 rounded-lg p-2 text-center">
+                <Calendar className="h-4 w-4 text-green-600 mx-auto mb-1" />
+                <div className="text-base font-bold text-gray-900">{item.eventCount || 0}</div>
                 <div className="text-xs text-gray-600">events</div>
+              </div>
+              <div className="bg-amber-50 rounded-lg p-2 text-center">
+                <Home className="h-4 w-4 text-amber-600 mx-auto mb-1" />
+                <div className="text-base font-bold text-gray-900">{item.hostCount || 0}</div>
+                <div className="text-xs text-gray-600">hosts</div>
               </div>
             </div>
             
@@ -303,27 +310,23 @@ export default function CommunityMapWithLayers() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         
-        <LayersControl position="topright">
-          {/* City Groups Base Layer */}
-          <LayersControl.BaseLayer checked name="City Groups">
-            <div>
-              {mapItems
-                .filter(item => item.type === 'cityGroup')
-                .map(item => (
-                  <Marker
-                    key={`city-${item.id}`}
-                    position={[item.lat, item.lng]}
-                    icon={createCustomIcon(LAYER_COLORS.cityGroup, getIcon(item.type))}
-                  >
-                    <Popup>{renderPopupContent(item)}</Popup>
-                  </Marker>
-                ))}
-            </div>
-          </LayersControl.BaseLayer>
-          
+        {/* Display City Groups - Always visible as base layer */}
+        {mapItems
+          .filter(item => item.type === 'cityGroup')
+          .map(item => (
+            <Marker
+              key={`city-${item.id}`}
+              position={[item.lat, item.lng]}
+              icon={createCustomIcon(LAYER_COLORS.cityGroup, getIcon(item.type))}
+            >
+              <Popup>{renderPopupContent(item)}</Popup>
+            </Marker>
+          ))}
+        
+        <LayersControl position="topright" collapsed={false}>
           {/* Events Overlay */}
-          <LayersControl.Overlay checked name="Events">
-            <div>
+          <LayersControl.Overlay name="Events">
+            <>
               {mapItems
                 .filter(item => item.type === 'event')
                 .map(item => (
@@ -339,12 +342,12 @@ export default function CommunityMapWithLayers() {
                     <Popup>{renderPopupContent(item)}</Popup>
                   </CircleMarker>
                 ))}
-            </div>
+            </>
           </LayersControl.Overlay>
           
           {/* Host Homes Overlay */}
           <LayersControl.Overlay name="Host Homes">
-            <div>
+            <>
               {mapItems
                 .filter(item => item.type === 'home')
                 .map(item => (
@@ -360,12 +363,12 @@ export default function CommunityMapWithLayers() {
                     <Popup>{renderPopupContent(item)}</Popup>
                   </CircleMarker>
                 ))}
-            </div>
+            </>
           </LayersControl.Overlay>
           
           {/* Recommendations Overlay */}
           <LayersControl.Overlay name="Recommendations">
-            <div>
+            <>
               {mapItems
                 .filter(item => item.type === 'recommendation')
                 .map(item => (
@@ -381,7 +384,7 @@ export default function CommunityMapWithLayers() {
                     <Popup>{renderPopupContent(item)}</Popup>
                   </CircleMarker>
                 ))}
-            </div>
+            </>
           </LayersControl.Overlay>
         </LayersControl>
         
