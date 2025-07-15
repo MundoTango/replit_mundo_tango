@@ -33,6 +33,7 @@ import {
   hostHomes,
   hostReviews,
   guestBookings,
+  guestProfiles,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -86,7 +87,9 @@ import {
   type HostReview,
   type InsertHostReview,
   type GuestBooking,
-  type InsertGuestBooking
+  type InsertGuestBooking,
+  type GuestProfile,
+  type InsertGuestProfile
 } from '../shared/schema';
 import { db, pool } from './db';
 import { eq, desc, asc, sql, and, or, gte, lte, count, ilike, inArray } from 'drizzle-orm';
@@ -368,6 +371,12 @@ export interface IStorage {
     priceLevel?: number;
   }): Promise<any[]>;
   countRecommendationsByType(recommendationId: number, isLocal: boolean): Promise<number>;
+  
+  // Guest Profile Management
+  getGuestProfile(userId: number): Promise<GuestProfile | undefined>;
+  createGuestProfile(profile: InsertGuestProfile): Promise<GuestProfile>;
+  updateGuestProfile(userId: number, updates: Partial<GuestProfile>): Promise<GuestProfile>;
+  deleteGuestProfile(userId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3264,6 +3273,42 @@ export class DatabaseStorage implements IStorage {
       rating: 4.5 + Math.random() * 0.5, // Mock rating
       reviewCount: Math.floor(Math.random() * 50) + 5 // Mock review count
     }));
+  }
+  
+  // Guest Profile Management Implementation
+  async getGuestProfile(userId: number): Promise<GuestProfile | undefined> {
+    const [profile] = await db
+      .select()
+      .from(guestProfiles)
+      .where(eq(guestProfiles.userId, userId))
+      .limit(1);
+    return profile;
+  }
+
+  async createGuestProfile(profile: InsertGuestProfile): Promise<GuestProfile> {
+    const [newProfile] = await db
+      .insert(guestProfiles)
+      .values(profile)
+      .returning();
+    return newProfile;
+  }
+
+  async updateGuestProfile(userId: number, updates: Partial<GuestProfile>): Promise<GuestProfile> {
+    const [updatedProfile] = await db
+      .update(guestProfiles)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(guestProfiles.userId, userId))
+      .returning();
+    return updatedProfile;
+  }
+
+  async deleteGuestProfile(userId: number): Promise<void> {
+    await db
+      .delete(guestProfiles)
+      .where(eq(guestProfiles.userId, userId));
   }
 }
 

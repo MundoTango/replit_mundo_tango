@@ -1535,6 +1535,27 @@ export const hostReviews = pgTable("host_reviews", {
   unique().on(table.home_id, table.reviewer_id),
 ]);
 
+// Guest profiles for personalized preferences
+export const guestProfiles = pgTable("guest_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  accommodationPreferences: jsonb("accommodation_preferences").default({}),
+  dietaryRestrictions: text("dietary_restrictions").array().default([]),
+  languagesSpoken: text("languages_spoken").array().default([]),
+  travelInterests: text("travel_interests").array().default([]),
+  emergencyContact: jsonb("emergency_contact").default({}),
+  specialNeeds: text("special_needs"),
+  preferredNeighborhoods: text("preferred_neighborhoods").array().default([]),
+  budgetRange: jsonb("budget_range").default({}),
+  stayDurationPreference: varchar("stay_duration_preference", { length: 50 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  onboardingCompleted: boolean("onboarding_completed").default(false),
+}, (table) => [
+  index("idx_guest_profiles_user_id").on(table.userId),
+  unique().on(table.userId),
+]);
+
 // Insert schemas
 export const insertDailyActivitySchema = createInsertSchema(dailyActivities).omit({
   id: true,
@@ -1546,6 +1567,12 @@ export const insertHostReviewSchema = createInsertSchema(hostReviews).omit({
   created_at: true,
 });
 
+export const insertGuestProfileSchema = createInsertSchema(guestProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type DailyActivity = typeof dailyActivities.$inferSelect;
 export type InsertDailyActivity = z.infer<typeof insertDailyActivitySchema>;
@@ -1555,6 +1582,8 @@ export type GuestBooking = typeof guestBookings.$inferSelect;
 export type InsertGuestBooking = z.infer<typeof insertGuestBookingSchema>;
 export type HostReview = typeof hostReviews.$inferSelect;
 export type InsertHostReview = z.infer<typeof insertHostReviewSchema>;
+export type GuestProfile = typeof guestProfiles.$inferSelect;
+export type InsertGuestProfile = z.infer<typeof insertGuestProfileSchema>;
 
 // Export from hostHomes module
 export { homeAmenities, homePhotos } from './schema/hostHomes';

@@ -1507,6 +1507,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Guest Profile Management Endpoints
+  
+  // Get guest profile for authenticated user
+  app.get('/api/guest-profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      const profile = await storage.getGuestProfile(user.id);
+      
+      res.json({
+        success: true,
+        data: profile || null,
+        onboardingCompleted: profile?.onboardingCompleted || false
+      });
+    } catch (error: any) {
+      console.error('Error fetching guest profile:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch guest profile'
+      });
+    }
+  });
+  
+  // Create or update guest profile
+  app.post('/api/guest-profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      const profileData = req.body;
+      
+      // Check if profile exists
+      const existingProfile = await storage.getGuestProfile(user.id);
+      
+      let profile;
+      if (existingProfile) {
+        // Update existing profile
+        profile = await storage.updateGuestProfile(user.id, {
+          ...profileData,
+          onboardingCompleted: true
+        });
+      } else {
+        // Create new profile
+        profile = await storage.createGuestProfile({
+          userId: user.id,
+          ...profileData,
+          onboardingCompleted: true
+        });
+      }
+      
+      res.json({
+        success: true,
+        message: existingProfile ? 'Guest profile updated successfully' : 'Guest profile created successfully',
+        data: profile
+      });
+    } catch (error: any) {
+      console.error('Error saving guest profile:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to save guest profile'
+      });
+    }
+  });
+  
+  // Delete guest profile
+  app.delete('/api/guest-profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      await storage.deleteGuestProfile(user.id);
+      
+      res.json({
+        success: true,
+        message: 'Guest profile deleted successfully'
+      });
+    } catch (error: any) {
+      console.error('Error deleting guest profile:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to delete guest profile'
+      });
+    }
+  });
+  
+  // Get guest profile by user ID (for public viewing on profiles)
+  app.get('/api/guest-profile/:userId', setUserContext, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const userIdNum = parseInt(userId, 10);
+      
+      if (isNaN(userIdNum)) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Invalid user ID'
+        });
+      }
+      
+      const profile = await storage.getGuestProfile(userIdNum);
+      
+      // Only return profile if it's completed
+      if (!profile || !profile.onboardingCompleted) {
+        return res.json({
+          success: true,
+          data: null
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: profile
+      });
+    } catch (error: any) {
+      console.error('Error fetching guest profile:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch guest profile'
+      });
+    }
+  });
+
   // Enhanced post creation endpoint with rich text, mentions, hashtags, and multimedia
   app.post('/api/posts/enhanced', isAuthenticated, upload.array('media', 10), async (req: any, res) => {
     try {

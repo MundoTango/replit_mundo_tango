@@ -20,6 +20,7 @@ import CommunityToolbar from '@/components/CommunityToolbar';
 import CommunityMapWithLayers from '@/components/CommunityMapWithLayers';
 import HostHomesList from '@/components/Housing/HostHomesList';
 import RecommendationsList from '@/components/Recommendations/RecommendationsList';
+import { GuestOnboardingEntrance } from '@/components/GuestOnboarding/GuestOnboardingEntrance';
 import '../styles/ttfiles.css';
 import '../styles/mt-group.css';
 
@@ -174,6 +175,12 @@ export default function GroupDetailPageMT() {
   const isMember = group?.members?.some((m: GroupMember) => m.user.id === user?.id) || false;
   const isAdmin = group?.members?.some((m: GroupMember) => m.user.id === user?.id && m.role === 'admin') || false;
   const memberRole = group?.members?.find((m: GroupMember) => m.user.id === user?.id)?.role || 'member';
+
+  // Guest profile check
+  const { data: guestProfile } = useQuery({
+    queryKey: ['/api/guest-profiles', user?.id],
+    enabled: !!user?.id && activeTab === 'community-hub',
+  });
 
   // Join group mutation
   const joinGroupMutation = useMutation({
@@ -843,6 +850,9 @@ export default function GroupDetailPageMT() {
   };
 
   const renderCommunityHub = () => {
+    // Check if user has completed guest profile
+    const hasGuestProfile = guestProfile?.data?.isComplete || false;
+
     return (
       <div className="space-y-6">
         {/* Super admin sees host onboarding option */}
@@ -867,23 +877,32 @@ export default function GroupDetailPageMT() {
           </div>
         )}
 
-        {/* All users see the community toolbar */}
-        <CommunityToolbar 
-          city={group.city} 
-          groupSlug={group.slug}
-        />
-        
-        {/* Guest-specific messaging for non-super admins */}
-        {!user?.isSuperAdmin && (
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mt-4">
-            <div className="flex items-center gap-2">
-              <Info className="h-5 w-5 text-blue-600" />
-              <p className="text-blue-800">
-                Browse available host homes, local recommendations, and events in {group.city}. 
-                Click on any home to request a stay!
-              </p>
-            </div>
-          </div>
+        {/* Show guest onboarding entrance for users without guest profile */}
+        {!user?.isSuperAdmin && !hasGuestProfile && (
+          <GuestOnboardingEntrance />
+        )}
+
+        {/* Show community toolbar for users with completed guest profile */}
+        {(user?.isSuperAdmin || hasGuestProfile) && (
+          <>
+            <CommunityToolbar 
+              city={group.city} 
+              groupSlug={group.slug}
+            />
+            
+            {/* Guest-specific messaging */}
+            {!user?.isSuperAdmin && (
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mt-4">
+                <div className="flex items-center gap-2">
+                  <Info className="h-5 w-5 text-blue-600" />
+                  <p className="text-blue-800">
+                    Browse available host homes, local recommendations, and events in {group.city}. 
+                    Click on any home to request a stay!
+                  </p>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     );

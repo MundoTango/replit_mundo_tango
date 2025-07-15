@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { GuestProfileDisplay } from '@/components/GuestProfile/GuestProfileDisplay';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -39,6 +40,19 @@ export default function Profile() {
       return result.data || {};
     },
     enabled: !!user?.id
+  });
+
+  // Fetch guest profile
+  const { data: guestProfile, isLoading: guestProfileLoading } = useQuery({
+    queryKey: ['/api/guest-profiles', user?.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/guest-profiles`, {
+        credentials: 'include'
+      });
+      const result = await response.json();
+      return result.data;
+    },
+    enabled: !!user?.id && activeTab === 'guest-profile'
   });
 
   const handleTabChange = (tab: string) => {
@@ -178,6 +192,37 @@ export default function Profile() {
                 </p>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="guest-profile" className="space-y-4">
+            {guestProfileLoading ? (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="animate-pulse space-y-4">
+                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : guestProfile ? (
+              <GuestProfileDisplay 
+                profile={guestProfile} 
+                isOwnProfile={true}
+              />
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Guest Profile</h3>
+                  <p className="text-gray-600 mb-4">
+                    Create your guest profile to start browsing and requesting stays with hosts.
+                  </p>
+                  <a href="/guest-onboarding" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                    Create Guest Profile
+                  </a>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </div>
