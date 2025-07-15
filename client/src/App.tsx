@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, lazy, Suspense } from "react";
 import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -11,65 +11,78 @@ import { useAuth } from "@/hooks/useAuth";
 import { initAnalytics, analytics } from "@/lib/analytics";
 import { ThemeProvider } from "@/lib/theme/theme-provider";
 import ThemeManager from "@/components/theme/ThemeManager";
-import { performanceOptimizations } from "@/lib/performance-optimizations";
 import { setupGlobalErrorHandlers, setupQueryErrorHandling } from "@/lib/global-error-handler";
+
+// Performance optimizations
+import { measurePerformance, deferTask } from "@/lib/performance-optimizations";
+
+// Loading component for Suspense
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-pulse text-turquoise-600">Loading...</div>
+  </div>
+);
+
+// Critical pages loaded immediately
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
-import Onboarding from "@/pages/onboarding";
-import CodeOfConduct from "@/pages/code-of-conduct";
 import Home from "@/pages/home";
-import Profile from "@/pages/profile";
-import Events from "@/pages/events";
-import EnhancedEvents from "@/pages/events-enhanced";
-import Messages from "@/pages/messages";
-import Moments from "@/pages/moments";
-import Community from "@/pages/community";
-import OrganizerDashboard from "@/pages/organizer";
-import TeacherDashboard from "@/pages/teacher";
-import Friends from "@/pages/friends";
-import Groups from "@/pages/groups";
-import GroupPage from "@/pages/group";
-import GroupDetailPage from "@/pages/GroupDetailPageMT";
-import CreateCommunity from "@/pages/create-community";
-import Invitations from "@/pages/invitations";
-import ResumePage from "@/pages/ResumePage";
-import PublicResumePage from "@/pages/PublicResumePage";
-import PublicProfilePage from "@/pages/PublicProfilePage";
-import { NotionHomePage } from "@/pages/NotionHomePage";
-import { NotionEntryPage } from "@/pages/NotionEntryPage";
-import AdminCenter from "@/pages/AdminCenter";
-import LifeCEOPortal from "@/components/admin/LifeCEOPortal";
-import LifeCEOAgentDetail from "@/components/admin/LifeCEOAgentDetail";
-import ProfileSwitcher from "@/pages/ProfileSwitcher";
-import LifeCEO from "@/pages/LifeCEO";
-import LifeCEOEnhanced from "@/pages/LifeCEOEnhanced";
-import HierarchyDashboard from "@/pages/HierarchyDashboard";
-import TestModal from "@/pages/TestModal";
-import ModalDebugTest from "@/pages/ModalDebugTest";
-import TestAdminPage from "@/pages/TestAdminPage";
-import EnhancedTimeline from "@/pages/enhanced-timeline";
-import EnhancedTimelineV2 from "@/pages/enhanced-timeline-v2";
-import SimpleEnhancedTimeline from "@/pages/simple-enhanced-timeline";
-import RouteTest from "@/pages/route-test";
-import TimelineTest from "@/pages/timeline-test";
-import TimelineMinimal from "@/pages/timeline-minimal";
-import TimelineDebug from "@/pages/timeline-debug";
-import SimpleTest from "@/pages/simple-test";
-import FixModalTest from "@/pages/fix-modal-test";
-import NavigationTest from "@/pages/navigation-test";
-import TTfilesDemo from "@/pages/TTfilesDemo";
-import TTfilesHelpCenter from "@/pages/ttfiles-help-center";
-import TangoCommunities from "@/pages/tango-communities";
-import CommunityWorldMap from "@/pages/community-world-map";
-import HousingMarketplace from "@/pages/housing-marketplace";
-import GlobalStatistics from "@/pages/global-statistics";
-import DatabaseSecurity from "@/pages/database-security";
-import TestApp from "@/pages/test-app";
-import FeatureNavigation from "@/pages/feature-navigation";
-import LiveGlobalStatistics from "@/pages/LiveGlobalStatistics";
-import HostOnboarding from "@/pages/HostOnboarding";
-import GuestOnboarding from "@/pages/GuestOnboarding";
-import PerformanceTest from "@/pages/PerformanceTest";
+
+// Lazy load all other pages for better performance
+const Onboarding = lazy(() => import("@/pages/onboarding"));
+const CodeOfConduct = lazy(() => import("@/pages/code-of-conduct"));
+const Profile = lazy(() => import("@/pages/profile"));
+const Events = lazy(() => import("@/pages/events"));
+const EnhancedEvents = lazy(() => import("@/pages/events-enhanced"));
+const Messages = lazy(() => import("@/pages/messages"));
+const Moments = lazy(() => import("@/pages/moments"));
+const Community = lazy(() => import("@/pages/community"));
+const OrganizerDashboard = lazy(() => import("@/pages/organizer"));
+const TeacherDashboard = lazy(() => import("@/pages/teacher"));
+const Friends = lazy(() => import("@/pages/friends"));
+const Groups = lazy(() => import("@/pages/groups"));
+const GroupPage = lazy(() => import("@/pages/group"));
+const GroupDetailPage = lazy(() => import("@/pages/GroupDetailPageMT"));
+const CreateCommunity = lazy(() => import("@/pages/create-community"));
+const Invitations = lazy(() => import("@/pages/invitations"));
+const ResumePage = lazy(() => import("@/pages/ResumePage"));
+const PublicResumePage = lazy(() => import("@/pages/PublicResumePage"));
+const PublicProfilePage = lazy(() => import("@/pages/PublicProfilePage"));
+const NotionHomePage = lazy(() => import("@/pages/NotionHomePage").then(m => ({ default: m.NotionHomePage })));
+const NotionEntryPage = lazy(() => import("@/pages/NotionEntryPage").then(m => ({ default: m.NotionEntryPage })));
+const AdminCenter = lazy(() => import("@/pages/AdminCenter"));
+const LifeCEOPortal = lazy(() => import("@/components/admin/LifeCEOPortal"));
+const LifeCEOAgentDetail = lazy(() => import("@/components/admin/LifeCEOAgentDetail"));
+const ProfileSwitcher = lazy(() => import("@/pages/ProfileSwitcher"));
+const LifeCEO = lazy(() => import("@/pages/LifeCEO"));
+const LifeCEOEnhanced = lazy(() => import("@/pages/LifeCEOEnhanced"));
+const HierarchyDashboard = lazy(() => import("@/pages/HierarchyDashboard"));
+const TestModal = lazy(() => import("@/pages/TestModal"));
+const ModalDebugTest = lazy(() => import("@/pages/ModalDebugTest"));
+const TestAdminPage = lazy(() => import("@/pages/TestAdminPage"));
+const EnhancedTimeline = lazy(() => import("@/pages/enhanced-timeline"));
+const EnhancedTimelineV2 = lazy(() => import("@/pages/enhanced-timeline-v2"));
+const SimpleEnhancedTimeline = lazy(() => import("@/pages/simple-enhanced-timeline"));
+const RouteTest = lazy(() => import("@/pages/route-test"));
+const TimelineTest = lazy(() => import("@/pages/timeline-test"));
+const TimelineMinimal = lazy(() => import("@/pages/timeline-minimal"));
+const TimelineDebug = lazy(() => import("@/pages/timeline-debug"));
+const SimpleTest = lazy(() => import("@/pages/simple-test"));
+const FixModalTest = lazy(() => import("@/pages/fix-modal-test"));
+const NavigationTest = lazy(() => import("@/pages/navigation-test"));
+const TTfilesDemo = lazy(() => import("@/pages/TTfilesDemo"));
+const TTfilesHelpCenter = lazy(() => import("@/pages/ttfiles-help-center"));
+const TangoCommunities = lazy(() => import("@/pages/tango-communities"));
+const CommunityWorldMap = lazy(() => import("@/pages/community-world-map"));
+const HousingMarketplace = lazy(() => import("@/pages/housing-marketplace"));
+const GlobalStatistics = lazy(() => import("@/pages/global-statistics"));
+const DatabaseSecurity = lazy(() => import("@/pages/database-security"));
+const TestApp = lazy(() => import("@/pages/test-app"));
+const FeatureNavigation = lazy(() => import("@/pages/feature-navigation"));
+const LiveGlobalStatistics = lazy(() => import("@/pages/LiveGlobalStatistics"));
+const HostOnboarding = lazy(() => import("@/pages/HostOnboarding"));
+const GuestOnboarding = lazy(() => import("@/pages/GuestOnboarding"));
+const PerformanceTest = lazy(() => import("@/pages/PerformanceTest"));
 
 // Simple error boundary component
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -141,13 +154,13 @@ function Router() {
   if (needsOnboarding) {
     console.log("Showing onboarding");
     analytics.pageView('Onboarding');
-    return <Onboarding />;
+    return <Suspense fallback={<PageLoader />}><Onboarding /></Suspense>;
   }
 
   if (needsCodeOfConduct) {
     console.log("Showing code of conduct");
     analytics.pageView('Code of Conduct');
-    return <CodeOfConduct />;
+    return <Suspense fallback={<PageLoader />}><CodeOfConduct /></Suspense>;
   }
 
   // If authenticated and fully onboarded, show main app
@@ -159,57 +172,59 @@ function Router() {
   console.log("🔍 Should match enhanced-timeline:", currentPath === '/enhanced-timeline');
   
   return (
-    <Switch>
-      <Route path="/" component={Moments} />
-      <Route path="/moments" component={Moments} />
-      <Route path="/community">{() => <Redirect to="/community-world-map" />}</Route>
-      <Route path="/community-world-map" component={CommunityWorldMap} />
-      <Route path="/tango-communities" component={TangoCommunities} />
-      <Route path="/housing-marketplace" component={HousingMarketplace} />
-      <Route path="/host-onboarding" component={HostOnboarding} />
-      <Route path="/guest-onboarding" component={GuestOnboarding} />
-      <Route path="/global-statistics" component={GlobalStatistics} />
-      <Route path="/live-statistics" component={LiveGlobalStatistics} />
-      <Route path="/database-security" component={DatabaseSecurity} />
-      <Route path="/organizer" component={OrganizerDashboard} />
-      <Route path="/teacher" component={TeacherDashboard} />
-      <Route path="/friends" component={Friends} />
-      <Route path="/groups" component={Groups} />
-      <Route path="/groups/create" component={CreateCommunity} />
-      <Route path="/groups/:slug" component={GroupDetailPage} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/events" component={EnhancedEvents} />
-      <Route path="/events-enhanced" component={EnhancedEvents} />
-      <Route path="/invitations" component={Invitations} />
-      <Route path="/profile/resume" component={ResumePage} />
-      <Route path="/u/:username/resume" component={PublicResumePage} />
-      <Route path="/u/:username" component={PublicProfilePage} />
-      <Route path="/messages" component={Messages} />
-      <Route path="/stories" component={NotionHomePage} />
-      <Route path="/stories/:slug" component={NotionEntryPage} />
-      <Route path="/admin" component={AdminCenter} />
-      <Route path="/profile-switcher" component={ProfileSwitcher} />
-      <Route path="/life-ceo" component={LifeCEOEnhanced} />
-      <Route path="/life-ceo-portal" component={LifeCEOPortal} />
-      <Route path="/life-ceo/agent/:id" component={LifeCEOAgentDetail} />
-      <Route path="/hierarchy" component={HierarchyDashboard} />
-      <Route path="/test-modal" component={TestModal} />
-      <Route path="/modal-debug" component={ModalDebugTest} />
-      <Route path="/test-admin" component={TestAdminPage} />
-      <Route path="/enhanced-timeline" component={EnhancedTimelineV2} />
-      <Route path="/timeline-v2" component={TimelineMinimal} />
-      <Route path="/debug" component={TimelineDebug} />
-      <Route path="/simple-test" component={SimpleTest} />
-      <Route path="/fix-modal" component={FixModalTest} />
-      <Route path="/navigation-test" component={NavigationTest} />
-      <Route path="/enhanced-timeline-old" component={EnhancedTimeline} />
-      <Route path="/route-test" component={RouteTest} />
-      <Route path="/ttfiles-demo" component={TTfilesDemo} />
-      <Route path="/ttfiles-help-center" component={TTfilesHelpCenter} />
-      <Route path="/feature-navigation" component={FeatureNavigation} />
-      <Route path="/performance-test" component={PerformanceTest} />
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<PageLoader />}>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/moments" component={Moments} />
+        <Route path="/community">{() => <Redirect to="/community-world-map" />}</Route>
+        <Route path="/community-world-map" component={CommunityWorldMap} />
+        <Route path="/tango-communities" component={TangoCommunities} />
+        <Route path="/housing-marketplace" component={HousingMarketplace} />
+        <Route path="/host-onboarding" component={HostOnboarding} />
+        <Route path="/guest-onboarding" component={GuestOnboarding} />
+        <Route path="/global-statistics" component={GlobalStatistics} />
+        <Route path="/live-statistics" component={LiveGlobalStatistics} />
+        <Route path="/database-security" component={DatabaseSecurity} />
+        <Route path="/organizer" component={OrganizerDashboard} />
+        <Route path="/teacher" component={TeacherDashboard} />
+        <Route path="/friends" component={Friends} />
+        <Route path="/groups" component={Groups} />
+        <Route path="/groups/create" component={CreateCommunity} />
+        <Route path="/groups/:slug" component={GroupDetailPage} />
+        <Route path="/profile" component={Profile} />
+        <Route path="/events" component={EnhancedEvents} />
+        <Route path="/events-enhanced" component={EnhancedEvents} />
+        <Route path="/invitations" component={Invitations} />
+        <Route path="/profile/resume" component={ResumePage} />
+        <Route path="/u/:username/resume" component={PublicResumePage} />
+        <Route path="/u/:username" component={PublicProfilePage} />
+        <Route path="/messages" component={Messages} />
+        <Route path="/stories" component={NotionHomePage} />
+        <Route path="/stories/:slug" component={NotionEntryPage} />
+        <Route path="/admin" component={AdminCenter} />
+        <Route path="/profile-switcher" component={ProfileSwitcher} />
+        <Route path="/life-ceo" component={LifeCEOEnhanced} />
+        <Route path="/life-ceo-portal" component={LifeCEOPortal} />
+        <Route path="/life-ceo/agent/:id" component={LifeCEOAgentDetail} />
+        <Route path="/hierarchy" component={HierarchyDashboard} />
+        <Route path="/test-modal" component={TestModal} />
+        <Route path="/modal-debug" component={ModalDebugTest} />
+        <Route path="/test-admin" component={TestAdminPage} />
+        <Route path="/enhanced-timeline" component={EnhancedTimelineV2} />
+        <Route path="/timeline-v2" component={TimelineMinimal} />
+        <Route path="/debug" component={TimelineDebug} />
+        <Route path="/simple-test" component={SimpleTest} />
+        <Route path="/fix-modal" component={FixModalTest} />
+        <Route path="/navigation-test" component={NavigationTest} />
+        <Route path="/enhanced-timeline-old" component={EnhancedTimeline} />
+        <Route path="/route-test" component={RouteTest} />
+        <Route path="/ttfiles-demo" component={TTfilesDemo} />
+        <Route path="/ttfiles-help-center" component={TTfilesHelpCenter} />
+        <Route path="/feature-navigation" component={FeatureNavigation} />
+        <Route path="/performance-test" component={PerformanceTest} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
@@ -225,10 +240,7 @@ function App() {
     // Initialize analytics
     initAnalytics();
     
-    // Initialize performance optimizations
-    if (performanceOptimizations) {
-      console.log('Performance optimizations initialized');
-    }
+    // Performance optimizations initialized via lazy loading and Suspense boundaries
   }, []);
 
   return (

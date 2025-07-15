@@ -70,10 +70,10 @@ app.get('/service-worker-workbox.js', (req, res) => {
 });
 
 (async () => {
-  // Initialize automated compliance monitoring
-  const { automatedComplianceMonitor, initializeComplianceAuditTable } = await import('./services/automatedComplianceMonitor');
-  await initializeComplianceAuditTable();
-  await automatedComplianceMonitor.startAutomatedMonitoring();
+  // Compliance monitoring disabled for performance - move to admin-only context
+  // const { automatedComplianceMonitor, initializeComplianceAuditTable } = await import('./services/automatedComplianceMonitor');
+  // await initializeComplianceAuditTable();
+  // await automatedComplianceMonitor.startAutomatedMonitoring();
 
   const server = await registerRoutes(app);
 
@@ -107,16 +107,16 @@ app.get('/service-worker-workbox.js', (req, res) => {
   }, () => {
     log(`serving on port ${port}`);
     
-    // Initialize GDPR Compliance Monitoring
-    try {
-      import('../compliance/monitoring/complianceMonitor').then(({ complianceMonitor }) => {
-        complianceMonitor.startMonitoring();
-        console.log('🔒 Compliance monitoring system initialized');
-      }).catch(error => {
-        console.warn('⚠️ Compliance monitoring initialization failed:', error.message);
-      });
-    } catch (error) {
-      console.warn('⚠️ Compliance monitoring not available');
-    }
+    // GDPR Compliance Monitoring disabled for performance - move to admin-only context
+    // try {
+    //   import('../compliance/monitoring/complianceMonitor').then(({ complianceMonitor }) => {
+    //     complianceMonitor.startMonitoring();
+    //     console.log('🔒 Compliance monitoring system initialized');
+    //   }).catch(error => {
+    //     console.warn('⚠️ Compliance monitoring initialization failed:', error.message);
+    //   });
+    // } catch (error) {
+    //   console.warn('⚠️ Compliance monitoring not available');
+    // }
   });
 })();
