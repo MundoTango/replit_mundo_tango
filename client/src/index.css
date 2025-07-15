@@ -230,7 +230,6 @@
 }
 
 /* TrangoTech CSS Variables - Authentic Colors */
-/* DEPRECATED - Using Ocean Theme instead
 :root {
     --primary-color: #0D448A;
     --background-color: #f8fafc;
@@ -243,7 +242,6 @@
     --secondary-red: #ED4B3B;
     --black-text-color: #0F172A;
 }
-*/
 
 /* TrangoTech Font Family */
 body {
@@ -440,12 +438,10 @@ body {
   --radius: 0.5rem;
   
   /* Tango-specific colors */
-  /* DEPRECATED - Using Ocean Theme instead
   --tango-red: hsl(348, 71%, 31%);
   --tango-gold: hsl(45, 65%, 55%);
   --tango-black: hsl(0, 0%, 10%);
   --tango-gray: hsl(0, 0%, 96%);
-  */
 }
 
 .dark {
@@ -470,12 +466,10 @@ body {
   --ring: hsl(240, 4.9%, 83.9%);
   
   /* Tango-specific colors for dark mode */
-  /* DEPRECATED - Using Ocean Theme instead
   --tango-red: hsl(348, 71%, 45%);
   --tango-gold: hsl(45, 65%, 65%);
   --tango-black: hsl(0, 0%, 85%);
   --tango-gray: hsl(240, 3.7%, 15.9%);
-  */
 }
 
 @layer base {
@@ -494,7 +488,6 @@ body {
 }
 
 @layer components {
-  /* DEPRECATED - Using Ocean Theme instead
   .tango-red {
     color: var(--tango-red);
   }
@@ -536,7 +529,6 @@ body {
     padding: 3px;
     border-radius: 50%;
   }
-  */
 
   .chat-overlay {
     transform: translateX(100%);
@@ -551,15 +543,12 @@ body {
     animation: pulse 2s infinite;
   }
 
-  /* DEPRECATED - Using Ocean Theme instead
   .hero-gradient {
     background: linear-gradient(135deg, var(--tango-red) 0%, var(--tango-black) 100%);
   }
-  */
 }
 
 @layer utilities {
-  /* DEPRECATED - Using Ocean Theme instead
   .text-tango-red {
     color: var(--tango-red);
   }
@@ -591,7 +580,6 @@ body {
   .focus\:ring-tango-red:focus {
     --tw-ring-color: var(--tango-red);
   }
-  */
 }
 
 /* Custom scrollbar */
@@ -604,12 +592,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--turquoise-500);
+  background: var(--tango-red);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--turquoise-600);
+  background: var(--tango-gold);
 }
 
 /* Custom animations */

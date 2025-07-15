@@ -290,7 +290,7 @@ const AdminCenter: React.FC = () => {
     { id: 'compliance', label: 'Compliance Center', icon: <Shield className="w-4 h-4" /> },
     { id: 'rbac', label: 'RBAC/ABAC Manager', icon: <Lock className="w-4 h-4" /> },
     { id: 'system', label: 'System Health', icon: <Activity className="w-4 h-4" /> },
-    { id: '30l-framework', label: '30L Framework', icon: <Layers className="w-4 h-4" />, isNew: true },
+    { id: '23l-framework', label: '23L Framework', icon: <Layers className="w-4 h-4" />, isNew: true },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
   ];
 
@@ -1431,7 +1431,7 @@ const AdminCenter: React.FC = () => {
     );
   };
 
-  const render30LFramework = () => {
+  const render23LFramework = () => {
     
     const updateLayerProgress = (layerId: number, newProgress: number) => {
       setFrameworkData((prev: any) => ({
@@ -1479,56 +1479,6 @@ const AdminCenter: React.FC = () => {
             <Progress value={frameworkData.overallProgress} className="h-3" />
           </div>
         </div>
-        
-        {/* Percentage Legend */}
-        <Card className="bg-gradient-to-r from-turquoise-50 to-blue-50 border-turquoise-200">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-turquoise-600" />
-              Understanding Layer Percentages
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-              <div className="flex items-start gap-2">
-                <div className="w-4 h-4 rounded-full bg-green-500 flex-shrink-0 mt-0.5"></div>
-                <div>
-                  <span className="font-semibold">90-100%:</span> Feature complete, production-ready
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <div className="w-4 h-4 rounded-full bg-green-400 flex-shrink-0 mt-0.5"></div>
-                <div>
-                  <span className="font-semibold">80-89%:</span> Mostly complete, minor improvements
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <div className="w-4 h-4 rounded-full bg-yellow-500 flex-shrink-0 mt-0.5"></div>
-                <div>
-                  <span className="font-semibold">70-79%:</span> Functional, needs optimization
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <div className="w-4 h-4 rounded-full bg-orange-500 flex-shrink-0 mt-0.5"></div>
-                <div>
-                  <span className="font-semibold">60-69%:</span> Basic implementation, gaps remain
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <div className="w-4 h-4 rounded-full bg-red-500 flex-shrink-0 mt-0.5"></div>
-                <div>
-                  <span className="font-semibold">50-59%:</span> Partial implementation, major work needed
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <div className="w-4 h-4 rounded-full bg-gray-500 flex-shrink-0 mt-0.5"></div>
-                <div>
-                  <span className="font-semibold">Below 50%:</span> Planning/future roadmap
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
         
         {/* Layer Categories */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1628,121 +1578,25 @@ const AdminCenter: React.FC = () => {
               </CardContent>
             </Card>
             
-            {/* Development Optimization Layers */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Development Optimization (Layers 24-30)</CardTitle>
-                <Badge className="bg-gradient-to-r from-turquoise-100 to-blue-100 text-turquoise-800 text-xs">NEW</Badge>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {frameworkData.layers.slice(23, 30).map((layer: any) => (
-                  <div key={layer.id} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">
-                        {layer.id}. {layer.name}
-                      </span>
-                      {editMode ? (
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={layer.progress}
-                          onChange={(e) => updateLayerProgress(layer.id, parseInt(e.target.value))}
-                          className="w-16 px-2 py-1 border rounded text-sm"
-                        />
-                      ) : (
-                        <span className="text-sm font-bold">{layer.progress}%</span>
-                      )}
-                    </div>
-                    <Progress value={layer.progress} className="h-2" />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-            
             {/* Framework Actions */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Framework Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button 
-                  className="w-full" 
-                  variant="outline"
-                  onClick={() => {
-                    toast({
-                      title: "Generating 30L Analysis Report",
-                      description: "Creating comprehensive framework analysis document...",
-                    });
-                    // Generate report logic here
-                    setTimeout(() => {
-                      toast({
-                        title: "Report Generated",
-                        description: "30L Framework Analysis Report has been created successfully.",
-                      });
-                    }, 2000);
-                  }}
-                >
+                <Button className="w-full" variant="outline">
                   <FileText className="w-4 h-4 mr-2" />
-                  Generate 30L Analysis Report
+                  Generate 23L Analysis Report
                 </Button>
-                <Button 
-                  className="w-full" 
-                  variant="outline"
-                  onClick={() => {
-                    toast({
-                      title: "Running Self-Reprompting Analysis",
-                      description: "Analyzing system using 30L framework methodology...",
-                    });
-                    // Self-reprompting analysis logic
-                    setTimeout(() => {
-                      toast({
-                        title: "Analysis Complete",
-                        description: "Self-reprompting analysis has identified 3 optimization opportunities.",
-                      });
-                    }, 3000);
-                  }}
-                >
+                <Button className="w-full" variant="outline">
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Run Self-Reprompting Analysis
                 </Button>
-                <Button 
-                  className="w-full" 
-                  variant="outline"
-                  onClick={() => {
-                    toast({
-                      title: "Loading Historical Progress",
-                      description: "Retrieving 30L framework progress over time...",
-                    });
-                    // Historical progress logic
-                    setTimeout(() => {
-                      toast({
-                        title: "Progress Data Loaded",
-                        description: "Framework improved from 73% to 87% over the past month.",
-                      });
-                    }, 1500);
-                  }}
-                >
+                <Button className="w-full" variant="outline">
                   <TrendingUp className="w-4 h-4 mr-2" />
                   View Historical Progress
                 </Button>
-                <Button 
-                  className="w-full" 
-                  variant="outline"
-                  onClick={() => {
-                    toast({
-                      title: "Identifying Critical Gaps",
-                      description: "Analyzing framework for critical missing components...",
-                    });
-                    // Gap analysis logic
-                    setTimeout(() => {
-                      toast({
-                        title: "Gap Analysis Complete",
-                        description: "3 critical gaps identified in Layers 24-26 (Dev Optimization).",
-                      });
-                    }, 2500);
-                  }}
-                >
+                <Button className="w-full" variant="outline">
                   <AlertTriangle className="w-4 h-4 mr-2" />
                   Identify Critical Gaps
                 </Button>
@@ -1754,23 +1608,13 @@ const AdminCenter: React.FC = () => {
         {/* Documentation Links */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">30L Framework Documentation</CardTitle>
+            <CardTitle className="text-lg">23L Framework Documentation</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <a 
-                href="#" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  toast({
-                    title: "Opening Master Document",
-                    description: "Loading 30L Framework Master Document V5.0...",
-                  });
-                }}
-                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <h4 className="font-semibold mb-1">Master Document V5</h4>
-                <p className="text-sm text-gray-600">Complete 30-layer framework guide</p>
+              <a href="#" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <h4 className="font-semibold mb-1">Master Document V4</h4>
+                <p className="text-sm text-gray-600">Complete 23-layer framework guide</p>
               </a>
               <a href="#" className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                 <h4 className="font-semibold mb-1">Implementation Checklist</h4>
@@ -2144,7 +1988,7 @@ const AdminCenter: React.FC = () => {
       case 'compliance': return renderCompliance();
       case 'rbac': return renderRbacManager();
       case 'system': return renderSystemHealth();
-      case '30l-framework': return render30LFramework();
+      case '23l-framework': return render23LFramework();
       case 'settings': return renderSettings();
       default: return renderOverview();
     }
