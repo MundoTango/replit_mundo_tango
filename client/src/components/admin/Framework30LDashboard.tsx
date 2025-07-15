@@ -803,9 +803,6 @@ const Framework30LDashboard: React.FC = () => {
                         <p className="text-sm text-gray-500">No issues found</p>
                       )}
                     </TabsContent>
-                        </div>
-                      ))}
-                    </TabsContent>
                   </Tabs>
                 </div>
               )}
