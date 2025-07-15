@@ -31,6 +31,31 @@ export default {
         'border-color': '#F1F5F9',
         'secondary-red': '#ED4B3B',
         'btn-color': '#EB2560',
+        // Mundo Tango Ocean Theme Palette
+        'turquoise': {
+          50: '#e6fffa',
+          100: '#b2f5ea',
+          200: '#81e6d9',
+          300: '#4fd1c5',
+          400: '#38b2ac',
+          500: '#319795',
+          600: '#2c7a7b',
+          700: '#285e61',
+          800: '#234e52',
+          900: '#1d4044',
+        },
+        'cyan': {
+          50: '#e0f2fe',
+          100: '#cffafe',
+          200: '#a5f3fc',
+          300: '#67e8f9',
+          400: '#22d3ee',
+          500: '#06b6d4',
+          600: '#0891b2',
+          700: '#0e7490',
+          800: '#155e75',
+          900: '#164e63',
+        },
         // Modern Memories color palette
         'coral': {
           50: '#fef7f0',

@@ -589,19 +589,19 @@ const AdminCenter: React.FC = () => {
       )}
 
       {/* Overall Compliance Score with MT Styling */}
-      <div className="bg-gradient-to-r from-pink-50 to-purple-100 rounded-2xl p-6 shadow-lg">
+      <div className="bg-gradient-to-r from-turquoise-50 to-blue-100 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-800">Overall Compliance Score</h3>
             <p className="text-sm text-gray-600">Comprehensive security and privacy assessment</p>
           </div>
-          <div className="text-3xl font-bold text-purple-600">
+          <div className="text-3xl font-bold text-turquoise-600">
             {compliance?.overallScore || 78}%
           </div>
         </div>
-        <div className="w-full bg-purple-200 rounded-full h-3">
+        <div className="w-full bg-turquoise-200 rounded-full h-3">
           <div 
-            className="h-3 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full transition-all duration-500"
+            className="h-3 bg-gradient-to-r from-turquoise-500 to-blue-600 rounded-full transition-all duration-500"
             style={{ width: `${compliance?.overallScore || 78}%` }}
           />
         </div>
@@ -676,7 +676,7 @@ const AdminCenter: React.FC = () => {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <h2 className="text-xl font-bold text-gray-800">User Management</h2>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
+          <button className="px-4 py-2 bg-gradient-to-r from-turquoise-600 to-blue-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
             <Users className="w-4 h-4 inline mr-2" />
             Export Users
           </button>
@@ -1944,13 +1944,13 @@ const AdminCenter: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-turquoise-50 via-blue-50 to-cyan-50 flex">
       <TrangoTechSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       
       <div className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : ''}`}>
         <div className="min-h-screen">
           {/* MT Style Header */}
-          <div className="bg-gradient-to-r from-pink-600 to-blue-600 sticky top-0 z-10 shadow-xl">
+          <div className="bg-gradient-to-r from-turquoise-600 to-blue-600 sticky top-0 z-10 shadow-xl">
             <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
@@ -1990,11 +1990,11 @@ const AdminCenter: React.FC = () => {
                     onClick={() => setSelectedTab(tab.id)}
                     className={`flex items-center gap-2 py-3 md:py-4 px-3 md:px-4 border-b-3 font-medium text-xs md:text-sm transition-all whitespace-nowrap rounded-t-xl ${
                       selectedTab === tab.id
-                        ? 'border-pink-500 text-pink-600 bg-gradient-to-t from-pink-50 to-transparent'
+                        ? 'border-turquoise-500 text-turquoise-600 bg-gradient-to-t from-turquoise-50 to-transparent'
                         : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                     }`}
                   >
-                    <span className={selectedTab === tab.id ? 'text-pink-600' : 'text-gray-500'}>
+                    <span className={selectedTab === tab.id ? 'text-turquoise-600' : 'text-gray-500'}>
                       {tab.icon}
                     </span>
                     <span className="hidden md:inline">{tab.label}</span>

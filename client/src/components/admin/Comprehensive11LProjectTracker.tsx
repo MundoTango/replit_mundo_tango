@@ -155,7 +155,7 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-lg">
+      <div className="bg-gradient-to-r from-turquoise-600 to-blue-600 text-white p-6 rounded-lg">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">
@@ -414,7 +414,7 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
                 </Card>
 
                 {/* Architecture & Strategy Team */}
-                <Card className="border-l-4 border-l-purple-500 bg-purple-50/50 hover:shadow-lg transition-all cursor-pointer" onClick={() => handleCardClick({
+                <Card className="border-l-4 border-l-turquoise-500 bg-turquoise-50/50 hover:shadow-lg transition-all cursor-pointer" onClick={() => handleCardClick({
                   id: 'team-architecture',
                   title: 'Architecture & Strategy Team',
                   description: 'Strategic planning and architectural oversight using 11L methodology',
@@ -626,7 +626,7 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
               </div>
 
               {/* Team Summary Stats */}
-              <Card className="mt-6 bg-gradient-to-r from-blue-50 to-purple-50">
+              <Card className="mt-6 bg-gradient-to-r from-turquoise-50 to-blue-50">
                 <CardHeader>
                   <CardTitle className="text-lg font-bold text-gray-800">Team Performance Summary</CardTitle>
                 </CardHeader>
@@ -787,7 +787,7 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
             <CardContent className="p-6">
               <div className="relative">
                 {/* Main Timeline */}
-                <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-200 via-blue-200 to-green-200"></div>
+                <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-turquoise-200 via-blue-200 to-green-200"></div>
                 
                 <div className="space-y-8">
                   {/* Phase 1: Foundation & Authentication */}

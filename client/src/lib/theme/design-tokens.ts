@@ -171,21 +171,21 @@ export interface DesignTokens {
   };
 }
 
-// Default Design Tokens (Mundo Tango Theme)
+// Default Design Tokens (Mundo Tango Ocean Theme)
 export const defaultTokens: DesignTokens = {
   colors: {
     primary: {
-      50: '#fef7ff',
-      100: '#fdeeff',
-      200: '#fcdcff',
-      300: '#f9b9ff',
-      400: '#f486ff',
-      500: '#ec54ff',
-      600: '#d631e8',
-      700: '#b524c4',
-      800: '#921ea0',
-      900: '#771b82',
-      950: '#500859',
+      50: '#e6fffa',
+      100: '#b2f5ea',
+      200: '#81e6d9',
+      300: '#4fd1c5',
+      400: '#38b2ac',
+      500: '#319795',
+      600: '#2c7a7b',
+      700: '#285e61',
+      800: '#234e52',
+      900: '#1d4044',
+      950: '#163238',
     },
     secondary: {
       50: '#eff6ff',

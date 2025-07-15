@@ -15,11 +15,11 @@ export interface ThemeConfig {
 export const themes: Record<string, ThemeConfig> = {
   'mundo-tango': {
     id: 'mundo-tango',
-    name: 'Mundo Tango',
-    description: 'Original pink-blue gradient theme',
+    name: 'Mundo Tango Ocean',
+    description: 'Turquoise to blue gradient inspired by ocean depths',
     category: 'business',
     tokens: defaultTokens,
-    preview: 'linear-gradient(135deg, #ec54ff, #3b82f6)',
+    preview: 'linear-gradient(135deg, #38b2ac, #3182ce)',
   },
   'life-ceo': {
     id: 'life-ceo',

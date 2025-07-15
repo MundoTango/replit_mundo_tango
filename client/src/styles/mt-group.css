@@ -4,7 +4,7 @@
 .mt-group-header {
   position: relative;
   height: 320px;
-  background: linear-gradient(135deg, #EC4899 0%, #3B82F6 100%);
+  background: var(--gradient-primary);
   overflow: hidden;
   border-radius: 0 0 2rem 2rem;
 }
@@ -141,7 +141,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #EC4899, #3B82F6);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -201,7 +201,7 @@
 }
 
 .mt-event-date {
-  background: linear-gradient(135deg, #EC4899, #8B5CF6);
+  background: var(--gradient-primary);
   color: white;
   padding: 0.75rem;
   border-radius: 0.75rem;
@@ -254,13 +254,13 @@
 }
 
 .mt-action-button-primary {
-  background: linear-gradient(135deg, #EC4899, #8B5CF6);
+  background: var(--gradient-primary);
   color: white;
 }
 
 .mt-action-button-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  box-shadow: 0 4px 12px rgba(56, 178, 172, 0.3);
 }
 
 .mt-action-button-secondary {
