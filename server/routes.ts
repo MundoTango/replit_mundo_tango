@@ -7787,20 +7787,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==========================================
 
   // Admin: Get platform statistics
-  app.get('/api/admin/stats', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/stats', setUserContext, async (req, res) => {
     try {
       const { storage } = await import('./storage');
       
-      // Get database user from Replit OAuth session
-      const replitId = req.session?.passport?.user?.claims?.sub;
-      if (!replitId) {
-        return res.status(401).json({
-          success: false,
-          message: 'Authentication required.'
-        });
-      }
+      // Get database user - check auth bypass first
+      let user;
+      
+      // Development auth bypass
+      if (process.env.NODE_ENV === 'development' && (!req.session || !req.session.passport)) {
+        console.log('🔧 Admin stats - using auth bypass for development');
+        user = await storage.getUserByUsername('admin3304');
+      } else {
+        // Get database user from Replit OAuth session
+        const replitId = req.session?.passport?.user?.claims?.sub;
+        if (!replitId) {
+          return res.status(401).json({
+            success: false,
+            message: 'Authentication required.'
+          });
+        }
 
-      const user = await storage.getUserByReplitId(replitId);
+        user = await storage.getUserByReplitId(replitId);
+      }
+      
       if (!user) {
         return res.status(404).json({
           success: false,
@@ -7953,20 +7963,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Get compliance metrics
-  app.get('/api/admin/compliance', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/compliance', setUserContext, async (req, res) => {
     try {
       const { storage } = await import('./storage');
       
-      // Get database user from Replit OAuth session
-      const replitId = req.session?.passport?.user?.claims?.sub;
-      if (!replitId) {
-        return res.status(401).json({
-          success: false,
-          message: 'Authentication required.'
-        });
-      }
+      // Get database user - check auth bypass first
+      let user;
+      
+      // Development auth bypass
+      if (process.env.NODE_ENV === 'development' && (!req.session || !req.session.passport)) {
+        console.log('🔧 Admin compliance - using auth bypass for development');
+        user = await storage.getUserByUsername('admin3304');
+      } else {
+        // Get database user from Replit OAuth session
+        const replitId = req.session?.passport?.user?.claims?.sub;
+        if (!replitId) {
+          return res.status(401).json({
+            success: false,
+            message: 'Authentication required.'
+          });
+        }
 
-      const user = await storage.getUserByReplitId(replitId);
+        user = await storage.getUserByReplitId(replitId);
+      }
+      
       if (!user) {
         return res.status(404).json({
           success: false,
