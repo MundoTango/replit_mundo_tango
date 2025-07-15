@@ -17,7 +17,8 @@ import {
   Heart,
   Video,
   Info,
-  Star
+  Star,
+  UserCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import RoleBadge from '@/components/RoleBadge';
@@ -266,7 +267,7 @@ export default function ProfileHead({
 
         {/* Profile Tabs */}
         <Tabs value={currentTab} onValueChange={handleTabChange} className="mt-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="about" className="flex items-center gap-2">
               <Info className="h-4 w-4" />
               About
@@ -286,6 +287,10 @@ export default function ProfileHead({
             <TabsTrigger value="resume" className="flex items-center gap-2">
               <Star className="h-4 w-4" />
               Resume
+            </TabsTrigger>
+            <TabsTrigger value="guest-profile" className="flex items-center gap-2">
+              <UserCheck className="h-4 w-4" />
+              Guest
             </TabsTrigger>
           </TabsList>
         </Tabs>

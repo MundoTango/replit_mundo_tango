@@ -439,12 +439,6 @@ export default function EnhancedTimelineV2() {
               <p className="text-gray-600 mt-2">Experience the new Facebook-inspired design</p>
             </div>
 
-            {/* Success Banner */}
-            <div className="mb-6 p-4 bg-green-100 border border-green-300 rounded-lg">
-              <h2 className="text-xl font-bold text-green-800 mb-2">✅ TIMELINE V2 - ALL FEATURES WORKING ✅</h2>
-              <p className="text-green-700">Social features are fully functional with correct API endpoints!</p>
-            </div>
-
             {/* Post Composer */}
             <div className="mb-6">
               <PostComposer />
