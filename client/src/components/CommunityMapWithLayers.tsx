@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, LayersControl, CircleMarker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, Home, MapPin, Star, Users } from 'lucide-react';
+import { Calendar, Home, MapPin, Star, Users, Layers } from 'lucide-react';
 import { useLocation } from 'wouter';
 
 // Fix for missing marker icons in production
@@ -56,6 +56,11 @@ interface MapItem {
 export default function CommunityMapWithLayers() {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [, setLocation] = useLocation();
+  
+  // Layer visibility states
+  const [showEvents, setShowEvents] = useState(false);
+  const [showHomes, setShowHomes] = useState(false);
+  const [showRecommendations, setShowRecommendations] = useState(false);
 
   // Fetch city groups
   const { data: cityGroups = [] } = useQuery({
@@ -299,6 +304,43 @@ export default function CommunityMapWithLayers() {
 
   return (
     <div className="h-full w-full relative">
+      {/* Custom Layer Control */}
+      <div className="absolute top-4 right-4 z-[1000] bg-white rounded-lg shadow-lg p-3 min-w-[140px]">
+        <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-gray-700">
+          <Layers className="h-4 w-4" />
+          <span>Layers</span>
+        </div>
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showEvents}
+              onChange={(e) => setShowEvents(e.target.checked)}
+              className="h-4 w-4"
+            />
+            <span className="text-sm">Events</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showHomes}
+              onChange={(e) => setShowHomes(e.target.checked)}
+              className="h-4 w-4"
+            />
+            <span className="text-sm">Host Homes</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showRecommendations}
+              onChange={(e) => setShowRecommendations(e.target.checked)}
+              className="h-4 w-4"
+            />
+            <span className="text-sm">Recommendations</span>
+          </label>
+        </div>
+      </div>
+      
       <MapContainer
         center={[-15, -60]} // Center on South America
         zoom={3}
@@ -323,70 +365,56 @@ export default function CommunityMapWithLayers() {
             </Marker>
           ))}
         
-        <LayersControl position="topright" collapsed={false}>
-          {/* Events Overlay */}
-          <LayersControl.Overlay name="Events">
-            <>
-              {mapItems
-                .filter(item => item.type === 'event')
-                .map(item => (
-                  <CircleMarker
-                    key={`event-${item.id}`}
-                    center={[item.lat, item.lng]}
-                    radius={8}
-                    fillColor={LAYER_COLORS.event}
-                    color="white"
-                    weight={2}
-                    fillOpacity={0.8}
-                  >
-                    <Popup>{renderPopupContent(item)}</Popup>
-                  </CircleMarker>
-                ))}
-            </>
-          </LayersControl.Overlay>
+        {/* Events Layer */}
+        {showEvents && mapItems
+          .filter(item => item.type === 'event')
+          .map(item => (
+            <CircleMarker
+              key={`event-${item.id}`}
+              center={[item.lat, item.lng]}
+              radius={8}
+              fillColor={LAYER_COLORS.event}
+              color="white"
+              weight={2}
+              fillOpacity={0.8}
+            >
+              <Popup>{renderPopupContent(item)}</Popup>
+            </CircleMarker>
+          ))}
           
-          {/* Host Homes Overlay */}
-          <LayersControl.Overlay name="Host Homes">
-            <>
-              {mapItems
-                .filter(item => item.type === 'home')
-                .map(item => (
-                  <CircleMarker
-                    key={`home-${item.id}`}
-                    center={[item.lat, item.lng]}
-                    radius={8}
-                    fillColor={LAYER_COLORS.home}
-                    color="white"
-                    weight={2}
-                    fillOpacity={0.8}
-                  >
-                    <Popup>{renderPopupContent(item)}</Popup>
-                  </CircleMarker>
-                ))}
-            </>
-          </LayersControl.Overlay>
+        {/* Host Homes Layer */}
+        {showHomes && mapItems
+          .filter(item => item.type === 'home')
+          .map(item => (
+            <CircleMarker
+              key={`home-${item.id}`}
+              center={[item.lat, item.lng]}
+              radius={8}
+              fillColor={LAYER_COLORS.home}
+              color="white"
+              weight={2}
+              fillOpacity={0.8}
+            >
+              <Popup>{renderPopupContent(item)}</Popup>
+            </CircleMarker>
+          ))}
           
-          {/* Recommendations Overlay */}
-          <LayersControl.Overlay name="Recommendations">
-            <>
-              {mapItems
-                .filter(item => item.type === 'recommendation')
-                .map(item => (
-                  <CircleMarker
-                    key={`rec-${item.id}`}
-                    center={[item.lat, item.lng]}
-                    radius={8}
-                    fillColor={LAYER_COLORS.recommendation}
-                    color="white"
-                    weight={2}
-                    fillOpacity={0.8}
-                  >
-                    <Popup>{renderPopupContent(item)}</Popup>
-                  </CircleMarker>
-                ))}
-            </>
-          </LayersControl.Overlay>
-        </LayersControl>
+        {/* Recommendations Layer */}
+        {showRecommendations && mapItems
+          .filter(item => item.type === 'recommendation')
+          .map(item => (
+            <CircleMarker
+              key={`rec-${item.id}`}
+              center={[item.lat, item.lng]}
+              radius={8}
+              fillColor={LAYER_COLORS.recommendation}
+              color="white"
+              weight={2}
+              fillOpacity={0.8}
+            >
+              <Popup>{renderPopupContent(item)}</Popup>
+            </CircleMarker>
+          ))}
         
         <FlyToCity city={selectedCity} />
       </MapContainer>

@@ -1,6 +1,6 @@
-// Life CEO Service Worker v8.0 - Updated January 15, 2025
-// IMPORTANT: Cache version updated to v8 to fix map layers and add host counts
-const CACHE_NAME = 'life-ceo-v8';
+// Life CEO Service Worker v9.0 - Updated January 15, 2025
+// IMPORTANT: Cache version updated to v9 to remove duplicate layer controls
+const CACHE_NAME = 'life-ceo-v9';
 const urlsToCache = [
   '/',
   '/life-ceo',

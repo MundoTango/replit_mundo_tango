@@ -1,0 +1,16 @@
+Use the 23ls
+I need you to make sure you created a guest onboarding. 
+what happens when a guest asks to stay at a property? What should happen in your opinion? Review the work you did with this prompt in our history.
+use the 23ls to analyze, identify, fix, and use any open sources
+
+"Make sure that city groups photo here match the same cover photo when you click into it.
+
+Remeber that this tool bar should also have hosting, recommendations, and a map that has all 3: Events, housing, recommendations. This map should be with a date filter plus toggles for layers of events, recommendations, housing. On the map:
+
+for events (this should also be on the EVENTs page) the ability to filter by the other metadata data
+housing filter (same on the housing tab) by friend relationshion (Like Linkedin by degrees of separation and if they are a closse 1st friend based on how many posts and things on their Friendship page (we have talked about this but not sure if you have implemented)), then by what they are looking for room, shared, etc like Airbnb and VRBO, any others base on metadata?
+-Recommendations: filter again by friend relationshion (Like Linkedin by degrees of separation and if they are a closse 1st friend based on how many posts and things on their Friendship page (we have talked about this but not sure if you have implemented)), the the recommendation is from a local vs visitor (example: if I'm in buenos aires and I want great steak and asado i would ask a local Porteno but if I want great chinese in buenos aires I wouldn't ask a Porteno I would ask a chinese friend, make sense?), and lastly filtering by what it is like restaurant, bar, tourist attraction, etc.
+Keep in mind that map to use will be the open source but the addresses and business should come from Google maps so there is an option to select "get directions"
+Also for the super admin, please surface the housing host onboarding and viewes you created. For everyone else they should be able to see the guest view. I need to visually test these so make sure they are available on my super admin account.
+
+use the 23ls to analyze, identify, fix, and use any open sources"
