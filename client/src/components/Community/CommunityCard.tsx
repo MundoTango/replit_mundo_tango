@@ -50,7 +50,7 @@ const CommunityCard: React.FC<CommunityCardProps> = ({
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #8E142E 0%, #0D448A 100%)' }}>
+          <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #38b2ac 0%, #3182ce 100%)' }}>
             <Users className="text-white text-4xl h-12 w-12" />
           </div>
         )}
@@ -71,7 +71,7 @@ const CommunityCard: React.FC<CommunityCardProps> = ({
       {/* Community Content */}
       <div className="p-5">
         {/* Community Name with gradient effect */}
-        <h3 className="text-xl font-bold mb-2 line-clamp-2 bg-gradient-to-r from-[#8E142E] to-[#0D448A] bg-clip-text text-transparent">
+        <h3 className="text-xl font-bold mb-2 line-clamp-2 bg-gradient-to-r from-turquoise-500 to-blue-500 bg-clip-text text-transparent">
           {community.name}
         </h3>
 
@@ -109,7 +109,7 @@ const CommunityCard: React.FC<CommunityCardProps> = ({
             className={`px-4 py-1.5 rounded-full font-medium text-sm transition-all transform hover:scale-105 ${
               community.isJoined 
                 ? 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300'
-                : 'bg-gradient-to-r from-[#8E142E] to-[#0D448A] text-white hover:shadow-lg'
+                : 'bg-gradient-to-r from-turquoise-500 to-blue-500 text-white hover:shadow-lg'
             }`}
             onClick={(e) => {
               e.stopPropagation();

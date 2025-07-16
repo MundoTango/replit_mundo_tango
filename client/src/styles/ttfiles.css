@@ -213,7 +213,7 @@
 
 /* TrangoTech Profile Head Styles */
 .tt-profile-head {
-  background: linear-gradient(135deg, var(--tt-primary-red) 0%, var(--tt-secondary-blue) 100%);
+  background: linear-gradient(135deg, #38b2ac 0%, #3182ce 100%);
   color: white;
   padding: var(--tt-spacing-xl);
   border-radius: var(--tt-radius-lg);

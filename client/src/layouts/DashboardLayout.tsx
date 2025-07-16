@@ -265,7 +265,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <Button variant="ghost" className="flex items-center gap-2 px-2 hover:bg-gray-100">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user?.profileImage || undefined} />
-                      <AvatarFallback className="bg-gradient-to-r from-pink-500 to-blue-500 text-white">
+                      <AvatarFallback className="bg-gradient-to-r from-turquoise-500 to-blue-500 text-white">
                         {user?.name?.[0] || user?.username?.[0] || 'U'}
                       </AvatarFallback>
                     </Avatar>
@@ -280,10 +280,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </div>
                     <button 
                       onClick={() => setLocation('/profile-switcher')}
-                      className="w-full flex items-center justify-between p-2 rounded-lg bg-gradient-to-r from-pink-50 to-blue-50 hover:from-pink-100 hover:to-blue-100 transition-colors"
+                      className="w-full flex items-center justify-between p-2 rounded-lg bg-gradient-to-r from-turquoise-50 to-blue-50 hover:from-turquoise-100 hover:to-blue-100 transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-turquoise-500 to-blue-500 flex items-center justify-center">
                           <span className="text-white text-sm font-bold">MT</span>
                         </div>
                         <span className="text-sm font-medium">Mundo Tango</span>
