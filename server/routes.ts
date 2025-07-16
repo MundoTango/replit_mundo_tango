@@ -8311,18 +8311,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Get flagged content for moderation
-  app.get('/api/admin/content/flagged', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/content/flagged', async (req, res) => {
     try {
       const { storage } = await import('./storage');
       const { filter = 'all', search = '' } = req.query;
       
-      // Check admin access
-      const replitId = req.session?.passport?.user?.claims?.sub;
-      if (!replitId) {
-        return res.status(401).json({ success: false, message: 'Authentication required.' });
+      let user;
+      
+      // Development auth bypass
+      if (process.env.NODE_ENV === 'development' && (!req.session || !req.session.passport)) {
+        console.log('🔧 Admin content flagged - using auth bypass for development');
+        user = await storage.getUserByUsername('admin3304');
+      } else {
+        // Get database user from Replit OAuth session
+        const replitId = req.session?.passport?.user?.claims?.sub;
+        if (!replitId) {
+          return res.status(401).json({ success: false, message: 'Authentication required.' });
+        }
+        user = await storage.getUserByReplitId(replitId);
       }
-
-      const user = await storage.getUserByReplitId(replitId);
+      
       if (!user) {
         return res.status(404).json({ success: false, message: 'User not found.' });
       }
@@ -8404,18 +8412,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Content action endpoints (approve, remove, warn)
-  app.post('/api/admin/content/:id/:action', isAuthenticated, async (req, res) => {
+  app.post('/api/admin/content/:id/:action', async (req, res) => {
     try {
       const { storage } = await import('./storage');
       const { id, action } = req.params;
       
-      // Check admin access
-      const replitId = req.session?.passport?.user?.claims?.sub;
-      if (!replitId) {
-        return res.status(401).json({ success: false, message: 'Authentication required.' });
+      let user;
+      
+      // Development auth bypass
+      if (process.env.NODE_ENV === 'development' && (!req.session || !req.session.passport)) {
+        console.log('🔧 Admin content action - using auth bypass for development');
+        user = await storage.getUserByUsername('admin3304');
+      } else {
+        // Get database user from Replit OAuth session
+        const replitId = req.session?.passport?.user?.claims?.sub;
+        if (!replitId) {
+          return res.status(401).json({ success: false, message: 'Authentication required.' });
+        }
+        user = await storage.getUserByReplitId(replitId);
       }
-
-      const user = await storage.getUserByReplitId(replitId);
+      
       if (!user) {
         return res.status(404).json({ success: false, message: 'User not found.' });
       }
