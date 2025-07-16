@@ -119,9 +119,17 @@ function Router() {
     );
   }
 
-  // If not authenticated, show landing page
+  // If not authenticated, handle public routes or show landing page
   if (!isAuthenticated) {
-    console.log("Not authenticated, showing landing");
+    console.log("Not authenticated, checking public routes");
+    
+    // Check if trying to access register route
+    if (window.location.pathname === '/register') {
+      // Redirect to login API which handles both login and registration
+      window.location.href = '/api/login';
+      return null;
+    }
+    
     analytics.pageView('Landing');
     return <Landing />;
   }
