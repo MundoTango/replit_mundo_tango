@@ -181,7 +181,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-turquoise-400 to-blue-400 flex items-center justify-center text-white font-semibold text-lg">
+                    <div className="w-full h-full bg-gradient-to-br from-pink-400 to-blue-400 flex items-center justify-center text-white font-semibold text-lg">
                       {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                     </div>
                   )}
@@ -198,7 +198,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                 {user?.tangoRoles?.map((role: string, index: number) => (
                   <span
                     key={index}
-                    className="px-2 py-1 bg-gradient-to-r from-turquoise-500 to-blue-500 text-white text-xs rounded-full font-medium capitalize"
+                    className="px-2 py-1 bg-gradient-to-r from-pink-500 to-blue-500 text-white text-xs rounded-full font-medium capitalize"
                   >
                     {role}
                   </span>

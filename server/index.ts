@@ -22,29 +22,12 @@ app.use(compression({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Smart caching strategy based on content type
+// Add aggressive no-cache headers to prevent caching issues
 app.use((req, res, next) => {
-  // Static assets should be cached
-  if (req.path.match(/\.(js|css|jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // 1 year
-  } 
-  // API responses - cache based on endpoint
-  else if (req.path.startsWith('/api/')) {
-    if (req.path.includes('/auth/') || req.path.includes('/notifications/')) {
-      // Auth and notifications should not be cached
-      res.setHeader('Cache-Control', 'no-store');
-    } else if (req.method === 'GET') {
-      // Cache GET requests for 5 minutes
-      res.setHeader('Cache-Control', 'private, max-age=300');
-    } else {
-      // Don't cache POST/PUT/DELETE
-      res.setHeader('Cache-Control', 'no-store');
-    }
-  }
-  // HTML pages - short cache for development
-  else {
-    res.setHeader('Cache-Control', 'no-cache');
-  }
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
   next();
 });
 
@@ -99,15 +82,15 @@ app.get('/service-worker-workbox.js', (req, res) => {
     console.log('⚠️  Starting server in degraded mode - some features may be unavailable');
   }
   
-  // Disabled compliance monitoring for performance - will be initialized on-demand
-  // try {
-  //   const { automatedComplianceMonitor, initializeComplianceAuditTable } = await import('./services/automatedComplianceMonitor');
-  //     await initializeComplianceAuditTable();
-  //   await automatedComplianceMonitor.startAutomatedMonitoring();
-  // } catch (err) {
-  //   console.error('⚠️  Compliance monitoring initialization failed:', err.message);
-  //   // Continue without compliance monitoring
-  // }
+  // Initialize automated compliance monitoring with error handling
+  try {
+    const { automatedComplianceMonitor, initializeComplianceAuditTable } = await import('./services/automatedComplianceMonitor');
+      await initializeComplianceAuditTable();
+    await automatedComplianceMonitor.startAutomatedMonitoring();
+  } catch (err) {
+    console.error('⚠️  Compliance monitoring initialization failed:', err.message);
+    // Continue without compliance monitoring
+  }
 
   const server = await registerRoutes(app);
 
@@ -141,16 +124,16 @@ app.get('/service-worker-workbox.js', (req, res) => {
   }, () => {
     log(`serving on port ${port}`);
     
-    // Disabled GDPR Compliance Monitoring for performance - will be initialized on-demand
-    // try {
-    //   import('../compliance/monitoring/complianceMonitor').then(({ complianceMonitor }) => {
-    //     complianceMonitor.startMonitoring();
-    //     console.log('🔒 Compliance monitoring system initialized');
-    //   }).catch(error => {
-    //     console.warn('⚠️ Compliance monitoring initialization failed:', error.message);
-    //   });
-    // } catch (error) {
-    //   console.warn('⚠️ Compliance monitoring not available');
-    // }
+    // Initialize GDPR Compliance Monitoring
+    try {
+      import('../compliance/monitoring/complianceMonitor').then(({ complianceMonitor }) => {
+        complianceMonitor.startMonitoring();
+        console.log('🔒 Compliance monitoring system initialized');
+      }).catch(error => {
+        console.warn('⚠️ Compliance monitoring initialization failed:', error.message);
+      });
+    } catch (error) {
+      console.warn('⚠️ Compliance monitoring not available');
+    }
   });
 })();

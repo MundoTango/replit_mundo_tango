@@ -11,16 +11,15 @@ const rootPath = process.cwd();
 const evolutionService = new EvolutionService(rootPath);
 const hierarchyAnalyzer = new HierarchyAnalyzer();
 
-// Disabled evolution service startup initialization for performance
-// The service will be initialized on-demand when first requested
-// (async () => {
-//   try {
-//     await evolutionService.initialize();
-//     console.log('✅ Evolution service initialized');
-//   } catch (error) {
-//     console.error('Failed to initialize evolution service:', error);
-//   }
-// })();
+// Initialize evolution service on startup
+(async () => {
+  try {
+    await evolutionService.initialize();
+    console.log('✅ Evolution service initialized');
+  } catch (error) {
+    console.error('Failed to initialize evolution service:', error);
+  }
+})();
 
 // Get latest metrics
 router.get('/metrics/latest', async (req, res) => {

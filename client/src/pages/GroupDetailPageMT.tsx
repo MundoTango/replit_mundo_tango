@@ -318,7 +318,7 @@ export default function GroupDetailPageMT() {
             <div className="mt-info-card-content">
               <div className="flex flex-wrap gap-2">
                 {group.tags.map((tag: string, index: number) => (
-                  <span key={index} className="px-3 py-1 bg-gradient-to-r from-turquoise-100 to-blue-100 text-sm rounded-full text-gray-700">
+                  <span key={index} className="px-3 py-1 bg-gradient-to-r from-pink-100 to-purple-100 text-sm rounded-full text-gray-700">
                     {tag}
                   </span>
                 ))}
@@ -433,7 +433,7 @@ export default function GroupDetailPageMT() {
                   <p className="mt-member-name">{member.user.name}</p>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {member.tangoRoles?.filter((role: string) => professionalRoles.includes(role)).map((role: string) => (
-                      <span key={role} className="text-xs bg-gradient-to-r from-turquoise-500 to-blue-600 text-white px-2 py-0.5 rounded-full">
+                      <span key={role} className="text-xs bg-gradient-to-r from-pink-500 to-purple-600 text-white px-2 py-0.5 rounded-full">
                         {role}
                       </span>
                     ))}

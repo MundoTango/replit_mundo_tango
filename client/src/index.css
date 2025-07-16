@@ -199,11 +199,11 @@
 }
 
 .quill-editor .ql-toolbar button.ql-active .ql-stroke {
-  stroke: #38b2ac !important; /* Turquoise */
+  stroke: #ec4899 !important;
 }
 
 .quill-editor .ql-toolbar button.ql-active .ql-fill {
-  fill: #38b2ac !important; /* Turquoise */
+  fill: #ec4899 !important;
 }
 
 .quill-editor .ql-toolbar button {
@@ -426,20 +426,20 @@ body {
   --card-foreground: hsl(20, 14.3%, 4.1%);
   --border: hsl(20, 5.9%, 90%);
   --input: hsl(20, 5.9%, 90%);
-  --primary: hsl(175, 48%, 47%); /* Turquoise primary */
+  --primary: hsl(348, 71%, 31%);
   --primary-foreground: hsl(0, 0%, 98%);
-  --secondary: hsl(206, 52%, 49%); /* Blue secondary */
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(175, 48%, 95%); /* Light turquoise accent */
-  --accent-foreground: hsl(175, 48%, 20%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(60, 9.1%, 97.8%);
-  --ring: hsl(175, 48%, 47%); /* Turquoise ring */
+  --ring: hsl(20, 14.3%, 4.1%);
   --radius: 0.5rem;
   
-  /* Ocean theme colors - no more red/pink */
-  --tango-red: hsl(175, 48%, 47%); /* Remapped to turquoise */
-  --tango-gold: hsl(206, 52%, 49%); /* Remapped to blue */
+  /* Tango-specific colors */
+  --tango-red: hsl(348, 71%, 31%);
+  --tango-gold: hsl(45, 65%, 55%);
   --tango-black: hsl(0, 0%, 10%);
   --tango-gray: hsl(0, 0%, 96%);
 }
@@ -455,19 +455,19 @@ body {
   --card-foreground: hsl(0, 0%, 98%);
   --border: hsl(240, 3.7%, 15.9%);
   --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(175, 48%, 47%); /* Turquoise primary */
+  --primary: hsl(348, 71%, 31%);
   --primary-foreground: hsl(0, 0%, 98%);
-  --secondary: hsl(206, 52%, 49%); /* Blue secondary */
+  --secondary: hsl(240, 3.7%, 15.9%);
   --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(175, 48%, 30%); /* Dark turquoise accent */
+  --accent: hsl(240, 3.7%, 15.9%);
   --accent-foreground: hsl(0, 0%, 98%);
   --destructive: hsl(0, 62.8%, 30.6%);
   --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(175, 48%, 47%); /* Turquoise ring */
+  --ring: hsl(240, 4.9%, 83.9%);
   
-  /* Ocean theme colors for dark mode */
-  --tango-red: hsl(175, 48%, 47%); /* Remapped to turquoise */
-  --tango-gold: hsl(206, 52%, 49%); /* Remapped to blue */
+  /* Tango-specific colors for dark mode */
+  --tango-red: hsl(348, 71%, 45%);
+  --tango-gold: hsl(45, 65%, 65%);
   --tango-black: hsl(0, 0%, 85%);
   --tango-gray: hsl(240, 3.7%, 15.9%);
 }
@@ -521,7 +521,7 @@ body {
   }
 
   .card-shadow {
-    box-shadow: 0 4px 6px -1px rgba(56, 178, 172, 0.1), 0 2px 4px -1px rgba(56, 178, 172, 0.06); /* Turquoise shadow */
+    box-shadow: 0 4px 6px -1px rgba(139, 21, 56, 0.1), 0 2px 4px -1px rgba(139, 21, 56, 0.06);
   }
 
   .story-ring {
