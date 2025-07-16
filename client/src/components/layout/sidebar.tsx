@@ -166,22 +166,22 @@ export default function Sidebar({ isOpen, setIsOpen, onClose }: SidebarProps) {
                 <div
                   onClick={handleLinkClick}
                   className={cn(
-                    "group flex gap-3 items-center py-1 transition duration-200 hover:bg-blue-50 hover:text-red-600 mr-4 rounded-r-lg",
+                    "group flex gap-3 items-center py-1 transition duration-200 hover:bg-turquoise-50 hover:text-turquoise-600 mr-4 rounded-r-lg",
                     isActive(link)
-                      ? "text-red-600 bg-blue-50 font-semibold"
+                      ? "text-turquoise-600 bg-turquoise-50 font-semibold"
                       : "text-gray-600"
                   )}
                 >
                   <div
                     className={cn(
-                      "border-r-[6px] rounded-r-md h-9 transition-all group-hover:border-red-600",
-                      isActive(link) ? "border-red-600" : "border-white"
+                      "border-r-[6px] rounded-r-md h-9 transition-all group-hover:border-turquoise-600",
+                      isActive(link) ? "border-turquoise-600" : "border-white"
                     )}
                   />
 
                   <div className="pl-5 flex gap-3 items-center">
-                    <div className="group-hover:text-red-600 w-6">{icon}</div>
-                    <div className="group-hover:text-red-600">{title}</div>
+                    <div className="group-hover:text-turquoise-600 w-6">{icon}</div>
+                    <div className="group-hover:text-turquoise-600">{title}</div>
                   </div>
                 </div>
               </div>
