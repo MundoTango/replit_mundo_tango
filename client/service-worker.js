@@ -1,131 +1,105 @@
-// Life CEO Service Worker v9.0 - Updated January 15, 2025
-// IMPORTANT: Cache version updated to v9 to remove duplicate layer controls
-const CACHE_NAME = 'life-ceo-v9';
+// Mundo Tango Service Worker v11.0 - January 16, 2025
+// CRITICAL FIX: Network-first strategy to prevent old UI from being cached
+const CACHE_NAME = 'mundo-tango-v11';
 const urlsToCache = [
-  '/',
-  '/life-ceo',
-  '/manifest.json',
-  '/src/main.tsx',
-  '/src/index.css'
+  // Only cache essential offline assets
+  '/offline.html',
+  '/manifest.json'
 ];
 
-// Install event - cache resources
+// Install event - minimal caching
 self.addEventListener('install', event => {
-  // Force the new service worker to activate immediately
+  // Force immediate activation
   self.skipWaiting();
   
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
+        console.log('Service Worker: Installing new version');
+        // Only cache offline fallback page
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// Activate event - clean up old caches
+// Activate event - aggressively clean ALL old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
+          // Delete ALL caches, even current one, to ensure fresh content
+          console.log('Service Worker: Deleting cache:', cacheName);
+          return caches.delete(cacheName);
         })
       );
     }).then(() => {
-      // Force the service worker to control all clients immediately
+      console.log('Service Worker: All caches cleared, claiming clients');
+      // Take control of all pages immediately
       return self.clients.claim();
     })
   );
 });
 
-// Fetch event - serve from cache when offline
+// Fetch event - ALWAYS try network first
 self.addEventListener('fetch', event => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
-  // Skip API requests - always try network first
-  if (event.request.url.includes('/api/')) {
-    event.respondWith(
-      fetch(event.request)
-        .catch(() => {
-          // Return offline response for API calls
-          return new Response(
-            JSON.stringify({ error: 'Offline - data will sync when reconnected' }),
-            { headers: { 'Content-Type': 'application/json' } }
-          );
-        })
-    );
-    return;
-  }
-
-  // For all other requests, try network first (to ensure fresh content)
   event.respondWith(
+    // Always try network first
     fetch(event.request)
       .then(response => {
-        // Don't cache non-successful responses
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
-        }
-        // Clone the response for caching
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME)
-          .then(cache => {
-            cache.put(event.request, responseToCache);
-          });
+        // Return fresh network response
         return response;
       })
-      .catch(() => {
-        // If network fails, try cache
-        return caches.match(event.request);
+      .catch(error => {
+        // Only if network completely fails, show offline page
+        console.error('Network request failed:', error);
+        
+        // For API requests, return error JSON
+        if (event.request.url.includes('/api/')) {
+          return new Response(
+            JSON.stringify({ error: 'Network unavailable' }),
+            { 
+              status: 503,
+              headers: { 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+        
+        // For page requests, show offline page if available
+        return caches.match('/offline.html').then(response => {
+          if (response) {
+            return response;
+          }
+          
+          // If no offline page, return error response
+          return new Response('Network error', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: new Headers({
+              'Content-Type': 'text/plain'
+            })
+          });
+        });
       })
   );
 });
 
-// Background sync for offline voice recordings
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-voice-recordings') {
-    event.waitUntil(syncVoiceRecordings());
+// Periodically check for updates
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    event.waitUntil(
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => caches.delete(cacheName))
+        );
+      })
+    );
   }
 });
-
-async function syncVoiceRecordings() {
-  // Get pending voice recordings from IndexedDB
-  const db = await openDB();
-  const tx = db.transaction('pending_recordings', 'readonly');
-  const recordings = await tx.objectStore('pending_recordings').getAll();
-  
-  for (const recording of recordings) {
-    try {
-      await fetch('/api/life-ceo/voice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(recording)
-      });
-      
-      // Remove synced recording
-      const deleteTx = db.transaction('pending_recordings', 'readwrite');
-      await deleteTx.objectStore('pending_recordings').delete(recording.id);
-    } catch (error) {
-      console.error('Failed to sync recording:', error);
-    }
-  }
-}
-
-// Helper to open IndexedDB
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('life-ceo-db', 1);
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-    request.onupgradeneeded = event => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains('pending_recordings')) {
-        db.createObjectStore('pending_recordings', { keyPath: 'id', autoIncrement: true });
-      }
-    };
-  });
-}

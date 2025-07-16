@@ -1,28 +1,11 @@
-import React, { memo, useCallback, useMemo } from 'react';
+// Performance optimization utilities for Mundo Tango
+import React, { useCallback, useRef, useEffect, useMemo } from 'react';
 
-// Performance optimization utilities for React components
-
-/**
- * HOC that adds performance optimizations to a component
- * - React.memo for preventing unnecessary re-renders
- * - Automatic useCallback for event handlers
- * - useMemo for expensive computations
- */
-export function withPerformance<T extends object>(
-  Component: React.ComponentType<T>,
-  propsAreEqual?: (prevProps: T, nextProps: T) => boolean
-) {
-  return memo(Component, propsAreEqual);
-}
-
-/**
- * Custom hook for debouncing values
- * Useful for search inputs and other frequent updates
- */
+// Debounce hook for search and input operations
 export function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = React.useState<T>(value);
+  const [debouncedValue, setDebouncedValue] = React.useState(value);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
@@ -35,74 +18,64 @@ export function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-/**
- * Custom hook for throttling function calls
- * Useful for scroll and resize handlers
- */
-export function useThrottle<T extends (...args: any[]) => any>(
-  callback: T,
-  delay: number
-): T {
-  const lastCall = React.useRef(0);
-  const timeout = React.useRef<NodeJS.Timeout | null>(null);
+// Throttle hook for scroll and resize events
+export function useThrottle<T>(value: T, interval: number): T {
+  const [throttledValue, setThrottledValue] = React.useState(value);
+  const lastExecuted = useRef(Date.now());
 
-  return useCallback(
-    (...args: Parameters<T>) => {
-      const now = Date.now();
-      const timeSinceLastCall = now - lastCall.current;
+  useEffect(() => {
+    if (Date.now() >= lastExecuted.current + interval) {
+      lastExecuted.current = Date.now();
+      setThrottledValue(value);
+    } else {
+      const timer = setTimeout(() => {
+        lastExecuted.current = Date.now();
+        setThrottledValue(value);
+      }, interval);
 
-      if (timeSinceLastCall >= delay) {
-        lastCall.current = now;
-        callback(...args);
-      } else {
-        if (timeout.current) {
-          clearTimeout(timeout.current);
+      return () => clearTimeout(timer);
+    }
+  }, [value, interval]);
+
+  return throttledValue;
+}
+
+// Lazy load component wrapper
+export function LazyLoad({ children, height = 200 }: { children: React.ReactNode; height?: number }) {
+  const [isVisible, setIsVisible] = React.useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
         }
-        timeout.current = setTimeout(() => {
-          lastCall.current = Date.now();
-          callback(...args);
-        }, delay - timeSinceLastCall);
-      }
-    },
-    [callback, delay]
-  ) as T;
-}
+      },
+      { threshold: 0.1 }
+    );
 
-/**
- * Lazy load component with loading fallback
- */
-export function lazyWithPreload<T extends React.ComponentType<any>>(
-  importFn: () => Promise<{ default: T }>
-) {
-  const LazyComponent = React.lazy(importFn);
-  
-  return {
-    Component: (props: React.ComponentProps<T>) => (
-      <React.Suspense fallback={<LoadingFallback />}>
-        <LazyComponent {...props} />
-      </React.Suspense>
-    ),
-    preload: importFn
-  };
-}
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
 
-// Default loading fallback
-function LoadingFallback() {
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="flex items-center justify-center p-4">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500" />
+    <div ref={ref} style={{ minHeight: `${height}px` }}>
+      {isVisible ? children : <div className="animate-pulse bg-gray-200 rounded-lg" style={{ height: `${height}px` }} />}
     </div>
   );
 }
 
-/**
- * Virtual scrolling hook for large lists
- */
+// Virtual scroll hook for large lists
 export function useVirtualScroll<T>(
   items: T[],
   itemHeight: number,
   containerHeight: number,
-  overscan = 3
+  overscan = 5
 ) {
   const [scrollTop, setScrollTop] = React.useState(0);
 
@@ -120,56 +93,80 @@ export function useVirtualScroll<T>(
     visibleItems,
     totalHeight,
     offsetY,
-    onScroll: (e: React.UIEvent<HTMLDivElement>) => {
+    handleScroll: (e: React.UIEvent<HTMLDivElement>) => {
       setScrollTop(e.currentTarget.scrollTop);
     }
   };
 }
 
-/**
- * Request batching utility for API calls
- */
-class RequestBatcher<T, R> {
-  private queue: { request: T; resolve: (value: R) => void; reject: (error: any) => void }[] = [];
-  private timeout: NodeJS.Timeout | null = null;
-  
-  constructor(
-    private batchFn: (requests: T[]) => Promise<R[]>,
-    private delay = 50
-  ) {}
+// Performance monitoring HOC
+export function withPerformance<P extends object>(
+  Component: React.ComponentType<P>,
+  componentName: string
+) {
+  return React.memo((props: P) => {
+    const renderCount = useRef(0);
+    const renderStart = useRef(performance.now());
 
-  add(request: T): Promise<R> {
-    return new Promise((resolve, reject) => {
-      this.queue.push({ request, resolve, reject });
+    useEffect(() => {
+      renderCount.current++;
+      const renderTime = performance.now() - renderStart.current;
       
-      if (this.timeout) {
-        clearTimeout(this.timeout);
+      if (renderTime > 16) { // More than one frame (60fps)
+        console.warn(`${componentName} slow render: ${renderTime.toFixed(2)}ms`);
       }
       
-      this.timeout = setTimeout(() => this.flush(), this.delay);
+      renderStart.current = performance.now();
+    });
+
+    return <Component {...props} />;
+  }, (prevProps, nextProps) => {
+    // Custom comparison for deep equality check
+    return JSON.stringify(prevProps) === JSON.stringify(nextProps);
+  });
+}
+
+// Request batching utility
+export class RequestBatcher<T> {
+  private queue: Array<{ key: string; resolve: (value: T) => void }> = [];
+  private timeout: NodeJS.Timeout | null = null;
+  private batchProcessor: (keys: string[]) => Promise<Record<string, T>>;
+  private delay: number;
+
+  constructor(batchProcessor: (keys: string[]) => Promise<Record<string, T>>, delay = 10) {
+    this.batchProcessor = batchProcessor;
+    this.delay = delay;
+  }
+
+  request(key: string): Promise<T> {
+    return new Promise((resolve) => {
+      this.queue.push({ key, resolve });
+      
+      if (!this.timeout) {
+        this.timeout = setTimeout(() => this.processBatch(), this.delay);
+      }
     });
   }
 
-  private async flush() {
-    if (this.queue.length === 0) return;
-    
+  private async processBatch() {
     const batch = [...this.queue];
     this.queue = [];
     this.timeout = null;
-    
+
+    if (batch.length === 0) return;
+
     try {
-      const requests = batch.map(item => item.request);
-      const results = await this.batchFn(requests);
+      const keys = batch.map(item => item.key);
+      const results = await this.batchProcessor(keys);
       
-      batch.forEach((item, index) => {
-        item.resolve(results[index]);
+      batch.forEach(({ key, resolve }) => {
+        resolve(results[key]);
       });
     } catch (error) {
-      batch.forEach(item => {
-        item.reject(error);
+      console.error('Batch processing error:', error);
+      batch.forEach(({ resolve }) => {
+        resolve(null as any);
       });
     }
   }
 }
-
-export { RequestBatcher };

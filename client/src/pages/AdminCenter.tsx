@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useDebounce, LazyLoad, withPerformance } from '@/lib/performance';
 import { useQuery } from '@tanstack/react-query';
 import TrangoTechSidebar from '@/components/TrangoTechSidebar';
 import ProjectTrackerDashboard from '@/components/admin/ProjectTrackerDashboard';
@@ -111,7 +112,8 @@ interface ComplianceMetrics {
   warnings: number;
 }
 
-const AdminCenter: React.FC = () => {
+// Memoized AdminCenter component for better performance
+const AdminCenter: React.FC = React.memo(() => {
   const [selectedTab, setSelectedTab] = useState('life-ceo');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [rbacData, setRbacData] = useState<any>(null);
@@ -155,7 +157,8 @@ const AdminCenter: React.FC = () => {
   const [showContentModal, setShowContentModal] = useState(false);
 
   // Content Moderation functions
-  const fetchFlaggedContent = async () => {
+  // Memoize fetchFlaggedContent to prevent recreating
+  const fetchFlaggedContent = useCallback(async () => {
     setContentLoading(true);
     try {
       const response = await fetch(`/api/admin/content/flagged?filter=${contentFilter}&search=${contentSearch}`, {
@@ -169,7 +172,7 @@ const AdminCenter: React.FC = () => {
     } finally {
       setContentLoading(false);
     }
-  };
+  }, [contentFilter, contentSearch]);
 
   useEffect(() => {
     if (selectedTab === 'content') {
@@ -221,7 +224,8 @@ const AdminCenter: React.FC = () => {
   });
 
   // RBAC/ABAC Management Functions
-  const fetchRbacAnalytics = async () => {
+  // Memoize fetchRbacAnalytics
+  const fetchRbacAnalytics = useCallback(async () => {
     setRbacLoading(true);
     try {
       const response = await fetch('/api/rbac/analytics', {
@@ -234,7 +238,7 @@ const AdminCenter: React.FC = () => {
     } finally {
       setRbacLoading(false);
     }
-  };
+  }, []);
 
   const testPermission = async () => {
     if (!selectedUserId || !permissionTest.resource || !permissionTest.action) return;
@@ -1242,11 +1246,47 @@ const AdminCenter: React.FC = () => {
     </div>
   );
 
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+
+  const fetchAnalytics = async () => {
+    setAnalyticsLoading(true);
+    try {
+      const response = await fetch('/api/admin/analytics', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch analytics');
+      const data = await response.json();
+      if (data.success) {
+        setAnalyticsData(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+
+  // Fetch analytics when tab is selected
+  useEffect(() => {
+    if (selectedTab === 'analytics' && !analyticsData) {
+      fetchAnalytics();
+    }
+  }, [selectedTab]);
+
   const renderAnalytics = () => (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <h2 className="text-xl font-bold text-gray-800">Platform Analytics</h2>
         <div className="flex gap-3">
+          <button 
+            onClick={fetchAnalytics}
+            className="px-4 py-2 bg-gradient-to-r from-turquoise-600 to-blue-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+            disabled={analyticsLoading}
+          >
+            <RefreshCw className={`w-4 h-4 inline mr-2 ${analyticsLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
           <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
             <TrendingUp className="w-4 h-4 inline mr-2" />
             Export Report
@@ -1254,86 +1294,181 @@ const AdminCenter: React.FC = () => {
         </div>
       </div>
 
-      {/* Analytics Cards with MT Design */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2 bg-green-500 rounded-xl">
-              <Users className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xs font-medium text-green-600">+12%</span>
+      {analyticsLoading && !analyticsData ? (
+        <div className="animate-pulse space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-32 bg-gray-200 rounded-2xl"></div>
+            ))}
           </div>
-          <div className="text-2xl font-bold text-gray-800">2,847</div>
-          <div className="text-sm text-gray-600 mt-1">Daily Active Users</div>
-          <div className="text-xs text-gray-500 mt-1">+12% from yesterday</div>
         </div>
-
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2 bg-blue-500 rounded-xl">
-              <Eye className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xs font-medium text-blue-600">+8.2%</span>
-          </div>
-          <div className="text-2xl font-bold text-gray-800">18,392</div>
-          <div className="text-sm text-gray-600 mt-1">Page Views</div>
-          <div className="text-xs text-gray-500 mt-1">+8.2% from last week</div>
-        </div>
-
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2 bg-purple-500 rounded-xl">
-              <TrendingUp className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xs font-medium text-purple-600">+2.1%</span>
-          </div>
-          <div className="text-2xl font-bold text-gray-800">74.3%</div>
-          <div className="text-sm text-gray-600 mt-1">Engagement Rate</div>
-          <div className="text-xs text-gray-500 mt-1">+2.1% improvement</div>
-        </div>
-      </div>
-
-      {/* Geographic Analytics with MT Styling */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Top Locations</h3>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl">
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg">
-                <Globe className="w-4 h-4 text-white" />
+      ) : (
+        <>
+          {/* Analytics Cards with MT Design */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 bg-green-500 rounded-xl">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <span className={`text-xs font-medium ${analyticsData?.dauChange > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {analyticsData?.dauChange > 0 ? '+' : ''}{analyticsData?.dauChange || 0}%
+                </span>
               </div>
-              <span className="font-medium text-gray-800">Buenos Aires, Argentina</span>
-            </div>
-            <span className="text-sm text-purple-600 font-semibold">1,247 users</span>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg">
-                <Globe className="w-4 h-4 text-white" />
+              <div className="text-2xl font-bold text-gray-800">{analyticsData?.dailyActiveUsers || 0}</div>
+              <div className="text-sm text-gray-600 mt-1">Daily Active Users</div>
+              <div className="text-xs text-gray-500 mt-1">
+                {analyticsData?.dauChange > 0 ? '+' : ''}{analyticsData?.dauChange || 0}% from yesterday
               </div>
-              <span className="font-medium text-gray-800">Barcelona, Spain</span>
             </div>
-            <span className="text-sm text-blue-600 font-semibold">892 users</span>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg">
-                <Globe className="w-4 h-4 text-white" />
+
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 bg-blue-500 rounded-xl">
+                  <Eye className="w-5 h-5 text-white" />
+                </div>
+                <span className={`text-xs font-medium ${analyticsData?.pageViewsChange > 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                  {analyticsData?.pageViewsChange > 0 ? '+' : ''}{analyticsData?.pageViewsChange || 0}%
+                </span>
               </div>
-              <span className="font-medium text-gray-800">Paris, France</span>
+              <div className="text-2xl font-bold text-gray-800">{analyticsData?.pageViews?.toLocaleString() || 0}</div>
+              <div className="text-sm text-gray-600 mt-1">Page Views</div>
+              <div className="text-xs text-gray-500 mt-1">
+                {analyticsData?.pageViewsChange > 0 ? '+' : ''}{analyticsData?.pageViewsChange || 0}% from last week
+              </div>
             </div>
-            <span className="text-sm text-green-600 font-semibold">634 users</span>
+
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 bg-purple-500 rounded-xl">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+                <span className={`text-xs font-medium ${analyticsData?.engagementChange > 0 ? 'text-purple-600' : 'text-red-600'}`}>
+                  {analyticsData?.engagementChange > 0 ? '+' : ''}{analyticsData?.engagementChange || 0}%
+                </span>
+              </div>
+              <div className="text-2xl font-bold text-gray-800">{analyticsData?.engagementRate || 0}%</div>
+              <div className="text-sm text-gray-600 mt-1">Engagement Rate</div>
+              <div className="text-xs text-gray-500 mt-1">
+                {analyticsData?.engagementChange > 0 ? '+' : ''}{analyticsData?.engagementChange || 0}% improvement
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          {/* Geographic Analytics with MT Styling */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Top Locations</h3>
+            <div className="space-y-3">
+              {analyticsData?.topLocations?.map((location: any, idx: number) => {
+                const gradients = [
+                  'from-pink-50 to-purple-50',
+                  'from-blue-50 to-indigo-50',
+                  'from-green-50 to-emerald-50',
+                  'from-yellow-50 to-amber-50',
+                  'from-red-50 to-rose-50'
+                ];
+                const iconGradients = [
+                  'from-pink-500 to-purple-500',
+                  'from-blue-500 to-indigo-500',
+                  'from-green-500 to-emerald-500',
+                  'from-yellow-500 to-amber-500',
+                  'from-red-500 to-rose-500'
+                ];
+                const textColors = ['text-purple-600', 'text-blue-600', 'text-green-600', 'text-yellow-600', 'text-red-600'];
+
+                return (
+                  <div key={idx} className={`flex items-center justify-between p-3 bg-gradient-to-br ${gradients[idx % gradients.length]} rounded-xl`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`p-1.5 bg-gradient-to-r ${iconGradients[idx % iconGradients.length]} rounded-lg`}>
+                        <Globe className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="font-medium text-gray-800">
+                        {location.city}, {location.country}
+                      </span>
+                    </div>
+                    <span className={`text-sm ${textColors[idx % textColors.length]} font-semibold`}>
+                      {location.userCount.toLocaleString()} users
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
+
+  const [eventsData, setEventsData] = useState<any>(null);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventFilter, setEventFilter] = useState('all');
+
+  const fetchEvents = async () => {
+    setEventsLoading(true);
+    try {
+      const response = await fetch(`/api/admin/events?filter=${eventFilter}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch events');
+      const data = await response.json();
+      if (data.success) {
+        setEventsData(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    } finally {
+      setEventsLoading(false);
+    }
+  };
+
+  // Fetch events when tab is selected or filter changes
+  useEffect(() => {
+    if (selectedTab === 'events') {
+      fetchEvents();
+    }
+  }, [selectedTab, eventFilter]);
+
+  const toggleEventFeatured = async (eventId: string, currentFeatured: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/featured`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ featured: !currentFeatured })
+      });
+      if (response.ok) {
+        fetchEvents(); // Refresh the list
+      }
+    } catch (error) {
+      console.error('Error toggling featured status:', error);
+    }
+  };
 
   const renderEventManagement = () => (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <h2 className="text-xl font-bold text-gray-800">Event Management</h2>
         <div className="flex gap-3">
+          <select
+            value={eventFilter}
+            onChange={(e) => setEventFilter(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-turquoise-500"
+          >
+            <option value="all">All Events</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="past">Past</option>
+            <option value="featured">Featured</option>
+          </select>
+          <button 
+            onClick={fetchEvents}
+            className="px-4 py-2 bg-gradient-to-r from-turquoise-600 to-blue-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+            disabled={eventsLoading}
+          >
+            <RefreshCw className={`w-4 h-4 inline mr-2 ${eventsLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
           <button className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
             <Calendar className="w-4 h-4 inline mr-2" />
             Create Event
@@ -1341,67 +1476,111 @@ const AdminCenter: React.FC = () => {
         </div>
       </div>
 
-      {/* Event Stats with MT Design */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2 bg-green-500 rounded-xl">
-              <Calendar className="w-5 h-5 text-white" />
+      {eventsLoading && !eventsData ? (
+        <div className="animate-pulse space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-32 bg-gray-200 rounded-2xl"></div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Event Stats with MT Design */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 bg-green-500 rounded-xl">
+                  <Calendar className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-gray-800">{eventsData?.stats?.totalEvents || 0}</div>
+              <div className="text-sm text-gray-600 mt-1">Total Events</div>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 bg-blue-500 rounded-xl">
+                  <Calendar className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-gray-800">{eventsData?.stats?.eventsThisMonth || 0}</div>
+              <div className="text-sm text-gray-600 mt-1">This Month</div>
+            </div>
+
+            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 bg-yellow-500 rounded-xl">
+                  <Clock className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-gray-800">{eventsData?.stats?.upcomingEvents || 0}</div>
+              <div className="text-sm text-gray-600 mt-1">Upcoming</div>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 bg-purple-500 rounded-xl">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-gray-800">{eventsData?.stats?.featuredEvents || 0}</div>
+              <div className="text-sm text-gray-600 mt-1">Featured Events</div>
             </div>
           </div>
-          <div className="text-2xl font-bold text-gray-800">{stats?.totalEvents || 0}</div>
-          <div className="text-sm text-gray-600 mt-1">Total Events</div>
-        </div>
 
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2 bg-blue-500 rounded-xl">
-              <Calendar className="w-5 h-5 text-white" />
+          {/* Event Categories with MT Styling */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Event Categories</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {Object.entries(eventsData?.stats?.categories || {}).slice(0, 6).map(([category, count], idx) => {
+                const colors = ['blue', 'green', 'purple', 'yellow', 'red', 'pink'];
+                const color = colors[idx % colors.length];
+                return (
+                  <div key={category} className={`p-4 bg-gradient-to-br from-${color}-50 to-${color}-100 rounded-xl hover:shadow-md transition-all transform hover:-translate-y-0.5`}>
+                    <div className={`text-2xl font-bold text-${color}-600`}>{count as number}</div>
+                    <div className="text-sm text-gray-700 font-medium">{category}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-          <div className="text-2xl font-bold text-gray-800">47</div>
-          <div className="text-sm text-gray-600 mt-1">This Month</div>
-        </div>
 
-        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2 bg-yellow-500 rounded-xl">
-              <Clock className="w-5 h-5 text-white" />
+          {/* Event List */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Events</h3>
+            <div className="space-y-3">
+              {eventsData?.events?.slice(0, 10).map((event: any) => (
+                <div key={event.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-800">{event.title}</h4>
+                    <div className="flex gap-4 mt-1 text-sm text-gray-600">
+                      <span>Host: @{event.host_username}</span>
+                      <span>{event.attendee_count} attendees</span>
+                      <span>{new Date(event.start_date).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => toggleEventFeatured(event.id, event.is_featured)}
+                      className={`px-3 py-1 rounded-lg text-sm ${
+                        event.is_featured 
+                          ? 'bg-purple-600 text-white' 
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {event.is_featured ? 'Featured' : 'Feature'}
+                    </button>
+                    <button className="px-3 py-1 bg-turquoise-600 text-white rounded-lg text-sm hover:bg-turquoise-700">
+                      View
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="text-2xl font-bold text-gray-800">8</div>
-          <div className="text-sm text-gray-600 mt-1">Pending Approval</div>
-        </div>
-
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2 bg-purple-500 rounded-xl">
-              <TrendingUp className="w-5 h-5 text-white" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-gray-800">12</div>
-          <div className="text-sm text-gray-600 mt-1">Featured Events</div>
-        </div>
-      </div>
-
-      {/* Event Categories with MT Styling */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Event Categories</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl hover:shadow-md transition-all transform hover:-translate-y-0.5">
-            <div className="text-2xl font-bold text-blue-600">15</div>
-            <div className="text-sm text-gray-700 font-medium">Milongas</div>
-          </div>
-          <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl hover:shadow-md transition-all transform hover:-translate-y-0.5">
-            <div className="text-2xl font-bold text-green-600">8</div>
-            <div className="text-sm text-gray-700 font-medium">Workshops</div>
-          </div>
-          <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl hover:shadow-md transition-all transform hover:-translate-y-0.5">
-            <div className="text-2xl font-bold text-purple-600">6</div>
-            <div className="text-sm text-gray-700 font-medium">Festivals</div>
-          </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 
@@ -1756,75 +1935,200 @@ const AdminCenter: React.FC = () => {
 
   const render23LFramework = () => <Framework30LDashboard />;
 
+  // Settings tab state
+  const [settingsData, setSettingsData] = useState<any>(null);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+
+  const fetchSettings = async () => {
+    setSettingsLoading(true);
+    try {
+      const response = await fetch('/api/admin/settings', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch settings');
+      const data = await response.json();
+      if (data.success) {
+        setSettingsData(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    } finally {
+      setSettingsLoading(false);
+    }
+  };
+
+  // Fetch settings when tab is selected
+  useEffect(() => {
+    if (selectedTab === 'settings' && !settingsData) {
+      fetchSettings();
+    }
+  }, [selectedTab]);
+
+  const updateSetting = (key: string, value: any) => {
+    setSettingsData((prev: any) => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        [key]: value
+      }
+    }));
+  };
+
+  const toggleFeatureFlag = async (name: string, currentEnabled: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/feature-flags/${name}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ enabled: !currentEnabled })
+      });
+      if (response.ok) {
+        fetchSettings(); // Refresh the data
+      }
+    } catch (error) {
+      console.error('Error toggling feature flag:', error);
+    }
+  };
+
+  const saveSettings = async () => {
+    setSettingsSaving(true);
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ settings: settingsData.settings })
+      });
+      if (response.ok) {
+        alert('Settings saved successfully!');
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Failed to save settings');
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
+
   const renderSettings = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Admin Settings</h2>
-        <div className="flex gap-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            <Settings className="w-4 h-4 inline mr-2" />
-            Save Changes
-          </button>
-        </div>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-gray-800">Platform Settings</h2>
+        <button 
+          onClick={fetchSettings}
+          className="px-4 py-2 bg-gradient-to-r from-turquoise-600 to-blue-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+          disabled={settingsLoading}
+        >
+          <RefreshCw className={`w-4 h-4 inline mr-2 ${settingsLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
       </div>
+      
+      {settingsLoading && !settingsData ? (
+        <div className="animate-pulse space-y-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-40 bg-gray-200 rounded-2xl"></div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-6">
+          {/* General Settings */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">General Settings</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium text-gray-800">Site Name</div>
+                  <div className="text-sm text-gray-600">The name of your platform</div>
+                </div>
+                <input 
+                  type="text" 
+                  value={settingsData?.settings?.site_name || ''}
+                  onChange={(e) => updateSetting('site_name', e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-turquoise-500"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium text-gray-800">Maintenance Mode</div>
+                  <div className="text-sm text-gray-600">Show maintenance page to users</div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer" 
+                    checked={settingsData?.settings?.maintenance_mode || false}
+                    onChange={(e) => updateSetting('maintenance_mode', e.target.checked)}
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-500 peer-checked:to-purple-500"></div>
+                </label>
+              </div>
+            </div>
+          </div>
 
-      {/* Platform Settings */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Configuration</h3>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-medium">User Registration</div>
-              <div className="text-sm text-gray-500">Allow new user signups</div>
+          {/* Registration Settings */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Registration Settings</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium text-gray-800">Registration Enabled</div>
+                  <div className="text-sm text-gray-600">Allow new users to register</div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={settingsData?.settings?.registration_enabled || false}
+                    onChange={(e) => updateSetting('registration_enabled', e.target.checked)}
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-green-500 peer-checked:to-emerald-500"></div>
+                </label>
+              </div>
             </div>
-            <button className="w-12 h-6 bg-green-500 rounded-full relative">
-              <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-            </button>
           </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-medium">Content Moderation</div>
-              <div className="text-sm text-gray-500">Auto-moderate flagged content</div>
-            </div>
-            <button className="w-12 h-6 bg-green-500 rounded-full relative">
-              <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-            </button>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-medium">Email Notifications</div>
-              <div className="text-sm text-gray-500">Send system notifications via email</div>
-            </div>
-            <button className="w-12 h-6 bg-gray-300 rounded-full relative">
-              <div className="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5"></div>
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Security Settings */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Security Configuration</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 border border-gray-200 rounded-lg">
-            <div className="font-medium mb-2">Session Timeout</div>
-            <select className="w-full p-2 border border-gray-300 rounded-lg">
-              <option>30 minutes</option>
-              <option>1 hour</option>
-              <option>4 hours</option>
-              <option>24 hours</option>
-            </select>
+          {/* Feature Flags */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Feature Flags</h3>
+            <div className="space-y-4">
+              {settingsData?.featureFlags?.map((flag: any) => (
+                <div key={flag.name} className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-gray-800">{flag.name.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</div>
+                    <div className="text-sm text-gray-600">{flag.description}</div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer"
+                      checked={flag.enabled}
+                      onChange={() => toggleFeatureFlag(flag.name, flag.enabled)}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-turquoise-500 peer-checked:to-blue-500"></div>
+                  </label>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="p-4 border border-gray-200 rounded-lg">
-            <div className="font-medium mb-2">Password Policy</div>
-            <select className="w-full p-2 border border-gray-300 rounded-lg">
-              <option>Standard</option>
-              <option>Strong</option>
-              <option>Enterprise</option>
-            </select>
+
+          {/* Save Button */}
+          <div className="flex justify-end gap-3">
+            <button 
+              onClick={saveSettings}
+              disabled={settingsSaving}
+              className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {settingsSaving ? 'Saving...' : 'Save Settings'}
+            </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 
@@ -2199,6 +2503,6 @@ const AdminCenter: React.FC = () => {
       </div>
     </div>
   );
-};
+});
 
 export default AdminCenter;

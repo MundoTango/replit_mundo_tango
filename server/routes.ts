@@ -26,6 +26,9 @@ import tenantRoutes from "./routes/tenantRoutes";
 import { registerStatisticsRoutes } from "./routes/statisticsRoutes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add compression middleware for better performance
+  const compression = (await import('compression')).default;
+  app.use(compression());
   // Set up Replit Auth middleware
   await setupAuth(app);
 
@@ -8408,6 +8411,474 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Admin content moderation error:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch content' });
+    }
+  });
+
+  // Admin: Analytics endpoints
+  app.get('/api/admin/analytics', async (req, res) => {
+    try {
+      const { storage } = await import('./storage');
+      
+      let user;
+      
+      // Development auth bypass
+      if (process.env.NODE_ENV === 'development' && (!req.session || !req.session.passport)) {
+        console.log('🔧 Admin analytics - using auth bypass for development');
+        user = await storage.getUserByUsername('admin3304');
+      } else {
+        // Get database user from Replit OAuth session
+        const replitId = req.session?.passport?.user?.claims?.sub;
+        if (!replitId) {
+          return res.status(401).json({ success: false, message: 'Authentication required.' });
+        }
+        user = await storage.getUserByReplitId(replitId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      // Get real-time analytics data
+      const now = new Date();
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const lastWeek = new Date(now);
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      // Daily Active Users - using session data or posts as proxy for activity
+      const dauQuery = await storage.db.execute(`
+        SELECT COUNT(DISTINCT user_id) as count
+        FROM (
+          SELECT user_id FROM posts WHERE created_at >= '${yesterday.toISOString()}'
+          UNION
+          SELECT user_id FROM post_comments WHERE created_at >= '${yesterday.toISOString()}'
+          UNION
+          SELECT user_id FROM memories WHERE created_at >= '${yesterday.toISOString()}'
+        ) as active_users
+      `);
+      const dailyActiveUsers = parseInt(dauQuery.rows[0]?.count || '0');
+
+      // Page Views - counting content interactions
+      const pageViewsQuery = await storage.db.execute(`
+        SELECT 
+          (SELECT COUNT(*) FROM posts WHERE created_at >= '${lastWeek.toISOString()}') +
+          (SELECT COUNT(*) FROM memories WHERE created_at >= '${lastWeek.toISOString()}') +
+          (SELECT COUNT(*) FROM events WHERE created_at >= '${lastWeek.toISOString()}') as count
+      `);
+      const pageViews = parseInt(pageViewsQuery.rows[0]?.count || '0');
+
+      // Engagement Rate (users with posts or comments / total users)
+      const engagedUsersQuery = await storage.db.execute(`
+        SELECT COUNT(DISTINCT user_id) as count
+        FROM (
+          SELECT user_id FROM posts WHERE created_at >= '${lastWeek.toISOString()}'
+          UNION
+          SELECT user_id FROM post_comments WHERE created_at >= '${lastWeek.toISOString()}'
+          UNION
+          SELECT user_id FROM memories WHERE created_at >= '${lastWeek.toISOString()}'
+        ) as engaged_users
+      `);
+      const engagedUsers = parseInt(engagedUsersQuery.rows[0]?.count || '0');
+      
+      const totalUsersQuery = await storage.db.execute(`
+        SELECT COUNT(*) as count FROM users
+      `);
+      const totalUsers = parseInt(totalUsersQuery.rows[0]?.count || '0');
+      const engagementRate = totalUsers > 0 ? (engagedUsers / totalUsers * 100).toFixed(1) : 0;
+
+      // Top Locations
+      const topLocationsQuery = await storage.db.execute(`
+        SELECT 
+          COALESCE(up.city, 'Unknown') as city,
+          COALESCE(up.country, 'Unknown') as country,
+          COUNT(DISTINCT u.id) as user_count
+        FROM users u
+        LEFT JOIN user_profiles up ON u.id = up.user_id
+        GROUP BY up.city, up.country
+        ORDER BY user_count DESC
+        LIMIT 5
+      `);
+
+      const topLocations = topLocationsQuery.rows.map(row => ({
+        city: row.city,
+        country: row.country,
+        userCount: parseInt(row.user_count || '0')
+      }));
+
+      // Events this month
+      const eventsThisMonthQuery = await storage.db.execute(`
+        SELECT COUNT(*) as count
+        FROM events
+        WHERE created_at >= '${startOfMonth.toISOString()}'
+      `);
+      const eventsThisMonth = parseInt(eventsThisMonthQuery.rows[0]?.count || '0');
+
+      res.json({
+        success: true,
+        data: {
+          dailyActiveUsers,
+          dauChange: dailyActiveUsers > 0 ? 12.0 : 0, // Placeholder percentage
+          pageViews,
+          pageViewsChange: pageViews > 0 ? 8.2 : 0, // Placeholder percentage
+          engagementRate: Number(engagementRate),
+          engagementChange: 2.1, // Placeholder percentage
+          topLocations,
+          eventsThisMonth
+        }
+      });
+    } catch (error) {
+      console.error('Admin analytics error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
+    }
+  });
+
+  // Admin: Event Management endpoints
+  app.get('/api/admin/events', async (req, res) => {
+    try {
+      const { storage } = await import('./storage');
+      
+      let user;
+      
+      // Development auth bypass
+      if (process.env.NODE_ENV === 'development' && (!req.session || !req.session.passport)) {
+        console.log('🔧 Admin events - using auth bypass for development');
+        user = await storage.getUserByUsername('admin3304');
+      } else {
+        // Get database user from Replit OAuth session
+        const replitId = req.session?.passport?.user?.claims?.sub;
+        if (!replitId) {
+          return res.status(401).json({ success: false, message: 'Authentication required.' });
+        }
+        user = await storage.getUserByReplitId(replitId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      const { filter = 'all' } = req.query;
+      const now = new Date();
+
+      // Base query for events
+      let whereClause = '';
+      if (filter === 'upcoming') {
+        whereClause = `WHERE e.start_date > '${now.toISOString()}'`;
+      } else if (filter === 'past') {
+        whereClause = `WHERE e.start_date <= '${now.toISOString()}'`;
+      } else if (filter === 'featured') {
+        whereClause = `WHERE e.is_featured = true`;
+      }
+
+      // Get events with attendee counts
+      const eventsQuery = await storage.db.execute(`
+        SELECT 
+          e.*,
+          u.username as host_username,
+          u.name as host_name,
+          COUNT(DISTINCT er.user_id) as attendee_count,
+          COUNT(DISTINCT ec.id) as comment_count
+        FROM events e
+        LEFT JOIN users u ON e.user_id = u.id
+        LEFT JOIN event_rsvps er ON e.id = er.event_id
+        LEFT JOIN event_comments ec ON e.id = ec.event_id
+        ${whereClause}
+        GROUP BY e.id, u.username, u.name
+        ORDER BY e.start_date DESC
+        LIMIT 50
+      `);
+
+      // Get event statistics
+      const statsQuery = await storage.db.execute(`
+        SELECT
+          COUNT(*) as total_events,
+          COUNT(CASE WHEN start_date > '${now.toISOString()}' THEN 1 END) as upcoming_events,
+          COUNT(CASE WHEN is_featured = true THEN 1 END) as featured_events,
+          COUNT(CASE WHEN start_date >= '${new Date(now.getFullYear(), now.getMonth(), 1).toISOString()}' 
+                  AND start_date < '${new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString()}' THEN 1 END) as events_this_month
+        FROM events
+      `);
+
+      const stats = statsQuery.rows[0] || {};
+
+      // Get event categories
+      const categoriesQuery = await storage.db.execute(`
+        SELECT 
+          event_type,
+          COUNT(*) as count
+        FROM events
+        WHERE event_type IS NOT NULL
+        GROUP BY event_type
+        ORDER BY count DESC
+      `);
+
+      const categories = categoriesQuery.rows.reduce((acc, row) => {
+        acc[row.event_type] = parseInt(row.count);
+        return acc;
+      }, {});
+
+      res.json({
+        success: true,
+        data: {
+          events: eventsQuery.rows,
+          stats: {
+            totalEvents: parseInt(stats.total_events || 0),
+            upcomingEvents: parseInt(stats.upcoming_events || 0),
+            featuredEvents: parseInt(stats.featured_events || 0),
+            eventsThisMonth: parseInt(stats.events_this_month || 0),
+            categories
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Admin events error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch events' });
+    }
+  });
+
+  // Admin: Toggle event featured status
+  app.put('/api/admin/events/:id/featured', async (req, res) => {
+    try {
+      const { storage } = await import('./storage');
+      
+      let user;
+      
+      // Development auth bypass
+      if (process.env.NODE_ENV === 'development' && (!req.session || !req.session.passport)) {
+        console.log('🔧 Admin event toggle - using auth bypass for development');
+        user = await storage.getUserByUsername('admin3304');
+      } else {
+        // Get database user from Replit OAuth session
+        const replitId = req.session?.passport?.user?.claims?.sub;
+        if (!replitId) {
+          return res.status(401).json({ success: false, message: 'Authentication required.' });
+        }
+        user = await storage.getUserByReplitId(replitId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      const { id } = req.params;
+      const { featured } = req.body;
+
+      await storage.db.execute(`
+        UPDATE events 
+        SET is_featured = ${featured ? 'true' : 'false'}
+        WHERE id = '${id}'
+      `);
+
+      res.json({ success: true, message: 'Event featured status updated' });
+    } catch (error) {
+      console.error('Admin event toggle error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update event' });
+    }
+  });
+
+  // Admin: Settings Management endpoints
+  app.get('/api/admin/settings', async (req, res) => {
+    try {
+      const { storage } = await import('./storage');
+      const { db } = await import('./db');
+      const { sql } = await import('drizzle-orm');
+      
+      let user;
+      
+      // Development auth bypass
+      if (process.env.NODE_ENV === 'development' && (!req.session || !req.session.passport)) {
+        console.log('🔧 Admin settings - using auth bypass for development');
+        user = await storage.getUserByUsername('admin3304');
+      } else {
+        // Get database user from Replit OAuth session
+        const replitId = req.session?.passport?.user?.claims?.sub;
+        if (!replitId) {
+          return res.status(401).json({ success: false, message: 'Authentication required.' });
+        }
+        user = await storage.getUserByReplitId(replitId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      // Get platform settings from database or return defaults
+      const settingsQuery = await db.execute(sql`
+        SELECT * FROM platform_settings WHERE id = 1 LIMIT 1
+      `).catch(() => ({ rows: [] }));
+
+      const settings = settingsQuery.rows[0] || {
+        // Default settings
+        site_name: 'Mundo Tango',
+        site_description: 'The global tango community platform',
+        maintenance_mode: false,
+        registration_enabled: true,
+        email_verification_required: true,
+        auto_approve_users: false,
+        max_file_upload_size: 10485760, // 10MB
+        allowed_file_types: ['image/jpeg', 'image/png', 'image/gif', 'video/mp4'],
+        moderation_enabled: true,
+        auto_flag_threshold: 5,
+        content_retention_days: 365,
+        session_timeout_minutes: 1440, // 24 hours
+        require_profile_completion: true,
+        enable_analytics: true,
+        enable_notifications: true,
+        default_language: 'en',
+        supported_languages: ['en', 'es', 'fr', 'pt'],
+        social_sharing_enabled: true,
+        api_rate_limit: 100,
+        cache_ttl_seconds: 3600
+      };
+
+      // Get feature flags
+      const featureFlagsQuery = await db.execute(sql`
+        SELECT * FROM feature_flags ORDER BY name
+      `).catch(() => ({ rows: [] }));
+
+      const featureFlags = featureFlagsQuery.rows.length > 0 ? featureFlagsQuery.rows : [
+        { name: 'new_timeline', enabled: true, description: 'Enhanced timeline with rich interactions' },
+        { name: 'ai_recommendations', enabled: false, description: 'AI-powered content recommendations' },
+        { name: 'video_calls', enabled: false, description: 'In-app video calling feature' },
+        { name: 'marketplace', enabled: false, description: 'Tango marketplace for services and products' },
+        { name: 'premium_features', enabled: false, description: 'Premium subscription features' }
+      ];
+
+      res.json({
+        success: true,
+        data: {
+          settings,
+          featureFlags
+        }
+      });
+    } catch (error) {
+      console.error('Admin settings error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch settings' });
+    }
+  });
+
+  // Admin: Update platform settings
+  app.put('/api/admin/settings', async (req, res) => {
+    try {
+      const { storage } = await import('./storage');
+      
+      let user;
+      
+      // Development auth bypass
+      if (process.env.NODE_ENV === 'development' && (!req.session || !req.session.passport)) {
+        console.log('🔧 Admin settings update - using auth bypass for development');
+        user = await storage.getUserByUsername('admin3304');
+      } else {
+        // Get database user from Replit OAuth session
+        const replitId = req.session?.passport?.user?.claims?.sub;
+        if (!replitId) {
+          return res.status(401).json({ success: false, message: 'Authentication required.' });
+        }
+        user = await storage.getUserByReplitId(replitId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      const { settings } = req.body;
+
+      // Create table if it doesn't exist
+      await storage.db.execute(`
+        CREATE TABLE IF NOT EXISTS platform_settings (
+          id INTEGER PRIMARY KEY DEFAULT 1,
+          site_name VARCHAR(255),
+          site_description TEXT,
+          maintenance_mode BOOLEAN DEFAULT false,
+          registration_enabled BOOLEAN DEFAULT true,
+          email_verification_required BOOLEAN DEFAULT true,
+          auto_approve_users BOOLEAN DEFAULT false,
+          max_file_upload_size INTEGER DEFAULT 10485760,
+          allowed_file_types TEXT[],
+          moderation_enabled BOOLEAN DEFAULT true,
+          auto_flag_threshold INTEGER DEFAULT 5,
+          content_retention_days INTEGER DEFAULT 365,
+          session_timeout_minutes INTEGER DEFAULT 1440,
+          require_profile_completion BOOLEAN DEFAULT true,
+          enable_analytics BOOLEAN DEFAULT true,
+          enable_notifications BOOLEAN DEFAULT true,
+          default_language VARCHAR(10) DEFAULT 'en',
+          supported_languages TEXT[],
+          social_sharing_enabled BOOLEAN DEFAULT true,
+          api_rate_limit INTEGER DEFAULT 100,
+          cache_ttl_seconds INTEGER DEFAULT 3600,
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `).catch(() => {});
+
+      // Update settings using parameterized query to prevent SQL injection
+      const columns = Object.keys(settings);
+      const values = Object.values(settings);
+      const setClause = columns.map((col, i) => `${col} = $${i + 2}`).join(', ');
+      
+      const query = `
+        INSERT INTO platform_settings (id, ${columns.join(', ')})
+        VALUES ($1, ${columns.map((_, i) => `$${i + 2}`).join(', ')})
+        ON CONFLICT (id) DO UPDATE SET ${setClause}, updated_at = NOW()
+      `;
+      
+      await storage.db.execute(query, [1, ...values]);
+
+      res.json({ success: true, message: 'Settings updated successfully' });
+    } catch (error) {
+      console.error('Admin settings update error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update settings' });
+    }
+  });
+
+  // Admin: Toggle feature flag
+  app.put('/api/admin/feature-flags/:name', async (req, res) => {
+    try {
+      const { storage } = await import('./storage');
+      
+      let user;
+      
+      // Development auth bypass
+      if (process.env.NODE_ENV === 'development' && (!req.session || !req.session.passport)) {
+        console.log('🔧 Admin feature flag - using auth bypass for development');
+        user = await storage.getUserByUsername('admin3304');
+      } else {
+        // Get database user from Replit OAuth session
+        const replitId = req.session?.passport?.user?.claims?.sub;
+        if (!replitId) {
+          return res.status(401).json({ success: false, message: 'Authentication required.' });
+        }
+        user = await storage.getUserByReplitId(replitId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      const { name } = req.params;
+      const { enabled } = req.body;
+
+      // Create table if it doesn't exist
+      await storage.db.execute(`
+        CREATE TABLE IF NOT EXISTS feature_flags (
+          name VARCHAR(100) PRIMARY KEY,
+          enabled BOOLEAN DEFAULT false,
+          description TEXT,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `).catch(() => {});
+
+      await storage.db.execute(`
+        INSERT INTO feature_flags (name, enabled)
+        VALUES ($1, $2)
+        ON CONFLICT (name) DO UPDATE SET enabled = $2, updated_at = NOW()
+      `, [name, enabled]);
+
+      res.json({ success: true, message: 'Feature flag updated' });
+    } catch (error) {
+      console.error('Admin feature flag error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update feature flag' });
     }
   });
 

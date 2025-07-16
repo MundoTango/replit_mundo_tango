@@ -249,6 +249,7 @@ export const events = pgTable("events", {
   recurringPattern: varchar("recurring_pattern", { length: 50 }), // weekly, monthly, none
   seriesId: integer("series_id"), // For recurring events
   status: varchar("status", { length: 20 }).default("active"), // active, cancelled, postponed, completed
+  isFeatured: boolean("is_featured").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
