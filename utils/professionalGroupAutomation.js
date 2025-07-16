@@ -5,26 +5,32 @@ import { db } from '../server/db';
 import { groups, groupMembers, users } from '../shared/schema';
 import { eq, and, inArray } from 'drizzle-orm';
 
-// Mapping of tango roles to professional group names
+// Mapping of tango roles to professional group names - COMPLETE LIST (17 roles)
 const ROLE_TO_GROUP_MAPPING = {
   // Dancer is default, no professional group needed
-  'Teacher': 'Teachers Network',
-  'Instructor': 'Teachers Network',
-  'DJ': 'DJs United',
-  'Organizer': 'Event Organizers',
-  'Performer': 'Performers Guild',
-  'Musician': 'Tango Musicians',
-  'Singer': 'Tango Musicians',
-  'Content Creator': 'Content Creators Hub',
-  'Videographer': 'Content Creators Hub',
-  'Photographer': 'Content Creators Hub',
-  'Blogger': 'Content Creators Hub',
-  'Historian': 'Tango History Society',
-  'Vendor': 'Tango Marketplace',
-  'Designer': 'Tango Marketplace',
-  'Venue Owner': 'Venue Owners Network',
-  'Tango House': 'Venue Owners Network',
-  'Tango School': 'Schools & Academies'
+  'teacher': 'Teachers Network',
+  'instructor': 'Teachers Network', // Legacy alias
+  'dj': 'DJs United',
+  'organizer': 'Event Organizers',
+  'performer': 'Performers Guild',
+  'musician': 'Tango Musicians',
+  'singer': 'Tango Musicians', // Legacy alias
+  'photographer': 'Photographers Alliance',
+  'content_creator': 'Content Creators Hub',
+  'videographer': 'Content Creators Hub', // Grouped with content creators
+  'blogger': 'Content Creators Hub', // Legacy alias
+  'choreographer': 'Choreographers Alliance',
+  'tango_traveler': 'Tango Travelers Club',
+  'tour_operator': 'Tour Operators Network',
+  'vendor': 'Tango Marketplace',
+  'designer': 'Tango Marketplace', // Legacy alias
+  'wellness_provider': 'Wellness Providers Network',
+  'host': 'Hosts & Venues Network',
+  'venue_owner': 'Hosts & Venues Network', // Legacy alias
+  'tango_school': 'Schools & Academies',
+  'tango_hotel': 'Hospitality Partners',
+  'learning_source': 'Learning Resources Network',
+  'historian': 'Tango History Society' // Legacy role
 };
 
 // Create professional groups if they don't exist
@@ -69,12 +75,16 @@ export async function assignUserToProfessionalGroups(userId, tangoRoles) {
   // Ensure professional groups exist
   await ensureProfessionalGroups();
   
-  // Map tango roles to professional groups
+  // Map tango roles to professional groups (case-insensitive)
   const professionalGroupNames = [];
   for (const role of tangoRoles) {
-    const groupName = ROLE_TO_GROUP_MAPPING[role];
+    // Normalize role name to lowercase for consistent mapping
+    const normalizedRole = role.toLowerCase().replace(/\s+/g, '_');
+    const groupName = ROLE_TO_GROUP_MAPPING[normalizedRole];
     if (groupName && !professionalGroupNames.includes(groupName)) {
       professionalGroupNames.push(groupName);
+    } else if (!groupName && normalizedRole !== 'dancer') {
+      console.warn(`⚠️ No professional group mapping for role: ${role} (normalized: ${normalizedRole})`);
     }
   }
   

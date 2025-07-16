@@ -2751,6 +2751,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Friend suggestions - NEW production-ready endpoint
+  app.get('/api/friends/suggestions', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Unauthorized' 
+        });
+      }
+
+      const limit = parseInt(req.query.limit as string) || 20;
+      
+      const { friendSuggestionService } = await import('./services/friendSuggestionService');
+      const suggestions = await friendSuggestionService.getSuggestions(userId, limit);
+
+      res.json({
+        success: true,
+        data: suggestions
+      });
+    } catch (error) {
+      console.error('Error getting friend suggestions:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to get friend suggestions' 
+      });
+    }
+  });
+
+  // Role-based personalized feed - NEW production-ready endpoint
+  app.get('/api/feed/personalized', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Unauthorized' 
+        });
+      }
+
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const { roleBasedContentService } = await import('./services/roleBasedContentService');
+      const feed = await roleBasedContentService.getPersonalizedFeed(userId, limit, offset);
+
+      res.json({
+        success: true,
+        data: feed
+      });
+    } catch (error) {
+      console.error('Error getting personalized feed:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to get personalized feed' 
+      });
+    }
+  });
+
+  // Notification preferences - NEW production-ready endpoint
+  app.get('/api/notifications/preferences', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Unauthorized' 
+        });
+      }
+
+      const { notificationPreferencesService } = await import('./services/notificationPreferencesService');
+      const preferences = await notificationPreferencesService.getUserNotificationPreferences(userId);
+
+      res.json({
+        success: true,
+        data: preferences
+      });
+    } catch (error) {
+      console.error('Error getting notification preferences:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to get notification preferences' 
+      });
+    }
+  });
+
   // Stories routes
   app.get("/api/stories/following", isAuthenticated, async (req: any, res) => {
     try {
