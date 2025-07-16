@@ -1037,7 +1037,7 @@ const AdminCenter: React.FC = () => {
           </select>
           <button 
             onClick={fetchFlaggedContent}
-            className="px-4 py-2 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+            className="px-4 py-2 bg-gradient-to-r from-turquoise-600 to-blue-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5"
           >
             <RefreshCw className="w-4 h-4 inline mr-2" />
             Refresh
@@ -2149,7 +2149,7 @@ const AdminCenter: React.FC = () => {
                     onClick={() => window.location.href = '/moments'}
                     className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-xl hover:bg-white transition-all duration-200 shadow-lg group"
                   >
-                    <ArrowLeft className="w-4 h-4 text-gray-700 group-hover:text-pink-600 transition-colors" />
+                    <ArrowLeft className="w-4 h-4 text-gray-700 group-hover:text-turquoise-600 transition-colors" />
                     <span className="text-gray-700 font-medium">Back to App</span>
                   </button>
                   

@@ -121,7 +121,7 @@ export default function Sidebar({ isOpen, setIsOpen, onClose }: SidebarProps) {
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="h-16 flex justify-center items-center border-b-2 border-gray-200 text-red-600 font-bold text-xl gap-6">
+        <div className="h-16 flex justify-center items-center border-b-2 border-gray-200 text-turquoise-600 font-bold text-xl gap-6">
           <div>
             <Button
               variant="ghost"
@@ -144,7 +144,7 @@ export default function Sidebar({ isOpen, setIsOpen, onClose }: SidebarProps) {
                     src={user?.profileImage || "/images/user-placeholder.jpeg"}
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-red-600 text-white">
+                  <AvatarFallback className="bg-turquoise-600 text-white">
                     {user?.name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>

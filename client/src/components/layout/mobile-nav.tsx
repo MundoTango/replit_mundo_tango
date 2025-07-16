@@ -17,7 +17,7 @@ export default function MobileNav({ onOpenChat }: MobileNavProps) {
       <div className="grid grid-cols-5 gap-1">
         <Button 
           variant="ghost" 
-          className="flex flex-col items-center py-2 px-1 text-tango-red h-auto"
+          className="flex flex-col items-center py-2 px-1 text-turquoise-600 h-auto"
         >
           <Home className="h-6 w-6" />
           <span className="text-xs mt-1">Home</span>
@@ -45,7 +45,7 @@ export default function MobileNav({ onOpenChat }: MobileNavProps) {
           onClick={onOpenChat}
         >
           <MessageCircle className="h-6 w-6" />
-          <span className="absolute -top-1 -right-1 bg-tango-red text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 bg-turquoise-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
             3
           </span>
           <span className="text-xs mt-1">Messages</span>

@@ -112,10 +112,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               
               {/* Mundo Tango Logo */}
               <div className="hidden lg:flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-10 h-10 bg-gradient-to-r from-turquoise-500 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold text-sm">
                   MT
                 </div>
-                <div className="text-xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">
+                <div className="text-xl font-bold bg-gradient-to-r from-turquoise-500 to-blue-500 bg-clip-text text-transparent">
                   Mundo Tango
                 </div>
               </div>

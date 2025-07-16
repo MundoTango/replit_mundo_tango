@@ -185,7 +185,7 @@ export default function DashboardSidebar({ isOpen, onClose }: DashboardSidebarPr
           {isOpen && (
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                <div className="w-10 h-10 bg-gradient-to-r from-turquoise-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
                   {user?.name?.[0] || user?.username?.[0] || 'U'}
                 </div>
                 <div className="min-w-0 flex-1">
