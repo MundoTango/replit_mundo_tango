@@ -8309,6 +8309,206 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, message: 'Failed to fetch moderation data' });
     }
   });
+
+  // Admin: Get flagged content for moderation
+  app.get('/api/admin/content/flagged', isAuthenticated, async (req, res) => {
+    try {
+      const { storage } = await import('./storage');
+      const { filter = 'all', search = '' } = req.query;
+      
+      // Check admin access
+      const replitId = req.session?.passport?.user?.claims?.sub;
+      if (!replitId) {
+        return res.status(401).json({ success: false, message: 'Authentication required.' });
+      }
+
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      let userRoles: string[] = [];
+      try {
+        const roles = await storage.getUserRoles(user.id);
+        userRoles = roles.map(role => role.roleName);
+      } catch (roleError) {
+        if (user.username === 'admin' || user.email?.includes('admin')) {
+          userRoles = ['super_admin', 'admin'];
+        }
+      }
+
+      const hasAdminAccess = userRoles.includes('super_admin') || userRoles.includes('admin');
+      if (!hasAdminAccess) {
+        return res.status(403).json({ success: false, message: 'Access denied.' });
+      }
+
+      // Get flagged content with report counts
+      const contentQuery = await storage.db.execute(`
+        WITH content_data AS (
+          SELECT 
+            p.id,
+            'post' as type,
+            p.content,
+            p.user_id,
+            u.username as author,
+            p.created_at,
+            COUNT(DISTINCT r.id) as report_count,
+            CASE WHEN COUNT(DISTINCT r.id) > 0 THEN 'reported' ELSE 'normal' END as status
+          FROM posts p
+          JOIN users u ON p.user_id = u.id
+          LEFT JOIN reports r ON r.instance_id = p.id AND r.instance_type = 'post'
+          WHERE ${filter === 'posts' ? 'true' : filter === 'reported' ? 'EXISTS (SELECT 1 FROM reports WHERE instance_id = p.id)' : 'true'}
+          ${search ? `AND (p.content ILIKE '%${search}%' OR u.username ILIKE '%${search}%')` : ''}
+          GROUP BY p.id, p.content, p.user_id, u.username, p.created_at
+          
+          UNION ALL
+          
+          SELECT 
+            pc.id,
+            'comment' as type,
+            pc.comment as content,
+            pc.user_id,
+            u.username as author,
+            pc.created_at,
+            COUNT(DISTINCT r.id) as report_count,
+            CASE WHEN COUNT(DISTINCT r.id) > 0 THEN 'reported' ELSE 'normal' END as status
+          FROM post_comments pc
+          JOIN users u ON pc.user_id = u.id
+          LEFT JOIN reports r ON r.instance_id = pc.id AND r.instance_type = 'post'
+          WHERE ${filter === 'comments' ? 'true' : filter === 'reported' ? 'EXISTS (SELECT 1 FROM reports WHERE instance_id = pc.id)' : 'true'}
+          ${search ? `AND (pc.comment ILIKE '%${search}%' OR u.username ILIKE '%${search}%')` : ''}
+          GROUP BY pc.id, pc.comment, pc.user_id, u.username, pc.created_at
+        )
+        SELECT * FROM content_data
+        ${filter === 'flagged' || filter === 'reported' ? 'WHERE report_count > 0' : ''}
+        ORDER BY report_count DESC, created_at DESC
+        LIMIT 50
+      `);
+
+      const content = contentQuery.rows.map(row => ({
+        id: row.id,
+        type: row.type,
+        content: row.content,
+        author: row.author,
+        createdAt: row.created_at,
+        reportCount: parseInt(row.report_count) || 0,
+        status: row.status,
+        flagged: parseInt(row.report_count) > 0
+      }));
+
+      res.json({ content });
+    } catch (error) {
+      console.error('Admin content moderation error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch content' });
+    }
+  });
+
+  // Admin: Content action endpoints (approve, remove, warn)
+  app.post('/api/admin/content/:id/:action', isAuthenticated, async (req, res) => {
+    try {
+      const { storage } = await import('./storage');
+      const { id, action } = req.params;
+      
+      // Check admin access
+      const replitId = req.session?.passport?.user?.claims?.sub;
+      if (!replitId) {
+        return res.status(401).json({ success: false, message: 'Authentication required.' });
+      }
+
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      let userRoles: string[] = [];
+      try {
+        const roles = await storage.getUserRoles(user.id);
+        userRoles = roles.map(role => role.roleName);
+      } catch (roleError) {
+        if (user.username === 'admin' || user.email?.includes('admin')) {
+          userRoles = ['super_admin', 'admin'];
+        }
+      }
+
+      const hasAdminAccess = userRoles.includes('super_admin') || userRoles.includes('admin');
+      if (!hasAdminAccess) {
+        return res.status(403).json({ success: false, message: 'Access denied.' });
+      }
+
+      const contentId = parseInt(id);
+      
+      switch (action) {
+        case 'approve':
+          // Mark all reports as resolved for this content
+          await storage.db.execute(sql`
+            UPDATE reports 
+            SET status = 'resolved', 
+                resolved_by = ${user.id}, 
+                resolved_at = NOW(),
+                resolution = 'Approved by admin'
+            WHERE instance_id = ${contentId}
+          `);
+          break;
+          
+        case 'remove':
+          // Soft delete the content - check if it's a post or comment
+          const postCheck = await storage.db.execute(sql`
+            SELECT id FROM posts WHERE id = ${contentId} LIMIT 1
+          `);
+          
+          if (postCheck.rows.length > 0) {
+            await storage.db.execute(sql`
+              UPDATE posts 
+              SET is_deleted = true 
+              WHERE id = ${contentId}
+            `);
+          } else {
+            // It might be a comment
+            await storage.db.execute(sql`
+              DELETE FROM post_comments 
+              WHERE id = ${contentId}
+            `);
+          }
+          
+          // Mark reports as resolved
+          await storage.db.execute(sql`
+            UPDATE reports 
+            SET status = 'resolved', 
+                resolved_by = ${user.id}, 
+                resolved_at = NOW(),
+                resolution = 'Content removed'
+            WHERE instance_id = ${contentId}
+          `);
+          break;
+          
+        case 'warn':
+          // Create a warning notification for the content author
+          const contentQuery = await storage.db.execute(`
+            SELECT user_id FROM posts WHERE id = ${contentId}
+            UNION
+            SELECT user_id FROM post_comments WHERE id = ${contentId}
+            LIMIT 1
+          `);
+          
+          if (contentQuery.rows.length > 0) {
+            const authorId = contentQuery.rows[0].user_id;
+            await storage.db.execute(sql`
+              INSERT INTO notifications (user_id, type, message, created_at)
+              VALUES (${authorId}, 'warning', 'Your content has been flagged for violating community guidelines. Please review our content policy.', NOW())
+            `);
+          }
+          break;
+          
+        default:
+          return res.status(400).json({ success: false, message: 'Invalid action' });
+      }
+      
+      res.json({ success: true, message: `Content ${action} successful` });
+    } catch (error) {
+      console.error(`Admin content ${req.params.action} error:`, error);
+      res.status(500).json({ success: false, message: 'Failed to perform content action' });
+    }
+  });
   
   // Admin: Get reports (TrangoTech-style)
   app.get('/api/admin/reports', isAuthenticated, async (req, res) => {

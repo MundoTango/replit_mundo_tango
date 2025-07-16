@@ -693,6 +693,52 @@ const AdminCenter: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
 
+  // Content Moderation state
+  const [contentFilter, setContentFilter] = useState('all');
+  const [contentSearch, setContentSearch] = useState('');
+  const [flaggedContent, setFlaggedContent] = useState<any[]>([]);
+  const [contentLoading, setContentLoading] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<any>(null);
+  const [showContentModal, setShowContentModal] = useState(false);
+
+  // Content Moderation functions
+  const fetchFlaggedContent = async () => {
+    setContentLoading(true);
+    try {
+      const response = await fetch(`/api/admin/content/flagged?filter=${contentFilter}&search=${contentSearch}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch content');
+      const data = await response.json();
+      setFlaggedContent(data.content || []);
+    } catch (error) {
+      console.error('Error fetching flagged content:', error);
+    } finally {
+      setContentLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedTab === 'content') {
+      fetchFlaggedContent();
+    }
+  }, [selectedTab, contentFilter]);
+
+  const handleContentAction = async (contentId: number, action: string) => {
+    try {
+      const response = await fetch(`/api/admin/content/${contentId}/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error(`Failed to ${action} content`);
+      await fetchFlaggedContent();
+      if (showContentModal) setShowContentModal(false);
+    } catch (error) {
+      console.error(`Error performing ${action}:`, error);
+    }
+  };
+
   const fetchUsers = async () => {
     setUsersLoading(true);
     try {
@@ -966,9 +1012,34 @@ const AdminCenter: React.FC = () => {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <h2 className="text-xl font-bold text-gray-800">Content Moderation</h2>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
-            <Flag className="w-4 h-4 inline mr-2" />
-            Review Reports
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search content..."
+              value={contentSearch}
+              onChange={(e) => setContentSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && fetchFlaggedContent()}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-turquoise-500"
+            />
+            <FileText className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+          </div>
+          <select
+            value={contentFilter}
+            onChange={(e) => setContentFilter(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-turquoise-500"
+          >
+            <option value="all">All Content</option>
+            <option value="posts">Posts</option>
+            <option value="comments">Comments</option>
+            <option value="flagged">Flagged Only</option>
+            <option value="reported">Reported</option>
+          </select>
+          <button 
+            onClick={fetchFlaggedContent}
+            className="px-4 py-2 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+          >
+            <RefreshCw className="w-4 h-4 inline mr-2" />
+            Refresh
           </button>
         </div>
       </div>
@@ -1016,40 +1087,157 @@ const AdminCenter: React.FC = () => {
         </div>
       </div>
 
-      {/* Recent Reports with MT Styling */}
+      {/* Content Moderation Table */}
       <div className="bg-white rounded-2xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Reports</h3>
-        <div className="space-y-3">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-xl">
-            <div className="flex items-start gap-3 mb-3 md:mb-0">
-              <div className="p-2 bg-red-500 rounded-lg">
-                <AlertTriangle className="w-5 h-5 text-white" />
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Content Review Queue</h3>
+        {contentLoading ? (
+          <div className="text-center py-8 text-gray-500">Loading content...</div>
+        ) : flaggedContent.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">No content to moderate</div>
+        ) : (
+          <div className="space-y-4">
+            {flaggedContent.map((content) => (
+              <div key={content.id} className="border border-gray-200 rounded-xl p-4 hover:border-turquoise-200 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        content.type === 'post' ? 'bg-blue-100 text-blue-700' :
+                        content.type === 'comment' ? 'bg-green-100 text-green-700' :
+                        'bg-gray-100 text-gray-700'
+                      }`}>
+                        {content.type}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        content.status === 'flagged' ? 'bg-red-100 text-red-700' :
+                        content.status === 'reported' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-gray-100 text-gray-700'
+                      }`}>
+                        {content.status}
+                      </span>
+                      {content.reportCount > 0 && (
+                        <span className="text-xs text-gray-500">
+                          {content.reportCount} reports
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-gray-900 mb-2">{content.content}</div>
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <span>By @{content.author}</span>
+                      <span>{new Date(content.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    <button
+                      onClick={() => {
+                        setSelectedContent(content);
+                        setShowContentModal(true);
+                      }}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="View Details"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleContentAction(content.id, 'approve')}
+                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      title="Approve"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleContentAction(content.id, 'remove')}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remove"
+                    >
+                      <Ban className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div>
-                <div className="font-medium text-gray-800">Inappropriate content reported</div>
-                <div className="text-sm text-gray-600">Post ID: #1234 • 2 hours ago</div>
-              </div>
-            </div>
-            <button className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg text-sm hover:shadow-md transition-all">
-              Review
-            </button>
+            ))}
           </div>
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl">
-            <div className="flex items-start gap-3 mb-3 md:mb-0">
-              <div className="p-2 bg-yellow-500 rounded-lg">
-                <Clock className="w-5 h-5 text-white" />
+        )}
+      </div>
+
+      {/* Content Details Modal */}
+      {showContentModal && selectedContent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Content Details</h3>
+              <button
+                onClick={() => setShowContentModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <Ban className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="text-sm text-gray-500 mb-2">Content</div>
+                <div className="text-gray-900">{selectedContent.content}</div>
               </div>
-              <div>
-                <div className="font-medium text-gray-800">Spam detection triggered</div>
-                <div className="text-sm text-gray-600">User: @user123 • 4 hours ago</div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-gray-500">Author</div>
+                  <div className="font-medium">@{selectedContent.author}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Type</div>
+                  <div className="font-medium capitalize">{selectedContent.type}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Posted</div>
+                  <div className="font-medium">{new Date(selectedContent.createdAt).toLocaleString()}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Reports</div>
+                  <div className="font-medium">{selectedContent.reportCount || 0}</div>
+                </div>
+              </div>
+              {selectedContent.reports && selectedContent.reports.length > 0 && (
+                <div>
+                  <div className="text-sm text-gray-500 mb-2">Report History</div>
+                  <div className="space-y-2">
+                    {selectedContent.reports.map((report: any, idx: number) => (
+                      <div key={idx} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm">
+                          <span className="font-medium">{report.reportType}</span>
+                          <span className="text-gray-500"> by @{report.reporter}</span>
+                        </div>
+                        {report.reason && (
+                          <div className="text-sm text-gray-600 mt-1">{report.reason}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-3 pt-4 border-t">
+                <button
+                  onClick={() => handleContentAction(selectedContent.id, 'approve')}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                >
+                  Approve Content
+                </button>
+                <button
+                  onClick={() => handleContentAction(selectedContent.id, 'remove')}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Remove Content
+                </button>
+                <button
+                  onClick={() => handleContentAction(selectedContent.id, 'warn')}
+                  className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+                >
+                  Warn User
+                </button>
               </div>
             </div>
-            <button className="px-4 py-2 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-lg text-sm hover:shadow-md transition-all">
-              Review
-            </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 
