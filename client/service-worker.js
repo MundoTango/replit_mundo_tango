@@ -1,6 +1,6 @@
-// Life CEO Service Worker v10.0 - Updated January 16, 2025
-// IMPORTANT: Cache version updated to v10 to fix theme color issues
-const CACHE_NAME = 'life-ceo-v10';
+// Life CEO Service Worker v12.0 - Updated January 16, 2025
+// IMPORTANT: Cache version updated to v12 - comprehensive pink/red theme removal
+const CACHE_NAME = 'life-ceo-v12';
 const urlsToCache = [
   '/',
   '/life-ceo',

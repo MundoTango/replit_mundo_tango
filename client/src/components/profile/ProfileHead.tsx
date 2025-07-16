@@ -87,7 +87,7 @@ export default function ProfileHead({
     <Card className="overflow-hidden">
       {/* Background Cover */}
       <div 
-        className="h-48 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 relative"
+        className="h-48 bg-gradient-to-r from-turquoise-500 via-cyan-600 to-blue-600 relative"
         style={{
           backgroundImage: user.backgroundImage ? `url(${user.backgroundImage})` : undefined,
           backgroundSize: 'cover',
@@ -115,7 +115,7 @@ export default function ProfileHead({
           <div className="relative">
             <Avatar className="h-32 w-32 border-4 border-white shadow-lg">
               <AvatarImage src={user.profileImage} />
-              <AvatarFallback className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+              <AvatarFallback className="text-2xl font-bold bg-gradient-to-r from-turquoise-500 to-blue-600 text-white">
                 {user.name?.[0] || user.username?.[0]}
               </AvatarFallback>
             </Avatar>

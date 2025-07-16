@@ -128,7 +128,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   placeholder="Search events, people, memories..."
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  className="pl-10 pr-4 w-full border-gray-300 focus:border-pink-500 focus:ring-pink-500"
+                  className="pl-10 pr-4 w-full border-gray-300 focus:border-turquoise-500 focus:ring-turquoise-500"
                 />
                 
                 {/* Search Results Dropdown */}
