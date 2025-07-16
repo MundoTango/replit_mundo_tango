@@ -70,10 +70,27 @@ app.get('/service-worker-workbox.js', (req, res) => {
 });
 
 (async () => {
-  // Initialize automated compliance monitoring
-  const { automatedComplianceMonitor, initializeComplianceAuditTable } = await import('./services/automatedComplianceMonitor');
-  await initializeComplianceAuditTable();
-  await automatedComplianceMonitor.startAutomatedMonitoring();
+  // 30L Framework - Layer 23: Business Continuity
+  // Initialize with database resilience
+  try {
+    // Test database connection before starting services
+    const { pool } = await import('./db');
+    await pool.query('SELECT 1');
+    console.log('✅ Database connection established');
+  } catch (err) {
+    console.error('❌ Initial database connection failed:', err.message);
+    console.log('⚠️  Starting server in degraded mode - some features may be unavailable');
+  }
+  
+  // Initialize automated compliance monitoring with error handling
+  try {
+    const { automatedComplianceMonitor, initializeComplianceAuditTable } = await import('./services/automatedComplianceMonitor');
+      await initializeComplianceAuditTable();
+    await automatedComplianceMonitor.startAutomatedMonitoring();
+  } catch (err) {
+    console.error('⚠️  Compliance monitoring initialization failed:', err.message);
+    // Continue without compliance monitoring
+  }
 
   const server = await registerRoutes(app);
 

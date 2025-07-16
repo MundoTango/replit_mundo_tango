@@ -7353,6 +7353,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize Supabase Storage bucket on server start
   initializeStorageBucket();
 
+  // 30L Framework - Layer 10: Deployment & Infrastructure
+  // Health check endpoint for monitoring
+  app.get('/api/health', async (req, res) => {
+    try {
+      const { getDatabaseHealth } = await import('./utils/database-health');
+      const dbHealth = await getDatabaseHealth();
+      
+      const health = {
+        status: dbHealth.isHealthy ? 'healthy' : 'degraded',
+        timestamp: new Date().toISOString(),
+        database: dbHealth,
+        server: {
+          uptime: process.uptime(),
+          memory: process.memoryUsage(),
+          nodeVersion: process.version
+        }
+      };
+      
+      res.status(dbHealth.isHealthy ? 200 : 503).json(health);
+    } catch (err) {
+      res.status(503).json({
+        status: 'unhealthy',
+        error: err.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   const server = createServer(app);
 
   // WebSocket setup for real-time features - use path-based routing to avoid Vite conflicts
