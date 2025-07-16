@@ -138,6 +138,60 @@ const AdminCenter: React.FC = () => {
     storageUsed: 67
   });
 
+  // User Management state
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [userFilter, setUserFilter] = useState('all');
+  const [users, setUsers] = useState<any[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+
+  // Content Moderation state
+  const [contentFilter, setContentFilter] = useState('all');
+  const [contentSearch, setContentSearch] = useState('');
+  const [flaggedContent, setFlaggedContent] = useState<any[]>([]);
+  const [contentLoading, setContentLoading] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<any>(null);
+  const [showContentModal, setShowContentModal] = useState(false);
+
+  // Content Moderation functions
+  const fetchFlaggedContent = async () => {
+    setContentLoading(true);
+    try {
+      const response = await fetch(`/api/admin/content/flagged?filter=${contentFilter}&search=${contentSearch}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch content');
+      const data = await response.json();
+      setFlaggedContent(data.content || []);
+    } catch (error) {
+      console.error('Error fetching flagged content:', error);
+    } finally {
+      setContentLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedTab === 'content') {
+      fetchFlaggedContent();
+    }
+  }, [selectedTab, contentFilter]);
+
+  const handleContentAction = async (contentId: number, action: string) => {
+    try {
+      const response = await fetch(`/api/admin/content/${contentId}/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error(`Failed to ${action} content`);
+      await fetchFlaggedContent();
+      if (showContentModal) setShowContentModal(false);
+    } catch (error) {
+      console.error(`Error performing ${action}:`, error);
+    }
+  };
+
   // Fetch admin statistics
   const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ['/api/admin/stats'],
@@ -685,59 +739,6 @@ const AdminCenter: React.FC = () => {
       </div>
     </div>
   );
-
-  const [userSearchTerm, setUserSearchTerm] = useState('');
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [showUserModal, setShowUserModal] = useState(false);
-  const [userFilter, setUserFilter] = useState('all');
-  const [users, setUsers] = useState<any[]>([]);
-  const [usersLoading, setUsersLoading] = useState(false);
-
-  // Content Moderation state
-  const [contentFilter, setContentFilter] = useState('all');
-  const [contentSearch, setContentSearch] = useState('');
-  const [flaggedContent, setFlaggedContent] = useState<any[]>([]);
-  const [contentLoading, setContentLoading] = useState(false);
-  const [selectedContent, setSelectedContent] = useState<any>(null);
-  const [showContentModal, setShowContentModal] = useState(false);
-
-  // Content Moderation functions
-  const fetchFlaggedContent = async () => {
-    setContentLoading(true);
-    try {
-      const response = await fetch(`/api/admin/content/flagged?filter=${contentFilter}&search=${contentSearch}`, {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch content');
-      const data = await response.json();
-      setFlaggedContent(data.content || []);
-    } catch (error) {
-      console.error('Error fetching flagged content:', error);
-    } finally {
-      setContentLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (selectedTab === 'content') {
-      fetchFlaggedContent();
-    }
-  }, [selectedTab, contentFilter]);
-
-  const handleContentAction = async (contentId: number, action: string) => {
-    try {
-      const response = await fetch(`/api/admin/content/${contentId}/${action}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error(`Failed to ${action} content`);
-      await fetchFlaggedContent();
-      if (showContentModal) setShowContentModal(false);
-    } catch (error) {
-      console.error(`Error performing ${action}:`, error);
-    }
-  };
 
   const fetchUsers = async () => {
     setUsersLoading(true);
