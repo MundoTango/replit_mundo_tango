@@ -62,7 +62,7 @@ export async function ensureProfessionalGroups() {
 
 // Assign user to professional groups based on their roles
 export async function assignUserToProfessionalGroups(userId, tangoRoles) {
-  if (!tangoRoles || tangoRoles.length === 0) return;
+  if (!tangoRoles || tangoRoles.length === 0) return [];
   
   console.log(`🔄 Processing professional group assignments for user ${userId} with roles:`, tangoRoles);
   
@@ -80,7 +80,7 @@ export async function assignUserToProfessionalGroups(userId, tangoRoles) {
   
   if (professionalGroupNames.length === 0) {
     console.log(`ℹ️ No professional groups to assign for user ${userId}`);
-    return;
+    return [];
   }
   
   // Get professional groups
@@ -90,6 +90,8 @@ export async function assignUserToProfessionalGroups(userId, tangoRoles) {
       inArray(groups.name, professionalGroupNames),
       eq(groups.type, 'professional')
     ));
+  
+  const assignedGroupIds = [];
   
   // Assign user to each professional group
   for (const group of professionalGroups) {
@@ -116,11 +118,14 @@ export async function assignUserToProfessionalGroups(userId, tangoRoles) {
         .set({ memberCount: group.memberCount + 1 })
         .where(eq(groups.id, group.id));
       
+      assignedGroupIds.push(group.id);
       console.log(`✅ Added user ${userId} to professional group: ${group.name}`);
     } else {
       console.log(`ℹ️ User ${userId} already member of professional group: ${group.name}`);
     }
   }
+  
+  return assignedGroupIds;
 }
 
 // Remove user from professional groups (when roles change)

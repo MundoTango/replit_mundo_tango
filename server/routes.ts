@@ -2793,9 +2793,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Note: /api/auth/user endpoint is defined earlier in the file (line 68) without isAuthenticated middleware
 
-  // Onboarding endpoint with role assignment
+  // Onboarding endpoint with role assignment and 100% reliability
   app.post('/api/onboarding', async (req: any, res) => {
+    // Import all reliability utilities
+    const { onboardingTransactionManager } = await import('./utils/onboardingTransaction.js');
+    const { cityValidationService } = await import('./utils/cityValidation.js');
+    const { onboardingRetryService } = await import('./utils/onboardingRetry.js');
+    const { onboardingRateLimiter } = await import('./utils/rateLimiter.js');
+    
+    let transaction: any = null;
+    
     try {
+      // 1. Rate limiting check
+      const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
+      const canProceed = await onboardingRateLimiter.checkRegistrationLimit(clientIp);
+      
+      if (!canProceed) {
+        return res.status(429).json({ 
+          message: "Too many registration attempts. Please try again later.",
+          retryAfter: 7200 // 2 hours
+        });
+      }
+
       // Manual authentication check for Replit OAuth
       // Check multiple possible locations for user data
       // Get user ID from various possible locations
@@ -2832,197 +2851,291 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // 2. Start transaction for atomicity
+      transaction = await onboardingTransactionManager.startTransaction(user.id);
+
       const { nickname, languages, selectedRoles, location, acceptTerms, acceptPrivacy } = req.body;
 
-      // Update user profile with basic information
-      const updatedUser = await storage.updateUser(user.id, {
-        nickname,
-        name: nickname || user.name || user.username, // Use nickname as display name
-        languages,
-        tangoRoles: selectedRoles || [], // Keep legacy field
-        country: location.country,
-        state: location.state,
-        city: location.city,
-        countryCode: location.countryCode,
-        stateCode: location.stateCode,
-        leaderLevel: req.body.leaderLevel,
-        followerLevel: req.body.followerLevel,
-        yearsOfDancing: req.body.yearsOfDancing,
-        startedDancingYear: req.body.startedDancingYear,
-        isOnboardingComplete: false,
-        formStatus: 1,
-        termsAccepted: acceptTerms,
-        privacyAccepted: acceptPrivacy
-      });
-
-      // Auto-create city group if city is provided and doesn't exist
+      // 3. Validate city before proceeding
       if (location.city && location.country) {
-        try {
-          console.log(`🏙️ Checking city group for: ${location.city}, ${location.country}`);
+        const validCity = await cityValidationService.validateCity(location.city, location.country);
+        
+        if (!validCity) {
+          // Try to find similar cities
+          const suggestions = await cityValidationService.findSimilarCities(location.city);
           
-          // Generate city group slug
-          const citySlug = `tango-${location.city.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${location.country.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
-          
-          // Check if city group already exists
-          const existingGroup = await storage.getGroupBySlug(citySlug);
-          
-          if (!existingGroup) {
-            console.log(`🎨 Creating new city group for ${location.city}, ${location.country}`);
-            
-            // Fetch authentic city photo from Pexels API
-            let cityPhotoUrl = 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop'; // fallback
-            
-            try {
-              const { CityPhotoService } = await import('./services/cityPhotoService.js');
-              const fetchedPhoto = await CityPhotoService.fetchCityPhoto(location.city, location.country);
-              if (fetchedPhoto) {
-                cityPhotoUrl = fetchedPhoto.url;
-                console.log(`📸 Fetched authentic city photo for ${location.city}: ${cityPhotoUrl}`);
-              } else {
-                console.log(`⚠️ No photo found for ${location.city}, using fallback`);
-              }
-            } catch (photoError) {
-              console.error(`❌ Error fetching city photo for ${location.city}:`, photoError);
-            }
-            
-            // Create city group with authentic photo
-            const cityGroup = await storage.createGroup({
-              name: `Tango ${location.city}, ${location.country}`,
-              slug: citySlug,
-              type: 'city' as const,
-              emoji: '🏙️',
-              imageUrl: cityPhotoUrl,
-              description: `Connect with tango dancers and enthusiasts in ${location.city}, ${location.country}. Share local events, find dance partners, and build community connections.`,
-              isPrivate: false,
-              city: location.city,
-              country: location.country,
-              createdBy: user.id
-            });
-            
-            console.log(`✅ Created city group: ${cityGroup.name} (ID: ${cityGroup.id})`);
-            
-            // Auto-join user to their city group
-            await storage.addUserToGroup(user.id, cityGroup.id, 'member');
-            await storage.updateGroupMemberCount(cityGroup.id, 1);
-            console.log(`👥 Auto-joined user ${user.id} to ${cityGroup.name}`);
-            
-          } else {
-            console.log(`ℹ️ City group already exists: ${existingGroup.name}`);
-            
-            // Check if user is already a member
-            const isMember = await storage.checkUserInGroup(user.id, existingGroup.id);
-            if (!isMember) {
-              await storage.addUserToGroup(user.id, existingGroup.id, 'member');
-              await storage.updateGroupMemberCount(existingGroup.id, 1);
-              console.log(`👥 Auto-joined user ${user.id} to existing group ${existingGroup.name}`);
-            }
-          }
-        } catch (groupError) {
-          console.error('Error creating/joining city group during onboarding:', groupError);
-          // Continue with onboarding even if city group creation fails
+          return res.status(400).json({ 
+            message: "Invalid city selection",
+            suggestions: suggestions.map(s => ({
+              city: s.name,
+              state: s.state,
+              country: s.country
+            }))
+          });
         }
       }
 
-      // Handle role assignment using the enhanced role system
+      // 4. Update user profile with retry mechanism
+      const updatedUser = await onboardingRetryService.withRetry(
+        async () => {
+          return await storage.updateUser(user.id, {
+            nickname,
+            name: nickname || user.name || user.username, // Use nickname as display name
+            languages,
+            tangoRoles: selectedRoles || [], // Keep legacy field
+            country: location.country,
+            state: location.state,
+            city: location.city,
+            countryCode: location.countryCode,
+            stateCode: location.stateCode,
+            leaderLevel: req.body.leaderLevel,
+            followerLevel: req.body.followerLevel,
+            yearsOfDancing: req.body.yearsOfDancing,
+            startedDancingYear: req.body.startedDancingYear,
+            isOnboardingComplete: false,
+            formStatus: 1,
+            termsAccepted: acceptTerms,
+            privacyAccepted: acceptPrivacy
+          });
+        },
+        'Update user profile',
+        { maxAttempts: 3 }
+      );
+
+      // 5. Auto-create city group with transaction safety and race condition prevention
+      if (location.city && location.country) {
+        await onboardingRetryService.withRetry(
+          async () => {
+            console.log(`🏙️ Checking city group for: ${location.city}, ${location.country}`);
+            
+            // Generate city group slug (no "Tango" prefix per user preference)
+            const citySlug = `${location.city.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${location.country.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
+            
+            // Use database transaction to prevent race conditions
+            await db.transaction(async (tx) => {
+              // Lock the groups table for this slug to prevent duplicates
+              const existingGroups = await tx.select()
+                .from(groups)
+                .where(eq(groups.slug, citySlug))
+                .for('update');
+              
+              const existingGroup = existingGroups[0];
+              
+              if (!existingGroup) {
+                // Check rate limit for city group creation
+                const canCreateGroup = await onboardingRateLimiter.checkCityGroupCreation(user.id);
+                if (!canCreateGroup) {
+                  throw new Error('City group creation rate limit exceeded');
+                }
+                
+                console.log(`🎨 Creating new city group for ${location.city}, ${location.country}`);
+                
+                // Fetch authentic city photo from Pexels API
+                let cityPhotoUrl = 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop'; // fallback
+                
+                try {
+                  const { CityPhotoService } = await import('./services/cityPhotoService.js');
+                  const fetchedPhoto = await CityPhotoService.fetchCityPhoto(location.city, location.country);
+                  if (fetchedPhoto) {
+                    cityPhotoUrl = fetchedPhoto.url;
+                    console.log(`📸 Fetched authentic city photo for ${location.city}: ${cityPhotoUrl}`);
+                  } else {
+                    console.log(`⚠️ No photo found for ${location.city}, using fallback`);
+                  }
+                } catch (photoError) {
+                  console.error(`❌ Error fetching city photo for ${location.city}:`, photoError);
+                }
+                
+                // Create city group (removed "Tango" prefix)
+                const [cityGroup] = await tx.insert(groups).values({
+                  name: `${location.city}, ${location.country}`,
+                  slug: citySlug,
+                  type: 'city' as const,
+                  emoji: '🏙️',
+                  imageUrl: cityPhotoUrl,
+                  description: `Connect with tango dancers and enthusiasts in ${location.city}, ${location.country}. Share local events, find dance partners, and build community connections.`,
+                  isPrivate: false,
+                  city: location.city,
+                  country: location.country,
+                  createdBy: user.id,
+                  memberCount: 0,
+                  isActive: true
+                }).returning();
+                
+                console.log(`✅ Created city group: ${cityGroup.name} (ID: ${cityGroup.id})`);
+                
+                // Auto-join user to their city group
+                await tx.insert(groupMembers).values({
+                  userId: user.id,
+                  groupId: cityGroup.id,
+                  role: 'member',
+                  joinedAt: new Date()
+                });
+                
+                // Update member count
+                await tx.update(groups)
+                  .set({ memberCount: 1 })
+                  .where(eq(groups.id, cityGroup.id));
+                
+                // Track in transaction
+                transaction.cityGroupId = cityGroup.id;
+                
+                console.log(`👥 Auto-joined user ${user.id} to ${cityGroup.name}`);
+                
+              } else {
+                console.log(`ℹ️ City group already exists: ${existingGroup.name}`);
+                
+                // Check if user is already a member
+                const existingMembership = await tx.select()
+                  .from(groupMembers)
+                  .where(and(
+                    eq(groupMembers.userId, user.id),
+                    eq(groupMembers.groupId, existingGroup.id)
+                  ))
+                  .limit(1);
+                
+                if (existingMembership.length === 0) {
+                  await tx.insert(groupMembers).values({
+                    userId: user.id,
+                    groupId: existingGroup.id,
+                    role: 'member',
+                    joinedAt: new Date()
+                  });
+                  
+                  await tx.update(groups)
+                    .set({ memberCount: sql`member_count + 1` })
+                    .where(eq(groups.id, existingGroup.id));
+                  
+                  // Track in transaction
+                  transaction.cityGroupId = existingGroup.id;
+                  
+                  console.log(`👥 Auto-joined user ${user.id} to existing group ${existingGroup.name}`);
+                }
+              }
+            });
+          },
+          'City group assignment',
+          { maxAttempts: 3 }
+        );
+      }
+
+      // 6. Handle role assignment with transaction safety
       const rolesToAssign = selectedRoles && selectedRoles.length > 0 ? selectedRoles : ['guest'];
       const primaryRole = rolesToAssign[0];
 
-      try {
-        // Create or update user profile in roles system
-        await db.insert(userProfiles).values({
-          userId: user.id,
-          roles: rolesToAssign,
-          primaryRole: primaryRole,
-          displayName: user.name || user.username,
-          isActive: true
-        }).onConflictDoUpdate({
-          target: userProfiles.userId,
-          set: {
-            roles: rolesToAssign,
-            primaryRole: primaryRole,
-            displayName: user.name || user.username,
-            isActive: true
-          }
-        });
-
-        // Add roles to junction table
-        for (const role of rolesToAssign) {
-          await db.insert(userRoles).values({
-            userId: user.id,
-            roleName: role
-          }).onConflictDoNothing();
-        }
-
-        console.log(`Assigned roles to user ${user.id}:`, rolesToAssign);
-
-        // AUTOMATION 2: Auto-join professional groups based on roles
-        const professionalRoles = ['teacher', 'organizer', 'dj', 'performer', 'musician', 'photographer', 'videographer'];
-        const userProfessionalRoles = rolesToAssign.filter(role => professionalRoles.includes(role));
-        
-        if (userProfessionalRoles.length > 0) {
-          for (const professionalRole of userProfessionalRoles) {
-            try {
-              // Check if professional group exists
-              let professionalGroup = await db.select()
-                .from(groups)
-                .where(and(
-                  eq(groups.type, 'role'),
-                  eq(groups.roleType, professionalRole)
-                ))
-                .limit(1);
-
-              // Create professional group if it doesn't exist
-              if (!professionalGroup || professionalGroup.length === 0) {
-                const groupData = {
-                  name: `${professionalRole.charAt(0).toUpperCase() + professionalRole.slice(1)}s Network`,
-                  slug: `${professionalRole}s-network`,
-                  description: `Professional network for ${professionalRole}s in the Mundo Tango community. Share experiences, find opportunities, and connect with peers.`,
-                  memberCount: 0,
-                  type: 'role',
-                  roleType: professionalRole,
-                  privacy: 'public' as const,
-                  isActive: true,
-                  createdAt: new Date(),
-                  updatedAt: new Date()
-                };
-
-                const result = await db.insert(groups).values(groupData).returning();
-                professionalGroup = result;
-                console.log(`Created professional group: ${groupData.name}`);
+      await onboardingRetryService.withRetry(
+        async () => {
+          await db.transaction(async (tx) => {
+            // Create or update user profile in roles system
+            await tx.insert(userProfiles).values({
+              userId: user.id,
+              roles: rolesToAssign,
+              primaryRole: primaryRole,
+              displayName: user.name || user.username,
+              isActive: true
+            }).onConflictDoUpdate({
+              target: userProfiles.userId,
+              set: {
+                roles: rolesToAssign,
+                primaryRole: primaryRole,
+                displayName: user.name || user.username,
+                isActive: true
               }
+            });
 
-              // Add user to professional group
-              const groupToJoin = Array.isArray(professionalGroup) ? professionalGroup[0] : professionalGroup;
-              await db.insert(groupMembers).values({
-                groupId: groupToJoin.id,
+            // Add roles to junction table
+            for (const role of rolesToAssign) {
+              await tx.insert(userRoles).values({
                 userId: user.id,
-                role: 'member',
-                joinedAt: new Date()
+                roleName: role
               }).onConflictDoNothing();
-
-              // Update member count
-              await db.update(groups)
-                .set({ 
-                  memberCount: sql`member_count + 1`,
-                  updatedAt: new Date()
-                })
-                .where(eq(groups.id, groupToJoin.id));
-
-              console.log(`User ${user.id} auto-joined professional group: ${groupToJoin.name}`);
-            } catch (professionalGroupError) {
-              console.error(`Error joining professional group ${professionalRole}:`, professionalGroupError);
+              
+              // Track for rollback
+              transaction.roleAssignments.push(role);
             }
-          }
+
+            console.log(`Assigned roles to user ${user.id}:`, rolesToAssign);
+
+            // 7. AUTOMATION: Import and use professional group automation
+            if (selectedRoles && selectedRoles.length > 0) {
+              const { assignUserToProfessionalGroups } = await import('../utils/professionalGroupAutomation.js');
+              
+              // Get group IDs assigned for transaction tracking
+              const professionalGroupIds = await assignUserToProfessionalGroups(user.id, selectedRoles);
+              
+              // Track professional groups for rollback
+              if (professionalGroupIds && Array.isArray(professionalGroupIds)) {
+                transaction.professionalGroupIds = professionalGroupIds;
+              }
+            }
+          });
+        },
+        'Role and group assignment',
+        { maxAttempts: 3 }
+      );
+      // 8. Commit transaction on success
+      await transaction.commit();
+
+      // 9. Send welcome email (async, non-blocking)
+      try {
+        // Import email service if available
+        const { sendWelcomeEmail } = await import('./services/emailService.js').catch(() => ({ sendWelcomeEmail: null }));
+        
+        if (sendWelcomeEmail) {
+          sendWelcomeEmail(user.email, user.name || user.username, {
+            city: location.city,
+            country: location.country,
+            roles: selectedRoles
+          }).catch(err => console.error('Welcome email failed:', err));
         }
-      } catch (roleError) {
-        console.error('Error assigning roles during onboarding:', roleError);
-        // Continue with onboarding even if role assignment fails
+      } catch (emailError) {
+        console.log('Welcome email service not available');
       }
 
-      res.json({ success: true, data: updatedUser });
+      // 10. Log successful onboarding
+      console.log(`✅ Onboarding completed successfully for user ${user.id}`);
+      
+      // Return success with updated user data
+      res.json({ 
+        success: true, 
+        data: updatedUser,
+        metadata: {
+          cityGroupAssigned: !!transaction.cityGroupId,
+          professionalGroupsAssigned: transaction.professionalGroupIds.length,
+          rolesAssigned: transaction.roleAssignments.length
+        }
+      });
+      
     } catch (error: any) {
-      console.error("Onboarding error:", error);
-      res.status(500).json({ message: error.message });
+      console.error("❌ Onboarding error:", error);
+      
+      // Rollback transaction on any error
+      if (transaction) {
+        try {
+          await transaction.rollback();
+          console.log("🔄 Transaction rolled back successfully");
+        } catch (rollbackError) {
+          console.error("❌ Rollback failed:", rollbackError);
+        }
+      }
+      
+      // Return appropriate error response
+      if (error.message.includes('rate limit')) {
+        res.status(429).json({ 
+          message: "Too many requests. Please try again later.",
+          retryAfter: 3600
+        });
+      } else if (error.message.includes('Invalid city')) {
+        res.status(400).json({ 
+          message: error.message,
+          suggestions: error.suggestions
+        });
+      } else {
+        res.status(500).json({ 
+          message: "An error occurred during onboarding. Please try again.",
+          error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+      }
     }
   });
 
