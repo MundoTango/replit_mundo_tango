@@ -34,6 +34,7 @@ export const users = pgTable("users", {
   facebookUrl: text("facebook_url"),
   isVerified: boolean("is_verified").default(false),
   isActive: boolean("is_active").default(true),
+  suspended: boolean("suspended").default(false),
   deviceType: varchar("device_type", { length: 20 }),
   deviceToken: text("device_token"),
   apiToken: text("api_token"),

@@ -41,7 +41,8 @@ import {
   Wifi,
   GitCommit,
   Brain,
-  RefreshCw
+  RefreshCw,
+  Code
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -685,14 +686,82 @@ const AdminCenter: React.FC = () => {
     </div>
   );
 
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [userFilter, setUserFilter] = useState('all');
+  const [users, setUsers] = useState<any[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const response = await fetch(`/api/admin/users?filter=${userFilter}&search=${userSearchTerm}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch users');
+      const data = await response.json();
+      setUsers(data.users || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedTab === 'users') {
+      fetchUsers();
+    }
+  }, [selectedTab, userFilter]);
+
+  const handleUserAction = async (userId: number, action: string) => {
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error(`Failed to ${action} user`);
+      await fetchUsers();
+    } catch (error) {
+      console.error(`Error performing ${action}:`, error);
+    }
+  };
+
   const renderUserManagement = () => (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <h2 className="text-xl font-bold text-gray-800">User Management</h2>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-gradient-to-r from-turquoise-600 to-blue-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
-            <Users className="w-4 h-4 inline mr-2" />
-            Export Users
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={userSearchTerm}
+              onChange={(e) => setUserSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-turquoise-500"
+            />
+            <Users className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+          </div>
+          <select
+            value={userFilter}
+            onChange={(e) => setUserFilter(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-turquoise-500"
+          >
+            <option value="all">All Users</option>
+            <option value="active">Active</option>
+            <option value="verified">Verified</option>
+            <option value="suspended">Suspended</option>
+            <option value="pending">Pending</option>
+          </select>
+          <button 
+            onClick={fetchUsers}
+            className="px-4 py-2 bg-gradient-to-r from-turquoise-600 to-blue-600 text-white rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+          >
+            <RefreshCw className="w-4 h-4 inline mr-2" />
+            Refresh
           </button>
         </div>
       </div>
@@ -740,39 +809,155 @@ const AdminCenter: React.FC = () => {
         </div>
       </div>
 
-      {/* User Actions with MT Styling */}
+      {/* User List Table */}
       <div className="bg-white rounded-2xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center gap-3 p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl hover:shadow-md transition-all transform hover:-translate-y-0.5 group">
-            <div className="p-2 bg-orange-500 rounded-lg group-hover:scale-110 transition-transform">
-              <UserX className="w-5 h-5 text-white" />
-            </div>
-            <div className="text-left">
-              <div className="font-medium text-gray-800">Moderate Users</div>
-              <div className="text-sm text-gray-600">Review flagged accounts</div>
-            </div>
-          </button>
-          <button className="flex items-center gap-3 p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl hover:shadow-md transition-all transform hover:-translate-y-0.5 group">
-            <div className="p-2 bg-blue-500 rounded-lg group-hover:scale-110 transition-transform">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <div className="text-left">
-              <div className="font-medium text-gray-800">Manage Roles</div>
-              <div className="text-sm text-gray-600">Assign admin permissions</div>
-            </div>
-          </button>
-          <button className="flex items-center gap-3 p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl hover:shadow-md transition-all transform hover:-translate-y-0.5 group">
-            <div className="p-2 bg-green-500 rounded-lg group-hover:scale-110 transition-transform">
-              <Database className="w-5 h-5 text-white" />
-            </div>
-            <div className="text-left">
-              <div className="font-medium text-gray-800">Bulk Operations</div>
-              <div className="text-sm text-gray-600">Mass user actions</div>
-            </div>
-          </button>
-        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">User List</h3>
+        {usersLoading ? (
+          <div className="text-center py-8 text-gray-500">Loading users...</div>
+        ) : users.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">No users found</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">User</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Role</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Joined</th>
+                  <th className="text-right py-3 px-4 font-medium text-gray-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-turquoise-400 to-blue-500 flex items-center justify-center text-white font-medium">
+                          {user.username?.[0]?.toUpperCase() || 'U'}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{user.username || 'Unknown'}</div>
+                          <div className="text-sm text-gray-500">ID: {user.id}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-gray-700">{user.email || 'N/A'}</td>
+                    <td className="py-3 px-4">
+                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                        {user.tangoRole || 'User'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        user.suspended ? 'bg-red-100 text-red-700' :
+                        user.verified ? 'bg-green-100 text-green-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {user.suspended ? 'Suspended' : user.verified ? 'Verified' : 'Pending'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-gray-700">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setShowUserModal(true);
+                          }}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        {!user.suspended ? (
+                          <button
+                            onClick={() => handleUserAction(user.id, 'suspend')}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Ban className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleUserAction(user.id, 'unsuspend')}
+                            className="text-green-600 hover:text-green-800"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
+
+      {/* User Details Modal */}
+      {showUserModal && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-xl font-bold text-gray-900">User Details</h3>
+              <button
+                onClick={() => setShowUserModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <Ban className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-gray-500">Username</div>
+                  <div className="font-medium">{selectedUser.username}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Email</div>
+                  <div className="font-medium">{selectedUser.email || 'N/A'}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Location</div>
+                  <div className="font-medium">{selectedUser.location || 'N/A'}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Tango Role</div>
+                  <div className="font-medium">{selectedUser.tangoRole || 'N/A'}</div>
+                </div>
+              </div>
+              <div className="flex gap-3 pt-4 border-t">
+                {!selectedUser.verified && (
+                  <button
+                    onClick={() => handleUserAction(selectedUser.id, 'verify')}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  >
+                    Verify User
+                  </button>
+                )}
+                {!selectedUser.suspended ? (
+                  <button
+                    onClick={() => handleUserAction(selectedUser.id, 'suspend')}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  >
+                    Suspend User
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleUserAction(selectedUser.id, 'unsuspend')}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  >
+                    Unsuspend User
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 

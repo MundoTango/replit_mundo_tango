@@ -8049,7 +8049,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get current compliance status from automated monitoring
       try {
-        const { automatedComplianceMonitor } = await import('../services/automatedComplianceMonitor');
+        const { automatedComplianceMonitor } = await import('./services/automatedComplianceMonitor');
         const currentStatus = automatedComplianceMonitor.getCurrentComplianceStatus();
         
         if (currentStatus) {
@@ -8133,14 +8133,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ success: false, message: 'Access denied.' });
       }
 
+      // Get query parameters
+      const { filter = 'all', search = '' } = req.query;
+
+      // Build query conditions
+      let conditions: string[] = [];
+      const params: any[] = [];
+      
+      // Apply filters
+      if (filter === 'active') {
+        conditions.push('is_active = true');
+      } else if (filter === 'verified') {
+        conditions.push('is_verified = true');
+      } else if (filter === 'suspended') {
+        conditions.push('suspended = true');
+      } else if (filter === 'pending') {
+        conditions.push('is_verified = false');
+      }
+
+      // Apply search
+      if (search) {
+        conditions.push(`(username ILIKE $${params.length + 1} OR email ILIKE $${params.length + 2} OR name ILIKE $${params.length + 3})`);
+        params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+      }
+
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
       // Get detailed user management data
-      const usersQuery = await storage.db.execute(`
+      const queryText = `
         SELECT id, username, email, name, city, country, is_active, is_verified, 
-               is_onboarding_complete, created_at, tango_roles
+               is_onboarding_complete, created_at, tango_roles, suspended
         FROM users 
+        ${whereClause}
         ORDER BY created_at DESC 
         LIMIT 100
-      `);
+      `;
+      
+      const usersQuery = await storage.db.execute(queryText);
 
       const users = usersQuery.rows.map(row => ({
         id: row.id,
@@ -8149,16 +8178,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: row.name,
         location: `${row.city || ''}, ${row.country || ''}`.trim(),
         isActive: row.is_active,
-        isVerified: row.is_verified,
+        verified: row.is_verified,
+        suspended: row.suspended || false,
         onboardingComplete: row.is_onboarding_complete,
-        joinedDate: row.created_at,
-        roles: row.tango_roles || []
+        createdAt: row.created_at,
+        tangoRole: Array.isArray(row.tango_roles) ? row.tango_roles[0] : 'User'
       }));
 
-      res.json({ success: true, users });
+      res.json({ users });
     } catch (error) {
       console.error('Admin users error:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch user data' });
+    }
+  });
+
+  // Admin: User action endpoints (suspend, unsuspend, verify)
+  app.post('/api/admin/users/:id/:action', isAuthenticated, async (req, res) => {
+    try {
+      const { storage } = await import('./storage');
+      const { id, action } = req.params;
+      
+      // Check admin access
+      const replitId = req.session?.passport?.user?.claims?.sub;
+      if (!replitId) {
+        return res.status(401).json({ success: false, message: 'Authentication required.' });
+      }
+
+      const user = await storage.getUserByReplitId(replitId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+
+      let userRoles: string[] = [];
+      try {
+        const roles = await storage.getUserRoles(user.id);
+        userRoles = roles.map(role => role.roleName);
+      } catch (roleError) {
+        if (user.username === 'admin' || user.email?.includes('admin')) {
+          userRoles = ['super_admin', 'admin'];
+        }
+      }
+
+      const hasAdminAccess = userRoles.includes('super_admin') || userRoles.includes('admin');
+      if (!hasAdminAccess) {
+        return res.status(403).json({ success: false, message: 'Access denied.' });
+      }
+
+      // Perform the action
+      const userId = parseInt(id);
+      let updateQuery = '';
+      
+      switch (action) {
+        case 'suspend':
+          updateQuery = 'UPDATE users SET suspended = true WHERE id = $1';
+          break;
+        case 'unsuspend':
+          updateQuery = 'UPDATE users SET suspended = false WHERE id = $1';
+          break;
+        case 'verify':
+          updateQuery = 'UPDATE users SET is_verified = true WHERE id = $1';
+          break;
+        default:
+          return res.status(400).json({ success: false, message: 'Invalid action' });
+      }
+
+      await storage.db.execute(sql.raw(updateQuery, [userId]));
+      
+      res.json({ success: true, message: `User ${action} successful` });
+    } catch (error) {
+      console.error(`Admin user ${req.params.action} error:`, error);
+      res.status(500).json({ success: false, message: 'Failed to perform user action' });
     }
   });
 
