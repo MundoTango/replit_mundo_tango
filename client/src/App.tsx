@@ -170,6 +170,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Moments} />
       <Route path="/moments" component={Moments} />
+      <Route path="/register">{() => <Redirect to="/" />}</Route>
       <Route path="/community">{() => <Redirect to="/community-world-map" />}</Route>
       <Route path="/community-world-map" component={CommunityWorldMap} />
       <Route path="/tango-communities" component={TangoCommunities} />
