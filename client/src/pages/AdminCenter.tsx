@@ -491,7 +491,7 @@ const AdminCenter: React.FC = () => {
 
           <a 
             href="/ttfiles-demo"
-            className="p-5 bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-2xl hover:shadow-xl transition-all text-left group block transform hover:-translate-y-1"
+            className="p-5 bg-gradient-to-br from-turquoise-500 to-blue-600 text-white rounded-2xl hover:shadow-xl transition-all text-left group block transform hover:-translate-y-1"
           >
             <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl inline-flex mb-3 group-hover:scale-110 transition-transform">
               <Code className="w-6 h-6 text-white" />
@@ -1297,14 +1297,14 @@ const AdminCenter: React.FC = () => {
       <div className="bg-white rounded-2xl p-6 shadow-lg">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Top Locations</h3>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl">
+          <div className="flex items-center justify-between p-3 bg-gradient-to-br from-turquoise-50 to-blue-50 rounded-xl">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg">
+              <div className="p-1.5 bg-gradient-to-r from-turquoise-500 to-blue-500 rounded-lg">
                 <Globe className="w-4 h-4 text-white" />
               </div>
               <span className="font-medium text-gray-800">Buenos Aires, Argentina</span>
             </div>
-            <span className="text-sm text-purple-600 font-semibold">1,247 users</span>
+            <span className="text-sm text-blue-600 font-semibold">1,247 users</span>
           </div>
           <div className="flex items-center justify-between p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
             <div className="flex items-center gap-3">
@@ -2162,7 +2162,7 @@ const AdminCenter: React.FC = () => {
           </div>
 
           {/* MT Style Navigation Tabs */}
-          <div className="bg-white/80 backdrop-blur-sm border-b border-pink-200/50 shadow-md">
+          <div className="bg-white/80 backdrop-blur-sm border-b border-turquoise-200/50 shadow-md">
             <div className="max-w-7xl mx-auto px-4 md:px-6">
               <nav className="flex flex-nowrap md:flex-wrap gap-2 md:gap-6 overflow-x-auto py-2 md:py-0">
                 {tabs.map((tab) => (
