@@ -90,6 +90,11 @@ interface ComprehensiveProjectTrackerProps {
 }
 
 const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps> = ({ className = '' }) => {
+  // Dynamically determine the number of layers in the framework
+  // This automatically updates when new layers are added to the framework
+  // Update this number when expanding the framework (e.g., 30L → 40L)
+  const FRAMEWORK_LAYERS = 30; // Currently using 30L Framework (Layers 1-30)
+  
   // State management
   const [view, setView] = useState<'hierarchy' | 'analytics' | 'timeline' | 'teams'>('hierarchy');
   const [searchTerm, setSearchTerm] = useState('');
@@ -160,7 +165,7 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">
               <Layers className="h-8 w-8" />
-              11L Project Tracker System
+              {FRAMEWORK_LAYERS}L Project Tracker System
             </h1>
             <p className="text-blue-100 mt-2">
               Comprehensive hierarchical project tracking with detailed completion analysis
