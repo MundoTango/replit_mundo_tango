@@ -1858,8 +1858,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test endpoint to verify routing
+  app.post('/api/test-post', async (req: any, res) => {
+    console.log('🚀 TEST POST - Request received');
+    res.json({ success: true, message: 'Test endpoint working' });
+  });
+
   // Main post creation endpoint for BeautifulPostCreator
   app.post('/api/posts', async (req: any, res) => {
+    console.log('🚀 POST /api/posts - Request received');
+    console.log('🔐 Session exists:', !!req.session);
+    console.log('🔐 Session passport:', req.session?.passport);
+    console.log('🔐 Cookies:', req.headers.cookie);
+    console.log('🔐 req.isAuthenticated:', req.isAuthenticated?.());
+    
     try {
       // Use flexible authentication from authHelper
       const userId = getUserId(req);
@@ -1870,6 +1882,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isAuthenticated: req.isAuthenticated?.()
       });
       if (!userId) {
+        console.log('❌ No userId found, returning 401');
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
