@@ -67,7 +67,21 @@ const calculateRollupStatus = (item: ProjectItem): {
   };
 };
 
-const EnhancedHierarchicalTreeView: React.FC = () => {
+interface EnhancedHierarchicalTreeViewProps {
+  onItemClick?: (item: ProjectItem) => void;
+  searchTerm?: string;
+  filterStatus?: string;
+  filterPriority?: string;
+  filterType?: string;
+}
+
+const EnhancedHierarchicalTreeView: React.FC<EnhancedHierarchicalTreeViewProps> = ({ 
+  onItemClick,
+  searchTerm = '',
+  filterStatus = 'all',
+  filterPriority = 'all',
+  filterType = 'all'
+}) => {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
   const [modalKey, setModalKey] = useState(0); // Force re-render key
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set([
@@ -88,6 +102,102 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
   // Initialize project data using factory function
   const projectData = useMemo(() => createProjectData(), []);
 
+  // Filter project data based on search and filters
+  const filteredProjectData = useMemo(() => {
+    const filterItem = (item: ProjectItem): ProjectItem | null => {
+      // Type filter
+      if (filterType !== 'all' && item.type.toLowerCase() !== filterType.toLowerCase()) {
+        // If this item doesn't match the type filter, check if any children do
+        if (item.children) {
+          const filteredChildren = item.children
+            .map(child => filterItem(child))
+            .filter(child => child !== null) as ProjectItem[];
+          
+          if (filteredChildren.length > 0) {
+            return { ...item, children: filteredChildren };
+          }
+        }
+        return null;
+      }
+
+      // Status filter
+      if (filterStatus !== 'all') {
+        const statusMatch = filterStatus === 'complete' ? 'Completed' :
+                           filterStatus === 'in-progress' ? 'In Progress' :
+                           filterStatus === 'planning' ? 'Planned' :
+                           filterStatus === 'blocked' ? 'Blocked' : '';
+        
+        if (item.status !== statusMatch) {
+          if (item.children) {
+            const filteredChildren = item.children
+              .map(child => filterItem(child))
+              .filter(child => child !== null) as ProjectItem[];
+            
+            if (filteredChildren.length > 0) {
+              return { ...item, children: filteredChildren };
+            }
+          }
+          return null;
+        }
+      }
+
+      // Priority filter
+      if (filterPriority !== 'all') {
+        const priorityMatch = filterPriority === 'high' ? 'High' :
+                             filterPriority === 'medium' ? 'Medium' :
+                             filterPriority === 'low' ? 'Low' : '';
+        
+        if (item.priority !== priorityMatch) {
+          if (item.children) {
+            const filteredChildren = item.children
+              .map(child => filterItem(child))
+              .filter(child => child !== null) as ProjectItem[];
+            
+            if (filteredChildren.length > 0) {
+              return { ...item, children: filteredChildren };
+            }
+          }
+          return null;
+        }
+      }
+
+      // Search filter
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const matchesSearch = item.title.toLowerCase().includes(searchLower) ||
+                             (item.description && item.description.toLowerCase().includes(searchLower));
+        
+        if (!matchesSearch) {
+          if (item.children) {
+            const filteredChildren = item.children
+              .map(child => filterItem(child))
+              .filter(child => child !== null) as ProjectItem[];
+            
+            if (filteredChildren.length > 0) {
+              return { ...item, children: filteredChildren };
+            }
+          }
+          return null;
+        }
+      }
+
+      // If item passes all filters, include it with filtered children
+      if (item.children) {
+        const filteredChildren = item.children
+          .map(child => filterItem(child))
+          .filter(child => child !== null) as ProjectItem[];
+        
+        return { ...item, children: filteredChildren };
+      }
+
+      return item;
+    };
+
+    return projectData
+      .map(item => filterItem(item))
+      .filter(item => item !== null) as ProjectItem[];
+  }, [projectData, searchTerm, filterStatus, filterPriority, filterType]);
+
   // Pre-calculate rollup data for all items to avoid hooks inside render
   const itemRollupData = useMemo(() => {
     const rollupMap = new Map<string, ReturnType<typeof calculateRollupStatus>>();
@@ -101,9 +211,9 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
       });
     };
     
-    processItems(projectData);
+    processItems(filteredProjectData);
     return rollupMap;
-  }, [projectData]);
+  }, [filteredProjectData]);
 
   // Extract all unique teams from the project data
   const getAllTeams = useMemo(() => {
@@ -121,9 +231,9 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
       });
     };
     
-    extractTeams(projectData);
+    extractTeams(filteredProjectData);
     return Array.from(teams);
-  }, [projectData]);
+  }, [filteredProjectData]);
 
   // Get icon based on item type
   const getItemIcon = (type: string, isExpanded?: boolean) => {
@@ -503,7 +613,7 @@ const EnhancedHierarchicalTreeView: React.FC = () => {
     });
   };
 
-  const filteredData = useMemo(() => filterItems(projectData), [filterTeam, showCompleted]);
+  const filteredData = useMemo(() => filterItems(filteredProjectData), [filterTeam, showCompleted, filteredProjectData]);
 
   return (
     <div className="w-full space-y-4">
