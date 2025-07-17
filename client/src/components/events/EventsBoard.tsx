@@ -56,11 +56,25 @@ export default function EventsBoard() {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch events');
-      return response.json();
+      const data = await response.json();
+      
+      // Debug logging
+      console.log('Events API Response:', data);
+      console.log('Total events received:', data?.data?.length || 0);
+      
+      return data;
     }
   });
 
   const events = eventsResponse?.data || [];
+  
+  // Debug info
+  const debugInfo = {
+    totalEvents: events.length,
+    userLocation: user?.city || 'Unknown',
+    userId: user?.id,
+    error: error?.message
+  };
 
   const formatEventDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -226,24 +240,53 @@ export default function EventsBoard() {
         })}
 
         {(!events || events.length === 0) && (
-          <div className="text-center py-12">
+          <div className="text-center py-8 px-4">
             <div className="w-16 h-16 bg-gradient-to-br from-coral-400 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl">
               <Calendar className="h-8 w-8 text-white" />
             </div>
             <h4 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent mb-2">
               No upcoming events
             </h4>
-            <p className="text-blue-600/70 font-medium mb-4">
-              Check back later for new events in your area
-            </p>
-            <Button
-              onClick={handleViewAllEvents}
-              className="bg-gradient-to-r from-coral-400 to-pink-500 hover:from-coral-500 hover:to-pink-600 
-                       text-white font-bold px-6 py-3 rounded-2xl shadow-xl hover:shadow-coral-500/30 
-                       transform hover:-translate-y-1 transition-all duration-300"
-            >
-              Browse All Events
-            </Button>
+            
+            {/* Enhanced empty state with debug info */}
+            <div className="space-y-3 mb-4">
+              <p className="text-blue-600/70 font-medium">
+                We couldn't find any upcoming events in your area
+              </p>
+              
+              {/* Debug information in development */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="bg-blue-50 rounded-lg p-3 text-left text-sm space-y-1">
+                  <p className="text-blue-700 font-semibold">Debug Info:</p>
+                  <p className="text-blue-600">User Location: {user?.city || 'Not set'}</p>
+                  <p className="text-blue-600">User ID: {user?.id || 'Unknown'}</p>
+                  <p className="text-blue-600">API Status: {error ? 'Error' : 'Success'}</p>
+                  {error && <p className="text-red-600">Error: {error.message}</p>}
+                </div>
+              )}
+              
+              <div className="text-sm text-blue-600/60 space-y-1">
+                <p>Events are filtered by:</p>
+                <p>• Your location ({user?.city || 'Unknown'})</p>
+                <p>• Next 30 days</p>
+                <p>• Public events & your invitations</p>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Button
+                onClick={handleViewAllEvents}
+                className="bg-gradient-to-r from-coral-400 to-pink-500 hover:from-coral-500 hover:to-pink-600 
+                         text-white font-bold px-6 py-2.5 rounded-2xl shadow-xl hover:shadow-coral-500/30 
+                         transform hover:-translate-y-0.5 transition-all duration-300"
+              >
+                Browse All Events
+              </Button>
+              
+              <p className="text-xs text-blue-600/50">
+                or <a href="/events/create" className="underline hover:text-blue-600">create your own event</a>
+              </p>
+            </div>
           </div>
         )}
       </div>
