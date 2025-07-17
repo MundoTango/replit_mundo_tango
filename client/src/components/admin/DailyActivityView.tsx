@@ -38,10 +38,13 @@ function DailyActivityView() {
   const { data: apiActivities = [], isLoading, refetch } = useQuery({
     queryKey: ['/api/daily-activities'], // Remove date from cache key
     queryFn: async () => {
-      const result = await apiRequest(
+      const response = await apiRequest(
         'GET',
         `/api/daily-activities` // API returns all activities
       );
+      const result = await response.json();
+      console.log('API Response JSON:', result);
+      // The API returns { success: true, data: [...] }
       return result.data || [];
     },
     refetchInterval: 30000, // Refresh every 30 seconds
