@@ -299,8 +299,8 @@ export default function BeautifulPostCreator({
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder={content.length === 0 ? "✨ Share your tango moment..." : ""}
-                className="w-full min-h-[120px] p-5 rounded-2xl resize-none focus:outline-none focus:ring-4 focus:ring-turquoise-400/30 focus:border-transparent transition-all placeholder:text-gray-500 placeholder:text-lg glassmorphic-input-enhanced text-lg leading-relaxed font-medium text-gray-800"
+                placeholder="✨ Share your tango moment..."
+                className="w-full min-h-[120px] p-5 rounded-2xl resize-none focus:outline-none focus:ring-4 focus:ring-turquoise-400/30 focus:border-transparent transition-all placeholder:text-gray-400 placeholder:text-lg glassmorphic-input-enhanced text-lg leading-relaxed font-medium text-gray-800"
                 style={{
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
@@ -308,11 +308,6 @@ export default function BeautifulPostCreator({
                   boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05)'
                 }}
               />
-              {content.length === 0 && (
-                <div className="absolute top-5 left-5 pointer-events-none animate-pulse-slow">
-                  <span className="text-gray-400 text-lg">What's your tango story today?</span>
-                </div>
-              )}
               <div className="absolute bottom-3 right-3 text-xs text-gray-400">
                 {content.length > 0 && `${content.length} characters`}
               </div>
