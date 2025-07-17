@@ -22,6 +22,13 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import EmojiPicker from 'emoji-picker-react';
+import { 
+  createTypingParticle, 
+  createRipple, 
+  createConfetti,
+  magneticButton,
+  resetMagneticButton 
+} from '@/utils/microInteractions';
 
 interface PostCreatorProps {
   context?: {
@@ -208,6 +215,9 @@ export default function BeautifulPostCreator({
         description: "Your memory has been shared",
       });
 
+      // Trigger confetti celebration
+      createConfetti();
+
       // Reset form
       setContent('');
       setLocation('');
@@ -251,6 +261,11 @@ export default function BeautifulPostCreator({
         priceRange
       } : undefined
     });
+  };
+
+  // Handle typing with particle effects
+  const handleTyping = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    createTypingParticle(e);
   };
 
   return (
@@ -299,6 +314,7 @@ export default function BeautifulPostCreator({
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                onKeyDown={handleTyping}
                 placeholder="✨ Share your tango moment..."
                 className="w-full min-h-[120px] p-5 rounded-2xl resize-none focus:outline-none focus:ring-4 focus:ring-turquoise-400/30 focus:border-transparent transition-all placeholder:text-gray-400 placeholder:text-lg glassmorphic-input-enhanced text-lg leading-relaxed font-medium text-gray-800"
                 style={{
@@ -602,9 +618,14 @@ export default function BeautifulPostCreator({
               </div>
 
               <button
-                onClick={handleSubmit}
+                onClick={(e) => {
+                  createRipple(e);
+                  handleSubmit();
+                }}
+                onMouseMove={magneticButton}
+                onMouseLeave={resetMagneticButton}
                 disabled={createPostMutation.isPending || (!content.trim() && mediaFiles.length === 0)}
-                className="group relative px-10 py-4 overflow-hidden rounded-full font-bold text-lg shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                className="group relative px-10 py-4 overflow-hidden rounded-full font-bold text-lg shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 magnetic-button ripple-container"
                 style={{
                   background: createPostMutation.isPending || (!content.trim() && mediaFiles.length === 0) 
                     ? 'linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%)'

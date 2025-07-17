@@ -13,6 +13,7 @@ import { ThemeProvider } from "@/lib/theme/theme-provider";
 import ThemeManager from "@/components/theme/ThemeManager";
 import { performanceOptimizations } from "@/lib/performance-optimizations";
 import { setupGlobalErrorHandlers, setupQueryErrorHandling } from "@/lib/global-error-handler";
+import { MicroInteractionProvider } from "@/components/MicroInteractionProvider";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Onboarding from "@/pages/onboarding";
@@ -247,11 +248,13 @@ function App() {
           <ThemeProvider>
             <SocketProvider>
               <TooltipProvider>
-                <Toaster />
-                <ErrorBoundary>
-                  <Router />
-                </ErrorBoundary>
-                <ThemeManager />
+                <MicroInteractionProvider>
+                  <Toaster />
+                  <ErrorBoundary>
+                    <Router />
+                  </ErrorBoundary>
+                  <ThemeManager />
+                </MicroInteractionProvider>
               </TooltipProvider>
             </SocketProvider>
           </ThemeProvider>

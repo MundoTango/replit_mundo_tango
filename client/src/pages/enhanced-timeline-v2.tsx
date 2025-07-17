@@ -215,7 +215,7 @@ function MemoryCard({ memory }: MemoryCardProps) {
   const isOwner = memory.userId === user?.id;
 
   return (
-    <Card className="p-6 space-y-4 hover:shadow-lg transition-shadow">
+    <Card className="p-6 space-y-4 hover:shadow-lg transition-shadow card-lift smooth-appear">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-4">
@@ -299,17 +299,17 @@ function MemoryCard({ memory }: MemoryCardProps) {
 
           <button
             onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all mt-button ripple-container"
           >
-            <MessageCircle className="h-5 w-5" />
+            <MessageCircle className="h-5 w-5 icon-glow" />
             <span>{comments.length || 0}</span>
           </button>
 
           <button
             onClick={() => setShowShareDialog(true)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all mt-button ripple-container float-on-hover"
           >
-            <Share2 className="h-5 w-5" />
+            <Share2 className="h-5 w-5 icon-glow" />
           </button>
         </div>
 
