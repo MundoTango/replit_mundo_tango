@@ -10908,6 +10908,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Amsterdam': { lat: 52.3676, lng: 4.9041 },
         'Vienna': { lat: 48.2082, lng: 16.3738 },
         'Stockholm': { lat: 59.3293, lng: 18.0686 },
+        'Kolašin': { lat: 42.8358, lng: 19.4949 },
       };
 
       const cityGroupsWithData = cityGroups.map(group => {
