@@ -1908,30 +1908,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Handle recommendation to city group
       let finalContextType = contextType;
       let finalContextId = contextId;
+      let cityName = null;
+      let countryName = null;
       
-      if (isRecommendation && user.city) {
-        // Find or create city group
-        const citySlug = user.city.toLowerCase().replace(/\s+/g, '-');
-        let cityGroup = await storage.getGroupBySlug(citySlug);
+      if (isRecommendation && location) {
+        // Extract city from location
         
-        if (!cityGroup) {
-          console.log(`📍 Creating city group for ${user.city}`);
-          // Create city group matching the user's registration city
-          cityGroup = await storage.createGroup({
-            name: user.city,
-            slug: citySlug,
-            description: `Welcome to the ${user.city} tango community! Share events, find dance partners, and discover the best milongas in town.`,
-            type: 'city',
-            visibility: 'public',
-            userId: user.id,
-            privacy: 'open',
-            category: 'geographic'
-          });
+        try {
+          const locData = JSON.parse(location);
+          const addressParts = locData.name.split(', ');
+          
+          // Extract city and country from address
+          // Format: "Vodenica, Junaka Breze, Kolašin, Kolašin Municipality, 81210, Montenegro"
+          if (addressParts.length >= 3) {
+            // Look for city name - often appears before "Municipality" or similar terms
+            for (let i = 0; i < addressParts.length; i++) {
+              const part = addressParts[i].trim();
+              const nextPart = i + 1 < addressParts.length ? addressParts[i + 1].trim() : '';
+              
+              // Check if next part contains administrative terms
+              if (nextPart.includes('Municipality') || 
+                  nextPart.includes('Province') || 
+                  nextPart.includes('Region') ||
+                  nextPart.includes('District')) {
+                cityName = part;
+                break;
+              }
+              
+              // Skip common non-city terms
+              if (!part.match(/^\d+$/) && // Not a number
+                  !part.includes('Street') &&
+                  !part.includes('Avenue') &&
+                  !part.includes('Road') &&
+                  !part.includes('Boulevard') &&
+                  part.length > 2) {
+                // If we haven't found a city yet and this could be one
+                if (!cityName && i >= 2) { // Cities usually appear after venue/street
+                  cityName = part;
+                }
+              }
+            }
+            
+            // Country is usually the last non-numeric part
+            countryName = addressParts[addressParts.length - 1].match(/^\d+$/) ? 
+              addressParts[addressParts.length - 2] : 
+              addressParts[addressParts.length - 1];
+          }
+        } catch {
+          // If not JSON, try to parse as simple string
+          const addressParts = location.split(', ');
+          if (addressParts.length >= 2) {
+            cityName = addressParts[0];
+            countryName = addressParts[addressParts.length - 1];
+          }
         }
         
-        // Set context to the city group
-        finalContextType = 'group';
-        finalContextId = cityGroup.id;
+        if (cityName && countryName) {
+          // Create city group name with country
+          const groupName = `${cityName}, ${countryName}`;
+          const citySlug = groupName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          
+          let cityGroup = await storage.getGroupBySlug(citySlug);
+          
+          if (!cityGroup) {
+            console.log(`📍 Creating city group for ${groupName}`);
+            cityGroup = await storage.createGroup({
+              name: groupName,
+              slug: citySlug,
+              description: `Welcome to the ${cityName} tango community! Share events, find dance partners, and discover the best milongas in town.`,
+              type: 'city',
+              visibility: 'public',
+              userId: user.id,
+              privacy: 'open',
+              category: 'geographic'
+            });
+          }
+          
+          // Set context to the city group
+          finalContextType = 'group';
+          finalContextId = cityGroup.id;
+        } else {
+          // Fallback to user's city if we can't parse location
+          if (user.city) {
+            const citySlug = user.city.toLowerCase().replace(/\s+/g, '-');
+            let cityGroup = await storage.getGroupBySlug(citySlug);
+            
+            if (!cityGroup) {
+              console.log(`📍 Creating city group for ${user.city}`);
+              cityGroup = await storage.createGroup({
+                name: user.city,
+                slug: citySlug,
+                description: `Welcome to the ${user.city} tango community! Share events, find dance partners, and discover the best milongas in town.`,
+                type: 'city',
+                visibility: 'public',
+                userId: user.id,
+                privacy: 'open',
+                category: 'geographic'
+              });
+            }
+            
+            finalContextType = 'group';
+            finalContextId = cityGroup.id;
+          }
+        }
       }
 
       // Create the post/memory with correct parameters
@@ -1951,19 +2030,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If it's a recommendation, add it to recommendations table and associate with city group
       if (isRecommendation && finalContextType === 'group' && finalContextId) {
         try {
-          // Parse location data to get lat/lng
+          // Parse location data to get lat/lng and extract city/country
           let lat = null;
           let lng = null;
           let address = location || '';
+          let extractedCity = cityName || user.city || 'Buenos Aires';
+          let extractedCountry = countryName || user.country || 'Argentina';
           
           if (location) {
-            // If location is a JSON string with coordinates
+            // Location might be double-JSON encoded
             try {
-              const locData = JSON.parse(location);
+              let locData = JSON.parse(location);
+              
+              // Check if it's double-encoded
+              if (typeof locData.name === 'string' && locData.name.startsWith('{')) {
+                try {
+                  locData = JSON.parse(locData.name);
+                } catch {}
+              }
+              
+              // Extract coordinates
               if (locData.lat && locData.lng) {
                 lat = locData.lat;
                 lng = locData.lng;
-                address = locData.name || locData.formatted_address || location;
+              }
+              
+              // Extract address
+              address = locData.name || locData.formatted_address || location;
+              
+              // If address is still JSON, extract the name field
+              if (typeof address === 'string' && address.startsWith('{')) {
+                try {
+                  const parsedAddress = JSON.parse(address);
+                  address = parsedAddress.name || address;
+                } catch {}
               }
             } catch {
               // If not JSON, use as address
@@ -1971,7 +2071,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
           
-          // Create recommendation entry
+          // Create recommendation entry with extracted city
           const tagsArray = tags && tags.length > 0 ? `{${tags.map((t: string) => `"${t}"`).join(',')}}` : '{"recommendation"}';
           await db.execute(sql`
             INSERT INTO recommendations (
@@ -1998,9 +2098,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ${content},
               ${recommendationType || 'restaurant'},
               ${address},
-              ${user.city || 'Buenos Aires'},
+              ${extractedCity},
               ${user.state || ''},
-              ${user.country || 'Argentina'},
+              ${extractedCountry},
               ${lat},
               ${lng},
               '{}',
