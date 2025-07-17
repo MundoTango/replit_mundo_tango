@@ -1900,7 +1900,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contextType,
         contextId,
         isRecommendation,
-        recommendationData
+        recommendationData,
+        recommendationType,
+        priceRange
       } = req.body;
 
       // Handle recommendation to city group
@@ -1946,10 +1948,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
         consent_required: false
       });
 
-      // If it's a recommendation, associate it with the city group
+      // If it's a recommendation, add it to recommendations table and associate with city group
       if (isRecommendation && finalContextType === 'group' && finalContextId) {
         try {
-          // Create a post in the group context
+          // Parse location data to get lat/lng
+          let lat = null;
+          let lng = null;
+          let address = location || '';
+          
+          if (location) {
+            // If location is a JSON string with coordinates
+            try {
+              const locData = JSON.parse(location);
+              if (locData.lat && locData.lng) {
+                lat = locData.lat;
+                lng = locData.lng;
+                address = locData.name || locData.formatted_address || location;
+              }
+            } catch {
+              // If not JSON, use as address
+              address = location;
+            }
+          }
+          
+          // Create recommendation entry
+          const tagsArray = tags && tags.length > 0 ? `{${tags.map((t: string) => `"${t}"`).join(',')}}` : '{"recommendation"}';
+          await db.execute(sql`
+            INSERT INTO recommendations (
+              user_id,
+              post_id,
+              title,
+              description,
+              type,
+              address,
+              city,
+              state,
+              country,
+              lat,
+              lng,
+              photos,
+              rating,
+              tags,
+              is_active,
+              created_at
+            ) VALUES (
+              ${user.id},
+              NULL,
+              ${recommendationType || 'restaurant'},
+              ${content},
+              ${recommendationType || 'restaurant'},
+              ${address},
+              ${user.city || 'Buenos Aires'},
+              ${user.state || ''},
+              ${user.country || 'Argentina'},
+              ${lat},
+              ${lng},
+              '{}',
+              ${priceRange === '$' ? 2 : priceRange === '$$' ? 3 : priceRange === '$$$' ? 4 : 3},
+              ${tagsArray}::text[],
+              true,
+              NOW()
+            )
+          `);
+          console.log(`📍 Recommendation added to recommendations table`);
+          
+          // Also create a post in the group context
           await db.execute(sql`
             INSERT INTO posts (
               id, 
@@ -1969,7 +2032,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `);
           console.log(`📍 Recommendation posted to city group ${user.city}`);
         } catch (err) {
-          console.error('Error posting to city group:', err);
+          console.error('Error posting recommendation:', err);
           // Don't fail the whole request if group posting fails
         }
       }
