@@ -203,6 +203,7 @@ export default function BeautifulPostCreator({
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(postData)
       });
       

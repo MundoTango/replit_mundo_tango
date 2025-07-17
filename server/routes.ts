@@ -1859,9 +1859,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Main post creation endpoint for BeautifulPostCreator
-  app.post('/api/posts', isAuthenticated, async (req: any, res) => {
+  app.post('/api/posts', async (req: any, res) => {
     try {
+      // Use flexible authentication from authHelper
       const userId = getUserId(req);
+      console.log('🔐 Post creation auth debug:', {
+        userId,
+        reqUser: req.user,
+        session: req.session?.passport?.user,
+        isAuthenticated: req.isAuthenticated?.()
+      });
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
