@@ -255,38 +255,68 @@ export default function BeautifulPostCreator({
 
   return (
     <div className="w-full">
-      <Card className="relative overflow-hidden border-0 glassmorphic-card beautiful-hover">
-        {/* Beautiful gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-turquoise-500/20 via-cyan-500/20 to-blue-500/20 animate-gradient pointer-events-none" />
+      <Card className="relative overflow-hidden border-0 glassmorphic-card beautiful-hover shadow-2xl">
+        {/* Enhanced gradient background with animation */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-turquoise-400/30 via-cyan-400/20 to-blue-500/30 animate-gradient" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-purple-400/10 via-transparent to-pink-400/10 animate-gradient-reverse" />
+          <div className="absolute top-0 left-0 w-96 h-96 bg-turquoise-300/20 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-0 right-0 w-80 h-80 bg-blue-300/20 rounded-full blur-3xl animate-float-delayed" />
+        </div>
         
-        <div className="relative z-10 p-6">
-          {/* Header */}
-          <div className="flex items-start space-x-4 mb-4">
-            <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-turquoise-400 to-blue-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                {user?.name?.charAt(0) || 'U'}
+        <div className="relative z-10 p-8">
+          {/* Enhanced Header with better styling */}
+          <div className="flex items-start space-x-4 mb-6">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-br from-turquoise-400 to-blue-600 rounded-full blur-md opacity-75 group-hover:opacity-100 transition-opacity" />
+              <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-turquoise-400 to-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-xl transform transition-transform group-hover:scale-110">
+                {user?.profileImage ? (
+                  <img src={user.profileImage} alt={user.name} className="w-full h-full rounded-full object-cover border-2 border-white/50" />
+                ) : (
+                  user?.name?.charAt(0) || 'U'
+                )}
               </div>
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-r from-green-400 to-green-500 rounded-full border-2 border-white shadow-lg animate-pulse" />
             </div>
             
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900">{user?.name}</h3>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <Globe className="h-3 w-3" />
-                <span>Sharing {visibility === 'public' ? 'publicly' : `with ${visibility}`}</span>
+              <h3 className="font-bold text-gray-900 text-lg">{user?.name}</h3>
+              <div className="flex items-center space-x-2 text-sm">
+                <div className="flex items-center space-x-1 px-3 py-1 bg-gradient-to-r from-gray-50 to-gray-100 rounded-full">
+                  <Globe className="h-3 w-3 text-turquoise-600" />
+                  <span className="text-gray-700 font-medium">
+                    {visibility === 'public' ? 'Public' : visibility === 'friends' ? 'Friends' : 'Private'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Main content area */}
-          <div className="space-y-4">
-            {/* Text input */}
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Share your tango moment..."
-              className="w-full min-h-[100px] p-4 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-turquoise-500/50 focus:border-transparent transition-all placeholder:text-gray-400 glassmorphic-input"
-            />
+          <div className="space-y-5">
+            {/* Enhanced Text input with animated placeholder */}
+            <div className="relative">
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder={content.length === 0 ? "✨ Share your tango moment..." : ""}
+                className="w-full min-h-[120px] p-5 rounded-2xl resize-none focus:outline-none focus:ring-4 focus:ring-turquoise-400/30 focus:border-transparent transition-all placeholder:text-gray-500 placeholder:text-lg glassmorphic-input-enhanced text-lg leading-relaxed font-medium text-gray-800"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                }}
+              />
+              {content.length === 0 && (
+                <div className="absolute top-5 left-5 pointer-events-none animate-pulse-slow">
+                  <span className="text-gray-400 text-lg">What's your tango story today?</span>
+                </div>
+              )}
+              <div className="absolute bottom-3 right-3 text-xs text-gray-400">
+                {content.length > 0 && `${content.length} characters`}
+              </div>
+            </div>
 
             {/* Media previews */}
             {mediaPreviews.length > 0 && (
@@ -308,50 +338,92 @@ export default function BeautifulPostCreator({
               </div>
             )}
 
-            {/* Recommendation toggle */}
-            <button
-              onClick={() => setIsRecommendation(!isRecommendation)}
-              className={`w-full p-3 rounded-xl flex items-center justify-between transition-all ${
-                isRecommendation 
-                  ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200' 
-                  : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <Lightbulb className={`h-5 w-5 ${isRecommendation ? 'text-amber-600' : 'text-gray-400'}`} />
-                <span className={isRecommendation ? 'text-amber-700 font-medium' : 'text-gray-600'}>
-                  Share a recommendation
-                </span>
-              </div>
-              <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isRecommendation ? 'rotate-180' : ''}`} />
-            </button>
+            {/* Enhanced Recommendation toggle with better design */}
+            <div className="relative">
+              <button
+                onClick={() => setIsRecommendation(!isRecommendation)}
+                className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all duration-300 group ${
+                  isRecommendation 
+                    ? 'bg-gradient-to-r from-amber-100 via-orange-100 to-amber-100 border-2 border-amber-300 shadow-lg transform scale-[1.02]' 
+                    : 'bg-white/70 hover:bg-white border border-gray-200/60 hover:border-amber-200 shadow-sm hover:shadow-md'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2 rounded-xl transition-all duration-300 ${
+                    isRecommendation 
+                      ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md' 
+                      : 'bg-gray-100 text-gray-500 group-hover:bg-amber-100 group-hover:text-amber-600'
+                  }`}>
+                    <Lightbulb className="h-5 w-5" />
+                  </div>
+                  <div className="text-left">
+                    <span className={`block font-semibold transition-colors ${
+                      isRecommendation ? 'text-amber-800' : 'text-gray-700 group-hover:text-amber-700'
+                    }`}>
+                      Share a recommendation
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Help others discover amazing places
+                    </span>
+                  </div>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-gray-400 transition-all duration-300 ${
+                  isRecommendation ? 'rotate-180 text-amber-600' : 'group-hover:text-amber-500'
+                }`} />
+              </button>
 
-            {isRecommendation && (
-              <div className="p-4 bg-gradient-to-br from-amber-50/70 to-orange-50/70 backdrop-blur-sm rounded-xl space-y-3 border border-amber-200/30">
-                <select
-                  value={recommendationType}
-                  onChange={(e) => setRecommendationType(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-white/80 backdrop-blur-sm border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-500/50 font-medium"
-                >
-                  <option value="">Select type...</option>
-                  <option value="restaurant">🍽️ Restaurant</option>
-                  <option value="cafe">☕ Café</option>
-                  <option value="hotel">🏨 Hotel</option>
-                  <option value="venue">🎭 Venue</option>
-                </select>
+              {isRecommendation && (
+                <div className="mt-3 p-5 bg-gradient-to-br from-amber-50 via-orange-50/50 to-amber-50 backdrop-blur-sm rounded-2xl space-y-4 border border-amber-200/40 shadow-inner animate-slide-in">
+                  <div className="space-y-3">
+                    <label className="block">
+                      <span className="text-sm font-semibold text-amber-800 mb-2 block">What are you recommending?</span>
+                      <div className="relative">
+                        <select
+                          value={recommendationType}
+                          onChange={(e) => setRecommendationType(e.target.value)}
+                          className="w-full p-4 pl-12 rounded-xl bg-white/90 backdrop-blur-sm border border-amber-200/60 focus:outline-none focus:ring-4 focus:ring-amber-400/30 font-medium text-gray-800 appearance-none cursor-pointer transition-all hover:border-amber-300"
+                        >
+                          <option value="">Choose a category...</option>
+                          <option value="restaurant">Restaurant</option>
+                          <option value="cafe">Café</option>
+                          <option value="hotel">Hotel</option>
+                          <option value="venue">Venue</option>
+                        </select>
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-xl">
+                          {recommendationType === 'restaurant' ? '🍽️' : 
+                           recommendationType === 'cafe' ? '☕' :
+                           recommendationType === 'hotel' ? '🏨' :
+                           recommendationType === 'venue' ? '🎭' : '📍'}
+                        </div>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-amber-600 pointer-events-none" />
+                      </div>
+                    </label>
 
-                <select
-                  value={priceRange}
-                  onChange={(e) => setPriceRange(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-white/80 backdrop-blur-sm border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-500/50 font-medium"
-                >
-                  <option value="">Price range...</option>
-                  <option value="$">$ - Budget</option>
-                  <option value="$$">$$ - Moderate</option>
-                  <option value="$$$">$$$ - Upscale</option>
-                </select>
-              </div>
-            )}
+                    <label className="block">
+                      <span className="text-sm font-semibold text-amber-800 mb-2 block">Price range</span>
+                      <div className="grid grid-cols-3 gap-2">
+                        {['$', '$$', '$$$'].map((price) => (
+                          <button
+                            key={price}
+                            onClick={() => setPriceRange(price)}
+                            className={`p-3 rounded-xl font-bold transition-all duration-200 ${
+                              priceRange === price
+                                ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg transform scale-105'
+                                : 'bg-white/80 text-gray-700 hover:bg-amber-100 hover:text-amber-700 border border-amber-200/40'
+                            }`}
+                          >
+                            <div className="text-lg">{price}</div>
+                            <div className="text-xs font-normal mt-1">
+                              {price === '$' ? 'Budget' : price === '$$' ? 'Moderate' : 'Upscale'}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Location input */}
             <div className="relative">
@@ -408,28 +480,39 @@ export default function BeautifulPostCreator({
               )}
             </div>
 
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2">
-              {predefinedTags.map((tag) => (
-                <button
-                  key={tag.value}
-                  onClick={() => {
-                    setSelectedTags(prev => 
-                      prev.includes(tag.value) 
-                        ? prev.filter(t => t !== tag.value)
-                        : [...prev, tag.value]
-                    );
-                  }}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all transform hover:scale-105 ${
-                    selectedTags.includes(tag.value)
-                      ? 'bg-gradient-to-r from-turquoise-500 to-cyan-600 text-white shadow-lg hover:shadow-xl'
-                      : 'bg-white/70 backdrop-blur-sm text-gray-700 hover:bg-white/90 border border-gray-200/50'
-                  }`}
-                >
-                  <span className="mr-1 text-lg">{tag.emoji}</span>
-                  {tag.label}
-                </button>
-              ))}
+            {/* Enhanced Tags with better styling */}
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                <Hash className="h-4 w-4 text-turquoise-500" />
+                <span>Add tags to your memory</span>
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {predefinedTags.map((tag) => (
+                  <button
+                    key={tag.value}
+                    onClick={() => {
+                      setSelectedTags(prev => 
+                        prev.includes(tag.value) 
+                          ? prev.filter(t => t !== tag.value)
+                          : [...prev, tag.value]
+                      );
+                    }}
+                    className={`group relative px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
+                      selectedTags.includes(tag.value)
+                        ? 'bg-gradient-to-r from-turquoise-500 to-cyan-600 text-white shadow-xl hover:shadow-2xl hover:from-turquoise-600 hover:to-cyan-700'
+                        : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white border border-gray-200/60 hover:border-turquoise-300 shadow-sm hover:shadow-lg'
+                    }`}
+                  >
+                    <span className="relative z-10 flex items-center space-x-2">
+                      <span className="text-lg transform group-hover:rotate-12 transition-transform">{tag.emoji}</span>
+                      <span>{tag.label}</span>
+                    </span>
+                    {selectedTags.includes(tag.value) && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-turquoise-600 to-cyan-700 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Advanced options */}
@@ -471,54 +554,85 @@ export default function BeautifulPostCreator({
             )}
           </div>
 
-          {/* Action bar */}
-          <div className="mt-6 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="p-3 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-turquoise-50/70 text-turquoise-600 transition-all hover:scale-105 transform shadow-sm hover:shadow-md"
-              >
-                <Camera className="h-5 w-5" />
-              </button>
-              
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="p-3 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-blue-50/70 text-blue-600 transition-all hover:scale-105 transform shadow-sm hover:shadow-md"
-              >
-                <Video className="h-5 w-5" />
-              </button>
+          {/* Enhanced Action bar with better visual design */}
+          <div className="mt-8 pt-6 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="group relative">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="relative p-4 rounded-2xl bg-gradient-to-br from-turquoise-50 to-turquoise-100 hover:from-turquoise-100 hover:to-turquoise-200 text-turquoise-600 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl"
+                  >
+                    <Camera className="h-6 w-6" />
+                    <div className="absolute -top-2 -right-2 px-2 py-1 bg-turquoise-600 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      Photo
+                    </div>
+                  </button>
+                </div>
+                
+                <div className="group relative">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="relative p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 text-blue-600 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl"
+                  >
+                    <Video className="h-6 w-6" />
+                    <div className="absolute -top-2 -right-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      Video
+                    </div>
+                  </button>
+                </div>
+
+                <div className="group relative">
+                  <button
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="relative p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-200 text-amber-600 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl"
+                  >
+                    <Smile className="h-6 w-6" />
+                    <div className="absolute -top-2 -right-2 px-2 py-1 bg-amber-600 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      Emoji
+                    </div>
+                  </button>
+                </div>
+
+                <div className="group relative">
+                  <button
+                    className="relative p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 text-purple-600 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl"
+                  >
+                    <Mic className="h-6 w-6" />
+                    <div className="absolute -top-2 -right-2 px-2 py-1 bg-purple-600 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      Voice
+                    </div>
+                  </button>
+                </div>
+              </div>
 
               <button
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="p-3 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-amber-50/70 text-amber-600 transition-all hover:scale-105 transform shadow-sm hover:shadow-md"
+                onClick={handleSubmit}
+                disabled={createPostMutation.isPending || (!content.trim() && mediaFiles.length === 0)}
+                className="group relative px-10 py-4 overflow-hidden rounded-full font-bold text-lg shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                style={{
+                  background: createPostMutation.isPending || (!content.trim() && mediaFiles.length === 0) 
+                    ? 'linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%)'
+                    : 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)'
+                }}
               >
-                <Smile className="h-5 w-5" />
-              </button>
-
-              <button
-                className="p-3 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-purple-50/70 text-purple-600 transition-all hover:scale-105 transform shadow-sm hover:shadow-md"
-              >
-                <Mic className="h-5 w-5" />
+                <div className="absolute inset-0 bg-gradient-to-r from-turquoise-600 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <span className="relative z-10 flex items-center space-x-3 text-white">
+                  {createPostMutation.isPending ? (
+                    <>
+                      <Loader className="h-5 w-5 animate-spin" />
+                      <span>Sharing your moment...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-5 w-5 animate-pulse" />
+                      <span>Share Memory</span>
+                      <span className="text-2xl">→</span>
+                    </>
+                  )}
+                </span>
               </button>
             </div>
-
-            <button
-              onClick={handleSubmit}
-              disabled={createPostMutation.isPending || (!content.trim() && mediaFiles.length === 0)}
-              className="px-8 py-3 bg-gradient-to-r from-turquoise-500 to-blue-600 text-white rounded-full font-semibold shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center space-x-2 hover:scale-105 transform hover:from-turquoise-600 hover:to-blue-700"
-            >
-              {createPostMutation.isPending ? (
-                <>
-                  <Loader className="h-4 w-4 animate-spin" />
-                  <span>Posting...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  <span>Share</span>
-                </>
-              )}
-            </button>
           </div>
 
           {/* Hidden file input */}
