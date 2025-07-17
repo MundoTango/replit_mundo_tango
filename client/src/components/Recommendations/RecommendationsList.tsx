@@ -107,6 +107,10 @@ export default function RecommendationsList({
   };
 
   const getRecommenderContext = (rec: Recommendation) => {
+    if (!rec.recommendedBy) {
+      return 'Community member';
+    }
+    
     if (rec.recommendedBy.isLocal) {
       return `Local ${rec.city} resident`;
     } else if (rec.recommendedBy.nationality) {
@@ -253,15 +257,15 @@ export default function RecommendationsList({
                 <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
-                      {rec.recommendedBy.profileImage ? (
-                        <img src={rec.recommendedBy.profileImage} alt={rec.recommendedBy.name} className="w-full h-full rounded-full object-cover" />
+                      {rec.recommendedBy?.profileImage ? (
+                        <img src={rec.recommendedBy.profileImage} alt={rec.recommendedBy?.name || 'User'} className="w-full h-full rounded-full object-cover" />
                       ) : (
-                        rec.recommendedBy.name.charAt(0)
+                        (rec.recommendedBy?.name || 'U').charAt(0)
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-medium">{rec.recommendedBy.name}</p>
-                      <p className="text-xs text-gray-500">{getRecommenderContext(rec)}</p>
+                      <p className="text-sm font-medium">{rec.recommendedBy?.name || 'Unknown'}</p>
+                      <p className="text-xs text-gray-500">{rec.recommendedBy ? getRecommenderContext(rec) : 'Community member'}</p>
                     </div>
                   </div>
                   
