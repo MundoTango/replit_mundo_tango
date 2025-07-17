@@ -262,6 +262,7 @@ export interface IStorage {
   followGroup(groupId: number, userId: number): Promise<void>;
   unfollowGroup(groupId: number, userId: number): Promise<void>;
   checkUserFollowingGroup(groupId: number, userId: number): Promise<boolean>;
+  getUserFollowingGroups(userId: number): Promise<any[]>;
   getGroupMemberCount(groupId: number): Promise<number>;
   
   // Group page methods
@@ -1954,6 +1955,18 @@ export class DatabaseStorage implements IStorage {
       [userId, groupId]
     );
     return result.rows.length > 0;
+  }
+
+  async getUserFollowingGroups(userId: number): Promise<any[]> {
+    const result = await pool.query(
+      `SELECT g.*, gf.created_at as followed_at 
+       FROM groups g 
+       JOIN group_followers gf ON g.id = gf.group_id 
+       WHERE gf.user_id = $1 
+       ORDER BY gf.created_at DESC`,
+      [userId]
+    );
+    return result.rows;
   }
 
   async addUserToGroup(groupId: number, userId: number, role: string = 'member'): Promise<GroupMember> {

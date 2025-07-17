@@ -6988,6 +6988,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Follow a city (for visitors)
+  app.post('/api/user/follow-city/:slug', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { slug } = req.params;
+      
+      // Find the group by slug
+      const group = await storage.getGroupBySlug(slug);
+      if (!group) {
+        return res.status(404).json({
+          success: false,
+          message: 'City not found',
+          data: null
+        });
+      }
+      
+      // Check if it's a city group
+      if (group.type !== 'city') {
+        return res.status(400).json({
+          success: false,
+          message: 'You can only follow city groups',
+          data: null
+        });
+      }
+      
+      // Get user's registration city
+      const user = await storage.getUser(userId);
+      const userCity = user?.city?.toLowerCase();
+      const groupCity = group.city?.toLowerCase();
+      
+      // Check if user is from this city
+      if (userCity === groupCity) {
+        return res.status(400).json({
+          success: false,
+          message: 'You cannot follow your home city',
+          data: null
+        });
+      }
+      
+      // Check if already following
+      const isFollowing = await storage.checkUserFollowingGroup(group.id, userId);
+      if (isFollowing) {
+        return res.status(200).json({
+          success: true,
+          message: 'You are already following this city',
+          data: { group, alreadyFollowing: true }
+        });
+      }
+      
+      // Add follow relationship
+      await storage.followGroup(group.id, userId);
+      
+      // Log the action
+      console.log(`User ${userId} followed city ${group.name} (${slug})`);
+      
+      res.status(200).json({
+        success: true,
+        message: `You are now following ${group.name}! 🌍`,
+        data: { group, newFollower: true }
+      });
+      
+    } catch (error) {
+      console.error('Error following city:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to follow city',
+        data: null
+      });
+    }
+  });
+
+  // Get user's following list (cities)
+  app.get('/api/user/following', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      
+      // Get all groups the user is following
+      const followingGroups = await storage.getUserFollowingGroups(userId);
+      
+      res.status(200).json({
+        success: true,
+        data: followingGroups
+      });
+      
+    } catch (error) {
+      console.error('Error getting following list:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get following list',
+        data: []
+      });
+    }
+  });
+
   // Get group details by slug
   app.get('/api/groups/:slug', setUserContext, async (req, res) => {
     try {

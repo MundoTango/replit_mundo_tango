@@ -392,6 +392,24 @@
   5. Cloud migration planning
 - **Technical Debt**: 27 high-priority items identified, systematic resolution plan created
 
+**UPDATE (January 17, 2025 - Follow City RBAC Implementation)**: Complete Visitor/Local Distinction with Follow Functionality
+- **Follow City API Endpoints**: Created comprehensive follow city functionality for visitor users
+  - POST /api/user/follow-city/:slug - Follow a city (visitors only, prevents following home city)
+  - GET /api/user/following - Get user's list of followed cities
+  - Uses existing group_followers table infrastructure
+- **RBAC Business Logic**: Enforced strict visitor vs local rules
+  - Local users: Can join city groups, message visitors, offer guidance, access host onboarding
+  - Visitor users: Can only follow cities (not join), access guest onboarding, see visitor alerts
+  - City determination based on registration field: "What city do you live or dance the most in"
+- **Storage Layer Enhancement**: 
+  - Added getUserFollowingGroups method to retrieve all followed groups with metadata
+  - Leveraged existing followGroup, unfollowGroup, checkUserFollowingGroup methods
+- **UI/UX Implementation**: 
+  - VisitorAlerts component displays context-aware notifications for visitors
+  - CommunityToolbar adapts based on user context (local vs visitor)
+  - GroupDetailPageMT shows follow/unfollow buttons for visitors, join/leave for locals
+- **Technical Infrastructure**: Complete separation of follow vs join functionality at all layers
+
 **UPDATE (January 9, 2025 - Interactive Maps with Leaflet)**: Replaced Google Maps with Open Source Solution
 - **Mapping Solution Change**: Replaced Google Maps API with Leaflet.js open-source mapping library
   - Uses OpenStreetMap tiles - no API keys required, no billing concerns

@@ -21,6 +21,8 @@ import CommunityMapWithLayers from '@/components/CommunityMapWithLayers';
 import HostHomesList from '@/components/Housing/HostHomesList';
 import RecommendationsList from '@/components/Recommendations/RecommendationsList';
 import { GuestOnboardingEntrance } from '@/components/GuestOnboarding/GuestOnboardingEntrance';
+import { CityRbacService } from '@/services/cityRbacService';
+import VisitorAlerts from '@/components/VisitorAlerts';
 import '../styles/ttfiles.css';
 import '../styles/mt-group.css';
 
@@ -209,6 +211,33 @@ export default function GroupDetailPageMT() {
     enabled: !!user?.id && activeTab === 'community-hub',
   });
 
+  // User memberships and following
+  const { data: userMemberships = [] } = useQuery({
+    queryKey: ['/api/user/memberships', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const response = await fetch(`/api/user/memberships`, {
+        credentials: 'include',
+      });
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.data || [];
+    }
+  });
+
+  const { data: userFollowing = [] } = useQuery({
+    queryKey: ['/api/user/following', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const response = await fetch(`/api/user/following`, {
+        credentials: 'include',
+      });
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.data || [];
+    }
+  });
+
   // Join group mutation
   const joinGroupMutation = useMutation({
     mutationFn: async () => {
@@ -244,6 +273,32 @@ export default function GroupDetailPageMT() {
         description: `You have left ${group?.name}`,
       });
       queryClient.invalidateQueries({ queryKey: [`/api/groups/${slug}`] });
+    },
+  });
+
+  // Follow city mutation
+  const followCityMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/user/follow-city/${slug}`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to follow city');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: `You are now following ${group?.city || group?.name}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/following', user?.id] });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to follow city',
+        variant: 'destructive',
+      });
     },
   });
 
@@ -877,34 +932,110 @@ export default function GroupDetailPageMT() {
   };
 
   const renderCommunityHub = () => {
-    // Check if user has completed guest profile
-    const hasGuestProfile = guestProfile?.isComplete || false;
+    // Get user's city context using RBAC
+    const userContext = CityRbacService.getUserCityContext(
+      user,
+      group.city || '',
+      userMemberships,
+      userFollowing,
+      group.id
+    );
+
+    const statusText = CityRbacService.getStatusDisplayText(userContext, group.city || group.name);
 
     return (
       <div className="space-y-6">
-        {/* Show guest onboarding entrance for users without guest profile */}
-        {!hasGuestProfile && (
+        {/* Status Banner */}
+        <div className={`rounded-lg p-4 border ${
+          userContext.isLocal 
+            ? 'bg-gradient-to-r from-green-50 to-turquoise-50 border-green-200' 
+            : 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-1">{statusText.title}</h3>
+              <p className="text-gray-700">{statusText.description}</p>
+            </div>
+            {statusText.action && (
+              <Button
+                onClick={() => {
+                  if (statusText.action === 'Join Community') {
+                    joinGroupMutation.mutate();
+                  } else if (statusText.action === 'Follow City') {
+                    followCityMutation.mutate();
+                  } else if (statusText.action === 'Complete Guest Profile') {
+                    setLocation('/guest-onboarding');
+                  } else if (statusText.action === 'Consider becoming a host') {
+                    setLocation('/host-onboarding');
+                  }
+                }}
+                className="mt-action-button mt-action-button-primary"
+              >
+                {statusText.action}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Show guest onboarding for visitors without profile */}
+        {userContext.isVisitor && !userContext.hasGuestProfile && (
           <GuestOnboardingEntrance />
         )}
 
-        {/* Show community toolbar for users with completed guest profile */}
-        {hasGuestProfile && (
+        {/* Show host onboarding option for locals without host profile */}
+        {userContext.isLocal && !userContext.hasHostProfile && (
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6">
+            <div className="flex items-start gap-4">
+              <Home className="h-8 w-8 text-purple-600 mt-1" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 mb-2">Become a Host</h3>
+                <p className="text-gray-700 mb-4">
+                  Share your home with visiting dancers and earn extra income while building connections.
+                </p>
+                <Button
+                  onClick={() => setLocation('/host-onboarding')}
+                  className="mt-action-button mt-action-button-secondary"
+                >
+                  Start Host Onboarding
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Show community features for qualified users */}
+        {(userContext.isLocal || userContext.hasGuestProfile) && (
           <>
             <CommunityToolbar 
               city={group.city} 
               groupSlug={group.slug}
+              userContext={userContext}
             />
             
-            {/* Guest-specific messaging */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mt-4">
+            {/* Context-specific messaging */}
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-4">
               <div className="flex items-center gap-2">
-                <Info className="h-5 w-5 text-blue-600" />
-                <p className="text-blue-800">
-                  Browse available host homes, local recommendations, and events in {group.city}. 
-                  Click on any home to request a stay!
+                <Info className="h-5 w-5 text-gray-600" />
+                <p className="text-gray-700">
+                  {userContext.isLocal ? (
+                    <>
+                      As a local, you can see visitors coming to town and offer to guide them. 
+                      Check the map for upcoming visitors!
+                    </>
+                  ) : (
+                    <>
+                      Browse available host homes, local recommendations, and events in {group.city}. 
+                      Your guest profile allows you to request stays!
+                    </>
+                  )}
                 </p>
               </div>
             </div>
+
+            {/* Visitor alerts for locals */}
+            {userContext.privileges.canSeeVisitors && (
+              <VisitorAlerts cityId={group.id} />
+            )}
           </>
         )}
       </div>

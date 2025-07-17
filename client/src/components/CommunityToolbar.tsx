@@ -26,12 +26,15 @@ import HostHomesList from './Housing/HostHomesList';
 import RecommendationsList from './Recommendations/RecommendationsList';
 import CommunityMapWithLayers from './CommunityMapWithLayers';
 
+import { CityAccessContext } from '@/services/cityRbacService';
+
 interface CommunityToolbarProps {
   city?: string;
   groupSlug?: string;
+  userContext?: CityAccessContext;
 }
 
-export default function CommunityToolbar({ city, groupSlug }: CommunityToolbarProps) {
+export default function CommunityToolbar({ city, groupSlug, userContext }: CommunityToolbarProps) {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState('map');
@@ -79,23 +82,33 @@ export default function CommunityToolbar({ city, groupSlug }: CommunityToolbarPr
           </p>
         </div>
         
-        {/* Role-based buttons */}
+        {/* Context-based buttons */}
         <div className="flex gap-2">
-          {isSuperAdmin ? (
+          {userContext?.isLocal && !userContext.hasHostProfile && (
             <Button 
               onClick={() => setLocation('/host-onboarding')}
               className="bg-gradient-to-br from-pink-500 to-purple-600 text-white"
             >
               <Home className="h-4 w-4 mr-2" />
-              List Your Property
+              Become a Host
             </Button>
-          ) : (
+          )}
+          {userContext?.privileges.canSeeVisitors && (
             <Button 
               variant="outline"
-              onClick={() => navigate('/housing-marketplace')}
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Users className="h-4 w-4 mr-2" />
+              View Incoming Visitors
+            </Button>
+          )}
+          {userContext?.isVisitor && userContext.privileges.canRequestStay && (
+            <Button 
+              variant="outline"
+              onClick={() => setLocation('/housing-marketplace')}
             >
               <Home className="h-4 w-4 mr-2" />
-              Browse All Housing
+              Request a Stay
             </Button>
           )}
         </div>
