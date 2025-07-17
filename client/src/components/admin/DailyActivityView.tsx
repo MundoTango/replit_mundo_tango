@@ -40,7 +40,7 @@ function DailyActivityView() {
     queryFn: async () => {
       const result = await apiRequest(
         'GET',
-        `/api/daily-activities?date=${selectedDate.toISOString().split('T')[0]}`
+        `/api/daily-activities` // Remove date filter to see all activities
       );
       return result.data || [];
     },
