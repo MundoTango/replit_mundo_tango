@@ -34,7 +34,7 @@ import { RoleEmojiDisplay } from '../components/ui/RoleEmojiDisplay';
 import { PostContextMenu } from '../components/ui/PostContextMenu';
 import { ReportModal } from '../components/ui/ReportModal';
 import EventsBoard from '../components/events/EventsBoard';
-import PostComposer from '../components/moments/PostComposer';
+import BeautifulPostCreator from '../components/universal/BeautifulPostCreator';
 
 interface Memory {
   id: string;
@@ -439,9 +439,15 @@ export default function EnhancedTimelineV2() {
               <p className="text-gray-600 mt-2">Experience the new Facebook-inspired design</p>
             </div>
 
-            {/* Post Composer */}
+            {/* Beautiful Post Creator */}
             <div className="mb-6">
-              <PostComposer />
+              <BeautifulPostCreator 
+                context={{ type: 'memory' }}
+                user={user}
+                onPostCreated={() => {
+                  queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
+                }}
+              />
             </div>
 
             {/* Posts */}
