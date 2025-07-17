@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import UniversalPostCreator from '@/components/universal/UniversalPostCreator';
+import EnhancedUniversalPostCreator from '@/components/universal/EnhancedUniversalPostCreator';
 import EnhancedPostFeed from '@/components/moments/EnhancedPostFeed';
 import EventsBoard from '@/components/events/EventsBoard';
 import { Sparkles, Heart } from 'lucide-react';
@@ -49,7 +49,7 @@ function MomentsPage() {
             {/* Main content area with enhanced styling */}
             <div className="flex-1 lg:w-0 lg:flex-[0_0_68%] max-w-none">
               <div className="space-y-6">
-                <UniversalPostCreator 
+                <EnhancedUniversalPostCreator 
                   context={{ type: 'feed' }}
                   user={user}
                   onPostCreated={handlePostCreated} 
