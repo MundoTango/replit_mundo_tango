@@ -31,8 +31,10 @@ interface ActivityItem {
 
 function DailyActivityView() {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
-  // Default to today's date
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  // Default to today's date - ensure it's today in local timezone
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time to start of day
+  const [selectedDate, setSelectedDate] = useState(today);
 
   // Fetch daily activities from API - no date filtering, show all activities
   const { data: apiActivities = [], isLoading, refetch } = useQuery({
@@ -172,7 +174,10 @@ function DailyActivityView() {
           <input
             type="date"
             value={selectedDate.toISOString().split('T')[0]}
-            onChange={(e) => setSelectedDate(new Date(e.target.value))}
+            onChange={(e) => {
+              const newDate = new Date(e.target.value + 'T00:00:00');
+              setSelectedDate(newDate);
+            }}
             className="px-3 py-1 border rounded-md text-sm"
           />
           <Badge className="bg-blue-100 text-blue-800">
