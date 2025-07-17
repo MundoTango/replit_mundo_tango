@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MapPin, 
   Image, 
@@ -27,8 +26,6 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import EmojiPicker from 'emoji-picker-react';
-import { extractMediaMetadata } from '@/lib/media-metadata';
-import { analyzeLocationContext } from '@/lib/location-intelligence';
 
 interface PostCreatorProps {
   context?: {
