@@ -1,13 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import ModernPostCreator from '@/components/moments/ModernPostCreator';
+import UniversalPostCreator from '@/components/universal/UniversalPostCreator';
 import EnhancedPostFeed from '@/components/moments/EnhancedPostFeed';
 import EventsBoard from '@/components/events/EventsBoard';
 import { Sparkles, Heart } from 'lucide-react';
 import { withPerformance } from '@/lib/performance';
+import { useAuth } from '@/hooks/useAuth';
 
 function MomentsPage() {
   const [refreshKey, setRefreshKey] = useState(0);
+  const { user } = useAuth();
   
   const handlePostCreated = useCallback(() => {
     // Instead of reloading the page, just refresh the feed
@@ -47,7 +49,11 @@ function MomentsPage() {
             {/* Main content area with enhanced styling */}
             <div className="flex-1 lg:w-0 lg:flex-[0_0_68%] max-w-none">
               <div className="space-y-6">
-                <ModernPostCreator onPostCreated={handlePostCreated} />
+                <UniversalPostCreator 
+                  context={{ type: 'feed' }}
+                  user={user}
+                  onPostCreated={handlePostCreated} 
+                />
                 <EnhancedPostFeed key={refreshKey} />
               </div>
             </div>

@@ -305,6 +305,57 @@ Our original purple-blue gradient becomes the secondary palette for accents and 
 }
 ```
 
+### Post Creator Component
+The UniversalPostCreator component uses the MT ocean theme throughout:
+
+```css
+/* Component styling with MT ocean theme */
+.post-creator-card {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.user-avatar {
+  background: var(--gradient-primary);
+}
+
+/* Recommendation toggle */
+.recommendation-toggle {
+  background: linear-gradient(135deg, var(--color-turquoise-50) 0%, var(--color-blue-50) 100%);
+  border: 1px solid var(--color-turquoise-200);
+}
+
+/* Action buttons */
+.action-button-image { color: var(--color-turquoise-600); }
+.action-button-video { color: var(--color-blue-600); }
+.action-button-location { color: var(--color-cyan-600); }
+.action-button-emoji { color: var(--color-amber-600); }
+
+/* Submit button */
+.submit-button {
+  background: var(--gradient-primary);
+  box-shadow: var(--shadow-md);
+  transition: all 0.2s ease;
+}
+
+.submit-button:hover {
+  background: var(--gradient-primary-hover);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Tags */
+.tag-selected {
+  background: var(--color-turquoise-500);
+  color: white;
+}
+
+.tag-unselected:hover {
+  background: var(--color-turquoise-100);
+  color: var(--color-turquoise-700);
+}
+```
+
 ## Animations
 
 ### Transitions

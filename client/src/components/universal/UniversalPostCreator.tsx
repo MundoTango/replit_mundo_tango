@@ -17,11 +17,13 @@ import {
   List,
   Calendar,
   Home,
-  Star
+  Star,
+  AlertCircle
 } from 'lucide-react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import EnhancedGoogleMapsAutocomplete from '../maps/EnhancedGoogleMapsAutocomplete';
+import SimplifiedLocationInput from './SimplifiedLocationInput';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { MentionsInput, Mention } from 'react-mentions';
 import { useAuth } from '@/hooks/useAuth';
@@ -322,11 +324,11 @@ export default function UniversalPostCreator({
       <div className="p-6">
         {/* Context Banner */}
         {context.type !== 'feed' && (
-          <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg flex items-center gap-2">
-            {context.type === 'event' && <Calendar className="h-4 w-4 text-purple-600" />}
-            {context.type === 'group' && <Users className="h-4 w-4 text-purple-600" />}
-            {context.type === 'memory' && <Star className="h-4 w-4 text-purple-600" />}
-            <span className="text-sm text-purple-700">
+          <div className="mb-4 p-3 bg-gradient-to-r from-turquoise-50 to-blue-50 rounded-lg flex items-center gap-2 border border-turquoise-200">
+            {context.type === 'event' && <Calendar className="h-4 w-4 text-turquoise-600" />}
+            {context.type === 'group' && <Users className="h-4 w-4 text-turquoise-600" />}
+            {context.type === 'memory' && <Star className="h-4 w-4 text-turquoise-600" />}
+            <span className="text-sm text-turquoise-700">
               Posting to {context.type}
             </span>
           </div>
@@ -354,7 +356,7 @@ export default function UniversalPostCreator({
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-turquoise-400 to-blue-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
                   {user?.name?.charAt(0) || 'U'}
                 </div>
                 <div>
@@ -372,35 +374,41 @@ export default function UniversalPostCreator({
               </Button>
             </div>
 
-            {/* Recommendation Toggle */}
+            {/* Recommendation Toggle - Enhanced for better discoverability */}
             {showRecommendationOptions && context.type !== 'recommendation' && (
-              <div className="mb-4">
-                <label className="flex items-center gap-2">
+              <div className="mb-4 p-4 bg-gradient-to-r from-turquoise-50 to-blue-50 rounded-lg border border-turquoise-200 shadow-sm">
+                <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isRecommendation}
                     onChange={(e) => setIsRecommendation(e.target.checked)}
-                    className="rounded border-gray-300"
+                    className="w-5 h-5 rounded border-turquoise-300 text-turquoise-600 focus:ring-turquoise-500"
                   />
-                  <span className="text-sm font-medium">This is a recommendation</span>
+                  <div>
+                    <span className="font-medium text-gray-800 flex items-center gap-2">
+                      <Star className="h-4 w-4 text-yellow-500" />
+                      Share a recommendation
+                    </span>
+                    <span className="text-xs text-gray-600">Help others discover great tango places, services, or experiences</span>
+                  </div>
                 </label>
               </div>
             )}
 
             {/* Recommendation Options */}
             {(isRecommendation || context.type === 'recommendation') && (
-              <div className="mb-4 p-4 bg-purple-50 rounded-lg space-y-3">
+              <div className="mb-4 p-4 bg-turquoise-50 rounded-lg space-y-3 border border-turquoise-200">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Type</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">Type of Recommendation</label>
                   <div className="grid grid-cols-4 gap-2">
                     {recommendationTypes.map(type => (
                       <button
                         key={type.value}
                         onClick={() => setRecommendationType(type.value)}
-                        className={`p-2 rounded-lg border text-sm ${
+                        className={`p-2 rounded-lg border text-sm transition-all ${
                           recommendationType === type.value
-                            ? 'border-purple-500 bg-purple-100'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-turquoise-500 bg-turquoise-100 shadow-sm'
+                            : 'border-gray-200 hover:border-turquoise-300 hover:bg-turquoise-50'
                         }`}
                       >
                         <span className="text-lg">{type.icon}</span>
@@ -444,10 +452,10 @@ export default function UniversalPostCreator({
                             setTags([...tags, tag]);
                           }
                         }}
-                        className={`px-3 py-1 rounded-full text-sm ${
+                        className={`px-3 py-1 rounded-full text-sm transition-all ${
                           tags.includes(tag)
-                            ? 'bg-purple-500 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-turquoise-500 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-turquoise-100 hover:text-turquoise-700'
                         }`}
                       >
                         {tag}
@@ -492,7 +500,16 @@ export default function UniversalPostCreator({
 
             {/* Enhanced Location Input */}
             <div className="mb-4">
-              <EnhancedGoogleMapsAutocomplete
+              <div className="flex items-center gap-2 mb-2">
+                <MapPin className="h-4 w-4 text-turquoise-600" />
+                <label className="text-sm font-medium text-gray-700">Location</label>
+                {isRecommendation && (
+                  <span className="text-xs text-red-500">*Required for recommendations</span>
+                )}
+              </div>
+              
+              {/* Use SimplifiedLocationInput as primary input */}
+              <SimplifiedLocationInput
                 value={location}
                 placeholder={
                   locationContext.userCurrentLocation
@@ -500,23 +517,29 @@ export default function UniversalPostCreator({
                     : "Add location..."
                 }
                 onLocationSelect={(data) => {
-                  setLocation(data.formattedAddress);
-                  setLocationData(data);
+                  if (typeof data === 'string') {
+                    setLocation(data);
+                    setLocationData(null);
+                  } else {
+                    setLocation(data.formattedAddress);
+                    setLocationData(data);
+                  }
                 }}
                 onClear={() => {
                   setLocation('');
                   setLocationData(null);
                 }}
-                currentLocation={locationContext.userCurrentLocation}
-                suggestions={locationContext.upcomingEvents?.map(e => ({
-                  name: e.location.name,
-                  lat: e.location.lat,
-                  lng: e.location.lng,
-                  context: `Event: ${e.title}`
-                }))}
-                allowBusinessSearch={true}
                 className="w-full"
+                required={isRecommendation}
               />
+              
+              {/* Show error message about Google Maps if needed */}
+              {location && !locationData && (
+                <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  Using simplified location input. Google Maps integration requires API key.
+                </p>
+              )}
             </div>
 
             {/* Media Previews with Metadata */}
@@ -569,7 +592,7 @@ export default function UniversalPostCreator({
                   variant="ghost"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-pink-600 hover:text-pink-700 hover:bg-pink-50"
+                  className="text-turquoise-600 hover:text-turquoise-700 hover:bg-turquoise-50"
                 >
                   <Image className="h-5 w-5" />
                 </Button>
@@ -586,7 +609,7 @@ export default function UniversalPostCreator({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                  className="text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50"
                 >
                   <MapPin className="h-5 w-5" />
                 </Button>
@@ -595,7 +618,7 @@ export default function UniversalPostCreator({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+                  className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
                 >
                   <Smile className="h-5 w-5" />
                 </Button>
@@ -615,7 +638,7 @@ export default function UniversalPostCreator({
                 <Button
                   onClick={handleSubmit}
                   disabled={createPostMutation.isPending || (!content.trim() && !richContent.trim())}
-                  className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-6"
+                  className="bg-gradient-to-r from-turquoise-500 to-blue-600 hover:from-turquoise-600 hover:to-blue-700 text-white px-6 shadow-md hover:shadow-lg transition-all"
                 >
                   {createPostMutation.isPending ? (
                     <div className="flex items-center space-x-2">
