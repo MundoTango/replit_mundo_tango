@@ -57,10 +57,15 @@ function DailyActivityView() {
     
     // Filter activities to only show selected date
     const selectedDateStr = selectedDate.toISOString().split('T')[0];
+    console.log('Selected date string:', selectedDateStr);
+    console.log('All activities:', apiActivities);
+    
     const filteredActivities = apiActivities.filter((activity: DailyActivity) => {
       const activityDate = new Date(activity.timestamp).toISOString().split('T')[0];
+      console.log('Comparing:', activityDate, 'with', selectedDateStr, 'Match:', activityDate === selectedDateStr);
       return activityDate === selectedDateStr;
     });
+    console.log('Filtered activities:', filteredActivities);
     
 
 
