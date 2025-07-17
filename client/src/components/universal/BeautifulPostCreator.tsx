@@ -255,9 +255,9 @@ export default function BeautifulPostCreator({
 
   return (
     <div className="w-full">
-      <Card className="relative overflow-hidden border-0 shadow-xl bg-white/95 backdrop-blur-sm">
+      <Card className="relative overflow-hidden border-0 glassmorphic-card beautiful-hover">
         {/* Beautiful gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-turquoise-500/10 via-cyan-500/10 to-blue-500/10 animate-gradient pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-turquoise-500/20 via-cyan-500/20 to-blue-500/20 animate-gradient pointer-events-none" />
         
         <div className="relative z-10 p-6">
           {/* Header */}
@@ -285,10 +285,7 @@ export default function BeautifulPostCreator({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Share your tango moment..."
-              className="w-full min-h-[100px] p-4 bg-gray-50/80 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-turquoise-500/50 focus:border-transparent transition-all placeholder:text-gray-400"
-              style={{ 
-                background: 'linear-gradient(to bottom, rgba(249, 250, 251, 0.8), rgba(255, 255, 255, 0.8))'
-              }}
+              className="w-full min-h-[100px] p-4 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-turquoise-500/50 focus:border-transparent transition-all placeholder:text-gray-400 glassmorphic-input"
             />
 
             {/* Media previews */}
@@ -330,11 +327,11 @@ export default function BeautifulPostCreator({
             </button>
 
             {isRecommendation && (
-              <div className="p-4 bg-amber-50/50 rounded-xl space-y-3">
+              <div className="p-4 bg-gradient-to-br from-amber-50/70 to-orange-50/70 backdrop-blur-sm rounded-xl space-y-3 border border-amber-200/30">
                 <select
                   value={recommendationType}
                   onChange={(e) => setRecommendationType(e.target.value)}
-                  className="w-full p-2 rounded-lg border border-amber-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  className="w-full p-3 rounded-lg bg-white/80 backdrop-blur-sm border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-500/50 font-medium"
                 >
                   <option value="">Select type...</option>
                   <option value="restaurant">🍽️ Restaurant</option>
@@ -346,7 +343,7 @@ export default function BeautifulPostCreator({
                 <select
                   value={priceRange}
                   onChange={(e) => setPriceRange(e.target.value)}
-                  className="w-full p-2 rounded-lg border border-amber-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  className="w-full p-3 rounded-lg bg-white/80 backdrop-blur-sm border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-500/50 font-medium"
                 >
                   <option value="">Price range...</option>
                   <option value="$">$ - Budget</option>
@@ -366,7 +363,7 @@ export default function BeautifulPostCreator({
                     value={location}
                     onChange={handleLocationChange}
                     placeholder="Add location..."
-                    className="w-full pl-10 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-turquoise-500/50 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-turquoise-500/50 focus:border-transparent transition-all glassmorphic-input"
                   />
                   
                   {/* Location suggestions */}
@@ -423,13 +420,13 @@ export default function BeautifulPostCreator({
                         : [...prev, tag.value]
                     );
                   }}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all transform hover:scale-105 ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all transform hover:scale-105 ${
                     selectedTags.includes(tag.value)
-                      ? 'bg-gradient-to-r from-turquoise-500 to-cyan-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-gradient-to-r from-turquoise-500 to-cyan-600 text-white shadow-lg hover:shadow-xl'
+                      : 'bg-white/70 backdrop-blur-sm text-gray-700 hover:bg-white/90 border border-gray-200/50'
                   }`}
                 >
-                  <span className="mr-1">{tag.emoji}</span>
+                  <span className="mr-1 text-lg">{tag.emoji}</span>
                   {tag.label}
                 </button>
               ))}
@@ -476,30 +473,30 @@ export default function BeautifulPostCreator({
 
           {/* Action bar */}
           <div className="mt-6 flex items-center justify-between">
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-2">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-lg hover:bg-turquoise-50 text-turquoise-600 transition-colors"
+                className="p-3 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-turquoise-50/70 text-turquoise-600 transition-all hover:scale-105 transform shadow-sm hover:shadow-md"
               >
                 <Camera className="h-5 w-5" />
               </button>
               
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"
+                className="p-3 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-blue-50/70 text-blue-600 transition-all hover:scale-105 transform shadow-sm hover:shadow-md"
               >
                 <Video className="h-5 w-5" />
               </button>
 
               <button
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="p-2 rounded-lg hover:bg-amber-50 text-amber-600 transition-colors"
+                className="p-3 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-amber-50/70 text-amber-600 transition-all hover:scale-105 transform shadow-sm hover:shadow-md"
               >
                 <Smile className="h-5 w-5" />
               </button>
 
               <button
-                className="p-2 rounded-lg hover:bg-purple-50 text-purple-600 transition-colors"
+                className="p-3 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-purple-50/70 text-purple-600 transition-all hover:scale-105 transform shadow-sm hover:shadow-md"
               >
                 <Mic className="h-5 w-5" />
               </button>
@@ -508,7 +505,7 @@ export default function BeautifulPostCreator({
             <button
               onClick={handleSubmit}
               disabled={createPostMutation.isPending || (!content.trim() && mediaFiles.length === 0)}
-              className="px-6 py-2 bg-gradient-to-r from-turquoise-500 to-blue-600 text-white rounded-full font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center space-x-2 hover:scale-105 transform"
+              className="px-8 py-3 bg-gradient-to-r from-turquoise-500 to-blue-600 text-white rounded-full font-semibold shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center space-x-2 hover:scale-105 transform hover:from-turquoise-600 hover:to-blue-700"
             >
               {createPostMutation.isPending ? (
                 <>
