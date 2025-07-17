@@ -540,26 +540,28 @@ export default function BeautifulPostCreator({
               <div className="space-y-3 p-4 bg-gray-50 rounded-xl">
                 {/* Visibility selector */}
                 <div className="flex items-center space-x-3">
-                  <span className="text-sm text-gray-600">Visibility:</span>
-                  <div className="flex space-x-2">
-                    {[
-                      { value: 'public', icon: Globe, label: 'Public' },
-                      { value: 'friends', icon: Users, label: 'Friends' },
-                      { value: 'private', icon: Lock, label: 'Private' }
-                    ].map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => setVisibility(option.value)}
-                        className={`px-3 py-1 rounded-lg flex items-center space-x-1 text-sm transition-all ${
-                          visibility === option.value
-                            ? 'bg-turquoise-100 text-turquoise-700'
-                            : 'bg-white text-gray-600 hover:bg-gray-100'
-                        }`}
-                      >
-                        <option.icon className="h-3 w-3" />
-                        <span>{option.label}</span>
-                      </button>
-                    ))}
+                  <label htmlFor="visibility-select" className="text-sm text-gray-600">Visibility:</label>
+                  <div className="relative flex-1 max-w-xs">
+                    <select
+                      id="visibility-select"
+                      value={visibility}
+                      onChange={(e) => setVisibility(e.target.value)}
+                      className="w-full p-2 pl-10 pr-8 rounded-lg bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-turquoise-500/50 focus:border-transparent text-sm font-medium text-gray-700 appearance-none cursor-pointer transition-all hover:border-gray-300"
+                    >
+                      <option value="public">Public - Anyone can see</option>
+                      <option value="friends">Friends - Only friends can see</option>
+                      <option value="private">Private - Only you can see</option>
+                    </select>
+                    
+                    {/* Icon based on selected visibility */}
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      {visibility === 'public' && <Globe className="h-4 w-4 text-turquoise-600" />}
+                      {visibility === 'friends' && <Users className="h-4 w-4 text-blue-600" />}
+                      {visibility === 'private' && <Lock className="h-4 w-4 text-gray-600" />}
+                    </div>
+                    
+                    {/* Dropdown arrow */}
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                   </div>
                 </div>
               </div>

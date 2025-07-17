@@ -1874,6 +1874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       // Use flexible authentication from authHelper
+      const { getUserId } = await import('./utils/authHelper');
       const userId = getUserId(req);
       console.log('🔐 Post creation auth debug:', {
         userId,
@@ -1966,7 +1967,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               NOW()
             )
           `);
-          console.log(`📍 Recommendation posted to city group ${cityGroup?.name}`);
+          console.log(`📍 Recommendation posted to city group ${user.city}`);
         } catch (err) {
           console.error('Error posting to city group:', err);
           // Don't fail the whole request if group posting fails
