@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation, Link } from 'wouter';
 import TenantSwitcher from './TenantSwitcher';
+import { RoleEmojiDisplay } from '@/components/ui/RoleEmojiDisplay';
 import { 
   Heart, 
   UsersRound, 
@@ -193,17 +194,17 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   </div>
                 </div>
               </div>
-              {/* Role Badges */}
-              <div className="flex flex-wrap gap-1">
-                {user?.tangoRoles?.map((role: string, index: number) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-gradient-to-r from-pink-500 to-blue-500 text-white text-xs rounded-full font-medium capitalize"
-                  >
-                    {role}
-                  </span>
-                ))}
-              </div>
+              {/* Role Emojis */}
+              {user?.tangoRoles && user.tangoRoles.length > 0 && (
+                <RoleEmojiDisplay 
+                  tangoRoles={user.tangoRoles} 
+                  leaderLevel={user.leaderLevel}
+                  followerLevel={user.followerLevel}
+                  size="sm"
+                  maxRoles={5}
+                  className="mt-1"
+                />
+              )}
             </a>
           </div>
 

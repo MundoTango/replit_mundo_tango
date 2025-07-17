@@ -23,6 +23,7 @@ import RecommendationsList from '@/components/Recommendations/RecommendationsLis
 import { GuestOnboardingEntrance } from '@/components/GuestOnboarding/GuestOnboardingEntrance';
 import { CityRbacService } from '@/services/cityRbacService';
 import VisitorAlerts from '@/components/VisitorAlerts';
+import { RoleEmojiDisplay } from '@/components/ui/RoleEmojiDisplay';
 import '../styles/ttfiles.css';
 import '../styles/mt-group.css';
 
@@ -513,13 +514,16 @@ export default function GroupDetailPageMT() {
                 </div>
                 <div className="mt-member-info">
                   <p className="mt-member-name">{member.user.name}</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {member.tangoRoles?.filter((role: string) => professionalRoles.includes(role)).map((role: string) => (
-                      <span key={role} className="text-xs bg-gradient-to-r from-pink-500 to-purple-600 text-white px-2 py-0.5 rounded-full">
-                        {role}
-                      </span>
-                    ))}
-                  </div>
+                  {member.tangoRoles && member.tangoRoles.length > 0 && (
+                    <RoleEmojiDisplay 
+                      tangoRoles={member.tangoRoles} 
+                      leaderLevel={member.user.leaderLevel}
+                      followerLevel={member.user.followerLevel}
+                      size="sm"
+                      maxRoles={5}
+                      className="mt-1"
+                    />
+                  )}
                   <p className="text-xs text-gray-500 mt-1">
                     Joined {new Date(member.joinedAt).toLocaleDateString()}
                   </p>
