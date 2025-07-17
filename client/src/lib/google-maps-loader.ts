@@ -1,49 +1,64 @@
-// Centralized Google Maps loader to ensure single async load
-import { Loader } from '@googlemaps/js-api-loader';
-
-let loaderInstance: Loader | null = null;
+let isLoaded = false;
+let isLoading = false;
 let loadPromise: Promise<void> | null = null;
 
-export function getGoogleMapsLoader(): Loader {
-  if (!loaderInstance) {
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
-      throw new Error('Google Maps API key not configured');
-    }
-    
-    loaderInstance = new Loader({
-      apiKey,
-      version: 'weekly',
-      libraries: ['places', 'geometry'],
-      // Ensure async loading
-      authReferrerPolicy: 'origin',
-      language: 'en',
-      region: 'US'
-    });
+export function loadGoogleMaps(): Promise<void> {
+  if (isLoaded) {
+    return Promise.resolve();
   }
-  
-  return loaderInstance;
-}
 
-export async function loadGoogleMaps(): Promise<void> {
-  if (loadPromise) {
+  if (isLoading && loadPromise) {
     return loadPromise;
   }
+
+  isLoading = true;
   
-  const loader = getGoogleMapsLoader();
-  loadPromise = loader.load().then(() => {
-    console.log('Google Maps loaded successfully');
-  }).catch((error) => {
-    console.error('Failed to load Google Maps:', error);
-    loadPromise = null; // Reset to allow retry
-    throw error;
+  loadPromise = new Promise((resolve, reject) => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    
+    if (!apiKey) {
+      reject(new Error('Google Maps API key is not configured. Please set VITE_GOOGLE_MAPS_API_KEY in your .env file.'));
+      return;
+    }
+
+    // Check if already loaded
+    if (window.google && window.google.maps) {
+      isLoaded = true;
+      isLoading = false;
+      resolve();
+      return;
+    }
+
+    // Create script element
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    
+    script.onload = () => {
+      isLoaded = true;
+      isLoading = false;
+      resolve();
+    };
+    
+    script.onerror = () => {
+      isLoading = false;
+      reject(new Error('Failed to load Google Maps script'));
+    };
+    
+    document.head.appendChild(script);
   });
-  
+
   return loadPromise;
 }
 
 export function isGoogleMapsLoaded(): boolean {
-  return typeof window !== 'undefined' && 
-         typeof window.google !== 'undefined' && 
-         typeof window.google.maps !== 'undefined';
+  return isLoaded;
+}
+
+// Type augmentation for Google Maps
+declare global {
+  interface Window {
+    google: typeof google;
+  }
 }

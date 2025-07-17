@@ -1653,6 +1653,211 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Universal posting endpoint with context-aware features
+  app.post('/api/posts/create-universal', isAuthenticated, upload.array('media', 10), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      const { 
+        content, 
+        location, 
+        locationData,
+        visibility = 'public', 
+        contextType = 'feed',
+        contextId,
+        embedUrl,
+        mediaMetadata,
+        isRecommendation,
+        recommendationType,
+        rating,
+        tags
+      } = req.body;
+      const files = req.files as Express.Multer.File[];
+
+      // Create the post
+      const postData = {
+        userId: user.id,
+        content,
+        location,
+        visibility,
+        imageUrl: files?.length > 0 ? `/uploads/${files[0].filename}` : undefined,
+      };
+
+      const post = await storage.createPost(postData);
+
+      // If location data is provided, store it (extend schema if needed)
+      if (locationData) {
+        const parsedLocationData = typeof locationData === 'string' ? JSON.parse(locationData) : locationData;
+        // Store location metadata - you may need to add a location_metadata column to posts table
+        await db.update(posts)
+          .set({ 
+            location: parsedLocationData.formattedAddress,
+            // Add lat/lng if columns exist
+          })
+          .where(eq(posts.id, post.id));
+      }
+
+      // Create recommendation if specified
+      if (isRecommendation === 'true' || isRecommendation === true) {
+        const parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags || [];
+        const parsedLocationData = typeof locationData === 'string' ? JSON.parse(locationData) : locationData;
+        
+        const recommendationData = {
+          userId: user.id,
+          postId: post.id,
+          title: parsedLocationData?.name || 'Recommendation',
+          description: content,
+          type: recommendationType || 'other',
+          address: parsedLocationData?.address || location,
+          city: parsedLocationData?.city || 'Buenos Aires',
+          state: parsedLocationData?.state,
+          country: parsedLocationData?.country || 'Argentina',
+          lat: parsedLocationData?.latitude,
+          lng: parsedLocationData?.longitude,
+          photos: files?.map(f => `/uploads/${f.filename}`) || [],
+          rating: rating ? parseInt(rating) : undefined,
+          tags: parsedTags
+        };
+
+        await db.insert(recommendations).values(recommendationData);
+      }
+
+      // Handle media metadata if provided
+      if (mediaMetadata && files?.length > 0) {
+        const parsedMetadata = typeof mediaMetadata === 'string' ? JSON.parse(mediaMetadata) : mediaMetadata;
+        // Store media metadata - you may need media_metadata table
+      }
+
+      res.json({
+        success: true,
+        message: isRecommendation ? 'Recommendation created successfully!' : 'Post created successfully!',
+        data: post
+      });
+    } catch (error: any) {
+      console.error('Error creating universal post:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || 'Failed to create post' 
+      });
+    }
+  });
+
+  // Location context endpoint
+  app.get('/api/users/:userId/location-context', isAuthenticated, async (req: any, res) => {
+    try {
+      const targetUserId = parseInt(req.params.userId);
+      const targetUser = await storage.getUser(targetUserId);
+      
+      if (!targetUser) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'User not found' 
+        });
+      }
+
+      // Get user's upcoming events
+      const upcomingEvents = await db.select({
+        id: events.id,
+        title: events.title,
+        location: events.location,
+        startDate: events.startDate,
+        latitude: events.latitude,
+        longitude: events.longitude
+      })
+      .from(eventRsvps)
+      .innerJoin(events, eq(eventRsvps.eventId, events.id))
+      .where(and(
+        eq(eventRsvps.userId, targetUserId),
+        eq(eventRsvps.status, 'attending'),
+        gte(events.startDate, new Date())
+      ))
+      .limit(5);
+
+      const contextualHints = [];
+      const now = new Date();
+      
+      // Check if user has an event today
+      const todayEvents = upcomingEvents.filter(e => {
+        const eventDate = new Date(e.startDate);
+        return eventDate.toDateString() === now.toDateString();
+      });
+
+      if (todayEvents.length > 0) {
+        contextualHints.push(`You're attending "${todayEvents[0].title}" today at ${todayEvents[0].location}`);
+      }
+
+      const locationContext = {
+        userRegistrationCity: `${targetUser.city}, ${targetUser.country}`,
+        upcomingEvents: upcomingEvents.map(e => ({
+          id: e.id.toString(),
+          title: e.title,
+          location: {
+            lat: parseFloat(e.latitude || '0'),
+            lng: parseFloat(e.longitude || '0'),
+            name: e.location || ''
+          },
+          startDate: e.startDate
+        })),
+        contextualHints
+      };
+
+      res.json(locationContext);
+    } catch (error: any) {
+      console.error('Error fetching location context:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || 'Failed to fetch location context' 
+      });
+    }
+  });
+
+  // Reverse geocoding endpoint
+  app.get('/api/geocode/reverse', async (req, res) => {
+    try {
+      const { lat, lng } = req.query;
+      
+      if (!lat || !lng) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Latitude and longitude are required' 
+        });
+      }
+
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+      );
+
+      if (!response.ok) {
+        throw new Error('Geocoding failed');
+      }
+
+      const data = await response.json();
+      
+      res.json({
+        formattedAddress: data.display_name,
+        city: data.address?.city || data.address?.town || data.address?.village,
+        state: data.address?.state,
+        country: data.address?.country,
+        latitude: parseFloat(lat as string),
+        longitude: parseFloat(lng as string)
+      });
+    } catch (error: any) {
+      console.error('Error reverse geocoding:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to reverse geocode location' 
+      });
+    }
+  });
+
   // Enhanced post creation endpoint with rich text, mentions, hashtags, and multimedia
   app.post('/api/posts/enhanced', isAuthenticated, upload.array('media', 10), async (req: any, res) => {
     try {

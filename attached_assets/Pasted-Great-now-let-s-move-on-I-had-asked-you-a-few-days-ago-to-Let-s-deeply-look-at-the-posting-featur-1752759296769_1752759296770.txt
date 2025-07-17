@@ -1,0 +1,17 @@
+Great now, let's move on. I had asked you a few days ago to "Let’s deeply look at the posting feature. This is used in many other parts of the platform like events, groups, etc. we need to make sure that the functionality remains the same for all of them. Can we make one templated version that then spans to all of these different locations. 
+
+I need you to then deeply understand what its purpose is and enhance it more. For example, i need the location to be the full Google maps integration so a user can put just a city or a business like “El Beso, buenos aries”
+
+I also need it to have user location understanding so it can make a suggestion based on their location. 
+If they upload a photo or video, the metadata for that content should also be captured and used as a source to understand the location it was taken. 
+
+Keep in mind that users can also @ mention users, events, groups, etc
+
+
+It should also understand where the user is in relation to their city from registration, any events that are going to, etc so it the system can understand that they: uploaded a photo, based on metadata, the users location, and that they said they were going to the “X event” that maybe this is being taken at “X event” in “Y city” at “Z location”.  This will then lead to RECOMMENDATIONS which are: when a user posts content and it is for an actual (again based on google maps data) business it goes as a recommendation. 
+
+Recommendations then live in the city groups, as pins on a map that is a layer over events and housing hosts. So people can see everything there is to do in the city. Recommendations will be a different color pin. When they click they can see who posted the recommendation and what they posted. They will be able to filter by if the recommendation is from a local or a visitor: if I go to buenos aires a local can give me a great asado place but if i’m there and i want good chinese i’d prefer to get a recommendation from a chinese person. "
+
+I need you to analyze this and see what work has been done for all fo these features to make sure they are fully functional as expected. 
+
+use the 30ls to anazlye, identify, plan, fix, test, fix, test. use any open sources that could help.
