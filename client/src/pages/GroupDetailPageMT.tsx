@@ -168,8 +168,15 @@ export default function GroupDetailPageMT() {
     retry: 2,
   });
 
-  // Extract group data from API response
-  const group = response?.data;
+  // Extract group data from API response - handle both patterns
+  console.log('Group API response:', response);
+  console.log('Slug being requested:', slug);
+  
+  // Check if the response has a success flag
+  const groupData = response?.success === false ? null : (response?.data || response);
+  const group = groupData?.id ? groupData : null;
+  
+  console.log('Extracted group:', group);
   
   // Check if user is member/admin
   const isMember = group?.members?.some((m: GroupMember) => m.user.id === user?.id) || false;
