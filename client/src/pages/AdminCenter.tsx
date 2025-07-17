@@ -290,9 +290,7 @@ const AdminCenter: React.FC = React.memo(() => {
     { id: 'life-ceo', label: 'Life CEO Portal', icon: <Brain className="w-4 h-4" /> },
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'statistics', label: 'Global Statistics', icon: <Globe className="w-4 h-4" />, isNew: true },
-    { id: 'daily-activity', label: 'Daily Activity', icon: <Calendar className="w-4 h-4" />, isNew: true },
     { id: 'project-tracker', label: 'The Plan', icon: <GitCommit className="w-4 h-4" /> },
-    { id: 'feature-deep-dive', label: 'Feature Deep Dive', icon: <Database className="w-4 h-4" /> },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
     { id: 'content', label: 'Content Moderation', icon: <FileText className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="w-4 h-4" /> },
@@ -302,7 +300,6 @@ const AdminCenter: React.FC = React.memo(() => {
     { id: 'compliance', label: 'Compliance Center', icon: <Shield className="w-4 h-4" /> },
     { id: 'rbac', label: 'RBAC/ABAC Manager', icon: <Lock className="w-4 h-4" /> },
     { id: 'system', label: 'System Health', icon: <Activity className="w-4 h-4" /> },
-    { id: '23l-framework', label: '30L Framework', icon: <Layers className="w-4 h-4" />, isNew: true },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
   ];
 

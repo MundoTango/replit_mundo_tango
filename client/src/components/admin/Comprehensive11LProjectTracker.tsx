@@ -3,6 +3,7 @@ import EnhancedHierarchicalTreeView from './EnhancedHierarchicalTreeView';
 import ErrorBoundary from './ErrorBoundary';
 import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
 import DailyActivityView from './DailyActivityView';
+import Framework30LDashboard from './Framework30LDashboard';
 import { countAllProjects, getAllTeams, comprehensiveProjectData, getTeamStatistics, getProjectAnalytics, getProjectTimeline } from '@/data/comprehensive-project-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -99,7 +100,7 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
   const FRAMEWORK_LAYERS = 30; // Currently using 30L Framework (Layers 1-30)
   
   // State management
-  const [view, setView] = useState<'hierarchy' | 'analytics' | 'timeline' | 'teams' | 'daily'>('hierarchy');
+  const [view, setView] = useState<'hierarchy' | 'analytics' | 'timeline' | 'teams' | 'daily' | '30l'>('hierarchy');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
@@ -280,7 +281,7 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
 
       {/* Navigation Tabs */}
       <Tabs value={view} onValueChange={(value: any) => setView(value)}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="hierarchy" className="flex items-center gap-2">
             <Network className="h-4 w-4" />
             Hierarchical View
@@ -300,6 +301,10 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
           <TabsTrigger value="daily" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             Daily Activity
+          </TabsTrigger>
+          <TabsTrigger value="30l" className="flex items-center gap-2">
+            <Layers className="h-4 w-4" />
+            30L Framework
           </TabsTrigger>
         </TabsList>
 
@@ -1080,6 +1085,11 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
         {/* Daily Activity View */}
         <TabsContent value="daily" className="space-y-6">
           <DailyActivityView />
+        </TabsContent>
+
+        {/* 30L Framework View */}
+        <TabsContent value="30l" className="space-y-6">
+          <Framework30LDashboard />
         </TabsContent>
       </Tabs>
 

@@ -50,9 +50,15 @@ function DailyActivityView() {
   // Convert API activities and merge with project data
   const todayActivities = useMemo(() => {
     const activities: ActivityItem[] = [];
+    
+    // Debug logging
+    console.log('API Activities:', apiActivities);
+    console.log('API Activities length:', apiActivities.length);
 
     // Process API activities
     apiActivities.forEach((activity: DailyActivity) => {
+      console.log('Processing activity:', activity);
+      
       // Try to find matching project item from comprehensive data
       let projectItem: ProjectItem | undefined;
       
