@@ -43,7 +43,6 @@ function DailyActivityView() {
         `/api/daily-activities` // API returns all activities
       );
       const result = await response.json();
-      console.log('API Response JSON:', result);
       // The API returns { success: true, data: [...] }
       return result.data || [];
     },
@@ -54,14 +53,17 @@ function DailyActivityView() {
   const todayActivities = useMemo(() => {
     const activities: ActivityItem[] = [];
     
-    // Debug logging
-    console.log('API Activities:', apiActivities);
-    console.log('API Activities length:', apiActivities.length);
+    // Filter activities to only show selected date
+    const selectedDateStr = selectedDate.toISOString().split('T')[0];
+    const filteredActivities = apiActivities.filter((activity: DailyActivity) => {
+      const activityDate = new Date(activity.timestamp).toISOString().split('T')[0];
+      return activityDate === selectedDateStr;
+    });
+    
+
 
     // Process API activities
-    apiActivities.forEach((activity: DailyActivity) => {
-      console.log('Processing activity:', activity);
-      
+    filteredActivities.forEach((activity: DailyActivity) => {
       // Try to find matching project item from comprehensive data
       let projectItem: ProjectItem | undefined;
       
@@ -107,8 +109,21 @@ function DailyActivityView() {
       });
     });
 
-    return activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  }, [apiActivities]);
+    // Remove duplicates based on project_id and description
+    const uniqueActivities = new Map<string, ActivityItem>();
+    activities.forEach(activity => {
+      const key = `${activity.item.id}-${activity.item.description}`;
+      if (!uniqueActivities.has(key)) {
+        uniqueActivities.set(key, activity);
+      }
+    });
+
+    // Convert back to array and sort by timestamp
+    const dedupedActivities = Array.from(uniqueActivities.values());
+    dedupedActivities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+    return dedupedActivities;
+  }, [apiActivities, selectedDate]);
 
   const getActivityIcon = (type: ActivityItem['type']) => {
     switch (type) {
