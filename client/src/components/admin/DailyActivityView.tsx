@@ -37,6 +37,7 @@ function DailyActivityView() {
     queryKey: ['/api/daily-activities', selectedDate.toISOString().split('T')[0]],
     queryFn: async () => {
       const result = await apiRequest(
+        'GET',
         `/api/daily-activities?date=${selectedDate.toISOString().split('T')[0]}`
       );
       return result.data || [];

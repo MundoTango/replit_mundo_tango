@@ -10104,6 +10104,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Temporary endpoint to populate recent activities
+  app.post('/api/daily-activities/log-recent', setUserContext, async (req: Request, res: Response) => {
+    try {
+      const { ActivityLoggingService } = await import('./services/activityLoggingService');
+      await ActivityLoggingService.logRecentWork();
+      
+      res.json({
+        success: true,
+        message: 'Recent activities logged successfully'
+      });
+    } catch (error) {
+      console.error('Error logging recent activities:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to log recent activities'
+      });
+    }
+  });
+
   // ========================================================================
   // RBAC/ABAC Routes Integration
   // ========================================================================
