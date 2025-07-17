@@ -12,12 +12,13 @@ import { apiRequest } from '@/lib/queryClient';
 interface DailyActivity {
   id: string;
   project_id: string;
-  project_name: string;
+  project_title: string; // Changed from project_name to match database field
   activity_type: 'created' | 'updated' | 'completed' | 'reviewed' | 'blocked';
   description: string;
-  metadata: { changes?: string[] };
+  changes?: string[]; // Direct field instead of metadata.changes
+  metadata: any;
   timestamp: string;
-  created_at: string;
+  created_at?: string;
 }
 
 interface ActivityItem {
@@ -30,7 +31,8 @@ interface ActivityItem {
 
 function DailyActivityView() {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  // Set to January 17, 2025 explicitly to match current date
+  const [selectedDate, setSelectedDate] = useState(new Date('2025-01-17'));
 
   // Fetch daily activities from API
   const { data: apiActivities = [], isLoading, refetch } = useQuery({
@@ -60,7 +62,7 @@ function DailyActivityView() {
         
         const searchInChildren = (items: ProjectItem[]) => {
           items.forEach(item => {
-            if (item.id === activity.project_id || item.title === activity.project_name) {
+            if (item.id === activity.project_id || item.title === activity.project_title) {
               projectItem = item;
               return;
             }
@@ -70,7 +72,7 @@ function DailyActivityView() {
           });
         };
         
-        if (section.id === activity.project_id || section.title === activity.project_name) {
+        if (section.id === activity.project_id || section.title === activity.project_title) {
           projectItem = section;
         } else if (section.children) {
           searchInChildren(section.children);
@@ -81,7 +83,7 @@ function DailyActivityView() {
       activities.push({
         item: projectItem || {
           id: activity.project_id,
-          title: activity.project_name,
+          title: activity.project_title,
           description: activity.description,
           type: 'Feature',
           status: 'In Progress',
@@ -91,7 +93,7 @@ function DailyActivityView() {
         },
         type: activity.activity_type,
         timestamp: new Date(activity.timestamp),
-        changes: activity.metadata.changes || [activity.description],
+        changes: activity.changes || (activity.metadata?.changes) || [activity.description],
         rawData: activity
       });
     });

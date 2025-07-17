@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import EnhancedHierarchicalTreeView from './EnhancedHierarchicalTreeView';
 import ErrorBoundary from './ErrorBoundary';
 import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
+import DailyActivityView from './DailyActivityView';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -243,7 +244,7 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
 
       {/* Navigation Tabs */}
       <Tabs value={view} onValueChange={(value: any) => setView(value)}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="hierarchy" className="flex items-center gap-2">
             <Network className="h-4 w-4" />
             Hierarchical View
@@ -259,6 +260,10 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
           <TabsTrigger value="timeline" className="flex items-center gap-2">
             <GitCommit className="h-4 w-4" />
             Timeline
+          </TabsTrigger>
+          <TabsTrigger value="daily" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Daily Activity
           </TabsTrigger>
         </TabsList>
 
@@ -1111,6 +1116,11 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Daily Activity View */}
+        <TabsContent value="daily" className="space-y-6">
+          <DailyActivityView />
         </TabsContent>
       </Tabs>
 
