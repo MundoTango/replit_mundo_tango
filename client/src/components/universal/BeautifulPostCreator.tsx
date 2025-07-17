@@ -200,8 +200,7 @@ export default function BeautifulPostCreator({
   // Create post mutation
   const createPostMutation = useMutation({
     mutationFn: async (postData: any) => {
-      // Temporarily use test endpoint to debug auth issue
-      const response = await fetch('/api/test-post', {
+      const response = await fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

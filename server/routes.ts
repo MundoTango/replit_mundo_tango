@@ -1883,7 +1883,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       if (!userId) {
         console.log('❌ No userId found, returning 401');
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ message: 'Unauthorized' });
       }
 
       const user = await storage.getUser(userId);
@@ -1902,21 +1902,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
         recommendationData
       } = req.body;
 
-      // Create the post/memory
+      // Handle recommendation to city group
+      let finalContextType = contextType;
+      let finalContextId = contextId;
+      
+      if (isRecommendation && user.city) {
+        // Find or create city group
+        const citySlug = user.city.toLowerCase().replace(/\s+/g, '-');
+        let cityGroup = await storage.getGroupBySlug(citySlug);
+        
+        if (!cityGroup) {
+          console.log(`📍 Creating city group for ${user.city}`);
+          // Create city group matching the user's registration city
+          cityGroup = await storage.createGroup({
+            name: user.city,
+            slug: citySlug,
+            description: `Welcome to the ${user.city} tango community! Share events, find dance partners, and discover the best milongas in town.`,
+            type: 'city',
+            visibility: 'public',
+            userId: user.id,
+            privacy: 'open',
+            category: 'geographic'
+          });
+        }
+        
+        // Set context to the city group
+        finalContextType = 'group';
+        finalContextId = cityGroup.id;
+      }
+
+      // Create the post/memory with correct parameters
       const memory = await storage.createMemory({
-        userId: user.id,
+        user_id: user.id, // Note: user_id not userId
+        title: isRecommendation ? 'Recommendation' : 'Post',
         content,
-        emotionTags: tags,
-        visibility,
-        location: location ? JSON.stringify({ name: location }) : null,
-        contextType,
-        contextId
+        emotion_tags: tags,
+        emotion_visibility: visibility || 'public',
+        trust_circle_level: 1, // Default public level
+        location: location ? { name: location } : null,
+        media_urls: [],
+        co_tagged_users: [],
+        consent_required: false
       });
+
+      // If it's a recommendation, associate it with the city group
+      if (isRecommendation && finalContextType === 'group' && finalContextId) {
+        try {
+          // Create a post in the group context
+          await db.execute(sql`
+            INSERT INTO posts (
+              id, 
+              user_id, 
+              content, 
+              group_id,
+              visibility,
+              created_at
+            ) VALUES (
+              gen_random_uuid(), 
+              ${user.id}, 
+              ${content},
+              ${finalContextId},
+              'public',
+              NOW()
+            )
+          `);
+          console.log(`📍 Recommendation posted to city group ${cityGroup?.name}`);
+        } catch (err) {
+          console.error('Error posting to city group:', err);
+          // Don't fail the whole request if group posting fails
+        }
+      }
 
       res.json({ 
         success: true, 
         data: memory,
-        message: 'Post created successfully'
+        message: isRecommendation ? 'Recommendation posted to city group' : 'Post created successfully'
       });
     } catch (error) {
       console.error('Error creating post:', error);
