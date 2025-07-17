@@ -527,6 +527,230 @@ export const comprehensiveProjectData: ProjectItem[] = [
         ]
       }
     ]
+  },
+  {
+    id: 'infrastructure-optimization',
+    title: 'Infrastructure & Technical Debt',
+    description: 'Critical infrastructure improvements and technical debt resolution based on CTO analysis',
+    type: 'Platform',
+    status: 'In Progress',
+    completion: 15,
+    priority: 'Critical',
+    team: ['Backend', 'DevOps', 'Frontend'],
+    children: [
+      {
+        id: 'caching-layer',
+        title: 'Redis Caching Implementation',
+        description: 'Implement Redis caching layer for improved performance and reduced database load',
+        type: 'Section',
+        status: 'Planned',
+        completion: 0,
+        priority: 'Critical',
+        team: ['Backend', 'DevOps'],
+        children: [
+          {
+            id: 'redis-setup',
+            title: 'Redis Server Setup',
+            description: 'Install and configure Redis server with persistence and clustering',
+            type: 'Task',
+            status: 'Planned',
+            completion: 0,
+            priority: 'Critical',
+            team: ['DevOps']
+          },
+          {
+            id: 'cache-strategy',
+            title: 'Cache Strategy Implementation',
+            description: 'Implement caching for posts, user data, and frequently accessed content',
+            type: 'Task',
+            status: 'Planned',
+            completion: 0,
+            priority: 'Critical',
+            team: ['Backend']
+          }
+        ]
+      },
+      {
+        id: 'error-tracking',
+        title: 'Error Tracking & Monitoring',
+        description: 'Implement Sentry for error tracking and performance monitoring',
+        type: 'Section',
+        status: 'Planned',
+        completion: 0,
+        priority: 'Critical',
+        team: ['Backend', 'Frontend'],
+        children: [
+          {
+            id: 'sentry-integration',
+            title: 'Sentry Integration',
+            description: 'Integrate Sentry for both frontend and backend error tracking',
+            type: 'Task',
+            status: 'Planned',
+            completion: 0,
+            priority: 'Critical',
+            team: ['Backend', 'Frontend']
+          },
+          {
+            id: 'apm-tools',
+            title: 'APM Tools Setup',
+            description: 'Set up DataDog or New Relic for application performance monitoring',
+            type: 'Task',
+            status: 'Planned',
+            completion: 0,
+            priority: 'High',
+            team: ['DevOps']
+          }
+        ]
+      },
+      {
+        id: 'api-documentation',
+        title: 'API Documentation & Standards',
+        description: 'Create comprehensive OpenAPI 3.0 documentation for all endpoints',
+        type: 'Section',
+        status: 'In Progress',
+        completion: 20,
+        priority: 'High',
+        team: ['Backend'],
+        children: [
+          {
+            id: 'openapi-spec',
+            title: 'OpenAPI 3.0 Specification',
+            description: 'Document all API endpoints with request/response schemas',
+            type: 'Task',
+            status: 'In Progress',
+            completion: 20,
+            priority: 'High',
+            team: ['Backend']
+          },
+          {
+            id: 'api-versioning',
+            title: 'API Versioning Strategy',
+            description: 'Implement versioning for API endpoints (v1, v2)',
+            type: 'Task',
+            status: 'Planned',
+            completion: 0,
+            priority: 'Medium',
+            team: ['Backend']
+          }
+        ]
+      },
+      {
+        id: 'testing-suite',
+        title: 'Comprehensive Testing Suite',
+        description: 'Achieve >80% test coverage with unit, integration, and E2E tests',
+        type: 'Section',
+        status: 'In Progress',
+        completion: 25,
+        priority: 'High',
+        team: ['Frontend', 'Backend', 'QA'],
+        children: [
+          {
+            id: 'unit-tests',
+            title: 'Unit Test Coverage',
+            description: 'Write unit tests for all critical components and functions',
+            type: 'Task',
+            status: 'In Progress',
+            completion: 35,
+            priority: 'High',
+            team: ['Frontend', 'Backend']
+          },
+          {
+            id: 'e2e-tests',
+            title: 'E2E Tests with Playwright',
+            description: 'Implement end-to-end tests for critical user flows',
+            type: 'Task',
+            status: 'Planned',
+            completion: 0,
+            priority: 'High',
+            team: ['QA']
+          }
+        ]
+      },
+      {
+        id: 'cloud-migration',
+        title: 'Cloud Migration Strategy',
+        description: 'Plan and execute migration from Replit to AWS/GCP for scale',
+        type: 'Section',
+        status: 'Planned',
+        completion: 5,
+        priority: 'Medium',
+        team: ['DevOps', 'Backend'],
+        children: [
+          {
+            id: 'containerization',
+            title: 'Docker Containerization',
+            description: 'Containerize application components for cloud deployment',
+            type: 'Task',
+            status: 'Planned',
+            completion: 10,
+            priority: 'Medium',
+            team: ['DevOps']
+          },
+          {
+            id: 'kubernetes-setup',
+            title: 'Kubernetes Configuration',
+            description: 'Set up Kubernetes orchestration for scalable deployment',
+            type: 'Task',
+            status: 'Planned',
+            completion: 0,
+            priority: 'Medium',
+            team: ['DevOps']
+          },
+          {
+            id: 'multi-region',
+            title: 'Multi-Region Deployment',
+            description: 'Implement multi-region deployment for global availability',
+            type: 'Task',
+            status: 'Planned',
+            completion: 0,
+            priority: 'Low',
+            team: ['DevOps']
+          }
+        ]
+      },
+      {
+        id: 'performance-optimization',
+        title: 'Frontend Performance',
+        description: 'Optimize frontend bundle size and loading performance',
+        type: 'Section',
+        status: 'In Progress',
+        completion: 30,
+        priority: 'High',
+        team: ['Frontend'],
+        children: [
+          {
+            id: 'code-splitting',
+            title: 'Code Splitting Strategy',
+            description: 'Implement dynamic imports and route-based code splitting',
+            type: 'Task',
+            status: 'Planned',
+            completion: 0,
+            priority: 'High',
+            team: ['Frontend']
+          },
+          {
+            id: 'react-server-components',
+            title: 'React Server Components',
+            description: 'Implement React Server Components for improved performance',
+            type: 'Task',
+            status: 'Planned',
+            completion: 0,
+            priority: 'Medium',
+            team: ['Frontend']
+          },
+          {
+            id: 'bundle-optimization',
+            title: 'Bundle Size Optimization',
+            description: 'Reduce bundle size from 2.3MB to under 1.5MB',
+            type: 'Task',
+            status: 'In Progress',
+            completion: 40,
+            priority: 'High',
+            team: ['Frontend']
+          }
+        ]
+      }
+    ]
   }
 ];
 
