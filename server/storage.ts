@@ -2888,21 +2888,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllDailyActivities(date?: Date): Promise<DailyActivity[]> {
-    let query = db.select().from(dailyActivities);
-    
-    if (date) {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
-      
-      query = query.where(and(
-        gte(dailyActivities.timestamp, startOfDay),
-        lte(dailyActivities.timestamp, endOfDay)
-      ));
-    }
-    
-    return await query.orderBy(desc(dailyActivities.timestamp));
+    // For now, return all activities ordered by timestamp to debug
+    return await db.select()
+      .from(dailyActivities)
+      .orderBy(desc(dailyActivities.timestamp));
   }
 
   async getDailyActivitiesByProjectId(projectId: string): Promise<DailyActivity[]> {

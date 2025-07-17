@@ -529,3 +529,39 @@ export const comprehensiveProjectData: ProjectItem[] = [
     ]
   }
 ];
+
+// Function to count all items recursively
+export function countAllProjects(items: ProjectItem[] = comprehensiveProjectData): number {
+  let count = 0;
+  
+  const countRecursive = (items: ProjectItem[]) => {
+    items.forEach(item => {
+      count++;
+      if (item.children) {
+        countRecursive(item.children);
+      }
+    });
+  };
+  
+  countRecursive(items);
+  return count;
+}
+
+// Function to get all features (type: 'Feature') from the project data
+export function getAllFeatures(items: ProjectItem[] = comprehensiveProjectData): ProjectItem[] {
+  const features: ProjectItem[] = [];
+  
+  const findFeatures = (items: ProjectItem[]) => {
+    items.forEach(item => {
+      if (item.type === 'Feature') {
+        features.push(item);
+      }
+      if (item.children) {
+        findFeatures(item.children);
+      }
+    });
+  };
+  
+  findFeatures(items);
+  return features;
+}
