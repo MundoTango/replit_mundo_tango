@@ -297,14 +297,7 @@ export default function BeautifulPostCreator({
             
             <div className="flex-1">
               <h3 className="font-bold text-gray-900 text-lg">{user?.name}</h3>
-              <div className="flex items-center space-x-2 text-sm">
-                <div className="flex items-center space-x-1 px-3 py-1 bg-gradient-to-r from-gray-50 to-gray-100 rounded-full">
-                  <Globe className="h-3 w-3 text-turquoise-600" />
-                  <span className="text-gray-700 font-medium">
-                    {visibility === 'public' ? 'Public' : visibility === 'friends' ? 'Friends' : 'Private'}
-                  </span>
-                </div>
-              </div>
+              <p className="text-sm text-gray-500">@{user?.username}</p>
             </div>
           </div>
 

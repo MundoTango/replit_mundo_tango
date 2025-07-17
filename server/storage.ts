@@ -1584,6 +1584,17 @@ export class DatabaseStorage implements IStorage {
 
   async createMemory(memoryData: any): Promise<any> {
     try {
+      // Handle arrays properly for PostgreSQL
+      const emotionTags = Array.isArray(memoryData.emotion_tags) 
+        ? `{${memoryData.emotion_tags.map(tag => `"${tag}"`).join(',')}}` 
+        : '{}';
+      const mediaUrls = Array.isArray(memoryData.media_urls) 
+        ? `{${memoryData.media_urls.map(url => `"${url}"`).join(',')}}` 
+        : '{}';
+      const coTaggedUsers = Array.isArray(memoryData.co_tagged_users) 
+        ? `{${memoryData.co_tagged_users.join(',')}}` 
+        : '{}';
+
       const result = await db.execute(sql`
         INSERT INTO memories (
           id, user_id, title, content, emotion_tags, 
@@ -1592,15 +1603,15 @@ export class DatabaseStorage implements IStorage {
         ) VALUES (
           gen_random_uuid()::text, 
           ${memoryData.user_id}, 
-          ${memoryData.title}, 
-          ${memoryData.content}, 
-          ${memoryData.emotion_tags}, 
-          ${memoryData.emotion_visibility}, 
-          ${memoryData.trust_circle_level}, 
-          ${memoryData.location}::jsonb, 
-          ${memoryData.media_urls}, 
-          ${memoryData.co_tagged_users}, 
-          ${memoryData.consent_required}
+          ${memoryData.title || 'Untitled'}, 
+          ${memoryData.content || ''}, 
+          ${emotionTags}::text[], 
+          ${memoryData.emotion_visibility || 'public'}, 
+          ${memoryData.trust_circle_level || 1}, 
+          ${memoryData.location ? JSON.stringify(memoryData.location) : null}::jsonb, 
+          ${mediaUrls}::text[], 
+          ${coTaggedUsers}::integer[], 
+          ${memoryData.consent_required || false}
         ) RETURNING *
       `);
       
