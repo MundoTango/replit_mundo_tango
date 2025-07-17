@@ -166,11 +166,31 @@ export default function GroupDetailPageMT() {
     queryKey: [`/api/groups/${slug}`],
     enabled: !!slug,
     retry: 2,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      console.log('Fetching group with slug:', slug);
+      const res = await fetch(`/api/groups/${slug}`, {
+        credentials: 'include',
+      });
+      console.log('Response status:', res.status);
+      console.log('Response headers:', res.headers);
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch group: ${res.status}`);
+      }
+      
+      const data = await res.json();
+      console.log('Response data:', data);
+      return data;
+    }
   });
 
   // Extract group data from API response - handle both patterns
   console.log('Group API response:', response);
   console.log('Slug being requested:', slug);
+  console.log('Query error:', error);
+  console.log('Is loading:', isLoading);
   
   // Check if the response has a success flag
   const groupData = response?.success === false ? null : (response?.data || response);
