@@ -37,7 +37,7 @@ export function registerStatisticsRoutes(app: Express) {
         const activeTenants = await db
           .select({ count: count() })
           .from(tenants)
-          .where(eq(tenants.isActive, true));
+          .where(eq(tenants.is_active, true));
         
         // Top cities by user count
         const topCities = await db
