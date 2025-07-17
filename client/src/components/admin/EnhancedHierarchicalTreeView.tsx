@@ -600,19 +600,32 @@ const EnhancedHierarchicalTreeView: React.FC<EnhancedHierarchicalTreeViewProps> 
     </div>
   );
 
-  // Filter items based on team and completion status
-  const filterItems = (items: ProjectItem[]): ProjectItem[] => {
-    return items.map(item => ({
-      ...item,
-      children: item.children ? filterItems(item.children) : undefined
-    })).filter(item => {
-      const teamMatch = filterTeam === 'all' || item.team?.includes(filterTeam);
-      const statusMatch = showCompleted || item.status !== 'Completed';
-      return teamMatch && statusMatch;
-    });
-  };
-
-  const filteredData = useMemo(() => filterItems(filteredProjectData), [filterTeam, showCompleted, filteredProjectData]);
+  // Apply team and completion filters to already filtered data
+  const filteredData = useMemo(() => {
+    const filterByTeamAndCompletion = (items: ProjectItem[]): ProjectItem[] => {
+      return items.filter(item => {
+        const teamMatch = filterTeam === 'all' || (item.team && item.team.includes(filterTeam));
+        const statusMatch = showCompleted || item.status !== 'Completed';
+        
+        // If item doesn't match but has children, check if any children match
+        if (!teamMatch || !statusMatch) {
+          if (item.children) {
+            const filteredChildren = filterByTeamAndCompletion(item.children);
+            if (filteredChildren.length > 0) {
+              return true; // Include parent if it has matching children
+            }
+          }
+          return false;
+        }
+        return true;
+      }).map(item => ({
+        ...item,
+        children: item.children ? filterByTeamAndCompletion(item.children) : undefined
+      }));
+    };
+    
+    return filterByTeamAndCompletion(filteredProjectData);
+  }, [filterTeam, showCompleted, filteredProjectData]);
 
   return (
     <div className="w-full space-y-4">

@@ -585,3 +585,178 @@ export const getAllTeams: string[] = (() => {
   extractTeams(comprehensiveProjectData);
   return Array.from(teams);
 })();
+
+// Get team statistics for Teams tab
+export function getTeamStatistics() {
+  const teamStats = new Map<string, {
+    projects: ProjectItem[];
+    completedCount: number;
+    inProgressCount: number;
+    totalCompletion: number;
+  }>();
+  
+  const processItems = (items: ProjectItem[]) => {
+    items.forEach(item => {
+      if (item.team) {
+        item.team.forEach(teamName => {
+          if (!teamStats.has(teamName)) {
+            teamStats.set(teamName, {
+              projects: [],
+              completedCount: 0,
+              inProgressCount: 0,
+              totalCompletion: 0
+            });
+          }
+          
+          const stats = teamStats.get(teamName)!;
+          stats.projects.push(item);
+          
+          if (item.status === 'Completed') {
+            stats.completedCount++;
+          } else if (item.status === 'In Progress') {
+            stats.inProgressCount++;
+          }
+          
+          stats.totalCompletion += item.completion || 0;
+        });
+      }
+      
+      if (item.children) {
+        processItems(item.children);
+      }
+    });
+  };
+  
+  processItems(comprehensiveProjectData);
+  
+  // Convert to array and calculate averages
+  return Array.from(teamStats.entries()).map(([teamName, stats]) => ({
+    teamName,
+    projectCount: stats.projects.length,
+    completedCount: stats.completedCount,
+    inProgressCount: stats.inProgressCount,
+    avgCompletion: stats.projects.length > 0 ? Math.round(stats.totalCompletion / stats.projects.length) : 0,
+    projects: stats.projects
+  })).sort((a, b) => b.projectCount - a.projectCount);
+}
+
+// Get analytics data for Analytics tab
+export function getProjectAnalytics() {
+  const typeStats = new Map<string, { count: number; completed: number; totalCompletion: number }>();
+  const statusStats = new Map<string, number>();
+  const priorityStats = new Map<string, number>();
+  let totalProjects = 0;
+  let totalCompletion = 0;
+  
+  const processItems = (items: ProjectItem[]) => {
+    items.forEach(item => {
+      totalProjects++;
+      totalCompletion += item.completion || 0;
+      
+      // Type statistics
+      if (!typeStats.has(item.type)) {
+        typeStats.set(item.type, { count: 0, completed: 0, totalCompletion: 0 });
+      }
+      const typeData = typeStats.get(item.type)!;
+      typeData.count++;
+      typeData.totalCompletion += item.completion || 0;
+      if (item.status === 'Completed') {
+        typeData.completed++;
+      }
+      
+      // Status statistics
+      statusStats.set(item.status, (statusStats.get(item.status) || 0) + 1);
+      
+      // Priority statistics
+      if (item.priority) {
+        priorityStats.set(item.priority, (priorityStats.get(item.priority) || 0) + 1);
+      }
+      
+      if (item.children) {
+        processItems(item.children);
+      }
+    });
+  };
+  
+  processItems(comprehensiveProjectData);
+  
+  return {
+    totalProjects,
+    avgCompletion: totalProjects > 0 ? Math.round(totalCompletion / totalProjects) : 0,
+    typeStats: Array.from(typeStats.entries()).map(([type, data]) => ({
+      type,
+      count: data.count,
+      completed: data.completed,
+      avgCompletion: data.count > 0 ? Math.round(data.totalCompletion / data.count) : 0
+    })),
+    statusStats: Array.from(statusStats.entries()).map(([status, count]) => ({ status, count })),
+    priorityStats: Array.from(priorityStats.entries()).map(([priority, count]) => ({ priority, count }))
+  };
+}
+
+// Get timeline data for Timeline tab
+export function getProjectTimeline() {
+  const timeline: Array<{
+    date: string;
+    title: string;
+    projects: ProjectItem[];
+    completion: number;
+  }> = [];
+  
+  // Group projects by creation/update dates (using completion as proxy)
+  const phases = [
+    {
+      date: 'June 27-28, 2025',
+      title: 'Phase 1: Platform Foundation',
+      minCompletion: 90,
+      types: ['Platform', 'Section']
+    },
+    {
+      date: 'July 1-5, 2025',
+      title: 'Phase 2: Core Features',
+      minCompletion: 80,
+      types: ['Feature']
+    },
+    {
+      date: 'July 6-10, 2025',
+      title: 'Phase 3: Advanced Systems',
+      minCompletion: 60,
+      types: ['Project', 'Feature']
+    },
+    {
+      date: 'July 11-17, 2025',
+      title: 'Phase 4: Optimization & Polish',
+      minCompletion: 0,
+      types: ['Task', 'Sub-task']
+    }
+  ];
+  
+  phases.forEach(phase => {
+    const phaseProjects: ProjectItem[] = [];
+    
+    const findProjects = (items: ProjectItem[]) => {
+      items.forEach(item => {
+        if (phase.types.includes(item.type) && (item.completion || 0) >= phase.minCompletion) {
+          phaseProjects.push(item);
+        }
+        if (item.children) {
+          findProjects(item.children);
+        }
+      });
+    };
+    
+    findProjects(comprehensiveProjectData);
+    
+    if (phaseProjects.length > 0) {
+      const avgCompletion = phaseProjects.reduce((sum, p) => sum + (p.completion || 0), 0) / phaseProjects.length;
+      timeline.push({
+        date: phase.date,
+        title: phase.title,
+        projects: phaseProjects,
+        completion: Math.round(avgCompletion)
+      });
+    }
+  });
+  
+  return timeline;
+}

@@ -3,7 +3,7 @@ import EnhancedHierarchicalTreeView from './EnhancedHierarchicalTreeView';
 import ErrorBoundary from './ErrorBoundary';
 import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
 import DailyActivityView from './DailyActivityView';
-import { countAllProjects, getAllTeams, comprehensiveProjectData } from '@/data/comprehensive-project-data';
+import { countAllProjects, getAllTeams, comprehensiveProjectData, getTeamStatistics, getProjectAnalytics, getProjectTimeline } from '@/data/comprehensive-project-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -480,280 +480,89 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                {/* Core Development Team */}
-                <Card className="border-l-4 border-l-blue-500 bg-blue-50/50 hover:shadow-lg transition-all cursor-pointer" onClick={() => handleCardClick({
-                  id: 'team-core-dev',
-                  title: 'Core Development Team',
-                  description: 'Primary development team responsible for platform architecture and core features',
-                  type: 'Team' as const,
-                  status: 'In Progress' as const,
-                  completion: 85,
-                  team: ['Scott Boddye'],
-                  originalFiles: ['client/', 'server/', 'shared/'],
-                  priority: 'High' as const,
-                  layer: 'All Layers'
-                })}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg font-bold text-blue-800">Core Development Team</CardTitle>
-                      <Badge className="bg-blue-600 text-white">Active</Badge>
-                    </div>
-                    <div className="text-sm text-blue-700">Lead: Scott Boddye • 1 Member</div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                        SB
-                      </div>
-                      <div>
-                        <div className="font-medium">Scott Boddye</div>
-                        <div className="text-sm text-gray-600">Lead Developer • Full-Stack</div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="text-sm font-medium text-gray-700">Current Assignments:</div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
-                          <span>11L Project Tracker Implementation</span>
+                {/* Dynamic Team Cards */}
+                {getTeamStatistics().slice(0, 8).map((team, index) => {
+                  const colors = [
+                    { border: 'border-l-blue-500', bg: 'bg-blue-50/50', title: 'text-blue-800', badge: 'bg-blue-600', avatar: 'bg-blue-500' },
+                    { border: 'border-l-turquoise-500', bg: 'bg-turquoise-50/50', title: 'text-purple-800', badge: 'bg-purple-600', avatar: 'bg-purple-500' },
+                    { border: 'border-l-green-500', bg: 'bg-green-50/50', title: 'text-green-800', badge: 'bg-green-600', avatar: 'bg-green-500' },
+                    { border: 'border-l-orange-500', bg: 'bg-orange-50/50', title: 'text-orange-800', badge: 'bg-orange-600', avatar: 'bg-orange-500' },
+                    { border: 'border-l-pink-500', bg: 'bg-pink-50/50', title: 'text-pink-800', badge: 'bg-pink-600', avatar: 'bg-pink-500' },
+                    { border: 'border-l-yellow-500', bg: 'bg-yellow-50/50', title: 'text-yellow-800', badge: 'bg-yellow-600', avatar: 'bg-yellow-500' },
+                    { border: 'border-l-red-500', bg: 'bg-red-50/50', title: 'text-red-800', badge: 'bg-red-600', avatar: 'bg-red-500' },
+                    { border: 'border-l-indigo-500', bg: 'bg-indigo-50/50', title: 'text-indigo-800', badge: 'bg-indigo-600', avatar: 'bg-indigo-500' }
+                  ];
+                  
+                  const color = colors[index % colors.length];
+                  const initials = team.teamName.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase();
+                  
+                  return (
+                    <Card 
+                      key={team.teamName}
+                      className={`border-l-4 ${color.border} ${color.bg} hover:shadow-lg transition-all cursor-pointer`} 
+                      onClick={() => handleCardClick({
+                        id: `team-${team.teamName.toLowerCase().replace(/\s+/g, '-')}`,
+                        title: team.teamName,
+                        description: `Team involved in ${team.projectCount} projects`,
+                        type: 'Team' as const,
+                        status: team.inProgressCount > team.completedCount ? 'In Progress' : 'Completed' as const,
+                        completion: team.avgCompletion,
+                        team: [team.teamName],
+                        priority: 'High' as const,
+                      })}
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className={`text-lg font-bold ${color.title}`}>{team.teamName}</CardTitle>
+                          <Badge className={`${color.badge} text-white`}>
+                            {team.inProgressCount > 0 ? 'Active' : 'Complete'}
+                          </Badge>
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-3 w-3 text-yellow-500" />
-                          <span>Timeline & Teams Management</span>
+                        <div className="text-sm text-gray-700">{team.projectCount} Projects • {team.completedCount} Completed</div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 ${color.avatar} rounded-full flex items-center justify-center text-white font-bold`}>
+                            {initials}
+                          </div>
+                          <div>
+                            <div className="font-medium">{team.teamName}</div>
+                            <div className="text-sm text-gray-600">
+                              {team.inProgressCount} In Progress • {team.completedCount} Completed
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
-                          <span>Enhanced Post Creation System</span>
+                        
+                        <div className="space-y-2">
+                          <div className="text-sm font-medium text-gray-700">Recent Projects:</div>
+                          <div className="space-y-1">
+                            {team.projects.slice(0, 4).map((project, i) => (
+                              <div key={i} className="flex items-center gap-2 text-sm">
+                                {project.status === 'Completed' ? (
+                                  <CheckCircle className="h-3 w-3 text-green-500" />
+                                ) : (
+                                  <Clock className="h-3 w-3 text-yellow-500" />
+                                )}
+                                <span className="truncate">{project.title}</span>
+                              </div>
+                            ))}
+                            {team.projects.length > 4 && (
+                              <div className="text-sm text-gray-500">+{team.projects.length - 4} more projects</div>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
-                          <span>City Group Automation</span>
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Team Completion</span>
-                      <div className="flex items-center gap-2">
-                        <Progress value={85} className="w-20" />
-                        <span className="text-sm font-bold">85%</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Architecture & Strategy Team */}
-                <Card className="border-l-4 border-l-turquoise-500 bg-turquoise-50/50 hover:shadow-lg transition-all cursor-pointer" onClick={() => handleCardClick({
-                  id: 'team-architecture',
-                  title: 'Architecture & Strategy Team',
-                  description: 'Strategic planning and architectural oversight using 11L methodology',
-                  type: 'Team' as const,
-                  status: 'In Progress' as const,
-                  completion: 90,
-                  team: ['Scott Boddye', '11L Framework'],
-                  originalFiles: ['11L_*.md', 'replit.md'],
-                  priority: 'High' as const,
-                  layer: 'Layer 11'
-                })}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg font-bold text-purple-800">Architecture & Strategy</CardTitle>
-                      <Badge className="bg-purple-600 text-white">Active</Badge>
-                    </div>
-                    <div className="text-sm text-purple-700">Lead: Scott Boddye • 11L Framework</div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                          SB
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Team Completion</span>
+                          <div className="flex items-center gap-2">
+                            <Progress value={team.avgCompletion} className="w-20" />
+                            <span className="text-sm font-bold">{team.avgCompletion}%</span>
+                          </div>
                         </div>
-                        <div className="text-sm">
-                          <div className="font-medium">Scott Boddye</div>
-                          <div className="text-gray-600">Strategic Architect</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                          11L
-                        </div>
-                        <div className="text-sm">
-                          <div className="font-medium">11L Framework</div>
-                          <div className="text-gray-600">Methodology System</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="text-sm font-medium text-gray-700">Strategic Projects:</div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
-                          <span>11L Hierarchical Breakdown</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
-                          <span>Project Tracker Architecture</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-3 w-3 text-yellow-500" />
-                          <span>Team Management System</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Strategic Completion</span>
-                      <div className="flex items-center gap-2">
-                        <Progress value={90} className="w-20" />
-                        <span className="text-sm font-bold">90%</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* UI/UX Design Team */}
-                <Card className="border-l-4 border-l-green-500 bg-green-50/50 hover:shadow-lg transition-all cursor-pointer" onClick={() => handleCardClick({
-                  id: 'team-design',
-                  title: 'UI/UX Design Team',
-                  description: 'User interface and experience design across all platform components',
-                  type: 'Team' as const,
-                  status: 'Complete' as const,
-                  completion: 95,
-                  team: ['Scott Boddye', 'Tailwind CSS', 'shadcn/ui'],
-                  originalFiles: ['client/src/components/', 'tailwind.config.ts'],
-                  priority: 'Medium' as const,
-                  layer: 'Layer 1'
-                })}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg font-bold text-green-800">UI/UX Design Team</CardTitle>
-                      <Badge className="bg-green-600 text-white">Complete</Badge>
-                    </div>
-                    <div className="text-sm text-green-700">Design System • Modern Interface</div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                          SB
-                        </div>
-                        <div className="text-sm">
-                          <div className="font-medium">Scott Boddye</div>
-                          <div className="text-gray-600">UI/UX Designer</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                          TW
-                        </div>
-                        <div className="text-sm">
-                          <div className="font-medium">Tailwind CSS</div>
-                          <div className="text-gray-600">Styling Framework</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="text-sm font-medium text-gray-700">Design Achievements:</div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
-                          <span>Modern Project Tracker UI</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
-                          <span>Hierarchical Tree Components</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
-                          <span>Responsive Design System</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Design Completion</span>
-                      <div className="flex items-center gap-2">
-                        <Progress value={95} className="w-20" />
-                        <span className="text-sm font-bold">95%</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Testing & Quality Assurance */}
-                <Card className="border-l-4 border-l-orange-500 bg-orange-50/50 hover:shadow-lg transition-all cursor-pointer" onClick={() => handleCardClick({
-                  id: 'team-testing',
-                  title: 'Testing & Quality Assurance Team',
-                  description: 'Comprehensive testing framework and quality assurance processes',
-                  type: 'Team' as const,
-                  status: 'In Progress' as const,
-                  completion: 70,
-                  team: ['Scott Boddye', 'Jest', 'Cypress', 'Playwright'],
-                  originalFiles: ['tests/', '*.test.*', 'cypress.config.ts'],
-                  priority: 'High' as const,
-                  layer: 'All Layers'
-                })}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg font-bold text-orange-800">Testing & QA Team</CardTitle>
-                      <Badge className="bg-orange-600 text-white">Active</Badge>
-                    </div>
-                    <div className="text-sm text-orange-700">Quality Framework • Test Coverage</div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                          SB
-                        </div>
-                        <div className="text-sm">
-                          <div className="font-medium">Scott Boddye</div>
-                          <div className="text-gray-600">QA Engineer</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-red-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                          JS
-                        </div>
-                        <div className="text-sm">
-                          <div className="font-medium">Jest Framework</div>
-                          <div className="text-gray-600">Unit Testing</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="text-sm font-medium text-gray-700">Testing Progress:</div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
-                          <span>Component Testing Framework</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-3 w-3 text-yellow-500" />
-                          <span>E2E Testing Implementation</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
-                          <span>Database Testing Suite</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Testing Coverage</span>
-                      <div className="flex items-center gap-2">
-                        <Progress value={70} className="w-20" />
-                        <span className="text-sm font-bold">70%</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
               {/* Team Summary Stats */}
@@ -764,20 +573,26 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">4</div>
-                      <div className="text-sm text-gray-600">Active Teams</div>
+                      <div className="text-2xl font-bold text-blue-600">{getTeamStatistics().length}</div>
+                      <div className="text-sm text-gray-600">Total Teams</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">28</div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {getTeamStatistics().reduce((sum, team) => sum + team.completedCount, 0)}
+                      </div>
                       <div className="text-sm text-gray-600">Completed Projects</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">85%</div>
-                      <div className="text-sm text-gray-600">Overall Progress</div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        {Math.round(getTeamStatistics().reduce((sum, team) => sum + team.avgCompletion, 0) / Math.max(getTeamStatistics().length, 1))}%
+                      </div>
+                      <div className="text-sm text-gray-600">Average Progress</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-orange-600">340h</div>
-                      <div className="text-sm text-gray-600">Total Hours Invested</div>
+                      <div className="text-2xl font-bold text-orange-600">
+                        {getTeamStatistics().reduce((sum, team) => sum + team.projectCount, 0)}
+                      </div>
+                      <div className="text-sm text-gray-600">Total Assignments</div>
                     </div>
                   </div>
                 </CardContent>
@@ -795,71 +610,46 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span>Platform Level</span>
-                    <div className="flex items-center gap-2">
-                      <Progress value={85} className="w-32" />
-                      <span className="text-sm font-medium">85%</span>
+                  {getProjectAnalytics().typeStats.map((typeStat) => (
+                    <div key={typeStat.type} className="flex items-center justify-between">
+                      <span>{typeStat.type}</span>
+                      <div className="flex items-center gap-2">
+                        <Progress value={typeStat.avgCompletion} className="w-32" />
+                        <span className="text-sm font-medium">{typeStat.avgCompletion}%</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Core Features</span>
-                    <div className="flex items-center gap-2">
-                      <Progress value={95} className="w-32" />
-                      <span className="text-sm font-medium">95%</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Advanced Features</span>
-                    <div className="flex items-center gap-2">
-                      <Progress value={75} className="w-32" />
-                      <span className="text-sm font-medium">75%</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Community Systems</span>
-                    <div className="flex items-center gap-2">
-                      <Progress value={100} className="w-32" />
-                      <span className="text-sm font-medium">100%</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Admin Tools</span>
-                    <div className="flex items-center gap-2">
-                      <Progress value={80} className="w-32" />
-                      <span className="text-sm font-medium">80%</span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Team Performance</CardTitle>
+                <CardTitle>Project Status Overview</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                        SB
+                  <div className="text-center mb-4">
+                    <div className="text-3xl font-bold text-blue-600">{getProjectAnalytics().totalProjects}</div>
+                    <div className="text-sm text-gray-600">Total Projects</div>
+                  </div>
+                  {getProjectAnalytics().statusStats.map((statusStat) => (
+                    <div key={statusStat.status} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {statusStat.status === 'Completed' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                        {statusStat.status === 'In Progress' && <Clock className="h-4 w-4 text-yellow-500" />}
+                        {statusStat.status === 'Planned' && <Target className="h-4 w-4 text-blue-500" />}
+                        {statusStat.status === 'Blocked' && <AlertTriangle className="h-4 w-4 text-red-500" />}
+                        <span className="text-sm">{statusStat.status}</span>
                       </div>
-                      <span>Scott Boddye</span>
+                      <Badge variant="secondary">{statusStat.count}</Badge>
                     </div>
-                    <Badge className="bg-green-600 text-white">Lead Developer</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Projects Completed</span>
-                    <span className="font-bold">28</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Hours Invested</span>
-                    <span className="font-bold">340h</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Efficiency Rating</span>
-                    <Badge className="bg-green-100 text-green-800">Excellent</Badge>
+                  ))}
+                  <div className="mt-4 pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Overall Completion</span>
+                      <span className="text-lg font-bold text-green-600">{getProjectAnalytics().avgCompletion}%</span>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -921,6 +711,54 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
                 <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-turquoise-200 via-blue-200 to-green-200"></div>
                 
                 <div className="space-y-8">
+                  {/* Dynamic Timeline Phases */}
+                  {getProjectTimeline().map((phase, index) => {
+                    const colors = [
+                      { dot: 'bg-green-500', border: 'border-l-green-500', bg: 'bg-green-50/50', title: 'text-green-800', badge: 'bg-green-600', date: 'text-green-700' },
+                      { dot: 'bg-blue-500', border: 'border-l-blue-500', bg: 'bg-blue-50/50', title: 'text-blue-800', badge: 'bg-blue-600', date: 'text-blue-700' },
+                      { dot: 'bg-purple-500', border: 'border-l-purple-500', bg: 'bg-purple-50/50', title: 'text-purple-800', badge: 'bg-purple-600', date: 'text-purple-700' },
+                      { dot: 'bg-yellow-500', border: 'border-l-yellow-500', bg: 'bg-yellow-50/50', title: 'text-yellow-800', badge: 'bg-yellow-600', date: 'text-yellow-700' }
+                    ];
+                    const color = colors[index % colors.length];
+                    
+                    return (
+                      <div key={index} className="relative flex items-start space-x-6">
+                        <div className={`flex-shrink-0 w-4 h-4 ${color.dot} rounded-full border-4 border-white shadow-lg relative z-10`}></div>
+                        <div className="flex-1 min-w-0">
+                          <Card className={`border-l-4 ${color.border} ${color.bg}`}>
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center justify-between">
+                                <CardTitle className={`text-lg font-bold ${color.title}`}>{phase.title}</CardTitle>
+                                <Badge className={`${color.badge} text-white`}>{phase.completion}% Complete</Badge>
+                              </div>
+                              <div className={`text-sm ${color.date} font-medium`}>{phase.date}</div>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {phase.projects.slice(0, 6).map((project, i) => (
+                                  <div key={i} className="flex items-center gap-2">
+                                    {project.status === 'Completed' ? (
+                                      <CheckCircle className="h-4 w-4 text-green-600" />
+                                    ) : project.status === 'In Progress' ? (
+                                      <Clock className="h-4 w-4 text-yellow-500" />
+                                    ) : (
+                                      <Target className="h-4 w-4 text-blue-500" />
+                                    )}
+                                    <span className="text-sm font-medium truncate">{project.title}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              {phase.projects.length > 6 && (
+                                <div className="text-sm text-gray-500 mt-2">
+                                  +{phase.projects.length - 6} more items in this phase
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </div>
+                    );
+                  })}
                   {/* Phase 1: Foundation & Authentication */}
                   <div className="relative flex items-start space-x-6">
                     <div className="flex-shrink-0 w-4 h-4 bg-green-500 rounded-full border-4 border-white shadow-lg relative z-10"></div>

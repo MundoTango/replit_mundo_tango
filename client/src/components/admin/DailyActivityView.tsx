@@ -31,16 +31,16 @@ interface ActivityItem {
 
 function DailyActivityView() {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
-  // Set to January 17, 2025 explicitly to match current date
-  const [selectedDate, setSelectedDate] = useState(new Date('2025-01-17'));
+  // Default to today's date
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Fetch daily activities from API
+  // Fetch daily activities from API - no date filtering, show all activities
   const { data: apiActivities = [], isLoading, refetch } = useQuery({
-    queryKey: ['/api/daily-activities', selectedDate.toISOString().split('T')[0]],
+    queryKey: ['/api/daily-activities'], // Remove date from cache key
     queryFn: async () => {
       const result = await apiRequest(
         'GET',
-        `/api/daily-activities` // Remove date filter to see all activities
+        `/api/daily-activities` // API returns all activities
       );
       return result.data || [];
     },
