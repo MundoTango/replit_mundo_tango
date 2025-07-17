@@ -47,19 +47,17 @@ function MomentsPage() {
           {/* Enhanced flexbox layout with better spacing */}
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             {/* Main content area with enhanced styling */}
-            <div className="flex-1 lg:w-0 lg:flex-[0_0_68%] max-w-none">
-              <div className="space-y-6">
-                <BeautifulPostCreator 
-                  context={{ type: 'feed' }}
-                  user={user}
-                  onPostCreated={handlePostCreated} 
-                />
-                <EnhancedPostFeed key={refreshKey} />
-              </div>
+            <div className="flex-1 lg:max-w-[60%] space-y-6">
+              <BeautifulPostCreator 
+                context={{ type: 'feed' }}
+                user={user}
+                onPostCreated={handlePostCreated} 
+              />
+              <EnhancedPostFeed key={refreshKey} />
             </div>
             
-            {/* Enhanced events sidebar */}
-            <div className="lg:w-0 lg:flex-[0_0_32%] lg:min-w-0">
+            {/* Enhanced events sidebar - fixed width and always visible on large screens */}
+            <div className="w-full lg:w-96 lg:flex-shrink-0">
               <div className="sticky top-20">
                 <EventsBoard />
               </div>

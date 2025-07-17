@@ -33,7 +33,7 @@ import { RichTextCommentEditor } from '../components/ui/RichTextCommentEditor';
 import { RoleEmojiDisplay } from '../components/ui/RoleEmojiDisplay';
 import { PostContextMenu } from '../components/ui/PostContextMenu';
 import { ReportModal } from '../components/ui/ReportModal';
-import NewFeedEvents from '../components/feed/NewFeedEvents';
+import EventsBoard from '../components/events/EventsBoard';
 import PostComposer from '../components/moments/PostComposer';
 
 interface Memory {
@@ -465,7 +465,7 @@ export default function EnhancedTimelineV2() {
           {/* Sidebar */}
           <div className="lg:col-span-4">
             <div className="sticky top-6">
-              <NewFeedEvents />
+              <EventsBoard />
             </div>
           </div>
         </div>
