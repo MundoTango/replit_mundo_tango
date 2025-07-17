@@ -10044,11 +10044,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all daily activities for admin view
   app.get('/api/daily-activities', setUserContext, async (req: Request, res: Response) => {
     try {
-      const { date } = req.query;
-      
-      const activities = await storage.getAllDailyActivities(
-        date ? new Date(date as string) : new Date()
-      );
+      // Remove date filtering - show all activities
+      const activities = await storage.getAllDailyActivities();
       
       res.json({
         success: true,

@@ -3,7 +3,7 @@ import EnhancedHierarchicalTreeView from './EnhancedHierarchicalTreeView';
 import ErrorBoundary from './ErrorBoundary';
 import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
 import DailyActivityView from './DailyActivityView';
-import { countAllProjects } from '@/data/comprehensive-project-data';
+import { countAllProjects, getAllTeams, comprehensiveProjectData } from '@/data/comprehensive-project-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,7 +56,8 @@ import {
   Smile,
   Image,
   MapPin,
-  RefreshCw
+  RefreshCw,
+  FolderOpen
 } from 'lucide-react';
 
 // Types for project tracking
@@ -98,7 +99,7 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
   const FRAMEWORK_LAYERS = 30; // Currently using 30L Framework (Layers 1-30)
   
   // State management
-  const [view, setView] = useState<'hierarchy' | 'analytics' | 'timeline' | 'teams'>('hierarchy');
+  const [view, setView] = useState<'hierarchy' | 'analytics' | 'timeline' | 'teams' | 'daily'>('hierarchy');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
@@ -112,6 +113,21 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
     blocked: 0,
     overallCompletion: 0
   });
+  
+  // Hierarchy-specific filters
+  const [showCompleted, setShowCompleted] = useState(true);
+  const [filterTeam, setFilterTeam] = useState<string>('all');
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set([
+    'mundo-tango-org',
+    'mundo-tango-app',
+    'social-engagement-system',
+    'enhanced-post-creation',
+    'rich-text-editor-integration',
+    'mundo-tango-admin',
+    'user-management-system',
+    'life-ceo-system',
+    'agent-architecture'
+  ]));
 
   // Calculate metrics from project data
   useEffect(() => {
@@ -140,6 +156,23 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
 
   const handleCardClick = (item: ProjectItem) => {
     setSelectedItem(item);
+  };
+  
+  // Helper functions for hierarchy controls
+  const expandAll = () => {
+    const allIds = new Set<string>();
+    const collectIds = (items: any[]) => {
+      items.forEach(item => {
+        allIds.add(item.id);
+        if (item.children) collectIds(item.children);
+      });
+    };
+    collectIds(comprehensiveProjectData);
+    setExpandedItems(allIds);
+  };
+  
+  const collapseAll = () => {
+    setExpandedItems(new Set());
   };
 
   const getStatusColor = (status: string) => {
@@ -281,65 +314,125 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search projects..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
+              <div className="space-y-4">
+                {/* First Row - Search and Filters */}
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search projects..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="complete">Complete</SelectItem>
+                      <SelectItem value="in-progress">In Progress</SelectItem>
+                      <SelectItem value="planning">Planning</SelectItem>
+                      <SelectItem value="blocked">Blocked</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={filterPriority} onValueChange={setFilterPriority}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Priority</SelectItem>
+                      <SelectItem value="high">High Priority</SelectItem>
+                      <SelectItem value="medium">Medium Priority</SelectItem>
+                      <SelectItem value="low">Low Priority</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="platform">Platform</SelectItem>
+                      <SelectItem value="section">Section</SelectItem>
+                      <SelectItem value="feature">Feature</SelectItem>
+                      <SelectItem value="project">Project</SelectItem>
+                      <SelectItem value="task">Task</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Button variant="outline" onClick={() => {
+                    setSearchTerm('');
+                    setFilterStatus('all');
+                    setFilterPriority('all');
+                    setFilterType('all');
+                    setFilterTeam('all');
+                    setShowCompleted(true);
+                  }}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Reset
+                  </Button>
                 </div>
-                
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="complete">Complete</SelectItem>
-                    <SelectItem value="in-progress">In Progress</SelectItem>
-                    <SelectItem value="planning">Planning</SelectItem>
-                    <SelectItem value="blocked">Blocked</SelectItem>
-                  </SelectContent>
-                </Select>
 
-                <Select value={filterPriority} onValueChange={setFilterPriority}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Priority</SelectItem>
-                    <SelectItem value="high">High Priority</SelectItem>
-                    <SelectItem value="medium">Medium Priority</SelectItem>
-                    <SelectItem value="low">Low Priority</SelectItem>
-                  </SelectContent>
-                </Select>
+                {/* Second Row - Hierarchy Controls */}
+                <div className="flex flex-wrap gap-4 items-center border-t pt-4">
+                  {/* Tree View Label */}
+                  <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                    <FolderOpen className="h-4 w-4 text-gray-500" />
+                    <span>Tree View</span>
+                  </div>
 
-                <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="platform">Platform</SelectItem>
-                    <SelectItem value="section">Section</SelectItem>
-                    <SelectItem value="feature">Feature</SelectItem>
-                    <SelectItem value="project">Project</SelectItem>
-                    <SelectItem value="task">Task</SelectItem>
-                  </SelectContent>
-                </Select>
+                  {/* Expand/Collapse Controls */}
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={expandAll}>
+                      <ChevronDown className="h-4 w-4 mr-1" />
+                      Expand All
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={collapseAll}>
+                      <ChevronRight className="h-4 w-4 mr-1" />
+                      Collapse All
+                    </Button>
+                  </div>
 
-                <Button variant="outline" onClick={() => {
-                  setSearchTerm('');
-                  setFilterStatus('all');
-                  setFilterPriority('all');
-                  setFilterType('all');
-                }}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Reset
-                </Button>
+                  {/* Team Filter */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Team:</span>
+                    <Select value={filterTeam} onValueChange={setFilterTeam}>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Select team" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getAllTeams.map(team => (
+                          <SelectItem key={team} value={team}>
+                            {team === 'all' ? 'All Teams' : team}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {filterTeam !== 'all' && (
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {filterTeam}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Show Completed Toggle */}
+                  <label className="flex items-center gap-2 ml-auto">
+                    <input
+                      type="checkbox"
+                      checked={showCompleted}
+                      onChange={(e) => setShowCompleted(e.target.checked)}
+                      className="rounded"
+                    />
+                    <span className="text-sm">Show Completed</span>
+                  </label>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -363,6 +456,10 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
                   filterStatus={filterStatus}
                   filterPriority={filterPriority}
                   filterType={filterType}
+                  showCompleted={showCompleted}
+                  filterTeam={filterTeam}
+                  expandedItems={expandedItems}
+                  setExpandedItems={setExpandedItems}
                 />
               </ErrorBoundary>
             </CardContent>

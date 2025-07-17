@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ChevronDown, ChevronRight, Eye, Clock, CheckCircle2, Users, Code2, Smartphone, Monitor, Globe, Circle, Zap, Target, CheckSquare, FileText, Folder, FolderOpen } from 'lucide-react';
 import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
-import { comprehensiveProjectData, ProjectItem, getAllTeams, getProjectStats } from '../../../../COMPREHENSIVE_PROJECT_DATA';
+import { comprehensiveProjectData, ProjectItem, getAllTeams } from '../../data/comprehensive-project-data';
 
 // Move large data structure outside component to prevent initialization errors
 const createProjectData = (): ProjectItem[] => comprehensiveProjectData;
@@ -73,6 +73,10 @@ interface EnhancedHierarchicalTreeViewProps {
   filterStatus?: string;
   filterPriority?: string;
   filterType?: string;
+  showCompleted?: boolean;
+  filterTeam?: string;
+  expandedItems?: Set<string>;
+  setExpandedItems?: (items: Set<string>) => void;
 }
 
 const EnhancedHierarchicalTreeView: React.FC<EnhancedHierarchicalTreeViewProps> = ({ 
@@ -80,11 +84,17 @@ const EnhancedHierarchicalTreeView: React.FC<EnhancedHierarchicalTreeViewProps> 
   searchTerm = '',
   filterStatus = 'all',
   filterPriority = 'all',
-  filterType = 'all'
+  filterType = 'all',
+  showCompleted: showCompletedProp = true,
+  filterTeam: filterTeamProp = 'all',
+  expandedItems: expandedItemsProp,
+  setExpandedItems: setExpandedItemsProp
 }) => {
   const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
   const [modalKey, setModalKey] = useState(0); // Force re-render key
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set([
+  
+  // Use parent's state if provided, otherwise use local state
+  const [localExpandedItems, setLocalExpandedItems] = useState<Set<string>>(new Set([
     'mundo-tango-org',
     'mundo-tango-app',
     'social-engagement-system',
@@ -95,9 +105,15 @@ const EnhancedHierarchicalTreeView: React.FC<EnhancedHierarchicalTreeViewProps> 
     'life-ceo-system',
     'agent-architecture'
   ]));
+  
+  const expandedItems = expandedItemsProp || localExpandedItems;
+  const setExpandedItems = setExpandedItemsProp || setLocalExpandedItems;
+  
   const [viewMode, setViewMode] = useState<'tree' | 'cards' | 'dual'>('dual');
-  const [showCompleted, setShowCompleted] = useState(true);
-  const [filterTeam, setFilterTeam] = useState<string>('all');
+  
+  // Use parent's filters
+  const showCompleted = showCompletedProp;
+  const filterTeam = filterTeamProp;
 
   // Initialize project data using factory function
   const projectData = useMemo(() => createProjectData(), []);
@@ -216,24 +232,7 @@ const EnhancedHierarchicalTreeView: React.FC<EnhancedHierarchicalTreeViewProps> 
   }, [filteredProjectData]);
 
   // Extract all unique teams from the project data
-  const getAllTeams = useMemo(() => {
-    const teams = new Set<string>();
-    teams.add('all'); // Add 'all' option
-    
-    const extractTeams = (items: ProjectItem[]) => {
-      items.forEach(item => {
-        if (item.team) {
-          item.team.forEach(team => teams.add(team));
-        }
-        if (item.children) {
-          extractTeams(item.children);
-        }
-      });
-    };
-    
-    extractTeams(filteredProjectData);
-    return Array.from(teams);
-  }, [filteredProjectData]);
+
 
   // Get icon based on item type
   const getItemIcon = (type: string, isExpanded?: boolean) => {

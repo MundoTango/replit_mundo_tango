@@ -565,3 +565,23 @@ export function getAllFeatures(items: ProjectItem[] = comprehensiveProjectData):
   findFeatures(items);
   return features;
 }
+
+// Get all unique teams from the project data
+export const getAllTeams: string[] = (() => {
+  const teams = new Set<string>();
+  teams.add('all'); // Add 'all' option
+  
+  const extractTeams = (items: ProjectItem[]) => {
+    items.forEach(item => {
+      if (item.team) {
+        item.team.forEach(team => teams.add(team));
+      }
+      if (item.children) {
+        extractTeams(item.children);
+      }
+    });
+  };
+  
+  extractTeams(comprehensiveProjectData);
+  return Array.from(teams);
+})();
