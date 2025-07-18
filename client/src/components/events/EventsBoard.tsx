@@ -137,24 +137,28 @@ export default function EventsBoard() {
   }
 
   return (
-    <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4 hover:shadow-xl transition-all duration-200 space-y-4 w-full">
-      {/* Compact Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="bg-gradient-to-br from-turquoise-400 to-blue-500 p-2 rounded-xl shadow-lg">
-            <Calendar className="h-4 w-4 text-white" />
+    <div className="relative">
+      {/* Ambient glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-turquoise-400/20 to-blue-400/20 rounded-3xl blur-2xl" />
+      
+      <div className="relative glassmorphic-card rounded-3xl p-6 space-y-4">
+        {/* Beautiful Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-br from-turquoise-400 to-blue-500 p-3 rounded-xl shadow-lg animate-float">
+              <Calendar className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-turquoise-600 to-blue-600 bg-clip-text text-transparent">
+                Upcoming Events
+              </h3>
+              <p className="text-gray-600 text-sm">In your area & invitations</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-xl font-bold text-turquoise-700">
-              Upcoming Events
-            </h3>
-            <p className="text-slate-600 font-medium text-base">In your area & invitations</p>
+          <div className="bg-gradient-to-br from-turquoise-100 to-cyan-100 p-2 rounded-xl sparkle-effect">
+            <Sparkles className="h-5 w-5 text-turquoise-600" />
           </div>
         </div>
-        <div className="bg-gradient-to-br from-turquoise-100 to-cyan-100 p-1.5 rounded-xl">
-          <Sparkles className="h-4 w-4 text-turquoise-600" />
-        </div>
-      </div>
 
       {/* Compact Events List */}
       <div className="space-y-3 mb-4">
@@ -163,9 +167,9 @@ export default function EventsBoard() {
           return (
             <div
               key={event.id}
-              className="group bg-gradient-to-br from-turquoise-50/30 to-cyan-50/30 p-4 rounded-xl border border-blue-100/50 
-                       hover:border-turquoise-300 hover:shadow-lg hover:bg-white/70 transition-all duration-300 cursor-pointer
-                       transform hover:-translate-y-0.5 shadow-sm"
+              className="group relative glassmorphic-card p-4 rounded-2xl cursor-pointer
+                       transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl
+                       border border-white/50 hover:border-turquoise-300/50"
               onClick={() => handleEventClick(event.id)}
             >
               {/* Compact Event Header */}
@@ -305,6 +309,7 @@ export default function EventsBoard() {
           </Button>
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -215,38 +215,42 @@ function MemoryCard({ memory }: MemoryCardProps) {
   const isOwner = memory.userId === user?.id;
 
   return (
-    <Card className="p-6 space-y-4 hover:shadow-lg transition-shadow card-lift smooth-appear">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={memory.userProfileImage || memory.user?.profileImage} />
-            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-blue-500 text-white">
-              {(memory.userName || memory.user?.name || 'U').charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+    <div className="relative group">
+      {/* Hover gradient effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-turquoise-400/10 via-blue-400/10 to-cyan-400/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      <Card className="relative glassmorphic-card p-6 space-y-4 hover:shadow-xl transition-all duration-300 rounded-3xl border-white/50 hover:border-turquoise-300/50 card-lift smooth-appear">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-4">
+            <Avatar className="h-12 w-12 ring-2 ring-white/50 group-hover:ring-turquoise-300/50 transition-all">
+              <AvatarImage src={memory.userProfileImage || memory.user?.profileImage} />
+              <AvatarFallback className="bg-gradient-to-br from-turquoise-400 to-blue-500 text-white">
+                {(memory.userName || memory.user?.name || 'U').charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
           
-          <div className="flex-1">
-            <h3 className="font-bold text-lg">{memory.userName || memory.user?.name || 'Anonymous'}</h3>
-            {memory.user && (
-              <p className="text-sm text-gray-600">{formatUserLocation(memory.user)}</p>
-            )}
-            <RoleEmojiDisplay
-              tangoRoles={memory.user?.tangoRoles}
-              leaderLevel={memory.user?.leaderLevel}
-              followerLevel={memory.user?.followerLevel}
-              size="sm"
-              maxRoles={5}
-              className="mt-1"
-            />
+            <div className="flex-1">
+              <h3 className="font-bold text-lg">{memory.userName || memory.user?.name || 'Anonymous'}</h3>
+              {memory.user && (
+                <p className="text-sm text-gray-600">{formatUserLocation(memory.user)}</p>
+              )}
+              <RoleEmojiDisplay
+                tangoRoles={memory.user?.tangoRoles}
+                leaderLevel={memory.user?.leaderLevel}
+                followerLevel={memory.user?.followerLevel}
+                size="sm"
+                maxRoles={5}
+                className="mt-1"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Clock className="h-4 w-4" />
+            <time>{formatDistanceToNow(new Date(memory.createdAt))} ago</time>
           </div>
         </div>
-
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Clock className="h-4 w-4" />
-          <time>{formatDistanceToNow(new Date(memory.createdAt))} ago</time>
-        </div>
-      </div>
 
       {/* Emotion tags and location */}
       {(memory.emotionTags?.length || memory.location) && (
@@ -405,7 +409,8 @@ function MemoryCard({ memory }: MemoryCardProps) {
         onClose={() => setIsReportModalOpen(false)}
         onSubmit={handleReport}
       />
-    </Card>
+      </Card>
+    </div>
   );
 }
 
@@ -430,14 +435,26 @@ export default function EnhancedTimelineV2() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Main Feed */}
-          <div className="lg:col-span-8">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900">Enhanced Timeline</h1>
-              <p className="text-gray-600 mt-2">Experience the new Facebook-inspired design</p>
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-turquoise-50 via-blue-50 to-cyan-50">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Main Feed */}
+            <div className="lg:col-span-8">
+              {/* Beautiful Header */}
+              <div className="mb-8 relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-turquoise-400 to-blue-500 rounded-3xl blur-3xl opacity-20" />
+                <div className="relative glassmorphic-card p-8 rounded-3xl">
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className="p-3 bg-gradient-to-r from-turquoise-400 to-blue-500 rounded-xl animate-float">
+                      <Sparkles className="h-6 w-6 text-white" />
+                    </div>
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-turquoise-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                      Memories
+                    </h1>
+                  </div>
+                  <p className="text-gray-600 ml-[60px]">Share your precious moments with the Tango community</p>
+                </div>
+              </div>
 
             {/* Beautiful Post Creator */}
             <div className="mb-6">
@@ -453,17 +470,27 @@ export default function EnhancedTimelineV2() {
             {/* Posts */}
             <div className="space-y-6">
               {isLoading ? (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                <div className="glassmorphic-card p-12 rounded-3xl flex flex-col items-center justify-center">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-turquoise-400 to-blue-500 rounded-full blur-xl opacity-30 animate-pulse" />
+                    <Loader2 className="h-12 w-12 animate-spin text-turquoise-600 relative z-10" />
+                  </div>
+                  <p className="mt-4 text-gray-600">Loading memories...</p>
                 </div>
               ) : posts.length > 0 ? (
                 posts.map((post: Memory) => (
                   <MemoryCard key={post.id} memory={post} />
                 ))
               ) : (
-                <Card className="p-12 text-center">
-                  <p className="text-gray-500">No memories found. Create your first memory!</p>
-                </Card>
+                <div className="glassmorphic-card p-12 rounded-3xl text-center">
+                  <div className="max-w-md mx-auto">
+                    <div className="p-4 bg-gradient-to-r from-turquoise-400 to-blue-500 rounded-2xl inline-block mb-4">
+                      <Sparkles className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">No memories yet</h3>
+                    <p className="text-gray-600">Start sharing your precious Tango moments with the community. Your first memory is just a click away!</p>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -475,6 +502,7 @@ export default function EnhancedTimelineV2() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </DashboardLayout>
   );

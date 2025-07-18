@@ -7438,7 +7438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from(recommendations)
           .where(and(
             eq(recommendations.city, group.city),
-            eq(recommendations.is_active, true)
+            eq(recommendations.isActive, true)
           ));
         recommendationCount = Number(recommendationResult[0]?.count || 0);
       }

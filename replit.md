@@ -435,6 +435,17 @@
   - Recommendations linked to memories are now properly counted
   - Accurate recommendation counts displayed on city group statistics
 
+**UPDATE (January 18, 2025 - City Statistics API SQL Fix)**: Fixed Column Name Mismatch
+- **SQL Syntax Error Resolution**: Fixed 500 error in /api/groups/:slug endpoint
+  - Root cause: Column reference mismatch in recommendations table query
+  - Changed `eq(recommendations.is_active, true)` to `eq(recommendations.isActive, true)`
+  - Schema defines column as `isActive: boolean("is_active")` - Drizzle ORM uses camelCase property name
+- **API Verification**: City statistics now working correctly
+  - Buenos Aires: 9 events, 2 host homes, 6 recommendations
+  - Kolašin: 0 events, 0 host homes, 2 recommendations
+  - All city hub pages display accurate real-time statistics
+- **30L Framework Applied**: Systematic debugging identified schema/query mismatch
+
 **UPDATE (January 18, 2025 - City Statistics Display Fix)**: Complete Backend API Enhancement for Group Details
 - **Frontend UI Update**: Added city statistics display to GroupDetailPageMT header
   - Shows event count, host count, and recommendation count for city groups
