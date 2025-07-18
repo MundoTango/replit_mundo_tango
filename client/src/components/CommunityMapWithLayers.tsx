@@ -47,6 +47,7 @@ interface MapItem {
   memberCount?: number;
   eventCount?: number;
   hostCount?: number;
+  recommendationCount?: number;
   date?: string;
   price?: number;
   rating?: number;
@@ -165,13 +166,14 @@ export default function CommunityMapWithLayers({
       lat: city.lat,
       lng: city.lng,
       title: city.name,
-      description: `${city.totalUsers || city.memberCount || 0} members • ${city.eventCount || 0} events • ${city.hostCount || 0} hosts`,
+      description: `${city.totalUsers || city.memberCount || 0} members • ${city.eventCount || 0} events • ${city.hostCount || 0} hosts • ${city.recommendationCount || 0} recommendations`,
       type: 'cityGroup' as const,
       city: city.name,
       slug: city.slug,
       memberCount: city.totalUsers || city.memberCount || 0,
       eventCount: city.eventCount || 0,
       hostCount: city.hostCount || 0,
+      recommendationCount: city.recommendationCount || 0,
     })),
     // Events
     ...events.map((event: any) => ({
@@ -317,7 +319,7 @@ export default function CommunityMapWithLayers({
           
           {/* Stats Section */}
           <div className="px-4 pb-4">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               <div className="bg-blue-50 rounded-lg p-2 text-center">
                 <Users className="h-4 w-4 text-blue-600 mx-auto mb-1" />
                 <div className="text-base font-bold text-gray-900">{item.memberCount || 0}</div>
@@ -332,6 +334,11 @@ export default function CommunityMapWithLayers({
                 <Home className="h-4 w-4 text-amber-600 mx-auto mb-1" />
                 <div className="text-base font-bold text-gray-900">{item.hostCount || 0}</div>
                 <div className="text-xs text-gray-600">hosts</div>
+              </div>
+              <div className="bg-red-50 rounded-lg p-2 text-center">
+                <Star className="h-4 w-4 text-red-600 mx-auto mb-1" />
+                <div className="text-base font-bold text-gray-900">{item.recommendationCount || 0}</div>
+                <div className="text-xs text-gray-600">recs</div>
               </div>
             </div>
             

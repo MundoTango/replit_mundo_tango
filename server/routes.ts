@@ -10861,6 +10861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get event counts for each city
       const eventCounts: any = {};
       const hostCounts: any = {};
+      const recommendationCounts: any = {};
       if (cityGroups.length > 0) {
         const cities = cityGroups.map(g => g.city).filter(Boolean);
         const eventsPerCity = await db
@@ -10892,6 +10893,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         homesPerCity.forEach(h => {
           if (h.city) hostCounts[h.city] = Number(h.hostCount);
         });
+
+        // Get recommendation counts for each city
+        const recommendationsPerCity = await db
+          .select({
+            city: recommendations.city,
+            recommendationCount: count(recommendations.id),
+          })
+          .from(recommendations)
+          .where(and(
+            inArray(recommendations.city, cities as string[]),
+            eq(recommendations.isActive, true)
+          ))
+          .groupBy(recommendations.city);
+        
+        recommendationsPerCity.forEach(r => {
+          if (r.city) recommendationCounts[r.city] = Number(r.recommendationCount);
+        });
       }
 
       // Add coordinates based on known cities (expand this list as needed)
@@ -10920,7 +10938,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lng: coords?.lng || 0,
           totalUsers: Number(group.memberCount || 0),
           eventCount: group.city ? (eventCounts[group.city] || 0) : 0,
-          hostCount: group.city ? (hostCounts[group.city] || 0) : 0
+          hostCount: group.city ? (hostCounts[group.city] || 0) : 0,
+          recommendationCount: group.city ? (recommendationCounts[group.city] || 0) : 0
         };
       });
 
