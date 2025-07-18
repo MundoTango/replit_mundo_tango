@@ -68,7 +68,10 @@ export default function RecommendationsList({
     queryKey: ['/api/recommendations', { city, groupSlug, ...filters }],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (city) params.append('city', city);
+      if (city) {
+        console.log('📍 Setting city parameter:', city);
+        params.append('city', city);
+      }
       if (groupSlug) params.append('groupSlug', groupSlug);
       if (filters.category !== 'all') params.append('category', filters.category);
       if (filters.recommendationType !== 'all') params.append('type', filters.recommendationType);

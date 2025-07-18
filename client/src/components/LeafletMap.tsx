@@ -75,6 +75,13 @@ export default function LeafletMap({ cities, onCityClick, selectedCity }: Leafle
     !isNaN(city.lat) && !isNaN(city.lng) &&
     city.lat !== 0 && city.lng !== 0
   );
+  
+  // Debug Buenos Aires coordinates
+  const buenosAires = cities.find(city => city.city === 'Buenos Aires');
+  if (buenosAires) {
+    console.log('Buenos Aires coordinates:', { lat: buenosAires.lat, lng: buenosAires.lng });
+  }
+  }
 
   // If no valid cities, show Buenos Aires as default
   const defaultCenter: [number, number] = validCities.length > 0 

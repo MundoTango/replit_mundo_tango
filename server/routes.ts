@@ -11387,6 +11387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/recommendations', async (req, res) => {
     try {
       const { groupId, city, type, userId } = req.query;
+      console.log('📌 Recommendations API called with:', { groupId, city, type, userId });
       
       // Base query - JOIN with posts/memories to get actual user reviews
       let query = db.select({
@@ -11417,18 +11418,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ELSE false 
           END
         `,
-        // Add post/memory content as the actual review
-        postContent: sql<string>`COALESCE(${posts.content}, '')`,
+        // Add post/memory content as the actual review - handle NULL posts
+        postContent: sql<string>`COALESCE(${posts.content}, ${recommendations.description}, '')`,
         postImageUrl: posts.imageUrl,
         postCreatedAt: posts.createdAt
       })
       .from(recommendations)
       .leftJoin(users, eq(recommendations.userId, users.id))
-      .leftJoin(posts, eq(recommendations.postId, posts.id))
-      .where(
-        eq(recommendations.isActive, true)
-        // Removed the postId requirement to show all active recommendations
-      );
+      .leftJoin(posts, eq(recommendations.postId, posts.id));
       
       const conditions = [
         eq(recommendations.isActive, true)
@@ -11436,6 +11433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
       
       if (city) {
+        console.log('🔍 Filtering recommendations for city:', city);
         conditions.push(eq(recommendations.city, city as string));
       }
       
@@ -11444,6 +11442,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const recommendationsList = await query.where(and(...conditions));
+      
+      console.log('📊 Recommendations found:', recommendationsList.length);
+      
+      // If no recommendations found and we're filtering by city, try a simpler query
+      if (recommendationsList.length === 0 && city) {
+        console.log('🔄 Trying simpler query for city:', city);
+        const simpleQuery = await db.select({
+          id: recommendations.id,
+          userId: recommendations.userId,
+          postId: recommendations.postId,
+          title: recommendations.title,
+          description: recommendations.description,
+          category: recommendations.type,
+          address: recommendations.address,
+          city: recommendations.city,
+          latitude: recommendations.lat,
+          longitude: recommendations.lng,
+          rating: recommendations.rating,
+          priceLevel: sql<number>`COALESCE(${recommendations.rating}, 2)`,
+          photos: recommendations.photos,
+          tags: recommendations.tags,
+          createdAt: recommendations.createdAt,
+          recommenderId: users.id,
+          recommenderName: users.name,
+          recommenderUsername: users.username,
+          recommenderProfileImage: users.profileImage,
+          recommenderCity: users.city,
+          recommenderTangoRoles: users.tangoRoles,
+          isLocalRecommendation: sql<boolean>`CASE WHEN ${users.city} = ${recommendations.city} THEN true ELSE false END`,
+          postContent: recommendations.description,
+          postImageUrl: sql<string | null>`NULL`,
+          postCreatedAt: recommendations.createdAt
+        })
+        .from(recommendations)
+        .leftJoin(users, eq(recommendations.userId, users.id))
+        .where(and(
+          eq(recommendations.city, city as string),
+          eq(recommendations.isActive, true)
+        ));
+        
+        console.log('📊 Simple query found:', simpleQuery.length);
+        if (simpleQuery.length > 0) {
+          res.json(simpleQuery);
+          return;
+        }
+      }
       
       // If userId is provided, enhance with friend relationship data
       if (userId) {
