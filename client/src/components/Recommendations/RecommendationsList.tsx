@@ -81,7 +81,7 @@ export default function RecommendationsList({
       const response = await fetch(`/api/recommendations?${params}`);
       if (!response.ok) throw new Error('Failed to fetch recommendations');
       const data = await response.json();
-      return data.data as Recommendation[];
+      return data as Recommendation[];
     },
     enabled: !!city || !!groupSlug
   });

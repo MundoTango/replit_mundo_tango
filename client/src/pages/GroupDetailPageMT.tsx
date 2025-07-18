@@ -1053,6 +1053,7 @@ export default function GroupDetailPageMT() {
   const getCoordinatesForCity = (city: string) => {
     const cityCoordinates: { [key: string]: [number, number] } = {
       'Buenos Aires': [-34.6037, -58.3816],
+      'Buenos Aires, Argentina': [-34.6037, -58.3816],
       'Paris': [48.8566, 2.3522],
       'New York': [40.7128, -74.0060],
       'London': [51.5074, -0.1278],
@@ -1063,8 +1064,21 @@ export default function GroupDetailPageMT() {
       'Sydney': [-33.8688, 151.2093],
       'Mexico City': [19.4326, -99.1332],
       'Kolašin': [42.8358, 19.4949],
+      'Kolašin, Montenegro': [42.8358, 19.4949],
     };
-    return cityCoordinates[city] || [-34.6037, -58.3816]; // Default to Buenos Aires
+    
+    // Try exact match first
+    if (cityCoordinates[city]) {
+      return cityCoordinates[city];
+    }
+    
+    // Try city name without country
+    const cityNameOnly = city.split(',')[0].trim();
+    if (cityCoordinates[cityNameOnly]) {
+      return cityCoordinates[cityNameOnly];
+    }
+    
+    return [-34.6037, -58.3816]; // Default to Buenos Aires
   };
 
   const renderMapTab = () => {
