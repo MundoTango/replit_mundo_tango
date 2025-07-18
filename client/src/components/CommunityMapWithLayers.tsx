@@ -221,7 +221,7 @@ export default function CommunityMapWithLayers({
       if (city) {
         const cityItem = mapItems.find(item => item.type === 'cityGroup' && item.city === city);
         if (cityItem) {
-          map.flyTo([cityItem.lat, cityItem.lng], 10, { duration: 2 });
+          map.flyTo([cityItem.lat, cityItem.lng], 13, { duration: 2 });
         }
       }
     }, [city, map]);

@@ -294,12 +294,42 @@ export default function RecommendationsList({
                   </div>
                 </div>
                 
+                {/* User Review/Post Content */}
+                {(rec as any).postContent && (
+                  <div className="bg-gray-50 rounded-lg p-3 mt-3">
+                    <p className="text-sm text-gray-700 font-medium mb-1">Review:</p>
+                    <p className="text-sm text-gray-600 italic">"{(rec as any).postContent}"</p>
+                    {(rec as any).postCreatedAt && (
+                      <p className="text-xs text-gray-500 mt-2">
+                        Posted {new Date((rec as any).postCreatedAt).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                )}
+                
                 {/* Actions */}
                 <div className="flex gap-2 mt-3">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => {
+                      if (rec.latitude && rec.longitude) {
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${rec.latitude},${rec.longitude}`, '_blank');
+                      }
+                    }}
+                  >
                     View on Map
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      if (rec.latitude && rec.longitude) {
+                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${rec.latitude},${rec.longitude}&destination_place_id=${encodeURIComponent(rec.title)}`, '_blank');
+                      }
+                    }}
+                  >
                     Get Directions
                   </Button>
                 </div>

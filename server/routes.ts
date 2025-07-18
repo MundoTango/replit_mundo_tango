@@ -10930,7 +10930,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const cityGroupsWithData = cityGroups.map(group => {
-        const coords = group.city ? cityCoordinates[group.city] : null;
+        // Try to match city name with or without country
+        let coords = null;
+        if (group.city) {
+          // First try exact match
+          coords = cityCoordinates[group.city];
+          
+          // If no match, try city name without country (e.g., "Buenos Aires, Argentina" -> "Buenos Aires")
+          if (!coords) {
+            const cityNameOnly = group.city.split(',')[0].trim();
+            coords = cityCoordinates[cityNameOnly];
+          }
+          
+          // If still no match and it's Buenos Aires, use the known coordinates
+          if (!coords && group.city.toLowerCase().includes('buenos aires')) {
+            coords = { lat: -34.6037, lng: -58.3816 };
+          }
+        }
+        
         return {
           ...group,
           slug: group.slug,
@@ -11331,10 +11348,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { groupId, city, type, userId } = req.query;
       
-      // Base query
+      // Base query - JOIN with posts/memories to get actual user reviews
       let query = db.select({
         id: recommendations.id,
         userId: recommendations.userId,
+        postId: recommendations.postId,
         title: recommendations.title,
         description: recommendations.description,
         category: recommendations.type, // Map type to category for frontend compatibility
@@ -11358,13 +11376,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             WHEN ${users.city} = ${recommendations.city} THEN true 
             ELSE false 
           END
-        `
+        `,
+        // Add post/memory content as the actual review
+        postContent: posts.content,
+        postImageUrl: posts.imageUrl,
+        postCreatedAt: posts.createdAt
       })
       .from(recommendations)
       .leftJoin(users, eq(recommendations.userId, users.id))
-      .where(eq(recommendations.isActive, true));
+      .leftJoin(posts, eq(recommendations.postId, posts.id))
+      .where(and(
+        eq(recommendations.isActive, true),
+        isNotNull(recommendations.postId) // Only show recommendations with actual posts
+      ));
       
-      const conditions = [eq(recommendations.isActive, true)];
+      const conditions = [
+        eq(recommendations.isActive, true),
+        isNotNull(recommendations.postId) // Filter out recommendations without posts
+      ];
       
       if (city) {
         conditions.push(eq(recommendations.city, city as string));
@@ -11433,15 +11462,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         }));
         
-        res.json({
-          success: true,
-          data: enhancedRecommendations
-        });
+        // Transform to match frontend expectations
+        const transformedRecommendations = enhancedRecommendations.map(rec => ({
+          id: rec.id,
+          userId: rec.userId,
+          postId: rec.postId,
+          title: rec.title,
+          description: rec.description,
+          category: rec.category, // Already mapped from 'type'
+          address: rec.address,
+          city: rec.city,
+          country: 'Unknown', // Not in DB, default value
+          latitude: rec.latitude,
+          longitude: rec.longitude,
+          rating: rec.rating,
+          priceLevel: rec.priceLevel,
+          photos: rec.photos || [],
+          tags: rec.tags || [],
+          createdAt: rec.createdAt,
+          postContent: rec.postContent,
+          postImageUrl: rec.postImageUrl,
+          postCreatedAt: rec.postCreatedAt,
+          recommendedBy: {
+            id: rec.recommenderId,
+            name: rec.recommenderName,
+            username: rec.recommenderUsername,
+            profileImage: rec.recommenderProfileImage,
+            isLocal: rec.isLocalRecommendation,
+            nationality: rec.recommenderNationality || undefined
+          },
+          friendConnection: rec.friendRelation?.type || null,
+          localRecommendations: rec.isLocalRecommendation ? 1 : 0,
+          visitorRecommendations: !rec.isLocalRecommendation ? 1 : 0
+        }));
+        
+        res.json(transformedRecommendations);
       } else {
-        res.json({
-          success: true,
-          data: recommendationsList
-        });
+        // Transform to match frontend expectations
+        const transformedRecommendations = recommendationsList.map(rec => ({
+          id: rec.id,
+          userId: rec.userId,
+          postId: rec.postId,
+          title: rec.title,
+          description: rec.description,
+          category: rec.category, // Already mapped from 'type'
+          address: rec.address,
+          city: rec.city,
+          country: 'Unknown', // Not in DB, default value
+          latitude: rec.latitude,
+          longitude: rec.longitude,
+          rating: rec.rating,
+          priceLevel: rec.priceLevel,
+          photos: rec.photos || [],
+          tags: rec.tags || [],
+          createdAt: rec.createdAt,
+          postContent: rec.postContent,
+          postImageUrl: rec.postImageUrl,
+          postCreatedAt: rec.postCreatedAt,
+          recommendedBy: {
+            id: rec.recommenderId,
+            name: rec.recommenderName,
+            username: rec.recommenderUsername,
+            profileImage: rec.recommenderProfileImage,
+            isLocal: rec.isLocalRecommendation,
+            nationality: rec.recommenderNationality || undefined
+          },
+          friendConnection: null,
+          localRecommendations: rec.isLocalRecommendation ? 1 : 0,
+          visitorRecommendations: !rec.isLocalRecommendation ? 1 : 0
+        }));
+        
+        res.json(transformedRecommendations);
       }
     } catch (error) {
       console.error('Error fetching recommendations:', error);
