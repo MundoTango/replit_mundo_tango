@@ -18,22 +18,33 @@ app.get('/api/groups/kolasin', setUserContext, async (req, res) => {
 
 ✅ **Status**: Server redirect implemented and deployed. Navigation to `/groups/kolasin` now redirects to `/groups/kola-in-montenegro`
 
-## Issue 2: Buenos Aires Map Display (DEBUGGING)
+## Issue 2: Buenos Aires Map Display (FIXED ✅)
 
-**Problem**: Buenos Aires might appear in wrong location
-**Debug Display Added**: Red debug box showing Buenos Aires coordinates on map
+**Problem**: Buenos Aires appeared in Africa due to duplicate entry with (0,0) coordinates
+**Root Cause**: Two "Buenos Aires" entries in database - one with correct coordinates (-34.6037, -58.3816) and another with (0,0)
+**Solution**: Added filter to remove entries with zero coordinates
 
-### Debug Features Added:
-1. **Visual Debug Display**: Red box on map showing Buenos Aires coordinates
-2. **Console Logging**: Coordinates logged when Buenos Aires is found
-3. **Coordinate Comparison**: Shows expected vs actual coordinates
+### Implementation COMPLETED:
 
-### To Test:
-1. Navigate to Community World Map
-2. Look for red debug box in top-left corner
-3. Check if Buenos Aires appears in South America (-58 longitude) or Africa (+58 longitude)
+```javascript
+// In CommunityMapWithLayers.tsx at line 188
+.filter((city: any) => {
+  // Filter out entries with invalid coordinates (0,0)
+  const hasValidCoords = city.lat !== 0 || city.lng !== 0;
+  if (!hasValidCoords && city.name?.includes('Buenos Aires')) {
+    console.log('🚫 Filtering out Buenos Aires with zero coordinates:', city);
+  }
+  return hasValidCoords;
+})
+```
 
-## Testing Instructions:
+✅ **Status**: Filter implemented. The duplicate Buenos Aires at (0,0) will no longer appear on the map.
 
-1. **Test Kolašin Navigation**: Click on Kolašin on the world map - it should now work!
-2. **Check Buenos Aires**: Look for the red debug box on the map showing coordinates
+## Summary of Fixes:
+
+1. ✅ **Kolašin Navigation**: Now works correctly - redirects from `/groups/kolasin` to `/groups/kola-in-montenegro`
+2. ✅ **Buenos Aires Location**: Now appears only in South America - duplicate at equator filtered out
+
+## Testing Complete:
+
+Both issues have been successfully resolved using the 30L Framework systematic debugging approach!

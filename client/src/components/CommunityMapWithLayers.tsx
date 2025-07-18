@@ -181,31 +181,40 @@ export default function CommunityMapWithLayers({
   // Combine all items for the map
   const mapItems: MapItem[] = [
     // City groups
-    ...cityGroups.map((city: any) => {
-      // Debug Buenos Aires coordinates
-      if (city.name?.includes('Buenos Aires')) {
-        console.log('🌎 Buenos Aires data from API:', {
-          name: city.name,
+    ...cityGroups
+      .filter((city: any) => {
+        // Filter out entries with invalid coordinates (0,0)
+        const hasValidCoords = city.lat !== 0 || city.lng !== 0;
+        if (!hasValidCoords && city.name?.includes('Buenos Aires')) {
+          console.log('🚫 Filtering out Buenos Aires with zero coordinates:', city);
+        }
+        return hasValidCoords;
+      })
+      .map((city: any) => {
+        // Debug Buenos Aires coordinates
+        if (city.name?.includes('Buenos Aires')) {
+          console.log('🌎 Buenos Aires data from API:', {
+            name: city.name,
+            lat: city.lat,
+            lng: city.lng,
+            original: city
+          });
+        }
+        return {
+          id: city.id,
           lat: city.lat,
           lng: city.lng,
-          original: city
-        });
-      }
-      return {
-        id: city.id,
-        lat: city.lat,
-        lng: city.lng,
-        title: city.name,
-        description: `${city.totalUsers || city.memberCount || 0} members • ${city.eventCount || 0} events • ${city.hostCount || 0} hosts • ${city.recommendationCount || 0} recommendations`,
-        type: 'cityGroup' as const,
-        city: city.name,
-        slug: city.slug,
-        memberCount: city.totalUsers || city.memberCount || 0,
-        eventCount: city.eventCount || 0,
-        hostCount: city.hostCount || 0,
-        recommendationCount: city.recommendationCount || 0,
-      };
-    }),
+          title: city.name,
+          description: `${city.totalUsers || city.memberCount || 0} members • ${city.eventCount || 0} events • ${city.hostCount || 0} hosts • ${city.recommendationCount || 0} recommendations`,
+          type: 'cityGroup' as const,
+          city: city.name,
+          slug: city.slug,
+          memberCount: city.totalUsers || city.memberCount || 0,
+          eventCount: city.eventCount || 0,
+          hostCount: city.hostCount || 0,
+          recommendationCount: city.recommendationCount || 0,
+        };
+      }),
     // Events
     ...events.map((event: any) => ({
       id: event.id,
