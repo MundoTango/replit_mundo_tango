@@ -7372,6 +7372,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Redirect common Kolašin misspellings to correct slug
+  app.get('/api/groups/kolasin', setUserContext, async (req, res) => {
+    console.log('🔄 Redirecting kolasin to kola-in-montenegro');
+    res.redirect(301, '/api/groups/kola-in-montenegro');
+  });
+
   // Get group details by slug
   app.get('/api/groups/:slug', setUserContext, async (req, res) => {
     try {
@@ -10967,6 +10973,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Vienna': { lat: 48.2082, lng: 16.3738 },
         'Stockholm': { lat: 59.3293, lng: 18.0686 },
         'Kolašin': { lat: 42.8358, lng: 19.4949 },
+        'Kolašin, Montenegro': { lat: 42.8358, lng: 19.4949 },  // Handle full name format
       };
 
       const cityGroupsWithData = cityGroups.map(group => {
@@ -10986,6 +10993,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!coords && group.city.toLowerCase().includes('buenos aires')) {
             coords = { lat: -34.6037, lng: -58.3816 };
           }
+        }
+        
+        // Debug Buenos Aires coordinates
+        if (group.name?.includes('Buenos Aires')) {
+          console.log('🌍 Server: Buenos Aires coordinates:', {
+            name: group.name,
+            city: group.city,
+            coords: coords,
+            finalLat: coords?.lat || 0,
+            finalLng: coords?.lng || 0
+          });
         }
         
         return {

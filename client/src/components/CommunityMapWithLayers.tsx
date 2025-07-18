@@ -110,6 +110,20 @@ export default function CommunityMapWithLayers({
       const response = await fetch(`/api/community/city-groups?${params}`);
       if (!response.ok) throw new Error('Failed to fetch city groups');
       const data = await response.json();
+      
+      // Debug Buenos Aires coordinates from API
+      if (data.success && data.data) {
+        const buenosAires = data.data.find((g: any) => g.name?.includes('Buenos Aires'));
+        if (buenosAires) {
+          console.log('🔥 Buenos Aires RAW API Response:', {
+            name: buenosAires.name,
+            lat: buenosAires.lat,
+            lng: buenosAires.lng,
+            fullObject: buenosAires
+          });
+        }
+      }
+      
       return data.success ? data.data : [];
     }
   });
@@ -167,20 +181,31 @@ export default function CommunityMapWithLayers({
   // Combine all items for the map
   const mapItems: MapItem[] = [
     // City groups
-    ...cityGroups.map((city: any) => ({
-      id: city.id,
-      lat: city.lat,
-      lng: city.lng,
-      title: city.name,
-      description: `${city.totalUsers || city.memberCount || 0} members • ${city.eventCount || 0} events • ${city.hostCount || 0} hosts • ${city.recommendationCount || 0} recommendations`,
-      type: 'cityGroup' as const,
-      city: city.name,
-      slug: city.slug,
-      memberCount: city.totalUsers || city.memberCount || 0,
-      eventCount: city.eventCount || 0,
-      hostCount: city.hostCount || 0,
-      recommendationCount: city.recommendationCount || 0,
-    })),
+    ...cityGroups.map((city: any) => {
+      // Debug Buenos Aires coordinates
+      if (city.name?.includes('Buenos Aires')) {
+        console.log('🌎 Buenos Aires data from API:', {
+          name: city.name,
+          lat: city.lat,
+          lng: city.lng,
+          original: city
+        });
+      }
+      return {
+        id: city.id,
+        lat: city.lat,
+        lng: city.lng,
+        title: city.name,
+        description: `${city.totalUsers || city.memberCount || 0} members • ${city.eventCount || 0} events • ${city.hostCount || 0} hosts • ${city.recommendationCount || 0} recommendations`,
+        type: 'cityGroup' as const,
+        city: city.name,
+        slug: city.slug,
+        memberCount: city.totalUsers || city.memberCount || 0,
+        eventCount: city.eventCount || 0,
+        hostCount: city.hostCount || 0,
+        recommendationCount: city.recommendationCount || 0,
+      };
+    }),
     // Events
     ...events.map((event: any) => ({
       id: event.id,
@@ -449,8 +474,21 @@ export default function CommunityMapWithLayers({
     );
   };
 
+  // Find Buenos Aires for debug display
+  const buenosAiresData = mapItems.find(item => item.title?.includes('Buenos Aires'));
+  
   return (
     <div className="h-full w-full relative">
+      {/* Debug Display for Buenos Aires */}
+      {buenosAiresData && (
+        <div className="absolute top-4 left-4 z-[1000] bg-red-600 text-white rounded-lg shadow-lg p-3 max-w-[250px]">
+          <div className="text-xs font-bold mb-1">🔴 DEBUG: Buenos Aires</div>
+          <div className="text-xs">Lat: {buenosAiresData.lat}</div>
+          <div className="text-xs">Lng: {buenosAiresData.lng}</div>
+          <div className="text-xs mt-1">Expected: -34.6037, -58.3816</div>
+        </div>
+      )}
+      
       {/* Custom Layer Control */}
       <div className="absolute top-4 right-4 z-[1000] bg-white rounded-lg shadow-lg p-3 min-w-[140px]">
         <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-gray-700">
@@ -502,15 +540,25 @@ export default function CommunityMapWithLayers({
         {/* Display City Groups - Always visible as base layer */}
         {mapItems
           .filter(item => item.type === 'cityGroup')
-          .map(item => (
-            <Marker
-              key={`city-${item.id}`}
-              position={[item.lat, item.lng]}
-              icon={createCustomIcon(LAYER_COLORS.cityGroup, getIcon(item.type))}
-            >
-              <Popup>{renderPopupContent(item)}</Popup>
-            </Marker>
-          ))}
+          .map(item => {
+            // Debug Buenos Aires marker placement
+            if (item.title?.includes('Buenos Aires')) {
+              console.log('📍 Placing Buenos Aires marker at:', {
+                lat: item.lat,
+                lng: item.lng,
+                position: [item.lat, item.lng]
+              });
+            }
+            return (
+              <Marker
+                key={`city-${item.id}`}
+                position={[item.lat, item.lng]}
+                icon={createCustomIcon(LAYER_COLORS.cityGroup, getIcon(item.type))}
+              >
+                <Popup>{renderPopupContent(item)}</Popup>
+              </Marker>
+            );
+          })}
         
         {/* Events Layer */}
         {showEvents && mapItems
