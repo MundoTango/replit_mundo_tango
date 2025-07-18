@@ -435,6 +435,21 @@
   - Recommendations linked to memories are now properly counted
   - Accurate recommendation counts displayed on city group statistics
 
+**UPDATE (January 18, 2025 - City Statistics Display Fix)**: Complete Backend API Enhancement for Group Details
+- **Frontend UI Update**: Added city statistics display to GroupDetailPageMT header
+  - Shows event count, host count, and recommendation count for city groups
+  - Added Calendar, Home, and Star icons for each statistic
+  - Only displays for city-type groups using conditional rendering
+- **Backend API Enhancement**: Updated `/api/groups/:slug` endpoint to include city statistics
+  - Added queries to count events (future events only) for the city
+  - Added queries to count active host homes for the city
+  - Added queries to count active recommendations for the city
+  - Returns eventCount, hostCount, recommendationCount in API response
+- **30L Framework Applied**: Used systematic debugging approach to identify two-part issue:
+  - Part 1: UI wasn't displaying the statistics (fixed in frontend)
+  - Part 2: API wasn't returning the statistics (fixed in backend)
+- **Complete Solution**: City group pages now display live statistics from database
+
 **UPDATE (January 17, 2025 - Micro-Interactions and Particle Effects Implementation)**: Platform-Wide UI/UX Enhancement Using 30L Framework
 - **Micro-Interactions Infrastructure**: Created comprehensive micro-interactions system across MT design
   - Created microInteractions.ts utility with particle effects, ripple effects, magnetic buttons, and confetti

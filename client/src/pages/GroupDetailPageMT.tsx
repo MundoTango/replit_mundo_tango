@@ -1158,6 +1158,22 @@ export default function GroupDetailPageMT() {
                       <span>{group.city}{group.country ? `, ${group.country}` : ''}</span>
                     </div>
                   )}
+                  {group.type === 'city' && (
+                    <>
+                      <div className="mt-group-stat">
+                        <Calendar className="mt-group-stat-icon" />
+                        <span>{group.eventCount || 0} events</span>
+                      </div>
+                      <div className="mt-group-stat">
+                        <Home className="mt-group-stat-icon" />
+                        <span>{group.hostCount || 0} hosts</span>
+                      </div>
+                      <div className="mt-group-stat">
+                        <Star className="mt-group-stat-icon" />
+                        <span>{group.recommendationCount || 0} recommendations</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
               

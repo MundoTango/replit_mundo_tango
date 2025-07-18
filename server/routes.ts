@@ -7406,6 +7406,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get member count
       const memberCount = await storage.getGroupMemberCount(group.id);
       
+      // Get city-specific statistics if it's a city group
+      let eventCount = 0;
+      let hostCount = 0;
+      let recommendationCount = 0;
+      
+      if (group.type === 'city' && group.city) {
+        // Get event count for this city
+        const eventResult = await db
+          .select({ count: count(events.id) })
+          .from(events)
+          .where(and(
+            eq(events.city, group.city),
+            gt(events.startDate, new Date())
+          ));
+        eventCount = Number(eventResult[0]?.count || 0);
+        
+        // Get host count for this city
+        const hostResult = await db
+          .select({ count: count(hostHomes.id) })
+          .from(hostHomes)
+          .where(and(
+            eq(hostHomes.city, group.city),
+            eq(hostHomes.isActive, true)
+          ));
+        hostCount = Number(hostResult[0]?.count || 0);
+        
+        // Get recommendation count for this city
+        const recommendationResult = await db
+          .select({ count: count(recommendations.id) })
+          .from(recommendations)
+          .where(and(
+            eq(recommendations.city, group.city),
+            eq(recommendations.is_active, true)
+          ));
+        recommendationCount = Number(recommendationResult[0]?.count || 0);
+      }
+      
       // Fetch city-specific photo if it's a city group
       let cityPhotoUrl = group.image_url || null;
       if (group.type === 'city' && group.city) {
@@ -7429,7 +7466,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           image_url: cityPhotoUrl,
           isMember,
           isAdmin,
-          memberCount
+          memberCount,
+          eventCount,
+          hostCount,
+          recommendationCount
         }
       });
       
