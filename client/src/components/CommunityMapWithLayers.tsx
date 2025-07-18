@@ -57,6 +57,9 @@ interface MapItem {
 interface CommunityMapWithLayersProps {
   city?: string;
   groupSlug?: string;
+  centerLat?: number;
+  centerLng?: number;
+  groupCity?: string;
   layers?: {
     events: boolean;
     housing: boolean;
@@ -79,6 +82,9 @@ interface CommunityMapWithLayersProps {
 export default function CommunityMapWithLayers({
   city,
   groupSlug,
+  centerLat,
+  centerLng,
+  groupCity,
   layers = { events: true, housing: true, recommendations: true },
   dateFilter,
   eventFilters,
@@ -483,8 +489,8 @@ export default function CommunityMapWithLayers({
       </div>
       
       <MapContainer
-        center={[-15, -60]} // Center on South America
-        zoom={3}
+        center={[centerLat || -15, centerLng || -60]} // Use provided center or default to South America
+        zoom={centerLat && centerLng ? 13 : 3} // Use zoom 13 for city view, 3 for global view
         className="h-full w-full"
         zoomControl={true}
       >

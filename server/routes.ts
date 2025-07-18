@@ -10894,7 +10894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (h.city) hostCounts[h.city] = Number(h.hostCount);
         });
 
-        // Get recommendation counts for each city
+        // Get recommendation counts for each city (count active recommendations)
         const recommendationsPerCity = await db
           .select({
             city: recommendations.city,
@@ -10903,7 +10903,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from(recommendations)
           .where(and(
             inArray(recommendations.city, cities as string[]),
-            eq(recommendations.isActive, true)
+            eq(recommendations.isActive, true) // Only count active recommendations
           ))
           .groupBy(recommendations.city);
         
@@ -11378,21 +11378,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           END
         `,
         // Add post/memory content as the actual review
-        postContent: posts.content,
+        postContent: sql<string>`COALESCE(${posts.content}, '')`,
         postImageUrl: posts.imageUrl,
         postCreatedAt: posts.createdAt
       })
       .from(recommendations)
       .leftJoin(users, eq(recommendations.userId, users.id))
       .leftJoin(posts, eq(recommendations.postId, posts.id))
-      .where(and(
-        eq(recommendations.isActive, true),
-        isNotNull(recommendations.postId) // Only show recommendations with actual posts
-      ));
+      .where(
+        eq(recommendations.isActive, true)
+        // Removed the postId requirement to show all active recommendations
+      );
       
       const conditions = [
-        eq(recommendations.isActive, true),
-        isNotNull(recommendations.postId) // Filter out recommendations without posts
+        eq(recommendations.isActive, true)
+        // Show all active recommendations, even without posts
       ];
       
       if (city) {

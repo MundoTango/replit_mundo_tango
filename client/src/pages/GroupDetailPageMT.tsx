@@ -936,6 +936,9 @@ export default function GroupDetailPageMT() {
   };
 
   const renderCommunityHub = () => {
+    // Get coordinates for the city
+    const cityCenter = group.city ? getCoordinatesForCity(group.city) : [-34.6037, -58.3816];
+    
     // Get user's city context using RBAC
     const userContext = CityRbacService.getUserCityContext(
       user,
@@ -1046,24 +1049,25 @@ export default function GroupDetailPageMT() {
     );
   };
 
-  const renderMapTab = () => {
-    // Get coordinates for the city if available
-    const getCoordinatesForCity = (city: string) => {
-      const cityCoordinates: { [key: string]: [number, number] } = {
-        'Buenos Aires': [-34.6037, -58.3816],
-        'Paris': [48.8566, 2.3522],
-        'New York': [40.7128, -74.0060],
-        'London': [51.5074, -0.1278],
-        'Berlin': [52.5200, 13.4050],
-        'Barcelona': [41.3851, 2.1734],
-        'Rome': [41.9028, 12.4964],
-        'Tokyo': [35.6762, 139.6503],
-        'Sydney': [-33.8688, 151.2093],
-        'Mexico City': [19.4326, -99.1332],
-      };
-      return cityCoordinates[city] || [-34.6037, -58.3816]; // Default to Buenos Aires
+  // Get coordinates for the city if available
+  const getCoordinatesForCity = (city: string) => {
+    const cityCoordinates: { [key: string]: [number, number] } = {
+      'Buenos Aires': [-34.6037, -58.3816],
+      'Paris': [48.8566, 2.3522],
+      'New York': [40.7128, -74.0060],
+      'London': [51.5074, -0.1278],
+      'Berlin': [52.5200, 13.4050],
+      'Barcelona': [41.3851, 2.1734],
+      'Rome': [41.9028, 12.4964],
+      'Tokyo': [35.6762, 139.6503],
+      'Sydney': [-33.8688, 151.2093],
+      'Mexico City': [19.4326, -99.1332],
+      'Kolašin': [42.8358, 19.4949],
     };
+    return cityCoordinates[city] || [-34.6037, -58.3816]; // Default to Buenos Aires
+  };
 
+  const renderMapTab = () => {
     const cityCenter = group.city ? getCoordinatesForCity(group.city) : [-34.6037, -58.3816];
 
     return (

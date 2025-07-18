@@ -418,6 +418,23 @@
   - GroupDetailPageMT shows follow/unfollow buttons for visitors, join/leave for locals
 - **Technical Infrastructure**: Complete separation of follow vs join functionality at all layers
 
+**UPDATE (January 18, 2025 - Kolašin Map Fixes & Recommendation Count Accuracy)**: Complete 30L Framework Fixes for City-Specific Maps
+- **Recommendations API Enhancement**: Fixed /api/recommendations to join with memories table when posts are NULL
+  - Ensures user content appears in recommendations even without posts
+  - Added proper LEFT JOIN logic to include memory-based recommendations
+- **Map Centering Fix**: Enhanced CommunityMapWithLayers component to accept centerLat/centerLng props
+  - City-specific views now center properly with zoom level 13
+  - Global views maintain zoom level 3 centered on South America
+  - Implemented dynamic zoom based on whether center coordinates are provided
+- **Coordinate Standardization**: Created shared getCoordinatesForCity function in GroupDetailPageMT
+  - Kolašin coordinates (42.8358, 19.4949) properly mapped across all components
+  - Consistent coordinate handling for Buenos Aires and other cities
+  - Maps now center correctly on each city group's location
+- **Recommendation Count Fix**: Corrected city groups endpoint to count all active recommendations
+  - Removed incorrect filter requiring postId NOT NULL
+  - Recommendations linked to memories are now properly counted
+  - Accurate recommendation counts displayed on city group statistics
+
 **UPDATE (January 17, 2025 - Micro-Interactions and Particle Effects Implementation)**: Platform-Wide UI/UX Enhancement Using 30L Framework
 - **Micro-Interactions Infrastructure**: Created comprehensive micro-interactions system across MT design
   - Created microInteractions.ts utility with particle effects, ripple effects, magnetic buttons, and confetti
