@@ -394,21 +394,21 @@ const AdminCenter: React.FC = React.memo(() => {
     };
 
     return (
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
+      <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-white/50 shadow-lg hover:shadow-xl transition-all">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-gray-900">{title}</h3>
+          <h3 className="font-semibold bg-gradient-to-r from-turquoise-700 to-cyan-700 bg-clip-text text-transparent">{title}</h3>
           <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${getStatusColor()}`}>
             {getStatusIcon()}
             <span className="text-sm font-medium">{score}%</span>
           </div>
         </div>
         <p className="text-sm text-gray-600 mb-4">{description}</p>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-turquoise-100/50 rounded-full h-2">
           <div 
             className={`h-2 rounded-full transition-all duration-300 ${
-              score >= 90 ? 'bg-green-500' : 
-              score >= 75 ? 'bg-blue-500' : 
-              score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+              score >= 90 ? 'bg-gradient-to-r from-turquoise-500 to-cyan-500' : 
+              score >= 75 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' : 
+              score >= 60 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-red-500 to-pink-500'
             }`}
             style={{ width: `${score}%` }}
           />
@@ -1900,44 +1900,44 @@ const AdminCenter: React.FC = React.memo(() => {
         </div>
 
       {/* Service Status with MT Styling */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Service Status</h3>
+      <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all">
+        <h3 className="text-lg font-semibold bg-gradient-to-r from-turquoise-700 to-cyan-700 bg-clip-text text-transparent mb-4">Service Status</h3>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-turquoise-50/70 to-cyan-50/70 rounded-xl backdrop-blur-sm border border-turquoise-200/50">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-green-500 rounded-lg">
+              <div className="p-1.5 bg-gradient-to-r from-turquoise-500 to-cyan-500 rounded-lg shadow-md">
                 <CheckCircle className="w-5 h-5 text-white" />
               </div>
-              <span className="font-medium text-gray-800">Web Application</span>
+              <span className="font-medium text-turquoise-800">Web Application</span>
             </div>
-            <span className="text-sm text-green-600 font-semibold">Operational</span>
+            <span className="text-sm text-turquoise-600 font-semibold">Operational</span>
           </div>
-          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-turquoise-50/70 to-cyan-50/70 rounded-xl backdrop-blur-sm border border-turquoise-200/50">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-green-500 rounded-lg">
+              <div className="p-1.5 bg-gradient-to-r from-turquoise-500 to-cyan-500 rounded-lg shadow-md">
                 <CheckCircle className="w-5 h-5 text-white" />
               </div>
-              <span className="font-medium text-gray-800">Database</span>
+              <span className="font-medium text-turquoise-800">Database</span>
             </div>
-            <span className="text-sm text-green-600 font-semibold">Operational</span>
+            <span className="text-sm text-turquoise-600 font-semibold">Operational</span>
           </div>
-          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-turquoise-50/70 to-cyan-50/70 rounded-xl backdrop-blur-sm border border-turquoise-200/50">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-green-500 rounded-lg">
+              <div className="p-1.5 bg-gradient-to-r from-turquoise-500 to-cyan-500 rounded-lg shadow-md">
                 <CheckCircle className="w-5 h-5 text-white" />
               </div>
-              <span className="font-medium text-gray-800">WebSocket Services</span>
+              <span className="font-medium text-turquoise-800">WebSocket Services</span>
             </div>
-            <span className="text-sm text-green-600 font-semibold">Operational</span>
+            <span className="text-sm text-turquoise-600 font-semibold">Operational</span>
           </div>
-          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-turquoise-50/70 to-cyan-50/70 rounded-xl backdrop-blur-sm border border-turquoise-200/50">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-green-500 rounded-lg">
+              <div className="p-1.5 bg-gradient-to-r from-turquoise-500 to-cyan-500 rounded-lg shadow-md">
                 <Wifi className="w-5 h-5 text-white" />
               </div>
-              <span className="font-medium text-gray-800">CDN</span>
+              <span className="font-medium text-turquoise-800">CDN</span>
             </div>
-            <span className="text-sm text-green-600 font-semibold">Operational</span>
+            <span className="text-sm text-turquoise-600 font-semibold">Operational</span>
           </div>
         </div>
       </div>
@@ -2432,13 +2432,13 @@ const AdminCenter: React.FC = React.memo(() => {
 
   if (statsLoading || complianceLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-turquoise-50/30 via-cyan-50/30 to-teal-50/30 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-300 rounded w-64"></div>
+            <div className="h-8 bg-gradient-to-r from-turquoise-200 to-cyan-200 rounded w-64"></div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-32 bg-gray-300 rounded-xl"></div>
+                <div key={i} className="h-32 bg-gradient-to-br from-turquoise-100 to-cyan-100 rounded-2xl backdrop-blur-sm"></div>
               ))}
             </div>
           </div>
