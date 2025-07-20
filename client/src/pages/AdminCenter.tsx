@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDebounce, LazyLoad, withPerformance } from '@/lib/performance';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
+import { useLocation } from 'wouter';
+import { toast } from 'react-hot-toast';
 import TrangoTechSidebar from '@/components/TrangoTechSidebar';
 import ProjectTrackerDashboard from '@/components/admin/ProjectTrackerDashboard';
 import Comprehensive11LProjectTracker from '@/components/admin/Comprehensive11LProjectTracker';
@@ -126,6 +129,19 @@ const AdminCenter: React.FC = React.memo(() => {
     action: '',
     result: null as any
   });
+  
+  // Auth check for super admin access
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
+  const isSuperAdmin = (user as any)?.isSuperAdmin === true;
+  
+  // Redirect non-super admins
+  useEffect(() => {
+    if (user && !isSuperAdmin) {
+      toast.error('Access denied. Admin Center is restricted to Super Admins only.');
+      setLocation('/');
+    }
+  }, [user, isSuperAdmin, setLocation]);
   
   // System Health state - moved here to avoid hooks error
   const [systemHealthRefreshing, setSystemHealthRefreshing] = useState(false);

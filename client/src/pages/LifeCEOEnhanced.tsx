@@ -83,7 +83,15 @@ export default function LifeCEOEnhanced() {
   const [showAgentSwitcher, setShowAgentSwitcher] = useState(false);
 
   // Check if user is super admin
-  const isSuperAdmin = user?.roles?.includes('super_admin') || user?.tangoRoles?.includes('super_admin');
+  const isSuperAdmin = (user as any)?.isSuperAdmin === true;
+
+  // Redirect non-super admins
+  useEffect(() => {
+    if (user && !isSuperAdmin) {
+      toast.error('Access denied. Life CEO Portal is restricted to Super Admins only.');
+      setLocation('/');
+    }
+  }, [user, isSuperAdmin, setLocation]);
 
   // Register service worker and handle PWA installation
   useEffect(() => {

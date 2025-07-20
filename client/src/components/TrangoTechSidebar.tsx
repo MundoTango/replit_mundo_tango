@@ -69,6 +69,10 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
   // Check if user has admin privileges
   const hasAdminAccess = user && (user.username === 'admin' || user.email?.includes('admin'));
+  
+  // Check if user is a Super Admin
+  // The API returns isSuperAdmin as a boolean field
+  const isSuperAdmin = (user as any)?.isSuperAdmin === true;
 
   // Add Admin Center route for admins
   const adminRoute = {
@@ -77,17 +81,21 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     link: "/admin",
   };
 
-  // Add Life CEO Portal route for admins
+  // Add Life CEO Portal route for super admins only
   const lifeCEORoute = {
     icon: <Crown className="w-5 h-5" />,
     title: "Life CEO Portal",
     link: "/life-ceo",
   };
 
-  // Combine routes with conditional admin access
-  const allRoutes = hasAdminAccess 
-    ? [...sidebarRoutes, adminRoute, lifeCEORoute] 
-    : sidebarRoutes;
+  // Combine routes with conditional access
+  let allRoutes = [...sidebarRoutes];
+  if (hasAdminAccess) {
+    allRoutes.push(adminRoute);
+  }
+  if (isSuperAdmin) {
+    allRoutes.push(lifeCEORoute);
+  }
   
   // Debug log to verify routes
   console.log('Sidebar routes:', allRoutes.map(r => ({ title: r.title, link: r.link })));
@@ -198,8 +206,8 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               {user?.tangoRoles && user.tangoRoles.length > 0 && (
                 <RoleEmojiDisplay 
                   tangoRoles={user.tangoRoles} 
-                  leaderLevel={user.leaderLevel}
-                  followerLevel={user.followerLevel}
+                  leaderLevel={(user as any).leaderLevel}
+                  followerLevel={(user as any).followerLevel}
                   size="sm"
                   maxRoles={5}
                   className="mt-1"
