@@ -13,6 +13,8 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalStatisticsDashboard } from '@/components/GlobalStatisticsDashboard';
 import PerformanceMonitor from '@/components/admin/PerformanceMonitor';
 import Framework35LDashboard from '@/components/admin/Framework35LDashboard';
+import Framework40LDashboard from '@/components/admin/Framework40LDashboard';
+import LifeCEOFrameworkAgent from '@/components/life-ceo/LifeCEOFrameworkAgent';
 import { 
   Users, 
   Activity, 
@@ -288,9 +290,11 @@ const AdminCenter: React.FC = React.memo(() => {
 
   const tabs = [
     { id: 'life-ceo', label: 'Life CEO Portal', icon: <Brain className="w-4 h-4" /> },
+    { id: 'life-ceo-agent', label: 'Life CEO Agent', icon: <Brain className="w-4 h-4" />, isNew: true },
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'statistics', label: 'Global Statistics', icon: <Globe className="w-4 h-4" />, isNew: true },
     { id: 'project-tracker', label: 'The Plan', icon: <GitCommit className="w-4 h-4" /> },
+    { id: '40l-framework', label: '40L Framework', icon: <Layers className="w-4 h-4" />, isNew: true },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
     { id: 'content', label: 'Content Moderation', icon: <FileText className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="w-4 h-4" /> },
@@ -2384,6 +2388,7 @@ const AdminCenter: React.FC = React.memo(() => {
   const renderContent = () => {
     switch (selectedTab) {
       case 'life-ceo': return <LifeCEOPortal />;
+      case 'life-ceo-agent': return <LifeCEOFrameworkAgent />;
       case 'overview': return renderOverview();
       case 'statistics': return <GlobalStatisticsDashboard />;
       case 'daily-activity': return <DailyActivityView />;
@@ -2392,6 +2397,7 @@ const AdminCenter: React.FC = React.memo(() => {
           <Comprehensive11LProjectTracker />
         </ErrorBoundary>
       );
+      case '40l-framework': return <Framework40LDashboard />;
       case 'feature-deep-dive': return <PlatformFeatureDeepDive />;
       case 'users': return renderUserManagement();
       case 'content': return renderContentModeration();

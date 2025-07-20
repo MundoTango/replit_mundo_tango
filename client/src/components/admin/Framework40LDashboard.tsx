@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ProfilePhasesDashboard } from '@/components/profile/ProfilePhasesDashboard';
 import { 
   Layers, 
   FileText, 
@@ -24,7 +25,8 @@ import {
   Activity,
   BarChart3,
   RefreshCw,
-  Wallet
+  Wallet,
+  Gauge
 } from 'lucide-react';
 
 interface LayerData {
@@ -520,7 +522,13 @@ const Framework40LDashboard: React.FC = () => {
         progress: 68,
         components: ['Ethical Guidelines', 'Bias Detection Systems', 'Transparency Reports', 'Governance Framework'],
         issues: ['Automated bias detection pending', 'Governance framework incomplete'],
-        documentation: ['AI_ETHICS_GOVERNANCE.md', 'RESPONSIBLE_AI.md']
+        documentation: ['AI_ETHICS_GOVERNANCE.md', 'RESPONSIBLE_AI.md'],
+        metrics: [
+          { label: 'Ethical Reviews', value: '100%' },
+          { label: 'Bias Incidents', value: '0' },
+          { label: 'Transparency Score', value: '85%' },
+          { label: 'Governance Maturity', value: '3/5' }
+        ]
       },
       {
         id: 25,
@@ -899,7 +907,7 @@ const Framework40LDashboard: React.FC = () => {
             40L Framework Dashboard
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Comprehensive 40-Layer production validation system with disaster recovery, compliance, global infrastructure, MLOps, and Web3 capabilities
+            Comprehensive 40-Layer production validation system with 20 development phases
           </p>
         </div>
         <div className="flex gap-3">
@@ -921,6 +929,21 @@ const Framework40LDashboard: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Tabs for Layers and Phases */}
+      <Tabs defaultValue="layers" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="layers" className="flex items-center gap-2">
+            <Layers className="w-4 h-4" />
+            Framework Layers (40)
+          </TabsTrigger>
+          <TabsTrigger value="phases" className="flex items-center gap-2">
+            <Gauge className="w-4 h-4" />
+            Development Phases (20)
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="layers" className="space-y-6">
 
       {/* Overall Progress */}
       <Card>
@@ -1125,6 +1148,12 @@ const Framework40LDashboard: React.FC = () => {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+        
+        <TabsContent value="phases" className="space-y-6">
+          <ProfilePhasesDashboard userId={0} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

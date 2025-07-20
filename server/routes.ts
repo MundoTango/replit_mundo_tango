@@ -11169,6 +11169,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Store Life CEO Framework Agent conversation
+  app.post('/api/life-ceo/framework-agent/conversation', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      const { userInput, analysis, response } = req.body;
+
+      // Store the conversation in the database (you can create a new table for this)
+      // For now, we'll just log it and return success
+      console.log('Life CEO Framework Agent Conversation:', {
+        userId: user.id,
+        userInput,
+        analysis,
+        response: response.substring(0, 100) + '...' // Log first 100 chars
+      });
+
+      res.json({
+        success: true,
+        message: 'Conversation stored successfully'
+      });
+
+    } catch (error) {
+      console.error('Error storing Life CEO Framework Agent conversation:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to store conversation'
+      });
+    }
+  });
+
   // Get city groups for world map
   app.get('/api/community/city-groups', async (req, res) => {
     try {

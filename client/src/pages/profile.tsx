@@ -11,10 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { GuestProfileDisplay } from '@/components/GuestProfile/GuestProfileDisplay';
-import { Camera, Video, Users, Calendar, Star, UserCheck, Globe, PenLine, Layers } from 'lucide-react';
+import { Camera, Video, Users, Calendar, Star, UserCheck, Globe, PenLine } from 'lucide-react';
 import { TravelDetailsComponent } from '@/components/profile/TravelDetailsComponent';
 import { ProfileMemoryPostModal } from '@/components/profile/ProfileMemoryPostModal';
-import { ProfilePhasesDashboard } from '@/components/profile/ProfilePhasesDashboard';
 
 // Phase 5: Production Hardening imports
 import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
@@ -259,13 +258,6 @@ export default function Profile() {
                 <UserCheck className="mr-2 h-4 w-4" />
                 <span className="font-medium">Guest Profile</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="phases" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-turquoise-500 rounded-none px-6 py-4"
-              >
-                <Layers className="mr-2 h-4 w-4" />
-                <span className="font-medium">Dev Phases</span>
-              </TabsTrigger>
             </TabsList>
             <div className="p-6">
               <TabsContent value="posts" className="space-y-4">
@@ -380,10 +372,6 @@ export default function Profile() {
                     </CardContent>
                   </Card>
                 )}
-              </TabsContent>
-
-              <TabsContent value="phases" className="space-y-4">
-                <ProfilePhasesDashboard userId={user?.id || 0} />
               </TabsContent>
             </div>
           </Tabs>
