@@ -10,7 +10,8 @@ import {
   index,
   uuid,
   unique,
-  real
+  real,
+  numeric
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -828,6 +829,8 @@ export const groups = pgTable("groups", {
   isPrivate: boolean("is_private").default(false),
   city: varchar("city", { length: 100 }),
   country: varchar("country", { length: 100 }),
+  latitude: numeric("latitude", { precision: 10, scale: 7 }),
+  longitude: numeric("longitude", { precision: 10, scale: 7 }),
   memberCount: integer("member_count").default(0),
   createdBy: integer("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),

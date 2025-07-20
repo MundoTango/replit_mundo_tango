@@ -1,337 +1,491 @@
 import { db } from '../db';
-import { groups, groupMembers, users } from '@shared/schema';
-import { eq, and, sql, desc } from 'drizzle-orm';
-import { CityNormalizationService, CityInfo } from './cityNormalizationService';
-import { CityPhotoService } from './cityPhotoService';
-// import { NotificationService } from './notificationService';
+import { groups, groupMembers } from '@shared/schema';
+import { eq, and, sql } from 'drizzle-orm';
+import fetch from 'node-fetch';
 
-export interface CityGroupCreationResult {
-  group: any;
-  isNew: boolean;
-  adminAssigned?: boolean;
-  userJoined?: boolean;
+interface GeocodingResult {
+  lat: number;
+  lon: number;
+  display_name: string;
+  address: {
+    city?: string;
+    town?: string;
+    village?: string;
+    state?: string;
+    country?: string;
+    country_code?: string;
+  };
 }
 
 export class CityAutoCreationService {
+  // Common city abbreviations and variations
+  private static cityAbbreviations: Record<string, string> = {
+    'nyc': 'New York City',
+    'ny': 'New York',
+    'la': 'Los Angeles',
+    'sf': 'San Francisco',
+    'dc': 'Washington DC',
+    'philly': 'Philadelphia',
+    'vegas': 'Las Vegas',
+    'nola': 'New Orleans',
+    'chi': 'Chicago',
+    'bsas': 'Buenos Aires',
+    'ba': 'Buenos Aires',
+    'caba': 'Buenos Aires',
+    'rio': 'Rio de Janeiro',
+    'sp': 'São Paulo',
+    'cdmx': 'Mexico City',
+    'df': 'Mexico City',
+    'bcn': 'Barcelona',
+    'mad': 'Madrid',
+    'ams': 'Amsterdam',
+    'ldn': 'London',
+    'par': 'Paris',
+    'ber': 'Berlin',
+    'rom': 'Rome',
+    'mil': 'Milan',
+    'ath': 'Athens',
+    'ist': 'Istanbul',
+    'mow': 'Moscow',
+    'spb': 'Saint Petersburg',
+    'bkk': 'Bangkok',
+    'hkg': 'Hong Kong',
+    'tpe': 'Taipei',
+    'tyo': 'Tokyo',
+    'osa': 'Osaka',
+    'sel': 'Seoul',
+    'bjs': 'Beijing',
+    'sha': 'Shanghai',
+    'del': 'Delhi',
+    'bom': 'Mumbai',
+    'blr': 'Bangalore',
+    'syd': 'Sydney',
+    'mel': 'Melbourne',
+    'akl': 'Auckland',
+    'wlg': 'Wellington',
+    'jnb': 'Johannesburg',
+    'cpt': 'Cape Town',
+    'cai': 'Cairo',
+    'dxb': 'Dubai',
+    'tlv': 'Tel Aviv',
+    'ist': 'Istanbul',
+    'lis': 'Lisbon',
+    'vie': 'Vienna',
+    'prg': 'Prague',
+    'bud': 'Budapest',
+    'waw': 'Warsaw',
+    'sto': 'Stockholm',
+    'cph': 'Copenhagen',
+    'hel': 'Helsinki',
+    'osl': 'Oslo',
+    'dub': 'Dublin',
+    'edi': 'Edinburgh',
+    'gla': 'Glasgow',
+    'man': 'Manchester',
+    'bru': 'Brussels',
+    'zur': 'Zurich',
+    'gen': 'Geneva',
+    'muc': 'Munich',
+    'fra': 'Frankfurt',
+    'ham': 'Hamburg',
+    'tor': 'Toronto',
+    'mtl': 'Montreal',
+    'van': 'Vancouver',
+    'mex': 'Mexico City',
+    'gru': 'São Paulo',
+    'eze': 'Buenos Aires',
+    'scl': 'Santiago',
+    'lim': 'Lima',
+    'bog': 'Bogotá',
+    'ccs': 'Caracas',
+    'uio': 'Quito',
+    'lpb': 'La Paz',
+    'asu': 'Asunción',
+    'mvd': 'Montevideo'
+  };
+
   /**
-   * Handle city group creation triggered by user registration
+   * Normalize city name by handling abbreviations and common variations
    */
-  static async handleUserRegistration(
-    userId: number, 
-    cityInput: string, 
-    country: string,
-    state?: string
-  ): Promise<CityGroupCreationResult> {
-    console.log(`🏙️ Handling city auto-creation for user ${userId}: ${cityInput}, ${country}`);
+  private static normalizeCityName(cityName: string): string {
+    if (!cityName) return '';
     
+    const normalized = cityName.trim().toLowerCase();
+    
+    // Check if it's a known abbreviation
+    if (this.cityAbbreviations[normalized]) {
+      return this.cityAbbreviations[normalized];
+    }
+    
+    // Remove common suffixes
+    const cleaned = normalized
+      .replace(/\s*(city|town|ville|burg|stadt|grad)$/i, '')
+      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '') // Remove punctuation
+      .trim();
+    
+    // Capitalize properly
+    return cleaned
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  /**
+   * Get geocoding data for a city using OpenStreetMap Nominatim
+   */
+  private static async geocodeCity(cityName: string): Promise<GeocodingResult | null> {
     try {
-      // Normalize the city name
-      const normResult = await CityNormalizationService.normalizeCity(cityInput, country, state);
-      const cityInfo = normResult.cityInfo;
+      const normalizedCity = this.normalizeCityName(cityName);
+      const encodedCity = encodeURIComponent(normalizedCity);
       
-      // Find or create the city group
-      const result = await this.findOrCreateCityGroup(cityInfo, 'registration', userId, userId);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodedCity}&format=json&addressdetails=1&limit=1`,
+        {
+          headers: {
+            'User-Agent': 'MundoTango/1.0 (https://mundotango.life)'
+          }
+        }
+      );
       
-      // Auto-join user to their city group
-      if (result.isNew || !(await this.isUserInGroup(userId, result.group.id))) {
-        await this.joinUserToGroup(userId, result.group.id);
-        result.userJoined = true;
+      if (!response.ok) {
+        console.error(`Geocoding failed for ${cityName}: ${response.statusText}`);
+        return null;
       }
       
-      // Check if user should be admin (first 5 users)
-      if (await this.shouldBeAdmin(userId, result.group.id)) {
-        await this.assignAdmin(userId, result.group.id);
-        result.adminAssigned = true;
-        
-        // Notify user they're a city admin
-        await NotificationService.notify(userId, {
-          type: 'role_assignment',
-          title: 'You are now a City Admin!',
-          message: `Congratulations! You're one of the first members of ${cityInfo.city} and have been made a city admin.`,
-          link: `/groups/${result.group.slug}`
-        });
+      const data = await response.json() as any[];
+      
+      if (data.length === 0) {
+        console.warn(`No geocoding results found for ${cityName}`);
+        return null;
       }
       
-      return result;
+      const result = data[0];
+      return {
+        lat: parseFloat(result.lat),
+        lon: parseFloat(result.lon),
+        display_name: result.display_name,
+        address: result.address || {}
+      };
     } catch (error) {
-      console.error('Error in handleUserRegistration:', error);
-      throw error;
+      console.error(`Geocoding error for ${cityName}:`, error);
+      return null;
     }
   }
 
   /**
-   * Handle city group creation triggered by recommendation
+   * Generate a slug for the city group
+   */
+  private static generateSlug(cityName: string, country?: string): string {
+    const normalizedCity = this.normalizeCityName(cityName);
+    let slug = normalizedCity.toLowerCase().replace(/\s+/g, '-');
+    
+    if (country) {
+      const countrySlug = country.toLowerCase().replace(/\s+/g, '-');
+      slug = `${slug}-${countrySlug}`;
+    }
+    
+    // Remove any non-alphanumeric characters except hyphens
+    return slug.replace(/[^a-z0-9-]/g, '');
+  }
+
+  /**
+   * Create or get a city group
+   */
+  static async createOrGetCityGroup(
+    cityName: string, 
+    triggerType: 'registration' | 'recommendation' | 'event',
+    userId?: number
+  ): Promise<{ groupId: number; created: boolean } | null> {
+    try {
+      if (!cityName || cityName.trim().length === 0) {
+        console.warn('Empty city name provided');
+        return null;
+      }
+
+      const normalizedCity = this.normalizeCityName(cityName);
+      
+      // Check if group already exists (case-insensitive)
+      const existingGroup = await db
+        .select()
+        .from(groups)
+        .where(
+          and(
+            eq(groups.type, 'city'),
+            sql`LOWER(${groups.name}) = LOWER(${normalizedCity})`
+          )
+        )
+        .limit(1);
+      
+      if (existingGroup.length > 0) {
+        console.log(`City group already exists: ${normalizedCity}`);
+        return { groupId: existingGroup[0].id, created: false };
+      }
+      
+      // Get geocoding data
+      const geoData = await this.geocodeCity(normalizedCity);
+      
+      if (!geoData) {
+        console.error(`Could not geocode city: ${normalizedCity}`);
+        // Still create the group without coordinates
+      }
+      
+      // Determine the full location name
+      let fullLocationName = normalizedCity;
+      let country = '';
+      
+      if (geoData?.address) {
+        const addr = geoData.address;
+        country = addr.country || '';
+        const state = addr.state || '';
+        
+        if (country) {
+          fullLocationName = state 
+            ? `${normalizedCity}, ${state}, ${country}`
+            : `${normalizedCity}, ${country}`;
+        }
+      }
+      
+      // Generate slug
+      const slug = this.generateSlug(normalizedCity, country);
+      
+      // Create the city group
+      const [newGroup] = await db
+        .insert(groups)
+        .values({
+          name: normalizedCity,
+          slug: slug,
+          description: `Tango community in ${fullLocationName}`,
+          type: 'city',
+          visibility: 'public',
+          memberCount: 0,
+          location: fullLocationName,
+          latitude: geoData?.lat || null,
+          longitude: geoData?.lon || null,
+          createdBy: userId || 1, // Default to system user if no user provided
+          coverImage: null,
+          welcomeMessage: `Welcome to the ${normalizedCity} tango community! Connect with local dancers, find milongas, and share your tango journey.`,
+          rules: JSON.stringify([
+            'Be respectful to all community members',
+            'Share tango-related content only',
+            'Support local tango events and venues',
+            'Help newcomers feel welcome',
+            'No spam or commercial posts without permission'
+          ]),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      console.log(`Created new city group: ${normalizedCity} (ID: ${newGroup.id}) via ${triggerType} trigger`);
+      
+      // Log the auto-creation event (you might want to create an audit table for this)
+      console.log(`Auto-created city group via ${triggerType}:`, {
+        groupId: newGroup.id,
+        cityName: normalizedCity,
+        fullLocation: fullLocationName,
+        coordinates: geoData ? { lat: geoData.lat, lon: geoData.lon } : null,
+        triggeredBy: userId,
+        timestamp: new Date()
+      });
+      
+      return { groupId: newGroup.id, created: true };
+    } catch (error) {
+      console.error('Error creating city group:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Add user to city group
+   */
+  static async addUserToCityGroup(userId: number, groupId: number, role: string = 'member'): Promise<boolean> {
+    try {
+      // Check if user is already a member
+      const existingMembership = await db
+        .select()
+        .from(groupMembers)
+        .where(
+          and(
+            eq(groupMembers.userId, userId),
+            eq(groupMembers.groupId, groupId)
+          )
+        )
+        .limit(1);
+      
+      if (existingMembership.length > 0) {
+        console.log(`User ${userId} is already a member of group ${groupId}`);
+        return true;
+      }
+      
+      // Add user to group
+      await db
+        .insert(groupMembers)
+        .values({
+          groupId,
+          userId,
+          role,
+          joinedAt: new Date()
+        });
+      
+      // Update member count
+      await db
+        .update(groups)
+        .set({
+          memberCount: sql`${groups.memberCount} + 1`,
+          updatedAt: new Date()
+        })
+        .where(eq(groups.id, groupId));
+      
+      console.log(`Added user ${userId} to city group ${groupId}`);
+      return true;
+    } catch (error) {
+      console.error('Error adding user to city group:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Process city from user registration
+   */
+  static async processRegistrationCity(userId: number, cityName: string): Promise<boolean> {
+    try {
+      const result = await this.createOrGetCityGroup(cityName, 'registration', userId);
+      
+      if (!result) {
+        console.error(`Failed to create/get city group for registration: ${cityName}`);
+        return false;
+      }
+      
+      // Add user to their city group
+      const added = await this.addUserToCityGroup(userId, result.groupId, 'member');
+      
+      if (added && result.created) {
+        // Make the registering user an admin of the newly created group
+        await db
+          .update(groupMembers)
+          .set({ role: 'admin' })
+          .where(
+            and(
+              eq(groupMembers.userId, userId),
+              eq(groupMembers.groupId, result.groupId)
+            )
+          );
+        
+        console.log(`User ${userId} is now admin of newly created city group ${result.groupId}`);
+      }
+      
+      return added;
+    } catch (error) {
+      console.error('Error processing registration city:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Process city from recommendation
+   */
+  static async processRecommendationCity(cityName: string, userId: number): Promise<number | null> {
+    try {
+      const result = await this.createOrGetCityGroup(cityName, 'recommendation', userId);
+      return result?.groupId || null;
+    } catch (error) {
+      console.error('Error processing recommendation city:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Process city from event creation
+   */
+  static async processEventCity(cityName: string, userId: number): Promise<number | null> {
+    try {
+      const result = await this.createOrGetCityGroup(cityName, 'event', userId);
+      return result?.groupId || null;
+    } catch (error) {
+      console.error('Error processing event city:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Extract city from location string
+   */
+  static extractCityFromLocation(location: string): string | null {
+    if (!location) return null;
+    
+    // Common patterns: "City, State, Country" or "City, Country" or just "City"
+    const parts = location.split(',').map(part => part.trim());
+    
+    if (parts.length > 0 && parts[0]) {
+      return parts[0]; // Return the first part as the city
+    }
+    
+    return null;
+  }
+
+  /**
+   * Handle recommendation city creation
    */
   static async handleRecommendation(
     recommendationId: number,
-    cityInput: string,
+    city: string,
     country: string,
-    createdBy: number
-  ): Promise<CityGroupCreationResult> {
-    console.log(`🏙️ Handling city auto-creation from recommendation ${recommendationId}: ${cityInput}, ${country}`);
-    
+    userId: number
+  ): Promise<{ group: any; isNew: boolean } | null> {
     try {
-      const normResult = await CityNormalizationService.normalizeCity(cityInput, country);
-      const cityInfo = normResult.cityInfo;
+      const result = await this.createOrGetCityGroup(city, 'recommendation', userId);
       
-      const result = await this.findOrCreateCityGroup(cityInfo, 'recommendation', recommendationId, createdBy);
-      
-      // Auto-join the recommendation creator if not already a member
-      if (!(await this.isUserInGroup(createdBy, result.group.id))) {
-        await this.joinUserToGroup(createdBy, result.group.id);
-        result.userJoined = true;
+      if (!result) {
+        return null;
       }
       
-      return result;
+      // Get the full group data
+      const [group] = await db
+        .select()
+        .from(groups)
+        .where(eq(groups.id, result.groupId))
+        .limit(1);
+      
+      return {
+        group,
+        isNew: result.created
+      };
     } catch (error) {
-      console.error('Error in handleRecommendation:', error);
-      throw error;
+      console.error('Error handling recommendation city:', error);
+      return null;
     }
   }
 
   /**
-   * Handle city group creation triggered by event
+   * Handle event city creation
    */
   static async handleEvent(
     eventId: number,
-    cityInput: string,
+    city: string,
     country: string,
-    createdBy: number
-  ): Promise<CityGroupCreationResult> {
-    console.log(`🏙️ Handling city auto-creation from event ${eventId}: ${cityInput}, ${country}`);
-    
+    userId: number
+  ): Promise<{ group: any; isNew: boolean } | null> {
     try {
-      const normResult = await CityNormalizationService.normalizeCity(cityInput, country);
-      const cityInfo = normResult.cityInfo;
+      const result = await this.createOrGetCityGroup(city, 'event', userId);
       
-      const result = await this.findOrCreateCityGroup(cityInfo, 'event', eventId, createdBy);
-      
-      // Auto-join the event creator if not already a member
-      if (!(await this.isUserInGroup(createdBy, result.group.id))) {
-        await this.joinUserToGroup(createdBy, result.group.id);
-        result.userJoined = true;
+      if (!result) {
+        return null;
       }
       
-      return result;
-    } catch (error) {
-      console.error('Error in handleEvent:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Find existing city group or create new one
-   */
-  private static async findOrCreateCityGroup(
-    cityInfo: CityInfo,
-    triggerType: string,
-    triggerId: number,
-    createdBy: number
-  ): Promise<CityGroupCreationResult> {
-    // Check if group already exists
-    const existing = await db
-      .select()
-      .from(groups)
-      .where(
-        and(
-          eq(groups.type, 'city'),
-          eq(groups.city, cityInfo.city),
-          eq(groups.country, cityInfo.country)
-        )
-      )
-      .limit(1);
-    
-    if (existing.length > 0) {
-      console.log(`✅ City group already exists: ${cityInfo.city}, ${cityInfo.country}`);
+      // Get the full group data
+      const [group] = await db
+        .select()
+        .from(groups)
+        .where(eq(groups.id, result.groupId))
+        .limit(1);
+      
       return {
-        group: existing[0],
-        isNew: false
+        group,
+        isNew: result.created
       };
-    }
-    
-    // Create new city group
-    console.log(`🆕 Creating new city group: ${cityInfo.city}, ${cityInfo.country}`);
-    const newGroup = await this.createCityGroup(cityInfo);
-    
-    // Log the creation
-    await this.logCreation(newGroup.id, triggerType, triggerId, createdBy, cityInfo);
-    
-    return {
-      group: newGroup,
-      isNew: true
-    };
-  }
-
-  /**
-   * Create a new city group
-   */
-  private static async createCityGroup(cityInfo: CityInfo): Promise<any> {
-    const slug = this.generateSlug(cityInfo);
-    
-    // Create the group
-    const [newGroup] = await db
-      .insert(groups)
-      .values({
-        name: `${cityInfo.city}, ${cityInfo.country}`,
-        slug: slug,
-        type: 'city',
-        city: cityInfo.city,
-        state: cityInfo.state,
-        country: cityInfo.country,
-        description: `Welcome to the ${cityInfo.city} tango community! Share events, find dance partners, and discover the best milongas in town.`,
-        emoji: '🏙️',
-        isPrivate: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      })
-      .returning();
-    
-    // Fetch and set city photo asynchronously
-    this.updateCityPhoto(newGroup.id, cityInfo).catch(console.error);
-    
-    return newGroup;
-  }
-
-  /**
-   * Generate URL-safe slug for city group
-   */
-  private static generateSlug(cityInfo: CityInfo): string {
-    const base = `${cityInfo.city}-${cityInfo.country}`
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    
-    return base;
-  }
-
-  /**
-   * Update city photo from Pexels API
-   */
-  private static async updateCityPhoto(groupId: number, cityInfo: CityInfo): Promise<void> {
-    try {
-      const photoUrl = await CityPhotoService.fetchCityPhoto(cityInfo.city, cityInfo.country);
-      if (photoUrl) {
-        await db
-          .update(groups)
-          .set({
-            imageUrl: photoUrl,
-            coverImage: photoUrl,
-            updatedAt: new Date()
-          })
-          .where(eq(groups.id, groupId));
-      }
     } catch (error) {
-      console.error('Error updating city photo:', error);
+      console.error('Error handling event city:', error);
+      return null;
     }
-  }
-
-  /**
-   * Check if user is already in group
-   */
-  private static async isUserInGroup(userId: number, groupId: number): Promise<boolean> {
-    const membership = await db
-      .select()
-      .from(groupMembers)
-      .where(
-        and(
-          eq(groupMembers.userId, userId),
-          eq(groupMembers.groupId, groupId)
-        )
-      )
-      .limit(1);
-    
-    return membership.length > 0;
-  }
-
-  /**
-   * Join user to group
-   */
-  private static async joinUserToGroup(userId: number, groupId: number): Promise<void> {
-    await db
-      .insert(groupMembers)
-      .values({
-        userId,
-        groupId,
-        role: 'member',
-        joinedAt: new Date()
-      })
-      .onConflictDoNothing(); // Prevent duplicate joins
-  }
-
-  /**
-   * Check if user should be admin (first 5 members)
-   */
-  private static async shouldBeAdmin(userId: number, groupId: number): Promise<boolean> {
-    // Count existing admins
-    const adminCount = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(groupMembers)
-      .where(
-        and(
-          eq(groupMembers.groupId, groupId),
-          eq(groupMembers.role, 'admin')
-        )
-      );
-    
-    return Number(adminCount[0]?.count || 0) < 5;
-  }
-
-  /**
-   * Assign admin role to user
-   */
-  private static async assignAdmin(userId: number, groupId: number): Promise<void> {
-    await db
-      .update(groupMembers)
-      .set({
-        role: 'admin',
-        updatedAt: new Date()
-      })
-      .where(
-        and(
-          eq(groupMembers.userId, userId),
-          eq(groupMembers.groupId, groupId)
-        )
-      );
-  }
-
-  /**
-   * Log city group creation
-   */
-  private static async logCreation(
-    groupId: number,
-    triggerType: string,
-    triggerId: number,
-    createdBy: number,
-    cityInfo: CityInfo
-  ): Promise<void> {
-    // TODO: Implement proper logging with Drizzle
-    console.log('City group creation logged:', {
-      groupId,
-      triggerType,
-      triggerId,
-      createdBy,
-      cityInfo
-    });
-  }
-
-  /**
-   * Get city group creation statistics
-   */
-  static async getCreationStats(): Promise<any> {
-    // TODO: Implement proper stats with Drizzle
-    const cityGroups = await db
-      .select({
-        count: sql<number>`count(*)`.as('count')
-      })
-      .from(groups)
-      .where(eq(groups.type, 'city'));
-    
-    return {
-      total_created: cityGroups[0]?.count || 0,
-      created_today: 0,
-      created_this_week: 0,
-      created_this_month: 0,
-      last_created_at: new Date()
-    };
   }
 }

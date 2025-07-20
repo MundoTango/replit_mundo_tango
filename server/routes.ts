@@ -27,6 +27,7 @@ import tenantRoutes from "./routes/tenantRoutes";
 import { registerStatisticsRoutes } from "./routes/statisticsRoutes";
 import cityAutoCreationTestRoutes from "./routes/cityAutoCreationTest";
 import searchRouter from "./routes/searchRoutes";
+import { CityAutoCreationService } from './services/cityAutoCreationService';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add compression middleware for better performance
@@ -3541,117 +3542,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { maxAttempts: 3 }
       );
 
-      // 5. Auto-create city group with transaction safety and race condition prevention
+      // 5. Auto-create city group using CityAutoCreationService
       if (location.city && location.country) {
         await onboardingRetryService.withRetry(
           async () => {
-            console.log(`🏙️ Checking city group for: ${location.city}, ${location.country}`);
+            console.log(`🏙️ Auto-creating city group for: ${location.city}, ${location.country}`);
             
-            // Generate city group slug (no "Tango" prefix per user preference)
-            const citySlug = `${location.city.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${location.country.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
-            
-            // Use database transaction to prevent race conditions
-            await db.transaction(async (tx) => {
-              // Lock the groups table for this slug to prevent duplicates
-              const existingGroups = await tx.select()
-                .from(groups)
-                .where(eq(groups.slug, citySlug))
-                .for('update');
+            try {
+              const cityResult = await CityAutoCreationService.createOrGetCityGroup(
+                location.city,
+                'registration',
+                user.id
+              );
               
-              const existingGroup = existingGroups[0];
-              
-              if (!existingGroup) {
-                // Check rate limit for city group creation
-                const canCreateGroup = await onboardingRateLimiter.checkCityGroupCreation(user.id);
-                if (!canCreateGroup) {
-                  throw new Error('City group creation rate limit exceeded');
-                }
+              if (cityResult) {
+                console.log(`🎨 City group ${cityResult.created ? 'created' : 'found'}: ${location.city}, ${location.country} (ID: ${cityResult.groupId})`);
                 
-                console.log(`🎨 Creating new city group for ${location.city}, ${location.country}`);
-                
-                // Fetch authentic city photo from Pexels API
-                let cityPhotoUrl = 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=800&h=300&fit=crop'; // fallback
-                
-                try {
-                  const { CityPhotoService } = await import('./services/cityPhotoService.js');
-                  const fetchedPhoto = await CityPhotoService.fetchCityPhoto(location.city, location.country);
-                  if (fetchedPhoto) {
-                    cityPhotoUrl = fetchedPhoto.url;
-                    console.log(`📸 Fetched authentic city photo for ${location.city}: ${cityPhotoUrl}`);
-                  } else {
-                    console.log(`⚠️ No photo found for ${location.city}, using fallback`);
-                  }
-                } catch (photoError) {
-                  console.error(`❌ Error fetching city photo for ${location.city}:`, photoError);
-                }
-                
-                // Create city group (removed "Tango" prefix)
-                const [cityGroup] = await tx.insert(groups).values({
-                  name: `${location.city}, ${location.country}`,
-                  slug: citySlug,
-                  type: 'city' as const,
-                  emoji: '🏙️',
-                  imageUrl: cityPhotoUrl,
-                  description: `Connect with tango dancers and enthusiasts in ${location.city}, ${location.country}. Share local events, find dance partners, and build community connections.`,
-                  isPrivate: false,
-                  city: location.city,
-                  country: location.country,
-                  createdBy: user.id,
-                  memberCount: 0,
-                  isActive: true
-                }).returning();
-                
-                console.log(`✅ Created city group: ${cityGroup.name} (ID: ${cityGroup.id})`);
-                
-                // Auto-join user to their city group
-                await tx.insert(groupMembers).values({
-                  userId: user.id,
-                  groupId: cityGroup.id,
-                  role: 'member',
-                  joinedAt: new Date()
-                });
-                
-                // Update member count
-                await tx.update(groups)
-                  .set({ memberCount: 1 })
-                  .where(eq(groups.id, cityGroup.id));
-                
-                // Track in transaction
-                transaction.cityGroupId = cityGroup.id;
-                
-                console.log(`👥 Auto-joined user ${user.id} to ${cityGroup.name}`);
-                
-              } else {
-                console.log(`ℹ️ City group already exists: ${existingGroup.name}`);
-                
-                // Check if user is already a member
-                const existingMembership = await tx.select()
-                  .from(groupMembers)
-                  .where(and(
-                    eq(groupMembers.userId, user.id),
-                    eq(groupMembers.groupId, existingGroup.id)
-                  ))
-                  .limit(1);
-                
-                if (existingMembership.length === 0) {
-                  await tx.insert(groupMembers).values({
-                    userId: user.id,
-                    groupId: existingGroup.id,
-                    role: 'member',
-                    joinedAt: new Date()
-                  });
-                  
-                  await tx.update(groups)
-                    .set({ memberCount: sql`member_count + 1` })
-                    .where(eq(groups.id, existingGroup.id));
+                // Add user to city group if created successfully
+                if (cityResult.groupId) {
+                  await CityAutoCreationService.addUserToCityGroup(user.id, cityResult.groupId);
                   
                   // Track in transaction
-                  transaction.cityGroupId = existingGroup.id;
+                  transaction.cityGroupId = cityResult.groupId;
                   
-                  console.log(`👥 Auto-joined user ${user.id} to existing group ${existingGroup.name}`);
+                  console.log(`👥 Auto-joined user ${user.id} to city group ${location.city}, ${location.country}`);
                 }
               }
-            });
+            } catch (cityError) {
+              console.error('Failed to auto-create city group:', cityError);
+              // Continue with onboarding even if city group creation fails
+            }
           },
           'City group assignment',
           { maxAttempts: 3 }
