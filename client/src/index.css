@@ -1159,3 +1159,89 @@ body {
     padding-bottom: 80px; /* Account for mobile bottom navigation */
   }
 }
+
+/* Ocean Theme Animations and Classes */
+@keyframes wave {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(-20px) translateY(-5px);
+  }
+  50% {
+    transform: translateX(0) translateY(-10px);
+  }
+  75% {
+    transform: translateX(20px) translateY(-5px);
+  }
+}
+
+@keyframes ocean-sparkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+/* Ocean Theme Classes */
+.wave-animation {
+  animation: wave 4s ease-in-out infinite;
+}
+
+.animate-ocean-sparkle {
+  animation: ocean-sparkle 2s ease-in-out infinite;
+}
+
+/* Ocean gradients for consistent styling */
+.ocean-gradient {
+  background: linear-gradient(135deg, #38b2ac 0%, #06b6d4 50%, #3182ce 100%);
+}
+
+.ocean-gradient-soft {
+  background: linear-gradient(135deg, #38b2ac20 0%, #06b6d420 50%, #3182ce20 100%);
+}
+
+.ocean-gradient-hover {
+  background: linear-gradient(135deg, #38b2ac40 0%, #06b6d440 50%, #3182ce40 100%);
+}
+
+/* Ocean-themed borders */
+.border-gradient-ocean {
+  border-image: linear-gradient(135deg, #38b2ac, #06b6d4, #3182ce) 1;
+}
+
+.border-gradient-to-r {
+  position: relative;
+  background: linear-gradient(to right, var(--tw-gradient-stops));
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+}
+
+/* Ocean text gradients */
+.text-gradient-ocean {
+  background: linear-gradient(135deg, #38b2ac 0%, #06b6d4 50%, #3182ce 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Enhanced beautiful hover for ocean theme */
+.beautiful-hover {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.beautiful-hover:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 20px 40px -10px rgba(56, 178, 172, 0.3);
+}
+
+/* Ocean wave SVG pattern for backgrounds */
+.ocean-wave-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='200' height='100' viewBox='0 0 200 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 50c20-10 40-10 60 0s40 10 60 0s40-10 60 0s40 10 60 0' stroke='%2338b2ac' stroke-width='2' fill='none' opacity='0.3'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: bottom;
+}

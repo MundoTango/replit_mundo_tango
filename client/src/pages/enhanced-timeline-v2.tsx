@@ -216,51 +216,77 @@ function MemoryCard({ memory }: MemoryCardProps) {
 
   return (
     <div className="relative group">
-      {/* Hover gradient effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-turquoise-400/10 via-blue-400/10 to-cyan-400/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      {/* Ocean wave pattern background on hover */}
+      <div className="absolute inset-0 rounded-3xl overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-turquoise-400/10 via-cyan-400/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+        <div className="absolute bottom-0 left-0 right-0 h-32 opacity-0 group-hover:opacity-20 transition-opacity duration-700"
+             style={{
+               backgroundImage: `url("data:image/svg+xml,%3Csvg width='200' height='100' viewBox='0 0 200 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 50c20-10 40-10 60 0s40 10 60 0s40-10 60 0s40 10 60 0' stroke='%2338b2ac' stroke-width='3' fill='none' /%3E%3C/svg%3E")`,
+               backgroundRepeat: 'repeat-x',
+               backgroundPosition: 'bottom',
+               animation: 'float 4s ease-in-out infinite'
+             }} />
+      </div>
       
-      <Card className="relative glassmorphic-card p-6 space-y-4 hover:shadow-xl transition-all duration-300 rounded-3xl border-white/50 hover:border-turquoise-300/50 card-lift smooth-appear">
-        {/* Header */}
+      <Card className="relative glassmorphic-card p-6 space-y-4 hover:shadow-2xl transition-all duration-500 rounded-3xl border-2 border-white/60 hover:border-turquoise-300/60 card-lift smooth-appear beautiful-hover">
+        {/* Enhanced Header with consistent layout */}
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
-            <Avatar className="h-12 w-12 ring-2 ring-white/50 group-hover:ring-turquoise-300/50 transition-all">
-              <AvatarImage src={memory.userProfileImage || memory.user?.profileImage} />
-              <AvatarFallback className="bg-gradient-to-br from-turquoise-400 to-blue-500 text-white">
-                {(memory.userName || memory.user?.name || 'U').charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-12 w-12 ring-2 ring-gradient-to-r from-turquoise-400 to-cyan-500 ring-offset-2 ring-offset-white group-hover:ring-offset-turquoise-50 transition-all duration-300">
+                <AvatarImage src={memory.userProfileImage || memory.user?.profileImage} />
+                <AvatarFallback className="bg-gradient-to-br from-turquoise-400 to-blue-500 text-white font-bold">
+                  {(memory.userName || memory.user?.name || 'U').charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              {/* Online indicator */}
+              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full animate-pulse" />
+            </div>
           
             <div className="flex-1">
-              <h3 className="font-bold text-lg">{memory.userName || memory.user?.name || 'Anonymous'}</h3>
-              {memory.user && (
-                <p className="text-sm text-gray-600">{formatUserLocation(memory.user)}</p>
-              )}
-              <RoleEmojiDisplay
-                tangoRoles={memory.user?.tangoRoles}
-                leaderLevel={memory.user?.leaderLevel}
-                followerLevel={memory.user?.followerLevel}
-                size="sm"
-                maxRoles={5}
-                className="mt-1"
-              />
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-lg text-gray-900 group-hover:text-turquoise-700 transition-colors">
+                  {memory.userName || memory.user?.name || 'Anonymous'}
+                </h3>
+                <span className="text-sm text-gray-500">@{memory.userUsername || memory.user?.username || 'user'}</span>
+              </div>
+              
+              {/* Location and roles in same line for consistency */}
+              <div className="flex items-center gap-3 mt-1">
+                {memory.user && formatUserLocation(memory.user) && (
+                  <div className="flex items-center gap-1 text-sm text-turquoise-600">
+                    <MapPin className="h-3.5 w-3.5" />
+                    <span>{formatUserLocation(memory.user)}</span>
+                  </div>
+                )}
+                
+                <RoleEmojiDisplay
+                  tangoRoles={memory.user?.tangoRoles}
+                  leaderLevel={memory.user?.leaderLevel}
+                  followerLevel={memory.user?.followerLevel}
+                  size="sm"
+                  maxRoles={3}
+                  className="inline-flex"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Clock className="h-4 w-4" />
-            <time>{formatDistanceToNow(new Date(memory.createdAt))} ago</time>
+          <div className="flex items-center gap-2 text-sm text-gray-500 bg-gradient-to-r from-turquoise-50 to-cyan-50 px-3 py-1.5 rounded-full">
+            <Clock className="h-3.5 w-3.5 text-turquoise-600" />
+            <time className="font-medium">{formatDistanceToNow(new Date(memory.createdAt))} ago</time>
           </div>
         </div>
 
-      {/* Emotion tags and location */}
-      {(memory.emotionTags?.length || memory.location) && (
-        <div className="flex items-center gap-4 text-sm">
+      {/* Enhanced Emotion tags with ocean theme */}
+      {(memory.emotionTags?.length || memory.hashtags?.length) && (
+        <div className="flex items-center gap-4 text-sm p-3 bg-gradient-to-r from-turquoise-50/50 to-cyan-50/50 rounded-2xl">
           {memory.emotionTags && memory.emotionTags.length > 0 && (
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-purple-500" />
+              <Sparkles className="h-4 w-4 text-turquoise-600 animate-sparkle" />
               <div className="flex gap-2 flex-wrap">
                 {memory.emotionTags.map((tag, i) => (
-                  <span key={i} className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs">
+                  <span key={i} className="px-3 py-1.5 bg-gradient-to-r from-turquoise-100 to-cyan-100 text-turquoise-700 rounded-full text-xs font-medium hover:from-turquoise-200 hover:to-cyan-200 transition-all cursor-pointer">
                     {tag}
                   </span>
                 ))}
@@ -268,32 +294,40 @@ function MemoryCard({ memory }: MemoryCardProps) {
             </div>
           )}
           
-          {memory.location && (
-            <div className="flex items-center gap-1 text-gray-600">
-              <MapPin className="h-4 w-4" />
-              <span>{parseLocation(memory.location)}</span>
+          {memory.hashtags && memory.hashtags.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              {memory.hashtags.map((tag, i) => (
+                <span key={i} className="text-cyan-600 hover:text-turquoise-700 transition-colors cursor-pointer">
+                  #{tag}
+                </span>
+              ))}
             </div>
           )}
         </div>
       )}
 
-      {/* Content */}
-      <div className="prose prose-sm max-w-none">
-        <p className="text-gray-800">{memory.content}</p>
+      {/* Enhanced Content with better typography */}
+      <div className="prose prose-lg max-w-none">
+        <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+          {memory.content}
+        </p>
       </div>
 
-      {/* Media */}
+      {/* Enhanced Media with ocean-themed border */}
       {memory.imageUrl && (
-        <img 
-          src={memory.imageUrl} 
-          alt="Memory" 
-          className="w-full rounded-lg object-cover max-h-96"
-        />
+        <div className="relative rounded-2xl overflow-hidden shadow-lg">
+          <img 
+            src={memory.imageUrl} 
+            alt="Memory" 
+            className="w-full object-cover max-h-[500px] hover:scale-105 transition-transform duration-700"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
+        </div>
       )}
 
-      {/* Actions */}
-      <div className="flex items-center justify-between pt-4 border-t">
-        <div className="flex items-center gap-4">
+      {/* Enhanced Actions bar with ocean theme */}
+      <div className="flex items-center justify-between pt-4 border-t-2 border-gradient-to-r from-turquoise-100 via-cyan-100 to-blue-100">
+        <div className="flex items-center gap-2">
           <FacebookReactionSelector
             postId={memory.id}
             currentReaction={currentUserReaction}
@@ -303,17 +337,21 @@ function MemoryCard({ memory }: MemoryCardProps) {
 
           <button
             onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all mt-button ripple-container"
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 mt-button ripple-container
+                       ${showComments 
+                         ? 'bg-gradient-to-r from-turquoise-500 to-cyan-500 text-white shadow-lg' 
+                         : 'text-gray-700 hover:bg-gradient-to-r hover:from-turquoise-100 hover:to-cyan-100'}`}
           >
-            <MessageCircle className="h-5 w-5 icon-glow" />
-            <span>{comments.length || 0}</span>
+            <MessageCircle className={`h-5 w-5 ${showComments ? 'fill-white' : ''} icon-glow`} />
+            <span className="font-medium">{comments.length || 0}</span>
           </button>
 
           <button
             onClick={() => setShowShareDialog(true)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all mt-button ripple-container float-on-hover"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-cyan-100 hover:to-blue-100 transition-all duration-300 mt-button ripple-container float-on-hover"
           >
             <Share2 className="h-5 w-5 icon-glow" />
+            <span className="font-medium">Share</span>
           </button>
         </div>
 
