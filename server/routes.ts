@@ -10996,16 +10996,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        // Debug Buenos Aires coordinates
-        if (group.name?.includes('Buenos Aires')) {
-          console.log('🌍 Server: Buenos Aires coordinates:', {
-            name: group.name,
-            city: group.city,
-            coords: coords,
-            finalLat: coords?.lat || 0,
-            finalLng: coords?.lng || 0
-          });
-        }
+
         
         return {
           ...group,

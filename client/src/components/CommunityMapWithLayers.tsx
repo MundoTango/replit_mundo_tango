@@ -400,30 +400,36 @@ export default function CommunityMapWithLayers({
       );
     }
     
-    // Original popup design for other types
+    // MT Design popup for other types
     return (
-      <div className="p-2 min-w-[200px]">
-        <h3 className="font-bold text-lg mb-1">{item.title}</h3>
-        {item.description && <p className="text-sm text-gray-600 mb-2">{item.description}</p>}
+      <div className="p-3 min-w-[240px] max-w-[300px]">
+        <h3 className="font-bold text-lg mb-2 text-gray-800">{item.title}</h3>
+        {item.description && <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>}
         
         {item.type === 'event' && item.date && (
-          <div className="flex items-center gap-2 text-sm">
-            <Calendar className="h-4 w-4 text-green-500" />
-            <span>{new Date(item.date).toLocaleDateString()}</span>
+          <div className="flex items-center gap-2 text-sm p-2 bg-green-50 rounded-lg">
+            <div className="p-1.5 bg-green-500 rounded">
+              <Calendar className="h-3.5 w-3.5 text-white" />
+            </div>
+            <span className="font-medium text-green-800">{new Date(item.date).toLocaleDateString()}</span>
           </div>
         )}
         
         {item.type === 'home' && item.price && (
-          <div className="flex items-center gap-2 text-sm">
-            <Home className="h-4 w-4 text-amber-500" />
-            <span>${item.price}/night</span>
+          <div className="flex items-center gap-2 text-sm p-2 bg-amber-50 rounded-lg">
+            <div className="p-1.5 bg-amber-500 rounded">
+              <Home className="h-3.5 w-3.5 text-white" />
+            </div>
+            <span className="font-medium text-amber-800">${item.price}/night</span>
           </div>
         )}
         
         {item.type === 'recommendation' && item.rating && (
-          <div className="flex items-center gap-2 text-sm">
-            <Star className="h-4 w-4 text-red-500" />
-            <span>{item.rating}/5 stars</span>
+          <div className="flex items-center gap-2 text-sm p-2 bg-red-50 rounded-lg">
+            <div className="p-1.5 bg-red-500 rounded">
+              <Star className="h-3.5 w-3.5 text-white" />
+            </div>
+            <span className="font-medium text-red-800">{item.rating}/5 stars</span>
           </div>
         )}
         
@@ -431,88 +437,89 @@ export default function CommunityMapWithLayers({
           <img 
             src={item.photos[0]} 
             alt={item.title}
-            className="w-full h-24 object-cover rounded mt-2"
+            className="w-full h-32 object-cover rounded-lg mt-3 shadow-sm"
           />
         )}
         
-        {/* Direction buttons for all item types */}
-        <div className="flex gap-2 mt-3 pt-3 border-t">
+        {/* MT Style Direction buttons */}
+        <div className="flex gap-2 mt-3 pt-3 border-t border-purple-100">
           <a 
             href={getGoogleMapsUrl(item.lat, item.lng, item.title)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 px-2 rounded text-xs font-medium transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-2 px-3 rounded-lg text-xs font-medium transition-all shadow-sm hover:shadow-md"
           >
-            <Navigation className="h-3 w-3" />
-            Google
+            <Navigation className="h-3.5 w-3.5" />
+            Google Maps
           </a>
           <a 
             href={getAppleMapsUrl(item.lat, item.lng, item.title)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 px-2 rounded text-xs font-medium transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white py-2 px-3 rounded-lg text-xs font-medium transition-all shadow-sm hover:shadow-md"
           >
-            <Navigation className="h-3 w-3" />
-            Apple
+            <Navigation className="h-3.5 w-3.5" />
+            Apple Maps
           </a>
         </div>
       </div>
     );
   };
 
-  // Find Buenos Aires for debug display
-  const buenosAiresData = mapItems.find(item => item.title?.includes('Buenos Aires'));
+
   
   return (
     <div className="h-full w-full relative">
-      {/* Debug Display for Buenos Aires */}
-      {buenosAiresData && (
-        <div className="absolute top-4 left-4 z-[1000] bg-red-600 text-white rounded-lg shadow-lg p-3 max-w-[250px]">
-          <div className="text-xs font-bold mb-1">🔴 DEBUG: Buenos Aires</div>
-          <div className="text-xs">Lat: {buenosAiresData.lat}</div>
-          <div className="text-xs">Lng: {buenosAiresData.lng}</div>
-          <div className="text-xs mt-1">Expected: -34.6037, -58.3816</div>
+      {/* MT Design Layer Control */}
+      <div className="absolute top-4 right-4 z-[1000] bg-white rounded-xl shadow-xl p-5 min-w-[240px] border border-purple-100">
+        <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-gradient-to-r from-purple-200 to-pink-200">
+          <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
+            <Layers className="h-5 w-5 text-white" />
+          </div>
+          <span className="font-semibold text-gray-800">Map Layers</span>
         </div>
-      )}
-      
-      {/* Custom Layer Control */}
-      <div className="absolute top-4 right-4 z-[1000] bg-white rounded-lg shadow-lg p-3 min-w-[140px]">
-        <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-gray-700">
-          <Layers className="h-4 w-4" />
-          <span>Layers</span>
-        </div>
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 cursor-pointer">
+        <div className="space-y-3">
+          <label className="flex items-center gap-3 cursor-pointer group p-2 rounded-lg hover:bg-purple-50 transition-colors">
             <input
               type="checkbox"
               checked={showEvents}
               onChange={(e) => setShowEvents(e.target.checked)}
-              className="h-4 w-4"
+              className="h-5 w-5 text-purple-600 focus:ring-purple-500 rounded cursor-pointer"
             />
-            <span className="text-sm">Events</span>
+            <span className="flex items-center gap-2 text-sm font-medium text-gray-700 group-hover:text-purple-700">
+              <Calendar className="h-4 w-4 text-green-600" />
+              Events
+            </span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer group p-2 rounded-lg hover:bg-pink-50 transition-colors">
             <input
               type="checkbox"
               checked={showHomes}
               onChange={(e) => setShowHomes(e.target.checked)}
-              className="h-4 w-4"
+              className="h-5 w-5 text-pink-600 focus:ring-pink-500 rounded cursor-pointer"
             />
-            <span className="text-sm">Host Homes</span>
+            <span className="flex items-center gap-2 text-sm font-medium text-gray-700 group-hover:text-pink-700">
+              <Home className="h-4 w-4 text-amber-600" />
+              Host Homes
+            </span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer group p-2 rounded-lg hover:bg-blue-50 transition-colors">
             <input
               type="checkbox"
               checked={showRecommendations}
               onChange={(e) => setShowRecommendations(e.target.checked)}
-              className="h-4 w-4"
+              className="h-5 w-5 text-blue-600 focus:ring-blue-500 rounded cursor-pointer"
             />
-            <span className="text-sm">Recommendations</span>
+            <span className="flex items-center gap-2 text-sm font-medium text-gray-700 group-hover:text-blue-700">
+              <Star className="h-4 w-4 text-red-600" />
+              Recommendations
+            </span>
           </label>
         </div>
       </div>
       
       <MapContainer
+        key={`${centerLat}-${centerLng}`} // Force re-render when center changes
         center={[centerLat || -15, centerLng || -60]} // Use provided center or default to South America
         zoom={centerLat && centerLng ? 13 : 3} // Use zoom 13 for city view, 3 for global view
         className="h-full w-full"
