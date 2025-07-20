@@ -228,12 +228,12 @@ function MemoryCard({ memory }: MemoryCardProps) {
              }} />
       </div>
       
-      <Card className="relative glassmorphic-card p-6 space-y-4 hover:shadow-2xl transition-all duration-500 rounded-3xl border-2 border-white/60 hover:border-turquoise-300/60 card-lift smooth-appear beautiful-hover">
+      <Card className="relative p-6 space-y-4 hover:shadow-2xl transition-all duration-500 rounded-3xl border-2 border-turquoise-300 hover:border-cyan-400 card-lift smooth-appear beautiful-hover bg-gradient-to-br from-turquoise-50 via-cyan-50 to-blue-50 shadow-lg shadow-turquoise-100/50">
         {/* Enhanced Header with consistent layout */}
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
             <div className="relative">
-              <Avatar className="h-12 w-12 ring-2 ring-gradient-to-r from-turquoise-400 to-cyan-500 ring-offset-2 ring-offset-white group-hover:ring-offset-turquoise-50 transition-all duration-300">
+              <Avatar className="h-12 w-12 ring-2 ring-turquoise-400 ring-offset-2 ring-offset-white group-hover:ring-cyan-500 transition-all duration-300">
                 <AvatarImage src={memory.userProfileImage || memory.user?.profileImage} />
                 <AvatarFallback className="bg-gradient-to-br from-turquoise-400 to-blue-500 text-white font-bold">
                   {(memory.userName || memory.user?.name || 'U').charAt(0).toUpperCase()}
@@ -473,15 +473,19 @@ export default function EnhancedTimelineV2() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-br from-turquoise-50 via-blue-50 to-cyan-50">
+      <div className="min-h-screen bg-gradient-to-br from-turquoise-100 via-cyan-50 to-blue-100 relative overflow-hidden">
+        {/* Ocean wave pattern background */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 ocean-wave-pattern" />
+        </div>
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Main Feed */}
             <div className="lg:col-span-8">
-              {/* Beautiful Header */}
+              {/* Beautiful Ocean-Themed Header */}
               <div className="mb-8 relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-turquoise-400 to-blue-500 rounded-3xl blur-3xl opacity-20" />
-                <div className="relative glassmorphic-card p-8 rounded-3xl">
+                <div className="absolute inset-0 bg-gradient-to-r from-turquoise-400 to-cyan-500 rounded-3xl blur-2xl opacity-40" />
+                <div className="relative p-8 rounded-3xl bg-gradient-to-r from-turquoise-500/90 via-cyan-500/90 to-blue-500/90 text-white shadow-2xl border-2 border-white/30">
                   <div className="flex items-center gap-4 mb-2">
                     <div className="p-3 bg-gradient-to-r from-turquoise-400 to-blue-500 rounded-xl animate-float">
                       <Sparkles className="h-6 w-6 text-white" />
