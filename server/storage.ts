@@ -383,16 +383,37 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    if (result[0]) {
+      // Map backgroundImage to coverImage for frontend compatibility
+      return {
+        ...result[0],
+        coverImage: result[0].backgroundImage
+      } as User;
+    }
     return result[0];
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    if (result[0]) {
+      // Map backgroundImage to coverImage for frontend compatibility
+      return {
+        ...result[0],
+        coverImage: result[0].backgroundImage
+      } as User;
+    }
     return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    if (result[0]) {
+      // Map backgroundImage to coverImage for frontend compatibility
+      return {
+        ...result[0],
+        coverImage: result[0].backgroundImage
+      } as User;
+    }
     return result[0];
   }
 
@@ -961,6 +982,13 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByReplitId(id: string): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.replitId, id)).limit(1);
+    if (result[0]) {
+      // Map backgroundImage to coverImage for frontend compatibility
+      return {
+        ...result[0],
+        coverImage: result[0].backgroundImage
+      } as User;
+    }
     return result[0];
   }
 

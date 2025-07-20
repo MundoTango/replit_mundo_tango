@@ -532,6 +532,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isOnboardingComplete: user.isOnboardingComplete,
         codeOfConductAccepted: user.codeOfConductAccepted,
         profileImage: user.profileImage,
+        coverImage: user.backgroundImage,
+        backgroundImage: user.backgroundImage,
+        bio: user.bio,
+        country: user.country,
+        city: user.city,
+        tangoRoles: user.tangoRoles,
+        yearsOfDancing: user.yearsOfDancing,
+        leaderLevel: user.leaderLevel,
+        followerLevel: user.followerLevel,
+        languages: user.languages,
+        createdAt: user.createdAt,
+        isVerified: user.isVerified,
         replitId: replitId,
         roles: userRoles,
         isSuperAdmin
@@ -1530,6 +1542,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
         code: 500,
         message: 'Internal server error. Please try again later.',
         data: {}
+      });
+    }
+  });
+
+  // Profile Image Upload Endpoints
+  
+  // Upload cover image
+  app.put('/api/user/cover-image', isAuthenticated, upload.single('image'), async (req: any, res) => {
+    try {
+      const replitId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(replitId);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found'
+        });
+      }
+      
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'No image file provided'
+        });
+      }
+
+      // Update user's cover image (using backgroundImage field) in database using storage interface
+      const updatedUser = await storage.updateUser(user.id, {
+        backgroundImage: `/uploads/${file.filename}`
+      });
+
+      res.json({
+        success: true,
+        message: 'Cover image updated successfully',
+        coverImage: `/uploads/${file.filename}`
+      });
+    } catch (error: any) {
+      console.error('Error uploading cover image:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to upload cover image'
+      });
+    }
+  });
+
+  // Upload profile image
+  app.put('/api/user/profile-image', isAuthenticated, upload.single('image'), async (req: any, res) => {
+    try {
+      const replitId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(replitId);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found'
+        });
+      }
+      
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'No image file provided'
+        });
+      }
+
+      // Update user's profile image in database using storage interface
+      const updatedUser = await storage.updateUser(user.id, {
+        profileImage: `/uploads/${file.filename}`
+      });
+
+      res.json({
+        success: true,
+        message: 'Profile image updated successfully',
+        profileImage: `/uploads/${file.filename}`
+      });
+    } catch (error: any) {
+      console.error('Error uploading profile image:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to upload profile image'
       });
     }
   });

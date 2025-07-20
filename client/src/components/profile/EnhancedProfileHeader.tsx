@@ -1,0 +1,458 @@
+import React, { useState, useRef } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useLocation } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { RoleEmojiDisplay } from '@/components/ui/RoleEmojiDisplay';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { 
+  MapPin, 
+  Calendar, 
+  Edit, 
+  Camera,
+  Users,
+  Heart,
+  Eye,
+  Share2,
+  Instagram,
+  Facebook,
+  Twitter,
+  Link,
+  Shield,
+  CheckCircle,
+  Globe,
+  Mail,
+  Phone
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface User {
+  id: number;
+  name: string;
+  username: string;
+  email: string;
+  profileImage?: string;
+  coverImage?: string;
+  bio?: string;
+  country?: string;
+  city?: string;
+  tangoRoles?: string[];
+  yearsOfDancing?: number;
+  leaderLevel?: number;
+  followerLevel?: number;
+  languages?: string[];
+  createdAt: string;
+  isVerified?: boolean;
+  profileViews?: number;
+  socialLinks?: {
+    instagram?: string;
+    facebook?: string;
+    twitter?: string;
+    website?: string;
+  };
+}
+
+interface Stats {
+  posts?: number;
+  followers?: number;
+  following?: number;
+  events?: number;
+  photos?: number;
+  friends?: number;
+}
+
+interface EnhancedProfileHeaderProps {
+  user: User;
+  stats?: Stats;
+  isOwnProfile?: boolean;
+  onEditProfile?: () => void;
+}
+
+export default function EnhancedProfileHeader({ 
+  user, 
+  stats,
+  isOwnProfile = false, 
+  onEditProfile
+}: EnhancedProfileHeaderProps) {
+  const { user: currentUser } = useAuth();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const profileInputRef = useRef<HTMLInputElement>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+
+  // Upload cover image mutation
+  const uploadCoverMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      return apiRequest('/api/user/cover-image', {
+        method: 'PUT',
+        body: formData
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Cover photo updated",
+        description: "Your cover photo has been updated successfully."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+    },
+    onError: () => {
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload cover photo. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Upload profile image mutation
+  const uploadProfileMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      return apiRequest('/api/user/profile-image', {
+        method: 'PUT',
+        body: formData
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Profile photo updated",
+        description: "Your profile photo has been updated successfully."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+    }
+  });
+
+  const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadCoverMutation.mutate(file);
+    }
+  };
+
+  const handleProfileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadProfileMutation.mutate(file);
+    }
+  };
+
+  const handleShare = () => {
+    const profileUrl = `${window.location.origin}/u/${user.username}`;
+    navigator.clipboard.writeText(profileUrl);
+    toast({
+      title: "Profile link copied",
+      description: "The profile link has been copied to your clipboard."
+    });
+  };
+
+  const handleFollow = () => {
+    setIsFollowing(!isFollowing);
+    toast({
+      title: isFollowing ? "Unfollowed" : "Following",
+      description: isFollowing ? `You unfollowed ${user.name}` : `You are now following ${user.name}`
+    });
+  };
+
+  return (
+    <div className="relative">
+      {/* Cover Image Section */}
+      <div className="relative h-64 md:h-80 overflow-hidden rounded-t-xl">
+        {user.coverImage ? (
+          <img 
+            src={user.coverImage} 
+            alt="Cover" 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-turquoise-400 via-cyan-500 to-blue-600 relative">
+            <div className="absolute inset-0 bg-[url('/ocean-pattern.svg')] opacity-20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+          </div>
+        )}
+        
+        {/* Cover Controls */}
+        <div className="absolute top-4 right-4 flex gap-2">
+          {isOwnProfile && (
+            <>
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleCoverUpload}
+                className="hidden"
+              />
+              <Button
+                onClick={() => coverInputRef.current?.click()}
+                variant="secondary"
+                size="sm"
+                className="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white border-white/30"
+                disabled={uploadCoverMutation.isPending}
+              >
+                <Camera className="mr-2 h-4 w-4" />
+                {uploadCoverMutation.isPending ? "Uploading..." : "Edit Cover"}
+              </Button>
+            </>
+          )}
+          <Button
+            onClick={handleShare}
+            variant="secondary"
+            size="sm"
+            className="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white border-white/30"
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Profile Content */}
+      <div className="bg-white rounded-b-xl shadow-sm">
+        <div className="px-4 md:px-8 pb-6">
+          {/* Avatar and Actions Row */}
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between -mt-20">
+            {/* Avatar Section */}
+            <div className="flex items-end gap-4 mb-4 md:mb-0">
+              <div className="relative">
+                <Avatar className="h-32 w-32 md:h-40 md:w-40 border-4 border-white shadow-xl">
+                  <AvatarImage src={user.profileImage} />
+                  <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-turquoise-400 to-cyan-600 text-white">
+                    {user.name?.[0] || user.username?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                
+                {isOwnProfile && (
+                  <>
+                    <input
+                      ref={profileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfileUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      onClick={() => profileInputRef.current?.click()}
+                      variant="secondary"
+                      size="icon"
+                      className="absolute bottom-0 right-0 rounded-full shadow-lg"
+                      disabled={uploadProfileMutation.isPending}
+                    >
+                      <Camera className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+                
+                {user.isVerified && (
+                  <div className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md">
+                    <CheckCircle className="h-6 w-6 text-blue-500 fill-current" />
+                  </div>
+                )}
+              </div>
+
+              {/* Name and Username */}
+              <div className="mb-2">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                    {user.name}
+                  </h1>
+                  {user.isVerified && (
+                    <div className="group relative">
+                      <Shield className="h-5 w-5 text-blue-500" />
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        Verified Tango Professional
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <p className="text-gray-600">@{user.username}</p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-3">
+              {isOwnProfile ? (
+                <>
+                  <Button 
+                    onClick={onEditProfile}
+                    className="bg-gradient-to-r from-turquoise-500 to-cyan-600 hover:from-turquoise-600 hover:to-cyan-700 text-white"
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Profile
+                  </Button>
+                  <Button variant="outline" className="border-turquoise-200 text-turquoise-700 hover:bg-turquoise-50">
+                    <Eye className="mr-2 h-4 w-4" />
+                    View as Visitor
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    onClick={handleFollow}
+                    variant={isFollowing ? "outline" : "default"}
+                    className={isFollowing ? "border-turquoise-200 text-turquoise-700 hover:bg-turquoise-50" : "bg-gradient-to-r from-turquoise-500 to-cyan-600 hover:from-turquoise-600 hover:to-cyan-700 text-white"}
+                  >
+                    {isFollowing ? (
+                      <>
+                        <Users className="mr-2 h-4 w-4" />
+                        Following
+                      </>
+                    ) : (
+                      <>
+                        <Heart className="mr-2 h-4 w-4" />
+                        Follow
+                      </>
+                    )}
+                  </Button>
+                  <Button variant="outline" className="border-turquoise-200 text-turquoise-700 hover:bg-turquoise-50">
+                    <Mail className="mr-2 h-4 w-4" />
+                    Message
+                  </Button>
+                  <Button variant="outline" size="icon" className="border-turquoise-200 text-turquoise-700 hover:bg-turquoise-50">
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Bio Section */}
+          {user.bio && (
+            <p className="mt-4 text-gray-700 max-w-3xl">
+              {user.bio}
+            </p>
+          )}
+
+          {/* Info Grid */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Location & Join Date */}
+            <div className="space-y-2">
+              {user.city && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <MapPin className="h-4 w-4 text-turquoise-500" />
+                  <span>{user.city}{user.country && `, ${user.country}`}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2 text-gray-600">
+                <Calendar className="h-4 w-4 text-turquoise-500" />
+                <span>Joined {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+              </div>
+              {user.languages && user.languages.length > 0 && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Globe className="h-4 w-4 text-turquoise-500" />
+                  <span>{user.languages.join(', ')}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Tango Experience */}
+            <div className="space-y-2">
+              {user.yearsOfDancing && (
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-600">Dancing for</span>
+                  <Badge variant="secondary" className="bg-turquoise-100 text-turquoise-700">
+                    {user.yearsOfDancing} years
+                  </Badge>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <RoleEmojiDisplay 
+                  tangoRoles={user.tangoRoles} 
+                  leaderLevel={user.leaderLevel}
+                  followerLevel={user.followerLevel}
+                  fallbackRole="dancer"
+                  size="sm"
+                  maxRoles={3}
+                />
+              </div>
+            </div>
+
+            {/* Social Links */}
+            {user.socialLinks && Object.keys(user.socialLinks).length > 0 && (
+              <div className="flex items-center gap-3">
+                {user.socialLinks.instagram && (
+                  <a 
+                    href={`https://instagram.com/${user.socialLinks.instagram}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-pink-600 transition-colors"
+                  >
+                    <Instagram className="h-5 w-5" />
+                  </a>
+                )}
+                {user.socialLinks.facebook && (
+                  <a 
+                    href={user.socialLinks.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-blue-600 transition-colors"
+                  >
+                    <Facebook className="h-5 w-5" />
+                  </a>
+                )}
+                {user.socialLinks.twitter && (
+                  <a 
+                    href={`https://twitter.com/${user.socialLinks.twitter}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-blue-400 transition-colors"
+                  >
+                    <Twitter className="h-5 w-5" />
+                  </a>
+                )}
+                {user.socialLinks.website && (
+                  <a 
+                    href={user.socialLinks.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-turquoise-600 transition-colors"
+                  >
+                    <Link className="h-5 w-5" />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Stats Bar */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="flex flex-wrap gap-6">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900">{stats?.posts || 0}</p>
+                <p className="text-sm text-gray-600">Posts</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900">{stats?.followers || 0}</p>
+                <p className="text-sm text-gray-600">Followers</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900">{stats?.following || 0}</p>
+                <p className="text-sm text-gray-600">Following</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900">{stats?.events || 0}</p>
+                <p className="text-sm text-gray-600">Events</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900">{stats?.photos || 0}</p>
+                <p className="text-sm text-gray-600">Photos</p>
+              </div>
+              {user.profileViews !== undefined && (
+                <div className="text-center ml-auto">
+                  <p className="text-2xl font-bold text-gray-900">{user.profileViews}</p>
+                  <p className="text-sm text-gray-600">Profile Views</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
