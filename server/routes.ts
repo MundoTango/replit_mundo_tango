@@ -2999,23 +2999,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get upcoming events and filter for user preferences
-      const allEvents = await storage.getEvents(20, 0);
+      // Get user's followed cities
+      const followedGroups = await storage.getUserFollowingGroups(user.id);
+      const followedCities = followedGroups
+        .filter(g => g.type === 'city')
+        .map(g => g.name.split(',')[0].trim()); // Extract city name from "City, Country"
+
+      // Get all upcoming events
+      const allEvents = await storage.getEvents(100, 0); // Get more events to filter properly
       const now = new Date();
       
-      // Filter to upcoming events in user's area and followed cities
-      const upcomingEvents = allEvents
-        .filter(event => new Date(event.startDate) > now)
-        .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-        .slice(0, 4);
-
-      // Get user RSVPs to determine status for each event
+      // Get user RSVPs and invitations
       const userRsvps = await storage.getUserEventRsvps(user.id);
+      const rsvpEventIds = new Set(userRsvps.map(rsvp => rsvp.eventId));
       const rsvpMap = new Map(userRsvps.map(rsvp => [rsvp.eventId, rsvp.status]));
+      
+      // Get user invitations (events where user was invited)
+      const invitedEvents = await storage.getInvitedEvents ? await storage.getInvitedEvents(user.id) : [];
+      const invitedEventIds = new Set(invitedEvents.map(e => e.id));
+
+      // Filter events based on user context
+      const relevantEvents = allEvents.filter(event => {
+        const eventDate = new Date(event.startDate);
+        if (eventDate <= now) return false; // Only future events
+
+        // Include if:
+        // 1. Event is in user's city
+        const isInUserCity = event.city?.toLowerCase() === user.city?.toLowerCase();
+        
+        // 2. User has RSVP'd to this event
+        const hasRsvped = rsvpEventIds.has(event.id);
+        
+        // 3. Event is in a city the user follows
+        const isInFollowedCity = followedCities.some(city => 
+          event.city?.toLowerCase() === city.toLowerCase()
+        );
+        
+        // 4. User was invited to this event
+        const wasInvited = invitedEventIds.has(event.id);
+
+        return isInUserCity || hasRsvped || isInFollowedCity || wasInvited;
+      });
+
+      // Sort by date and take top 8 events
+      const upcomingEvents = relevantEvents
+        .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+        .slice(0, 8);
 
       // Transform events with user status information
       const transformedEvents = upcomingEvents.map(event => {
-        const userStatus = rsvpMap.get(event.id) || null;
+        const userStatus = rsvpMap.get(event.id) || (invitedEventIds.has(event.id) ? 'invited' : null);
 
         return {
           id: event.id,

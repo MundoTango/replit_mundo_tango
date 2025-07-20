@@ -118,19 +118,63 @@ export default function EventsBoard() {
 
   if (isLoading) {
     return (
-      <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-blue-100/50 p-8">
-        <div className="animate-pulse space-y-4">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-200 to-teal-200 rounded-xl"></div>
-            <div className="h-6 bg-gradient-to-r from-blue-200 to-teal-200 rounded-xl w-32"></div>
-          </div>
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="space-y-3 p-4 border rounded-2xl">
-              <div className="h-4 bg-gradient-to-r from-coral-200 to-pink-200 rounded-xl w-3/4"></div>
-              <div className="h-3 bg-gradient-to-r from-blue-200 to-teal-200 rounded-xl w-1/2"></div>
-              <div className="h-3 bg-gradient-to-r from-blue-200 to-teal-200 rounded-xl w-2/3"></div>
+      <div className="relative">
+        {/* Ambient glow effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-turquoise-400/20 to-blue-400/20 rounded-3xl blur-2xl animate-pulse" />
+        
+        <div className="relative glassmorphic-card rounded-3xl p-6 space-y-4">
+          {/* Header Skeleton */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 bg-gradient-to-br from-turquoise-300 to-blue-300 rounded-xl animate-pulse" />
+              <div className="space-y-2">
+                <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-36 animate-pulse" />
+                <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-28 animate-pulse" />
+              </div>
             </div>
-          ))}
+            <div className="w-9 h-9 bg-gradient-to-br from-turquoise-100 to-cyan-100 rounded-xl animate-pulse" />
+          </div>
+
+          {/* Event Card Skeletons */}
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="glassmorphic-card p-4 rounded-2xl border border-white/50 space-y-3">
+                {/* Event Type and Status Badges */}
+                <div className="flex items-center gap-2">
+                  <div className="h-5 w-16 bg-gradient-to-r from-turquoise-200 to-blue-200 rounded-lg animate-pulse" />
+                  <div className="h-5 w-5 bg-gradient-to-r from-gray-200 to-gray-300 rounded animate-pulse" />
+                </div>
+                
+                {/* Event Title */}
+                <div className="h-5 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-4/5 animate-pulse" />
+                
+                {/* Event Details */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gray-300 rounded animate-pulse" />
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-3/5 animate-pulse" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gray-300 rounded animate-pulse" />
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-2/5 animate-pulse" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gray-300 rounded animate-pulse" />
+                    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-1/2 animate-pulse" />
+                  </div>
+                </div>
+                
+                {/* Organizer */}
+                <div className="flex items-center gap-2 pt-2 border-t border-gray-100/50">
+                  <div className="w-5 h-5 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full animate-pulse" />
+                  <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-24 animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* View All Button Skeleton */}
+          <div className="h-10 bg-gradient-to-r from-turquoise-200 to-blue-200 rounded-xl animate-pulse" />
         </div>
       </div>
     );

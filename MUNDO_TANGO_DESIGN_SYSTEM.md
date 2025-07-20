@@ -1,6 +1,6 @@
-# Mundo Tango Design System v2.0
-> Ocean Theme Edition - Consolidated design documentation for the Mundo Tango platform
-> Updated: January 15, 2025
+# Mundo Tango Design System v2.1
+> Ocean Theme Edition with Micro-Interactions - Consolidated design documentation for the Mundo Tango platform
+> Updated: July 20, 2025
 
 ## Table of Contents
 1. [Color System](#color-system)
@@ -8,8 +8,10 @@
 3. [Spacing & Layout](#spacing--layout)
 4. [Components](#components)
 5. [Animations](#animations)
-6. [Design Principles](#design-principles)
-7. [Implementation Guide](#implementation-guide)
+6. [Micro-Interactions](#micro-interactions)
+7. [Loading States](#loading-states)
+8. [Design Principles](#design-principles)
+9. [Implementation Guide](#implementation-guide)
 
 ## Color System
 
@@ -397,6 +399,170 @@ The UniversalPostCreator component uses the MT ocean theme throughout:
   }
 }
 ```
+
+## Micro-Interactions
+
+### Implemented Interactions
+Our platform features a comprehensive micro-interactions system that enhances user engagement through subtle animations and feedback mechanisms.
+
+#### 1. **Typing Particles**
+- **Where**: Post creation textareas and comment fields
+- **Effect**: Small particles appear and fade as user types
+- **Purpose**: Provides visual feedback that makes typing feel more responsive
+```css
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--gradient-primary);
+  border-radius: 50%;
+  animation: particleFade 1s ease-out forwards;
+}
+```
+
+#### 2. **Ripple Effects**
+- **Where**: All interactive buttons and clickable elements
+- **Effect**: Circular ripple emanates from click point
+- **Purpose**: Material Design-inspired feedback for user actions
+```css
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(56, 178, 172, 0.3);
+  transform: scale(0);
+  animation: rippleEffect 0.6s ease-out;
+}
+```
+
+#### 3. **Magnetic Buttons**
+- **Where**: Primary action buttons (Submit, Post, Share)
+- **Effect**: Button subtly follows cursor movement
+- **Purpose**: Creates playful, premium interaction feel
+```javascript
+// Magnetic effect on hover
+const magneticStrength = 0.2;
+button.style.transform = `translate(${deltaX * magneticStrength}px, ${deltaY * magneticStrength}px)`;
+```
+
+#### 4. **Confetti Celebrations**
+- **Where**: Successful post creation, milestone achievements
+- **Effect**: Colorful confetti particles fall from top
+- **Purpose**: Celebrates user achievements and actions
+```css
+.confetti {
+  animation: confettiFall 3s ease-out forwards;
+}
+```
+
+#### 5. **Card Lift Effects**
+- **Where**: All content cards (posts, events, profiles)
+- **Effect**: Cards lift slightly with shadow enhancement on hover
+- **Purpose**: Creates depth and indicates interactivity
+```css
+.card-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+```
+
+#### 6. **Smooth Appear Animations**
+- **Where**: New content loading, page transitions
+- **Effect**: Elements fade in with subtle upward movement
+- **Purpose**: Makes content appearance feel natural
+```css
+.smooth-appear {
+  animation: smoothAppear 0.5s ease-out forwards;
+  opacity: 0;
+}
+```
+
+#### 7. **Icon Glow Effects**
+- **Where**: Interactive icons (like, share, comment)
+- **Effect**: Soft glow on hover and active states
+- **Purpose**: Draws attention to available actions
+```css
+.icon-glow {
+  transition: all 0.2s ease;
+}
+.icon-glow:hover {
+  filter: drop-shadow(0 0 8px rgba(56, 178, 172, 0.5));
+}
+```
+
+#### 8. **Loading Sparkles**
+- **Where**: Loading states, processing indicators
+- **Effect**: Sparkle animation during wait times
+- **Purpose**: Makes waiting more pleasant and engaging
+```css
+.sparkle {
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+```
+
+### Implementation Guidelines
+1. **Performance**: All animations check for `prefers-reduced-motion`
+2. **Consistency**: Use easing functions from design tokens
+3. **Subtlety**: Animations should enhance, not distract
+4. **Accessibility**: Provide options to disable animations
+
+## Loading States
+
+### Skeleton Screens
+Skeleton screens provide visual feedback during content loading, maintaining layout stability and reducing perceived load time.
+
+#### 1. **Post Skeleton**
+```css
+.post-skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+```
+
+#### 2. **Event Card Skeleton**
+```jsx
+<div className="event-skeleton glassmorphic-card p-4 space-y-3">
+  <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-3/4 animate-pulse" />
+  <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-1/2 animate-pulse" />
+  <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-2/3 animate-pulse" />
+</div>
+```
+
+#### 3. **Profile Skeleton**
+```jsx
+<div className="profile-skeleton flex items-center gap-3">
+  <div className="w-12 h-12 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full animate-pulse" />
+  <div className="space-y-2">
+    <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-24 animate-pulse" />
+    <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-16 animate-pulse" />
+  </div>
+</div>
+```
+
+#### 4. **Timeline Loading State**
+```jsx
+<div className="timeline-loading glassmorphic-card p-12 rounded-3xl">
+  <div className="relative">
+    <div className="absolute inset-0 bg-gradient-to-r from-turquoise-400 to-blue-500 rounded-full blur-xl opacity-30 animate-pulse" />
+    <Loader2 className="h-12 w-12 animate-spin text-turquoise-600 relative z-10" />
+  </div>
+  <p className="mt-4 text-gray-600">Loading memories...</p>
+</div>
+```
+
+### Loading State Guidelines
+1. **Immediate Feedback**: Show skeletons within 100ms
+2. **Accurate Sizing**: Match skeleton dimensions to actual content
+3. **Smooth Transitions**: Fade from skeleton to content
+4. **Progress Indicators**: Use for operations > 2 seconds
 
 ## Design Principles
 

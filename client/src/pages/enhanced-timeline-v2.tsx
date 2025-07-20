@@ -470,13 +470,48 @@ export default function EnhancedTimelineV2() {
             {/* Posts */}
             <div className="space-y-6">
               {isLoading ? (
-                <div className="glassmorphic-card p-12 rounded-3xl flex flex-col items-center justify-center">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-turquoise-400 to-blue-500 rounded-full blur-xl opacity-30 animate-pulse" />
-                    <Loader2 className="h-12 w-12 animate-spin text-turquoise-600 relative z-10" />
-                  </div>
-                  <p className="mt-4 text-gray-600">Loading memories...</p>
-                </div>
+                <>
+                  {/* Loading Skeleton Cards */}
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="relative group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-turquoise-400/10 via-blue-400/10 to-cyan-400/10 rounded-3xl blur-xl opacity-50 animate-pulse" />
+                      
+                      <Card className="relative glassmorphic-card p-6 space-y-4 rounded-3xl border-white/50">
+                        {/* Header Skeleton */}
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full animate-pulse" />
+                            <div className="space-y-2">
+                              <div className="h-5 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-32 animate-pulse" />
+                              <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-24 animate-pulse" />
+                              <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-40 animate-pulse" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Content Skeleton */}
+                        <div className="space-y-3">
+                          <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-full animate-pulse" />
+                          <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-5/6 animate-pulse" />
+                          <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-4/6 animate-pulse" />
+                        </div>
+
+                        {/* Image Skeleton */}
+                        <div className="h-64 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl animate-pulse" />
+
+                        {/* Actions Skeleton */}
+                        <div className="flex items-center justify-between pt-4">
+                          <div className="flex gap-4">
+                            {[1, 2, 3].map((j) => (
+                              <div key={j} className="h-10 w-20 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg animate-pulse" />
+                            ))}
+                          </div>
+                          <div className="h-8 w-16 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg animate-pulse" />
+                        </div>
+                      </Card>
+                    </div>
+                  ))}
+                </>
               ) : posts.length > 0 ? (
                 posts.map((post: Memory) => (
                   <MemoryCard key={post.id} memory={post} />
