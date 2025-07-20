@@ -3,7 +3,7 @@ import EnhancedHierarchicalTreeView from './EnhancedHierarchicalTreeView';
 import ErrorBoundary from './ErrorBoundary';
 import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
 import DailyActivityView from './DailyActivityView';
-import Framework30LDashboard from './Framework30LDashboard';
+import Framework35LDashboard from './Framework35LDashboard';
 import { countAllProjects, getAllTeams, comprehensiveProjectData, getTeamStatistics, getProjectAnalytics, getProjectTimeline } from '@/data/comprehensive-project-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -97,10 +97,10 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
   // Dynamically determine the number of layers in the framework
   // This automatically updates when new layers are added to the framework
   // Update this number when expanding the framework (e.g., 30L → 40L)
-  const FRAMEWORK_LAYERS = 30; // Currently using 30L Framework (Layers 1-30)
+  const FRAMEWORK_LAYERS = 35; // Currently using 35L Framework (Layers 1-35)
   
   // State management
-  const [view, setView] = useState<'hierarchy' | 'analytics' | 'timeline' | 'teams' | 'daily' | '30l'>('hierarchy');
+  const [view, setView] = useState<'hierarchy' | 'analytics' | 'timeline' | 'teams' | 'daily' | '35l'>('hierarchy');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
@@ -302,9 +302,9 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
             <Activity className="h-4 w-4" />
             Daily Activity
           </TabsTrigger>
-          <TabsTrigger value="30l" className="flex items-center gap-2">
+          <TabsTrigger value="35l" className="flex items-center gap-2">
             <Layers className="h-4 w-4" />
-            30L Framework
+            35L Framework
           </TabsTrigger>
         </TabsList>
 
@@ -1087,9 +1087,9 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
           <DailyActivityView />
         </TabsContent>
 
-        {/* 30L Framework View */}
-        <TabsContent value="30l" className="space-y-6">
-          <Framework30LDashboard />
+        {/* 35L Framework View */}
+        <TabsContent value="35l" className="space-y-6">
+          <Framework35LDashboard />
         </TabsContent>
       </Tabs>
 

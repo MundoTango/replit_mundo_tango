@@ -11,7 +11,7 @@ const TabLoader = () => (
 // Lazy load heavy components
 export const LazyProjectTracker = lazy(() => import('./ProjectTrackerDashboard'));
 export const LazyCompliance = lazy(() => import('./AutomatedComplianceMonitor'));
-export const LazyFramework = lazy(() => import('./Framework30LDashboard'));
+export const LazyFramework = lazy(() => import('./Framework35LDashboard'));
 export const LazyPerformance = lazy(() => import('./PerformanceMonitor'));
 
 // Wrapper component for lazy tabs

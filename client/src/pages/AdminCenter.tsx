@@ -12,7 +12,7 @@ import { EventTypesManager } from '@/components/admin/EventTypesManager';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalStatisticsDashboard } from '@/components/GlobalStatisticsDashboard';
 import PerformanceMonitor from '@/components/admin/PerformanceMonitor';
-import Framework30LDashboard from '@/components/admin/Framework30LDashboard';
+import Framework35LDashboard from '@/components/admin/Framework35LDashboard';
 import { 
   Users, 
   Activity, 
@@ -1930,7 +1930,7 @@ const AdminCenter: React.FC = React.memo(() => {
     );
   };
 
-  const render23LFramework = () => <Framework30LDashboard />;
+  const render35LFramework = () => <Framework35LDashboard />;
 
   // Settings tab state
   const [settingsData, setSettingsData] = useState<any>(null);
@@ -2402,7 +2402,7 @@ const AdminCenter: React.FC = React.memo(() => {
       case 'compliance': return renderCompliance();
       case 'rbac': return renderRbacManager();
       case 'system': return renderSystemHealth();
-      case '23l-framework': return render23LFramework();
+      case '35l-framework': return render35LFramework();
       case 'settings': return renderSettings();
       default: return renderOverview();
     }
