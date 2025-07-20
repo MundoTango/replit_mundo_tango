@@ -71,6 +71,7 @@ import LiveGlobalStatistics from "@/pages/LiveGlobalStatistics";
 import HostOnboarding from "@/pages/HostOnboarding";
 import GuestOnboarding from "@/pages/GuestOnboarding";
 import PerformanceTest from "@/pages/PerformanceTest";
+import CityAutoCreationTest from "@/pages/CityAutoCreationTest";
 
 // Simple error boundary component
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -218,6 +219,7 @@ function Router() {
       <Route path="/ttfiles-help-center" component={TTfilesHelpCenter} />
       <Route path="/feature-navigation" component={FeatureNavigation} />
       <Route path="/performance-test" component={PerformanceTest} />
+      <Route path="/city-test" component={CityAutoCreationTest} />
       <Route component={NotFound} />
     </Switch>
   );

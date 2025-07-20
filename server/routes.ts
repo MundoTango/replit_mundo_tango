@@ -25,6 +25,7 @@ import { CityPhotoService } from "./services/cityPhotoService";
 import rbacRoutes from "./rbacRoutes";
 import tenantRoutes from "./routes/tenantRoutes";
 import { registerStatisticsRoutes } from "./routes/statisticsRoutes";
+import cityAutoCreationTestRoutes from "./routes/cityAutoCreationTest";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add compression middleware for better performance
@@ -567,6 +568,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       await storage.updateUserApiToken(user.id, token);
+
+      // Auto-create city group if city and country provided
+      if (validatedData.city && validatedData.country) {
+        try {
+          const { CityAutoCreationService } = await import('./services/cityAutoCreationService');
+          const cityResult = await CityAutoCreationService.handleUserRegistration(
+            user.id,
+            validatedData.city,
+            validatedData.country
+          );
+          console.log(`🏙️ City group auto-creation result for ${user.username}:`, {
+            city: cityResult.group.name,
+            isNew: cityResult.isNew,
+            adminAssigned: cityResult.adminAssigned
+          });
+        } catch (cityError) {
+          console.error('Failed to auto-create city group:', cityError);
+          // Don't fail registration if city creation fails
+        }
+      }
 
       res.json({ 
         success: true, 
@@ -1728,7 +1749,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tags: parsedTags
         };
 
-        await db.insert(recommendations).values(recommendationData);
+        const [newRecommendation] = await db.insert(recommendations).values(recommendationData).returning();
+        
+        // Auto-create city group if needed
+        if (recommendationData.city && recommendationData.country) {
+          try {
+            const { CityAutoCreationService } = await import('./services/cityAutoCreationService');
+            const cityResult = await CityAutoCreationService.handleRecommendation(
+              newRecommendation.id,
+              recommendationData.city,
+              recommendationData.country,
+              user.id
+            );
+            console.log(`🏙️ City group auto-created from recommendation:`, {
+              city: cityResult.group.name,
+              isNew: cityResult.isNew
+            });
+          } catch (cityError) {
+            console.error('Failed to auto-create city group:', cityError);
+          }
+        }
       }
 
       // Handle media metadata if provided
@@ -3058,6 +3098,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let cityGroupAssignment = null;
       if (event.location || req.body.city || req.body.country) {
         try {
+          // First, auto-create city group if needed
+          if (req.body.city && req.body.country) {
+            const { CityAutoCreationService } = await import('./services/cityAutoCreationService');
+            const cityResult = await CityAutoCreationService.handleEvent(
+              event.id,
+              req.body.city,
+              req.body.country,
+              req.user!.id
+            );
+            console.log(`🏙️ City group auto-creation from event:`, {
+              city: cityResult.group.name,
+              isNew: cityResult.isNew
+            });
+          }
+          
+          // Then process the assignment
           const assignmentResult = await processEventCityGroupAssignment(
             event.id,
             {
@@ -12952,6 +13008,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Use city auto-creation test routes
+  app.use(cityAutoCreationTestRoutes);
 
   return server;
 }
