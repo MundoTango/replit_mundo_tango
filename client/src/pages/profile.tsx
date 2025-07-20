@@ -11,14 +11,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { GuestProfileDisplay } from '@/components/GuestProfile/GuestProfileDisplay';
-import { Camera, Video, Users, Calendar, Star, UserCheck, Globe } from 'lucide-react';
+import { Camera, Video, Users, Calendar, Star, UserCheck, Globe, PenLine } from 'lucide-react';
 import { TravelDetailsComponent } from '@/components/profile/TravelDetailsComponent';
+import { ProfileMemoryPostModal } from '@/components/profile/ProfileMemoryPostModal';
 
 export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('posts');
+  const [showMemoryPostModal, setShowMemoryPostModal] = useState(false);
 
   // Fetch user posts
   const { data: postsData, isLoading: postsLoading } = useQuery({
@@ -173,6 +175,16 @@ export default function Profile() {
             </TabsList>
             <div className="p-6">
               <TabsContent value="posts" className="space-y-4">
+                {/* Memory Post Button */}
+                <div className="flex justify-end mb-4">
+                  <button 
+                    onClick={() => setShowMemoryPostModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white rounded-lg hover:shadow-lg transform transition-all hover:-translate-y-0.5"
+                  >
+                    <PenLine className="w-4 h-4" />
+                    Post a Memory
+                  </button>
+                </div>
                 {postsLoading ? (
                   <div className="grid gap-4">
                     {Array.from({ length: 3 }).map((_, i) => (
@@ -315,6 +327,20 @@ export default function Profile() {
           </Tabs>
         </div>
       </div>
+      
+      {/* Memory Post Modal */}
+      <ProfileMemoryPostModal
+        isOpen={showMemoryPostModal}
+        onClose={() => setShowMemoryPostModal(false)}
+        onMemoryCreated={() => {
+          setShowMemoryPostModal(false);
+          queryClient.invalidateQueries({ queryKey: ['/api/user/posts'] });
+          toast({
+            title: "Memory Posted!",
+            description: "Your memory has been shared successfully.",
+          });
+        }}
+      />
     </DashboardLayout>
   );
 }
