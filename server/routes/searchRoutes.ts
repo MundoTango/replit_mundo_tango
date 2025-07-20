@@ -27,6 +27,8 @@ const suggestionsSchema = z.object({
  */
 router.get('/all', async (req: Request, res: Response) => {
   try {
+    console.log('Search route /all called with query:', req.query);
+    
     const validation = searchQuerySchema.safeParse(req.query);
     if (!validation.success) {
       return res.status(400).json({
@@ -39,6 +41,8 @@ router.get('/all', async (req: Request, res: Response) => {
     const { q, type, limit = 20, offset = 0, dateFrom, dateTo, location } = validation.data;
     const userId = req.user?.id;
 
+    console.log('Calling SearchService.searchAll with:', { q, type, limit, offset, userId });
+    
     const results = await SearchService.searchAll({
       query: q,
       filters: {
@@ -51,6 +55,8 @@ router.get('/all', async (req: Request, res: Response) => {
       offset,
       userId
     });
+    
+    console.log('SearchService returned:', results);
 
     // Track search query is already handled in searchAll method
 

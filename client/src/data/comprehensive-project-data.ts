@@ -249,6 +249,58 @@ export const comprehensiveProjectData: ProjectItem[] = [
             completion: 100,
             priority: 'Critical',
             team: ['Backend']
+          },
+          {
+            id: 'search-discovery-system',
+            title: 'Search & Discovery System',
+            description: 'Universal search across users, posts, events, groups, memories',
+            type: 'Feature',
+            status: 'In Progress',
+            completion: 70,
+            priority: 'Critical',
+            team: ['Frontend', 'Backend'],
+            children: [
+              {
+                id: 'search-service-implementation',
+                title: 'Search Service Implementation',
+                description: 'Backend search service with type-specific search methods',
+                type: 'Task',
+                status: 'In Progress',
+                completion: 80,
+                priority: 'Critical',
+                team: ['Backend']
+              },
+              {
+                id: 'search-ui-components',
+                title: 'Search UI Components',
+                description: 'BeautifulSearch interface with autocomplete and filters',
+                type: 'Task',
+                status: 'Completed',
+                completion: 100,
+                priority: 'High',
+                team: ['Frontend']
+              },
+              {
+                id: 'trending-searches',
+                title: 'Trending Searches Feature',
+                description: 'Track and display popular search queries',
+                type: 'Task',
+                status: 'Blocked',
+                completion: 40,
+                priority: 'Medium',
+                team: ['Backend', 'Database']
+              },
+              {
+                id: 'search-performance-optimization',
+                title: 'Search Performance Optimization',
+                description: 'Query optimization and caching for search results',
+                type: 'Task',
+                status: 'In Progress',
+                completion: 60,
+                priority: 'High',
+                team: ['Backend', 'Database']
+              }
+            ]
           }
         ]
       },
@@ -291,6 +343,58 @@ export const comprehensiveProjectData: ProjectItem[] = [
             completion: 90,
             priority: 'High',
             team: ['Backend', 'Database']
+          },
+          {
+            id: 'host-dashboard',
+            title: 'Host Dashboard',
+            description: 'Comprehensive dashboard for hosts to manage properties and bookings',
+            type: 'Feature',
+            status: 'In Progress',
+            completion: 25,
+            priority: 'Critical',
+            team: ['Frontend', 'Backend'],
+            children: [
+              {
+                id: 'property-management-interface',
+                title: 'Property Management Interface',
+                description: 'CRUD operations for host properties with real-time updates',
+                type: 'Task',
+                status: 'Planned',
+                completion: 0,
+                priority: 'Critical',
+                team: ['Frontend']
+              },
+              {
+                id: 'booking-requests-management',
+                title: 'Booking Requests Management',
+                description: 'Interface to review, approve, and manage guest bookings',
+                type: 'Task',
+                status: 'In Progress',
+                completion: 40,
+                priority: 'Critical',
+                team: ['Frontend', 'Backend']
+              },
+              {
+                id: 'host-analytics',
+                title: 'Host Analytics Dashboard',
+                description: 'Occupancy rates, revenue tracking, guest demographics',
+                type: 'Task',
+                status: 'Planned',
+                completion: 0,
+                priority: 'High',
+                team: ['Frontend', 'Backend']
+              },
+              {
+                id: 'calendar-availability-manager',
+                title: 'Calendar & Availability Manager',
+                description: 'Interactive calendar for managing property availability',
+                type: 'Task',
+                status: 'Planned',
+                completion: 0,
+                priority: 'High',
+                team: ['Frontend']
+              }
+            ]
           }
         ]
       },
@@ -323,6 +427,164 @@ export const comprehensiveProjectData: ProjectItem[] = [
             completion: 100,
             priority: 'Low',
             team: ['Frontend']
+          }
+        ]
+      },
+      {
+        id: 'trust-safety-features',
+        title: 'Trust & Safety Features',
+        description: 'Comprehensive safety and moderation systems',
+        type: 'Section',
+        status: 'In Progress',
+        completion: 75,
+        priority: 'Critical',
+        team: ['Backend', 'Frontend', 'Security'],
+        children: [
+          {
+            id: 'enhanced-reporting-system',
+            title: 'Enhanced Reporting System',
+            description: 'Comprehensive reporting with admin moderation queue',
+            type: 'Feature',
+            status: 'Completed',
+            completion: 100,
+            priority: 'Critical',
+            team: ['Backend', 'Frontend']
+          },
+          {
+            id: 'content-moderation-ai',
+            title: 'AI Content Moderation',
+            description: 'Automatic detection of inappropriate content',
+            type: 'Feature',
+            status: 'Planned',
+            completion: 0,
+            priority: 'High',
+            team: ['AI', 'Backend']
+          },
+          {
+            id: 'user-verification-system',
+            title: 'User Verification System',
+            description: 'Multi-level verification for hosts and guests',
+            type: 'Feature',
+            status: 'In Progress',
+            completion: 40,
+            priority: 'High',
+            team: ['Backend', 'Security']
+          },
+          {
+            id: 'emergency-response-system',
+            title: 'Emergency Response System',
+            description: '24/7 emergency contact and response protocol',
+            type: 'Feature',
+            status: 'Planned',
+            completion: 0,
+            priority: 'Critical',
+            team: ['Backend', 'Operations']
+          }
+        ]
+      },
+      {
+        id: 'city-auto-creation-system',
+        title: 'City Auto-Creation System',
+        description: 'Automatic city group creation from 3 trigger points',
+        type: 'Section',
+        status: 'Planned',
+        completion: 0,
+        priority: 'High',
+        team: ['Backend', 'Database'],
+        children: [
+          {
+            id: 'city-normalization-service',
+            title: 'City Normalization Service',
+            description: 'Handle city name variations and abbreviations',
+            type: 'Feature',
+            status: 'Planned',
+            completion: 0,
+            priority: 'High',
+            team: ['Backend'],
+            children: [
+              {
+                id: 'abbreviation-mapping',
+                title: 'Abbreviation Mapping',
+                description: 'Map common abbreviations (NYC → New York City)',
+                type: 'Task',
+                status: 'Planned',
+                completion: 0,
+                priority: 'High',
+                team: ['Backend']
+              },
+              {
+                id: 'geocoding-integration',
+                title: 'Geocoding Integration',
+                description: 'OpenStreetMap Nominatim API for coordinates',
+                type: 'Task',
+                status: 'Planned',
+                completion: 0,
+                priority: 'High',
+                team: ['Backend']
+              }
+            ]
+          },
+          {
+            id: 'trigger-implementation',
+            title: 'Trigger Implementation',
+            description: '3 triggers: registration, recommendation, event creation',
+            type: 'Feature',
+            status: 'Planned',
+            completion: 0,
+            priority: 'Critical',
+            team: ['Backend'],
+            children: [
+              {
+                id: 'registration-trigger',
+                title: 'User Registration Trigger',
+                description: 'Auto-create city group when user registers',
+                type: 'Task',
+                status: 'Planned',
+                completion: 0,
+                priority: 'Critical',
+                team: ['Backend']
+              },
+              {
+                id: 'recommendation-trigger',
+                title: 'Recommendation Creation Trigger',
+                description: 'Detect new cities in recommendations',
+                type: 'Task',
+                status: 'Planned',
+                completion: 0,
+                priority: 'High',
+                team: ['Backend']
+              },
+              {
+                id: 'event-trigger',
+                title: 'Event Creation Trigger',
+                description: 'Create groups for new event locations',
+                type: 'Task',
+                status: 'Planned',
+                completion: 0,
+                priority: 'High',
+                team: ['Backend']
+              }
+            ]
+          },
+          {
+            id: 'admin-assignment-logic',
+            title: 'Admin Assignment Logic',
+            description: 'First 5 users become city admins',
+            type: 'Feature',
+            status: 'Planned',
+            completion: 0,
+            priority: 'High',
+            team: ['Backend']
+          },
+          {
+            id: 'city-group-merger-tool',
+            title: 'City Group Merger Tool',
+            description: 'UI to merge duplicate city groups',
+            type: 'Feature',
+            status: 'Planned',
+            completion: 0,
+            priority: 'Medium',
+            team: ['Frontend', 'Backend']
           }
         ]
       }

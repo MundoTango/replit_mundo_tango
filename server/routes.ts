@@ -26,7 +26,7 @@ import rbacRoutes from "./rbacRoutes";
 import tenantRoutes from "./routes/tenantRoutes";
 import { registerStatisticsRoutes } from "./routes/statisticsRoutes";
 import cityAutoCreationTestRoutes from "./routes/cityAutoCreationTest";
-import { searchAll, getSearchSuggestions, getTrendingSearches, trackSearchClick } from "./routes/searchRoutes";
+import searchRouter from "./routes/searchRoutes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add compression middleware for better performance
@@ -13017,6 +13017,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Search routes
+  app.use('/api/search', searchRouter);
 
   // Use city auto-creation test routes
   app.use(cityAutoCreationTestRoutes);

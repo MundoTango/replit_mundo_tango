@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { users, posts, events, groups } from '@shared/schema';
+import { users, posts, events, groups, memories } from '@shared/schema';
 import { eq, or, like, and, sql, desc, asc } from 'drizzle-orm';
 
 export interface SearchResult {
@@ -37,18 +37,25 @@ export class SearchService {
     const { query, filters, limit = 20, offset = 0, userId } = options;
     const results: SearchResult[] = [];
     
+    console.log('SearchAll called with:', { query, filters, limit, offset, userId });
+    
     if (!query || query.trim().length < 2) {
+      console.log('Query too short, returning empty results');
       return { results: [], total: 0 };
     }
 
     const searchQuery = `%${query.toLowerCase()}%`;
+    console.log('Search query formatted as:', searchQuery);
     
     // Track search query for trending
-    await this.trackSearch(query, userId);
+    // Temporarily disabled due to conflicting table definitions
+    // await this.trackSearch(query, userId);
 
     // Search users
     if (!filters?.type || filters.type.includes('user')) {
+      console.log('Searching users...');
       const userResults = await this.searchUsers(searchQuery, limit);
+      console.log('User results:', userResults.length);
       results.push(...userResults);
     }
 
@@ -59,16 +66,16 @@ export class SearchService {
     }
 
     // Search events
-    if (!filters?.type || filters.type.includes('event')) {
-      const eventResults = await this.searchEvents(searchQuery, limit, filters);
-      results.push(...eventResults);
-    }
+    // if (!filters?.type || filters.type.includes('event')) {
+    //   const eventResults = await this.searchEvents(searchQuery, limit, filters);
+    //   results.push(...eventResults);
+    // }
 
     // Search groups
-    if (!filters?.type || filters.type.includes('group')) {
-      const groupResults = await this.searchGroups(searchQuery, limit);
-      results.push(...groupResults);
-    }
+    // if (!filters?.type || filters.type.includes('group')) {
+    //   const groupResults = await this.searchGroups(searchQuery, limit);
+    //   results.push(...groupResults);
+    // }
 
     // Search memories
     if (!filters?.type || filters.type.includes('memory')) {
@@ -127,15 +134,7 @@ export class SearchService {
    */
   private static async searchPosts(query: string, limit: number): Promise<SearchResult[]> {
     const postResults = await db
-      .select({
-        id: posts.id,
-        content: posts.content,
-        userId: posts.userId,
-        createdAt: posts.createdAt,
-        userName: users.name,
-        userUsername: users.username,
-        userProfileImage: users.profileImage
-      })
+      .select()
       .from(posts)
       .leftJoin(users, eq(posts.userId, users.id))
       .where(
@@ -144,19 +143,19 @@ export class SearchService {
       .orderBy(desc(posts.createdAt))
       .limit(limit);
 
-    return postResults.map(post => ({
-      id: post.id,
+    return postResults.map(result => ({
+      id: result.posts.id,
       type: 'post' as const,
-      title: post.content?.substring(0, 100) + (post.content && post.content.length > 100 ? '...' : '') || 'Post',
-      description: `By ${post.userName || post.userUsername || 'Unknown'}`,
-      imageUrl: post.userProfileImage || undefined,
+      title: result.posts.content?.substring(0, 100) + (result.posts.content && result.posts.content.length > 100 ? '...' : '') || 'Post',
+      description: `By ${result.users?.name || result.users?.username || 'Unknown'}`,
+      imageUrl: result.users?.profileImage || undefined,
       metadata: { 
-        userId: post.userId,
-        authorName: post.userName,
-        authorUsername: post.userUsername
+        userId: result.posts.userId,
+        authorName: result.users?.name,
+        authorUsername: result.users?.username
       },
-      score: this.calculateScore(query, post.content || ''),
-      createdAt: post.createdAt
+      score: this.calculateScore(query, result.posts.content || ''),
+      createdAt: result.posts.createdAt
     }));
   }
 
@@ -224,7 +223,7 @@ export class SearchService {
         description: groups.description,
         coverImage: groups.coverImage,
         type: groups.type,
-        memberCount: sql<number>`(SELECT COUNT(*) FROM group_members WHERE group_id = ${groups.id})`.as('memberCount'),
+        memberCount: sql<number>`(SELECT COUNT(*) FROM group_members WHERE group_id = ${groups.id})`,
         createdAt: groups.createdAt
       })
       .from(groups)
@@ -255,37 +254,36 @@ export class SearchService {
    * Search memories (posts)
    */
   private static async searchMemories(query: string, limit: number, userId?: number): Promise<SearchResult[]> {
-    // Note: Memories are stored as posts in the database
+    console.log('Searching memories with query:', query);
+    // Search in the memories table
     const memoryResults = await db
       .select({
-        id: posts.id,
-        content: posts.content,
-        hashtags: posts.hashtags,
-        userId: posts.userId,
-        isPublic: posts.isPublic,
-        visibility: posts.visibility,
-        createdAt: posts.createdAt,
+        id: memories.id,
+        content: memories.content,
+        emotionTags: memories.emotionTags,
+        userId: memories.userId,
+        isPrivate: memories.isPrivate,
+        createdAt: memories.createdAt,
+        location: memories.location,
         userName: users.name,
         userUsername: users.username,
         userProfileImage: users.profileImage
       })
-      .from(posts)
-      .leftJoin(users, eq(posts.userId, users.id))
+      .from(memories)
+      .leftJoin(users, eq(memories.userId, users.id))
       .where(
         and(
+          sql`LOWER(${memories.content}) LIKE ${query}`,
           or(
-            sql`LOWER(${posts.content}) LIKE ${query}`,
-            sql`LOWER(${posts.plainText}) LIKE ${query}`
-          ),
-          or(
-            eq(posts.isPublic, true),
-            eq(posts.visibility, 'public'),
-            userId ? eq(posts.userId, userId) : sql`false`
+            eq(memories.isPrivate, false),
+            userId ? eq(memories.userId, userId) : sql`false`
           )
         )
       )
-      .orderBy(desc(posts.createdAt))
+      .orderBy(desc(memories.createdAt))
       .limit(limit);
+    
+    console.log('Memory search results:', memoryResults.length);
 
     return memoryResults.map(memory => ({
       id: memory.id,
@@ -295,9 +293,9 @@ export class SearchService {
       imageUrl: memory.userProfileImage || undefined,
       metadata: { 
         userId: memory.userId,
-        hashtags: memory.hashtags,
-        visibility: memory.visibility,
-        isPublic: memory.isPublic
+        emotionTags: memory.emotionTags,
+        isPrivate: memory.isPrivate,
+        location: memory.location
       },
       score: this.calculateScore(query, memory.content || ''),
       createdAt: memory.createdAt

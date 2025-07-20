@@ -590,6 +590,31 @@ export const friends = pgTable("friends", {
   uniqueFriendship: unique().on(table.userId, table.friendId),
 }));
 
+// Memories table
+export const memories = pgTable("memories", {
+  id: text("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  richContent: jsonb("rich_content"),
+  emotionTags: text("emotion_tags").array(),
+  emotionVisibility: text("emotion_visibility").default('everyone'),
+  trustCircleLevel: integer("trust_circle_level"),
+  location: jsonb("location"),
+  mediaUrls: text("media_urls").array(),
+  coTaggedUsers: integer("co_tagged_users").array(),
+  consentRequired: boolean("consent_required").default(false),
+  isArchived: boolean("is_archived").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  consentStatus: text("consent_status").default('not_required'),
+  approvedConsents: jsonb("approved_consents"),
+  deniedConsents: jsonb("denied_consents"),
+  pendingConsents: jsonb("pending_consents"),
+  tenantId: uuid("tenant_id"),
+  isPrivate: boolean("is_private").default(false),
+});
+
 // Memory media junction table for reusing media across memories
 export const memoryMedia = pgTable("memory_media", {
   id: serial("id").primaryKey(),
