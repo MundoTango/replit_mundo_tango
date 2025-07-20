@@ -6,7 +6,8 @@ import { setupVite, serveStatic, log } from "./vite";
 import { authMiddleware } from "./middleware/auth";
 import { setupUpload } from "./middleware/upload";
 import { storage } from "./storage";
-import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema, insertCustomRoleRequestSchema, roles, userProfiles, userRoles, groups, users, events, eventRsvps, groupMembers, follows, posts, hostHomes, homeAmenities, homePhotos, recommendations } from "../shared/schema";
+import { insertUserSchema, insertPostSchema, insertEventSchema, insertChatRoomSchema, insertChatMessageSchema, insertCustomRoleRequestSchema, roles, userProfiles, userRoles, groups, users, events, eventRsvps, groupMembers, follows, posts, hostHomes, recommendations } from "../shared/schema";
+import { homeAmenities, homePhotos } from "../shared/schema/hostHomes";
 import { z } from "zod";
 import { SocketService } from "./services/socketService";
 import { WebSocketServer } from "ws";
@@ -12554,54 +12555,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create host home with validated data
       const hostHome = await db.insert(hostHomes).values({
         hostId: userId,
-        propertyType: hostHomeData.propertyType,
-        roomType: hostHomeData.roomType,
         title: hostHomeData.title,
         description: hostHomeData.description,
         address: hostHomeData.address,
         city: hostHomeData.city,
-        state: hostHomeData.state,
+        state: hostHomeData.state || null,
         country: hostHomeData.country,
-        zipCode: hostHomeData.zipCode,
-        latitude: hostHomeData.latitude,
-        longitude: hostHomeData.longitude,
-        maxGuests: hostHomeData.maxGuests,
-        bedrooms: hostHomeData.bedrooms,
-        beds: hostHomeData.beds,
-        bathrooms: hostHomeData.bathrooms,
-        basePrice: hostHomeData.basePrice,
-        cleaningFee: hostHomeData.cleaningFee,
-        currency: hostHomeData.currency,
-        instantBook: hostHomeData.instantBook,
-        minimumStay: hostHomeData.minimumStay,
-        checkInTime: hostHomeData.checkInTime,
-        checkOutTime: hostHomeData.checkOutTime,
-        status: 'pending_review',
+        lat: hostHomeData.latitude || null,
+        lng: hostHomeData.longitude || null,
+        photos: hostHomeData.photos || [],
+        amenities: hostHomeData.amenities || [],
+        maxGuests: hostHomeData.maxGuests || 1,
+        pricePerNight: Math.round(hostHomeData.basePrice * 100), // Convert to cents
+        availability: {}, // Empty for now
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
       }).returning();
-
-      // Save amenities
-      if (hostHomeData.amenities && hostHomeData.amenities.length > 0) {
-        await db.insert(homeAmenities).values(
-          hostHomeData.amenities.map((amenity: string) => ({
-            homeId: hostHome[0].id,
-            amenity
-          }))
-        );
-      }
-
-      // Save photos
-      if (hostHomeData.photos && hostHomeData.photos.length > 0) {
-        await db.insert(homePhotos).values(
-          hostHomeData.photos.map((url: string, index: number) => ({
-            homeId: hostHome[0].id,
-            url,
-            isPrimary: index === 0,
-            sortOrder: index
-          }))
-        );
-      }
 
       res.json({
         success: true,

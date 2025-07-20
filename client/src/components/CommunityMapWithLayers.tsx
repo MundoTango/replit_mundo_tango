@@ -95,10 +95,10 @@ export default function CommunityMapWithLayers({
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [, setLocation] = useLocation();
   
-  // Use layer props for visibility
-  const showEvents = layers.events;
-  const showHomes = layers.housing;
-  const showRecommendations = layers.recommendations;
+  // Use state for layer visibility, initialized from props
+  const [showEvents, setShowEvents] = useState(layers.events);
+  const [showHomes, setShowHomes] = useState(layers.housing);
+  const [showRecommendations, setShowRecommendations] = useState(layers.recommendations);
 
   // Fetch city groups
   const { data: cityGroups = [] } = useQuery({
@@ -111,18 +111,7 @@ export default function CommunityMapWithLayers({
       if (!response.ok) throw new Error('Failed to fetch city groups');
       const data = await response.json();
       
-      // Debug Buenos Aires coordinates from API
-      if (data.success && data.data) {
-        const buenosAires = data.data.find((g: any) => g.name?.includes('Buenos Aires'));
-        if (buenosAires) {
-          console.log('🔥 Buenos Aires RAW API Response:', {
-            name: buenosAires.name,
-            lat: buenosAires.lat,
-            lng: buenosAires.lng,
-            fullObject: buenosAires
-          });
-        }
-      }
+
       
       return data.success ? data.data : [];
     }
@@ -185,21 +174,9 @@ export default function CommunityMapWithLayers({
       .filter((city: any) => {
         // Filter out entries with invalid coordinates (0,0)
         const hasValidCoords = city.lat !== 0 || city.lng !== 0;
-        if (!hasValidCoords && city.name?.includes('Buenos Aires')) {
-          console.log('🚫 Filtering out Buenos Aires with zero coordinates:', city);
-        }
         return hasValidCoords;
       })
       .map((city: any) => {
-        // Debug Buenos Aires coordinates
-        if (city.name?.includes('Buenos Aires')) {
-          console.log('🌎 Buenos Aires data from API:', {
-            name: city.name,
-            lat: city.lat,
-            lng: city.lng,
-            original: city
-          });
-        }
         return {
           id: city.id,
           lat: city.lat,
@@ -550,14 +527,7 @@ export default function CommunityMapWithLayers({
         {mapItems
           .filter(item => item.type === 'cityGroup')
           .map(item => {
-            // Debug Buenos Aires marker placement
-            if (item.title?.includes('Buenos Aires')) {
-              console.log('📍 Placing Buenos Aires marker at:', {
-                lat: item.lat,
-                lng: item.lng,
-                position: [item.lat, item.lng]
-              });
-            }
+
             return (
               <Marker
                 key={`city-${item.id}`}
