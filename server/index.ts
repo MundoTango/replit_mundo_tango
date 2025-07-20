@@ -135,5 +135,18 @@ app.get('/service-worker-workbox.js', (req, res) => {
     } catch (error) {
       console.warn('⚠️ Compliance monitoring not available');
     }
+
+    // Initialize Automatic Project Tracking
+    try {
+      import('../scripts/watch-project-updates').then(({ ProjectDataWatcher }) => {
+        const watcher = new ProjectDataWatcher();
+        watcher.start();
+        console.log('📊 Automatic project tracking initialized');
+      }).catch(error => {
+        console.warn('⚠️ Project tracking initialization failed:', error.message);
+      });
+    } catch (error) {
+      console.warn('⚠️ Project tracking not available');
+    }
   });
 })();

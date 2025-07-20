@@ -174,17 +174,7 @@ class ProjectDataWatcher {
   }
 }
 
-// Start watcher if run directly
-if (require.main === module) {
-  const watcher = new ProjectDataWatcher();
-  watcher.start();
+// Create a default instance for server import
+const defaultWatcher = new ProjectDataWatcher();
 
-  // Handle graceful shutdown
-  process.on('SIGINT', () => {
-    console.log('\n🛑 Shutting down project watcher...');
-    watcher.stop();
-    process.exit(0);
-  });
-}
-
-export { ProjectDataWatcher };
+export { ProjectDataWatcher, defaultWatcher };
