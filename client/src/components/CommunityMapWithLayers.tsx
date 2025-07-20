@@ -40,8 +40,11 @@ const MapViewController = ({ center, zoom }: { center: [number, number]; zoom: n
   const map = useMap();
   
   React.useEffect(() => {
-    map.setView(center, zoom);
-  }, [map, center, zoom]);
+    // Use flyTo for smooth animation and ensure the view is properly set
+    map.flyTo(center, zoom, {
+      duration: 1
+    });
+  }, [map, center[0], center[1], zoom]);
   
   return null;
 };

@@ -12543,57 +12543,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const hostHomeData = req.body;
 
-      // Create host home with validated data
-      const hostHome = await db.insert(hostHomes).values({
-        hostId: userId,
-        title: hostHomeData.title,
-        description: hostHomeData.description,
-        propertyType: hostHomeData.propertyType || 'apartment',
-        roomType: hostHomeData.roomType || 'entire_place',
-        address: hostHomeData.address,
-        city: hostHomeData.city,
-        state: hostHomeData.state || null,
-        country: hostHomeData.country,
-        zipCode: hostHomeData.zipCode || null,
-        latitude: hostHomeData.latitude ? String(hostHomeData.latitude) : null,
-        longitude: hostHomeData.longitude ? String(hostHomeData.longitude) : null,
-        maxGuests: hostHomeData.maxGuests || hostHomeData.capacity || 1,
-        bedrooms: hostHomeData.bedrooms || 1,
-        beds: hostHomeData.beds || 1,
-        bathrooms: hostHomeData.bathrooms || '1',
-        basePrice: String(hostHomeData.basePrice || hostHomeData.pricePerNight || 100),
-        cleaningFee: hostHomeData.cleaningFee ? String(hostHomeData.cleaningFee) : '0',
-        currency: hostHomeData.currency || 'USD',
-        status: 'pending_review',
-        isInstantBook: hostHomeData.instantBook || false,
-        airbnbUrl: hostHomeData.airbnbUrl || null,
-        vrboUrl: hostHomeData.vrboUrl || null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }).returning();
-
-      // Create amenities
-      if (hostHomeData.amenities && hostHomeData.amenities.length > 0) {
-        const amenitiesData = hostHomeData.amenities.map((amenity: string) => ({
-          homeId: hostHome[0].id,
-          category: 'basic', // Default category, can be enhanced later
-          amenity: amenity
-        }));
-        
-        await db.insert(homeAmenities).values(amenitiesData);
-      }
-
-      // Create photos
-      if (hostHomeData.photos && hostHomeData.photos.length > 0) {
-        const photosData = hostHomeData.photos.map((photoUrl: string, index: number) => ({
-          homeId: hostHome[0].id,
-          url: photoUrl,
-          displayOrder: index + 1,
-          caption: `Photo ${index + 1}`
-        }));
-        
-        await db.insert(homePhotos).values(photosData);
-      }
+      // Create host home with validated data matching actual database schema
+      const hostHome = await db.execute(sql`
+        INSERT INTO host_homes (
+          host_id, title, description, address, city, state, country,
+          lat, lng, photos, amenities, max_guests, price_per_night,
+          is_active, created_at, updated_at
+        ) VALUES (
+          ${userId},
+          ${hostHomeData.title},
+          ${hostHomeData.description},
+          ${hostHomeData.address},
+          ${hostHomeData.city},
+          ${hostHomeData.state || null},
+          ${hostHomeData.country},
+          ${hostHomeData.latitude || null},
+          ${hostHomeData.longitude || null},
+          ${hostHomeData.photos || []},
+          ${hostHomeData.amenities || []},
+          ${hostHomeData.maxGuests || hostHomeData.capacity || 1},
+          ${Math.round((hostHomeData.basePrice || hostHomeData.pricePerNight || 100) * 100)},
+          true,
+          NOW(),
+          NOW()
+        ) RETURNING *
+      `);
 
       res.json({
         success: true,
