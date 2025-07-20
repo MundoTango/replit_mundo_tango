@@ -39,7 +39,7 @@ interface Post {
   shareCount?: number;
 }
 
-function EnhancedPostFeed() {
+const EnhancedPostFeed = React.memo(() => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -313,6 +313,9 @@ function EnhancedPostFeed() {
       </section>
     </div>
   );
-}
+});
 
-export default withPerformance(EnhancedPostFeed);
+// Add display name for React DevTools
+EnhancedPostFeed.displayName = 'EnhancedPostFeed';
+
+export default EnhancedPostFeed;

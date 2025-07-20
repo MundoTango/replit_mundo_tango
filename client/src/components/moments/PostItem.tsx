@@ -39,7 +39,7 @@ interface PostItemProps {
   onShare: (post: Post) => void;
 }
 
-export default function PostItem({ post, onLike, onShare }: PostItemProps) {
+const PostItem = React.memo(({ post, onLike, onShare }: PostItemProps) => {
   const [commentText, setCommentText] = useState('');
   const [isCommentFocused, setIsCommentFocused] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -287,4 +287,9 @@ export default function PostItem({ post, onLike, onShare }: PostItemProps) {
       />
     </div>
   );
-}
+});
+
+// Add display name for React DevTools
+PostItem.displayName = 'PostItem';
+
+export default PostItem;
