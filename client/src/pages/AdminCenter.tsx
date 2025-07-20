@@ -17,6 +17,7 @@ import { GlobalStatisticsDashboard } from '@/components/GlobalStatisticsDashboar
 import PerformanceMonitor from '@/components/admin/PerformanceMonitor';
 import Framework35LDashboard from '@/components/admin/Framework35LDashboard';
 import Framework40LDashboard from '@/components/admin/Framework40LDashboard';
+import Framework40x20sDashboard from '@/components/admin/Framework40x20sDashboard';
 import LifeCEOFrameworkAgent from '@/components/life-ceo/LifeCEOFrameworkAgent';
 import { 
   Users, 
@@ -311,6 +312,7 @@ const AdminCenter: React.FC = React.memo(() => {
     { id: 'statistics', label: 'Global Statistics', icon: <Globe className="w-4 h-4" />, isNew: true },
     { id: 'project-tracker', label: 'The Plan', icon: <GitCommit className="w-4 h-4" /> },
     { id: '40l-framework', label: '40L Framework', icon: <Layers className="w-4 h-4" />, isNew: true },
+    { id: '40x20s-framework', label: '40x20s Framework', icon: <Layers className="w-4 h-4" />, isNew: true },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
     { id: 'content', label: 'Content Moderation', icon: <FileText className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="w-4 h-4" /> },
@@ -2414,6 +2416,7 @@ const AdminCenter: React.FC = React.memo(() => {
         </ErrorBoundary>
       );
       case '40l-framework': return <Framework40LDashboard />;
+      case '40x20s-framework': return <Framework40x20sDashboard />;
       case 'feature-deep-dive': return <PlatformFeatureDeepDive />;
       case 'users': return renderUserManagement();
       case 'content': return renderContentModeration();

@@ -3239,11 +3239,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Events sidebar API for Memories page with personalized content
   app.get("/api/events/sidebar", async (req: any, res) => {
     try {
+      // Import cache service for performance optimization
+      const { cacheService } = await import('./services/cacheService');
+      
       // Use fallback authentication for compatibility
       let user = null;
       
       if (req.isAuthenticated && req.isAuthenticated() && req.user?.claims?.sub) {
         user = await storage.getUserByReplitId(req.user.claims.sub);
+      }
+      
+      // Create cache key based on user
+      const cacheKey = user ? `events:sidebar:${user.id}` : 'events:sidebar:guest';
+      
+      // Try to get cached result first
+      const cachedEvents = await cacheService.get(cacheKey);
+      if (cachedEvents) {
+        console.log('📊 Events served from cache');
+        return res.json(cachedEvents);
       }
       
       // If no authenticated user, return default events for guest view
@@ -3256,7 +3269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
           .slice(0, 4);
 
-        return res.json({
+        const response = {
           code: 200,
           message: 'Events fetched successfully',
           data: upcomingEvents.map(event => ({
@@ -3269,7 +3282,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             attendeeCount: 0,
             userStatus: 'none'
           }))
-        });
+        };
+        
+        // Cache the guest events for 10 minutes
+        await cacheService.set(cacheKey, response, 600);
+        console.log('📊 Guest events cached for future requests');
+        
+        return res.json(response);
       }
       
       if (!user) {
@@ -3354,11 +3373,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
 
-      res.json({
+      const response = {
         code: 200,
         message: 'Personalized events fetched successfully.',
         data: transformedEvents
-      });
+      };
+      
+      // Cache the personalized events for 10 minutes
+      await cacheService.set(cacheKey, response, 600);
+      console.log('📊 Personalized events cached for future requests');
+      
+      res.json(response);
     } catch (error: any) {
       console.error('Error fetching personalized events:', error);
       res.status(500).json({ 
@@ -13295,6 +13320,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Use city auto-creation test routes
   app.use(cityAutoCreationTestRoutes);
+
+  // 40x20s Framework API Endpoints
+  app.get('/api/admin/active-work-items', setUserContext, async (req: any, res) => {
+    try {
+      const { framework40x20sService } = await import('./services/framework40x20sService');
+      const userId = req.user?.id || 7;
+      const activeItems = await framework40x20sService.getActiveWorkItems(userId);
+      
+      res.json({
+        success: true,
+        current: activeItems[0] || null,
+        items: activeItems
+      });
+    } catch (error) {
+      console.error('Error fetching active work items:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch active work items' });
+    }
+  });
+
+  app.get('/api/admin/framework-reviews', setUserContext, async (req: any, res) => {
+    try {
+      const { framework40x20sService } = await import('./services/framework40x20sService');
+      const reviews = await framework40x20sService.getReviews();
+      res.json(reviews);
+    } catch (error) {
+      console.error('Error fetching framework reviews:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch reviews' });
+    }
+  });
+
+  app.post('/api/admin/framework-reviews/start', setUserContext, async (req: any, res) => {
+    try {
+      const { framework40x20sService } = await import('./services/framework40x20sService');
+      const userId = req.user?.id || 7;
+      const { workItemId, reviewLevel, layers } = req.body;
+      
+      if (!workItemId || !reviewLevel) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Work item ID and review level are required' 
+        });
+      }
+      
+      const reviewId = await framework40x20sService.startReview(
+        workItemId,
+        reviewLevel,
+        userId,
+        layers
+      );
+      
+      res.json({
+        success: true,
+        reviewId,
+        message: `${reviewLevel} review started successfully`
+      });
+    } catch (error) {
+      console.error('Error starting framework review:', error);
+      res.status(500).json({ success: false, message: 'Failed to start review' });
+    }
+  });
 
   return server;
 }
