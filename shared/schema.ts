@@ -612,7 +612,6 @@ export const memories = pgTable("memories", {
   deniedConsents: jsonb("denied_consents"),
   pendingConsents: jsonb("pending_consents"),
   tenantId: uuid("tenant_id"),
-  isPrivate: boolean("is_private").default(false),
 });
 
 // Memory media junction table for reusing media across memories

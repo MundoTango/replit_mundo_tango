@@ -255,14 +255,17 @@ export class SearchService {
    */
   private static async searchMemories(query: string, limit: number, userId?: number): Promise<SearchResult[]> {
     console.log('Searching memories with query:', query);
-    // Search in the memories table
-    const memoryResults = await db
+    console.log('userId:', userId);
+    
+    try {
+      // Search in the memories table
+      const memoryResults = await db
       .select({
         id: memories.id,
         content: memories.content,
         emotionTags: memories.emotionTags,
         userId: memories.userId,
-        isPrivate: memories.isPrivate,
+        emotionVisibility: memories.emotionVisibility,
         createdAt: memories.createdAt,
         location: memories.location,
         userName: users.name,
@@ -275,7 +278,8 @@ export class SearchService {
         and(
           sql`LOWER(${memories.content}) LIKE ${query}`,
           or(
-            eq(memories.isPrivate, false),
+            eq(memories.emotionVisibility, 'public'),
+            eq(memories.emotionVisibility, 'everyone'),
             userId ? eq(memories.userId, userId) : sql`false`
           )
         )
@@ -283,9 +287,12 @@ export class SearchService {
       .orderBy(desc(memories.createdAt))
       .limit(limit);
     
-    console.log('Memory search results:', memoryResults.length);
+      console.log('Memory search results:', memoryResults.length);
+      if (memoryResults.length > 0) {
+        console.log('First memory result:', memoryResults[0]);
+      }
 
-    return memoryResults.map(memory => ({
+      return memoryResults.map(memory => ({
       id: memory.id,
       type: 'memory' as const,
       title: memory.content?.substring(0, 100) + (memory.content && memory.content.length > 100 ? '...' : '') || 'Memory',
@@ -294,12 +301,16 @@ export class SearchService {
       metadata: { 
         userId: memory.userId,
         emotionTags: memory.emotionTags,
-        isPrivate: memory.isPrivate,
+        emotionVisibility: memory.emotionVisibility,
         location: memory.location
       },
       score: this.calculateScore(query, memory.content || ''),
       createdAt: memory.createdAt
     }));
+    } catch (error) {
+      console.error('Memory search error:', error);
+      return [];
+    }
   }
 
   /**
