@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/layouts/DashboardLayout';
@@ -15,6 +15,24 @@ import { Camera, Video, Users, Calendar, Star, UserCheck, Globe, PenLine } from 
 import { TravelDetailsComponent } from '@/components/profile/TravelDetailsComponent';
 import { ProfileMemoryPostModal } from '@/components/profile/ProfileMemoryPostModal';
 
+// Phase 5: Production Hardening imports
+import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
+import { withRetry, withTimeout } from '@/utils/retryLogic';
+import { measureComponentRender, measureApiCall } from '@/utils/performanceMonitor';
+import { 
+  ProfileHeaderFallback, 
+  PostsFallback, 
+  TravelDetailsFallback,
+  EventsFallback,
+  PhotosFallback,
+  VideosFallback,
+  FriendsFallback,
+  ExperienceFallback,
+  GuestProfileFallback,
+  OfflineIndicator,
+  NetworkErrorRetry
+} from '@/components/profile/ProfileFallbacks';
+
 export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -22,43 +40,103 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState('posts');
   const [showMemoryPostModal, setShowMemoryPostModal] = useState(false);
 
-  // Fetch user posts
-  const { data: postsData, isLoading: postsLoading } = useQuery({
+  // Track component performance
+  useEffect(() => {
+    const stopMeasure = measureComponentRender('Profile');
+    return () => stopMeasure();
+  }, []);
+
+  // Check online status
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Fetch user posts with retry logic
+  const { data: postsData, isLoading: postsLoading, error: postsError } = useQuery({
     queryKey: ['/api/user/posts', user?.id],
     queryFn: async () => {
-      const response = await fetch(`/api/user/posts`, {
-        credentials: 'include'
-      });
-      const result = await response.json();
-      return result.data || [];
+      const tracker = measureApiCall('/api/user/posts');
+      try {
+        const response = await withRetry(
+          () => withTimeout(
+            () => fetch(`/api/user/posts`, { credentials: 'include' }),
+            5000 // 5 second timeout
+          )
+        );
+        
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const result = await response.json();
+        tracker.complete(response.status);
+        return result.data || [];
+      } catch (error) {
+        tracker.error(error);
+        throw error;
+      }
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    retry: false // We handle retry ourselves
   });
 
-  // Fetch user stats
-  const { data: statsData } = useQuery({
+  // Fetch user stats with retry logic
+  const { data: statsData, error: statsError } = useQuery({
     queryKey: ['/api/user/stats', user?.id],
     queryFn: async () => {
-      const response = await fetch(`/api/user/stats`, {
-        credentials: 'include'
-      });
-      const result = await response.json();
-      return result.data || {};
+      const tracker = measureApiCall('/api/user/stats');
+      try {
+        const response = await withRetry(
+          () => withTimeout(
+            () => fetch(`/api/user/stats`, { credentials: 'include' }),
+            5000
+          )
+        );
+        
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const result = await response.json();
+        tracker.complete(response.status);
+        return result.data || {};
+      } catch (error) {
+        tracker.error(error);
+        throw error;
+      }
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    retry: false
   });
 
-  // Fetch guest profile
-  const { data: guestProfile, isLoading: guestProfileLoading } = useQuery({
+  // Fetch guest profile with retry logic
+  const { data: guestProfile, isLoading: guestProfileLoading, error: guestProfileError } = useQuery({
     queryKey: ['/api/guest-profiles', user?.id],
     queryFn: async () => {
-      const response = await fetch(`/api/guest-profiles`, {
-        credentials: 'include'
-      });
-      const result = await response.json();
-      return result.data;
+      const tracker = measureApiCall('/api/guest-profiles');
+      try {
+        const response = await withRetry(
+          () => withTimeout(
+            () => fetch(`/api/guest-profiles`, { credentials: 'include' }),
+            5000
+          )
+        );
+        
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const result = await response.json();
+        tracker.complete(response.status);
+        return result.data;
+      } catch (error) {
+        tracker.error(error);
+        throw error;
+      }
     },
-    enabled: !!user?.id && activeTab === 'guest-profile'
+    enabled: !!user?.id && activeTab === 'guest-profile',
+    retry: false
   });
 
   const handleTabChange = (tab: string) => {
@@ -90,15 +168,23 @@ export default function Profile() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="max-w-6xl mx-auto">
-        {/* Enhanced Profile Header */}
-        <EnhancedProfileHeader
-          user={user}
-          stats={statsData}
-          isOwnProfile={true}
-          onEditProfile={handleEditProfile}
-        />
+    <ProfileErrorBoundary>
+      <DashboardLayout>
+        {/* Offline Indicator */}
+        {!isOnline && <OfflineIndicator />}
+        
+        <div className="max-w-6xl mx-auto">
+          {/* Enhanced Profile Header with Fallback */}
+          {statsError ? (
+            <ProfileHeaderFallback />
+          ) : (
+            <EnhancedProfileHeader
+              user={user}
+              stats={statsData}
+              isOwnProfile={true}
+              onEditProfile={handleEditProfile}
+            />
+          )}
 
         {/* Story Highlights */}
         <div className="bg-white px-4 md:px-8">
@@ -185,7 +271,9 @@ export default function Profile() {
                     Post a Memory
                   </button>
                 </div>
-                {postsLoading ? (
+                {postsError ? (
+                  <NetworkErrorRetry onRetry={() => queryClient.invalidateQueries({ queryKey: ['/api/user/posts'] })} />
+                ) : postsLoading ? (
                   <div className="grid gap-4">
                     {Array.from({ length: 3 }).map((_, i) => (
                       <Card key={i} className="glassmorphic-card">
@@ -226,15 +314,7 @@ export default function Profile() {
               </TabsContent>
 
               <TabsContent value="events" className="space-y-4">
-                <Card className="glassmorphic-card">
-                  <CardContent className="p-12 text-center">
-                    <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Tango Events</h3>
-                    <p className="text-gray-600">
-                      Your upcoming milongas, workshops, and events will appear here.
-                    </p>
-                  </CardContent>
-                </Card>
+                <EventsFallback />
               </TabsContent>
 
               <TabsContent value="travel" className="space-y-4">
@@ -245,55 +325,25 @@ export default function Profile() {
               </TabsContent>
 
               <TabsContent value="photos" className="space-y-4">
-                <Card className="glassmorphic-card">
-                  <CardContent className="p-12 text-center">
-                    <Camera className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Photo Gallery</h3>
-                    <p className="text-gray-600">
-                      Your tango photos will appear here.
-                    </p>
-                  </CardContent>
-                </Card>
+                <PhotosFallback />
               </TabsContent>
 
               <TabsContent value="videos" className="space-y-4">
-                <Card className="glassmorphic-card">
-                  <CardContent className="p-12 text-center">
-                    <Video className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Video Showcase</h3>
-                    <p className="text-gray-600">
-                      Your tango videos and performances will appear here.
-                    </p>
-                  </CardContent>
-                </Card>
+                <VideosFallback />
               </TabsContent>
 
               <TabsContent value="friends" className="space-y-4">
-                <Card className="glassmorphic-card">
-                  <CardContent className="p-12 text-center">
-                    <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Friends & Connections</h3>
-                    <p className="text-gray-600">
-                      Your tango friends and dance partners will appear here.
-                    </p>
-                  </CardContent>
-                </Card>
+                <FriendsFallback />
               </TabsContent>
 
               <TabsContent value="experience" className="space-y-4">
-                <Card className="glassmorphic-card">
-                  <CardContent className="p-12 text-center">
-                    <Star className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Tango Experience</h3>
-                    <p className="text-gray-600">
-                      Your tango journey, achievements, and milestones will appear here.
-                    </p>
-                  </CardContent>
-                </Card>
+                <ExperienceFallback />
               </TabsContent>
 
               <TabsContent value="guest-profile" className="space-y-4">
-                {guestProfileLoading ? (
+                {guestProfileError ? (
+                  <NetworkErrorRetry onRetry={() => queryClient.invalidateQueries({ queryKey: ['/api/guest-profiles'] })} />
+                ) : guestProfileLoading ? (
                   <Card className="glassmorphic-card">
                     <CardContent className="p-6">
                       <div className="animate-pulse space-y-4">
@@ -342,5 +392,6 @@ export default function Profile() {
         }}
       />
     </DashboardLayout>
+    </ProfileErrorBoundary>
   );
 }
