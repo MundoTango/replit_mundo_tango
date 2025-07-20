@@ -40,9 +40,12 @@ const MapViewController = ({ center, zoom }: { center: [number, number]; zoom: n
   const map = useMap();
   
   React.useEffect(() => {
+    console.log('MapViewController - center:', center, 'zoom:', zoom);
+    
     // Delay to ensure map is ready, then set view
     const timer = setTimeout(() => {
       if (map) {
+        console.log('MapViewController - Setting view to:', center, 'zoom:', zoom);
         map.setView(center, zoom, { animate: true });
       }
     }, 100);
@@ -112,6 +115,9 @@ export default function CommunityMapWithLayers({
 }: CommunityMapWithLayersProps) {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [, setLocation] = useLocation();
+  
+  // Debug logging
+  console.log('CommunityMapWithLayers props:', { centerLat, centerLng, groupCity });
   
   // Use state for layer visibility, initialized from props
   const [showEvents, setShowEvents] = useState(layers.events);

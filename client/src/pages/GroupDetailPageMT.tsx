@@ -1243,6 +1243,7 @@ export default function GroupDetailPageMT() {
                 { id: 'events', label: 'Events', icon: Calendar },
                 { id: 'members', label: 'Members', icon: Users },
                 { id: 'community-hub', label: 'Community Hub', icon: MapPin },
+                { id: 'map', label: 'Map', icon: MapPin },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1269,6 +1270,7 @@ export default function GroupDetailPageMT() {
             {activeTab === 'events' && renderEventsTab()}
             {activeTab === 'posts' && renderPostsTab()}
             {activeTab === 'community-hub' && renderCommunityHub()}
+            {activeTab === 'map' && renderMapTab()}
           </div>
         </div>
       </div>
