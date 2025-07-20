@@ -48,9 +48,9 @@ class ProjectDataWatcher {
 
   private async takeSnapshot(): Promise<ProjectSnapshot> {
     try {
-      // Dynamically import to get fresh data
-      delete require.cache[require.resolve(PROJECT_DATA_PATH)];
-      const module = await import(PROJECT_DATA_PATH);
+      // Dynamically import to get fresh data - use timestamp to bust cache
+      const timestamp = Date.now();
+      const module = await import(`${PROJECT_DATA_PATH}?t=${timestamp}`);
       const projectData = module.comprehensiveProjectData;
 
       const snapshot: ProjectSnapshot = {};
