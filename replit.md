@@ -2,6 +2,12 @@
 
 ## Overview
 
+**UPDATE (July 20, 2025 - Deployment Fix)**: Fixed production deployment issue
+- **Issue**: 'rate-limiter-flexible' package was missing from dependencies causing deployment failures
+- **Solution**: Added rate-limiter-flexible@^7.1.1 to package.json dependencies
+- **Impact**: Resolved crash looping in production environment
+- **Component**: server/utils/rateLimiter.ts uses this package for Redis/Memory rate limiting
+
 **UPDATE (July 20, 2025 - Life CEO Framework Agent Profile Completion Analysis)**: Intelligent Natural Language Profile Analysis
 - **Life CEO Framework Agent Enhancement**: Added profile completion analysis capability to the agent's repertoire
 - **Natural Language Processing**: Users can now ask "Check my profile completion" or "Analyze profile completion" 
