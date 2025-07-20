@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import EventAutocomplete from '@/components/autocomplete/EventAutocomplete';
+import CityGroupAutocomplete from '@/components/autocomplete/CityGroupAutocomplete';
 
 interface AddTravelDetailModalProps {
   isOpen: boolean;
@@ -53,6 +55,9 @@ export const AddTravelDetailModal: React.FC<AddTravelDetailModalProps> = ({ isOp
     notes: '',
     isPublic: true
   });
+  
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedCityGroup, setSelectedCityGroup] = useState<any>(null);
 
   const createTravelDetailMutation = useMutation({
     mutationFn: async (data: TravelDetailForm) => {
@@ -88,6 +93,8 @@ export const AddTravelDetailModal: React.FC<AddTravelDetailModalProps> = ({ isOp
       notes: '',
       isPublic: true
     });
+    setSelectedEvent(null);
+    setSelectedCityGroup(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -112,12 +119,28 @@ export const AddTravelDetailModal: React.FC<AddTravelDetailModalProps> = ({ isOp
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="eventName">Event Name</Label>
-              <Input
-                id="eventName"
-                value={formData.eventName}
-                onChange={(e) => handleInputChange('eventName', e.target.value)}
-                placeholder="e.g., Buenos Aires Tango Festival"
+              <EventAutocomplete
+                label="Event Name"
+                value={selectedEvent}
+                onSelect={(event) => {
+                  setSelectedEvent(event);
+                  if (event) {
+                    handleInputChange('eventName', event.title);
+                    handleInputChange('eventType', event.eventType || formData.eventType);
+                    handleInputChange('city', event.city || formData.city);
+                    handleInputChange('country', event.country || formData.country);
+                    if (event.startDate) {
+                      handleInputChange('startDate', event.startDate.split('T')[0]);
+                    }
+                    if (event.endDate) {
+                      handleInputChange('endDate', event.endDate.split('T')[0]);
+                    }
+                  } else {
+                    handleInputChange('eventName', '');
+                  }
+                }}
+                placeholder="Search for an event or type a new name"
+                allowCreate={true}
               />
             </div>
 
@@ -142,24 +165,30 @@ export const AddTravelDetailModal: React.FC<AddTravelDetailModalProps> = ({ isOp
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="city">City *</Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => handleInputChange('city', e.target.value)}
-                placeholder="e.g., Buenos Aires"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
-                value={formData.country}
-                onChange={(e) => handleInputChange('country', e.target.value)}
-                placeholder="e.g., Argentina"
+            <div className="col-span-2 space-y-2">
+              <CityGroupAutocomplete
+                label="City"
+                value={selectedCityGroup}
+                onSelect={(cityGroup) => {
+                  setSelectedCityGroup(cityGroup);
+                  if (cityGroup) {
+                    // Parse city and country from group name (e.g., "Buenos Aires, Argentina")
+                    const parts = cityGroup.name.split(',').map(p => p.trim());
+                    handleInputChange('city', parts[0] || cityGroup.name);
+                    handleInputChange('country', parts[1] || '');
+                  } else {
+                    handleInputChange('city', '');
+                    handleInputChange('country', '');
+                  }
+                }}
+                placeholder="Search for a city"
+                required={true}
+                allowCreate={true}
+                onCreateNew={(cityName) => {
+                  // For now, just set the city name directly
+                  handleInputChange('city', cityName);
+                  handleInputChange('country', '');
+                }}
               />
             </div>
           </div>
