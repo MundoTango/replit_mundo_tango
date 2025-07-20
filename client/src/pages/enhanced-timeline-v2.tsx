@@ -228,7 +228,11 @@ function MemoryCard({ memory }: MemoryCardProps) {
              }} />
       </div>
       
-      <Card className="relative p-6 space-y-4 hover:shadow-2xl transition-all duration-500 rounded-3xl border-2 border-turquoise-300 hover:border-cyan-400 card-lift smooth-appear beautiful-hover bg-gradient-to-br from-turquoise-50 via-cyan-50 to-blue-50 shadow-lg shadow-turquoise-100/50">
+      <Card className="relative p-6 space-y-4 hover:shadow-2xl transition-all duration-500 rounded-3xl border-2 border-turquoise-200/70 hover:border-cyan-300 card-lift smooth-appear beautiful-hover bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-turquoise-200/50 overflow-hidden">
+        {/* Ocean accent decoration */}
+        <div className="absolute -top-2 -right-2 w-24 h-24 bg-gradient-to-br from-turquoise-200 to-cyan-200 rounded-full blur-2xl opacity-30" />
+        <div className="absolute -bottom-2 -left-2 w-32 h-32 bg-gradient-to-br from-cyan-200 to-blue-200 rounded-full blur-2xl opacity-25" />
+        
         {/* Enhanced Header with consistent layout */}
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
@@ -473,9 +477,9 @@ export default function EnhancedTimelineV2() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-br from-turquoise-100 via-cyan-50 to-blue-100 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-turquoise-50/50 via-cyan-50 to-blue-50/50 relative overflow-hidden">
         {/* Ocean wave pattern background */}
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0 ocean-wave-pattern" />
         </div>
         <div className="max-w-7xl mx-auto px-4 py-6">
@@ -484,17 +488,17 @@ export default function EnhancedTimelineV2() {
             <div className="lg:col-span-8">
               {/* Beautiful Ocean-Themed Header */}
               <div className="mb-8 relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-turquoise-400 to-cyan-500 rounded-3xl blur-2xl opacity-40" />
-                <div className="relative p-8 rounded-3xl bg-gradient-to-r from-turquoise-500/90 via-cyan-500/90 to-blue-500/90 text-white shadow-2xl border-2 border-white/30">
+                <div className="absolute inset-0 bg-gradient-to-r from-turquoise-200 to-cyan-300 rounded-3xl blur-2xl opacity-30" />
+                <div className="relative p-8 rounded-3xl bg-gradient-to-r from-turquoise-50 via-cyan-50 to-blue-50 shadow-xl border-2 border-turquoise-200/50 backdrop-blur-sm">
                   <div className="flex items-center gap-4 mb-2">
-                    <div className="p-3 bg-gradient-to-r from-turquoise-400 to-blue-500 rounded-xl animate-float">
+                    <div className="p-3 bg-gradient-to-r from-turquoise-400 to-cyan-500 rounded-xl animate-float shadow-lg">
                       <Sparkles className="h-6 w-6 text-white" />
                     </div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-turquoise-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-turquoise-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
                       Memories
                     </h1>
                   </div>
-                  <p className="text-gray-600 ml-[60px]">Share your precious moments with the Tango community</p>
+                  <p className="text-gray-700 ml-[60px] font-medium">Share your precious moments with the Tango community</p>
                 </div>
               </div>
 
