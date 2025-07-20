@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { GuestProfileDisplay } from '@/components/GuestProfile/GuestProfileDisplay';
-import { Camera, Video, Users, Calendar, Star, UserCheck } from 'lucide-react';
+import { Camera, Video, Users, Calendar, Star, UserCheck, Globe } from 'lucide-react';
+import { TravelDetailsComponent } from '@/components/profile/TravelDetailsComponent';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -128,6 +129,13 @@ export default function Profile() {
                 <span className="font-medium">Events</span>
               </TabsTrigger>
               <TabsTrigger 
+                value="travel" 
+                className="data-[state=active]:border-b-2 data-[state=active]:border-turquoise-500 rounded-none px-6 py-4"
+              >
+                <Globe className="mr-2 h-4 w-4" />
+                <span className="font-medium">Travel</span>
+              </TabsTrigger>
+              <TabsTrigger 
                 value="photos" 
                 className="data-[state=active]:border-b-2 data-[state=active]:border-turquoise-500 rounded-none px-6 py-4"
               >
@@ -215,6 +223,13 @@ export default function Profile() {
                     </p>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="travel" className="space-y-4">
+                <TravelDetailsComponent 
+                  userId={user?.id || 0} 
+                  isOwnProfile={true} 
+                />
               </TabsContent>
 
               <TabsContent value="photos" className="space-y-4">

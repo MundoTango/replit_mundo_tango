@@ -91,10 +91,7 @@ export default function EnhancedProfileHeader({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('image', file);
-      return apiRequest('/api/user/cover-image', {
-        method: 'PUT',
-        body: formData
-      });
+      return apiRequest('PUT', '/api/user/cover-image', formData);
     },
     onSuccess: () => {
       toast({
@@ -117,10 +114,7 @@ export default function EnhancedProfileHeader({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('image', file);
-      return apiRequest('/api/user/profile-image', {
-        method: 'PUT',
-        body: formData
-      });
+      return apiRequest('PUT', '/api/user/profile-image', formData);
     },
     onSuccess: () => {
       toast({
@@ -128,6 +122,13 @@ export default function EnhancedProfileHeader({
         description: "Your profile photo has been updated successfully."
       });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+    },
+    onError: () => {
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload profile photo. Please try again.",
+        variant: "destructive"
+      });
     }
   });
 

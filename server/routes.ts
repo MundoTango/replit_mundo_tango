@@ -1773,6 +1773,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Travel Details Endpoints
+  
+  // Get user travel details
+  app.get('/api/user/travel-details', isAuthenticated, async (req: any, res) => {
+    try {
+      const replitId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(replitId);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      const travelDetails = await storage.getUserTravelDetails(user.id);
+      
+      res.json({
+        success: true,
+        data: travelDetails
+      });
+    } catch (error: any) {
+      console.error('Error fetching travel details:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch travel details'
+      });
+    }
+  });
+
+  // Get public travel details for a user
+  app.get('/api/user/travel-details/:userId', async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const travelDetails = await storage.getPublicTravelDetails(userId);
+      
+      res.json({
+        success: true,
+        data: travelDetails
+      });
+    } catch (error: any) {
+      console.error('Error fetching public travel details:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch travel details'
+      });
+    }
+  });
+
+  // Create travel detail
+  app.post('/api/user/travel-details', isAuthenticated, async (req: any, res) => {
+    try {
+      const replitId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(replitId);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      const travelData = {
+        ...req.body,
+        userId: user.id
+      };
+
+      const newTravel = await storage.createTravelDetail(travelData);
+      
+      res.json({
+        success: true,
+        message: 'Travel detail added successfully',
+        data: newTravel
+      });
+    } catch (error: any) {
+      console.error('Error creating travel detail:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to create travel detail'
+      });
+    }
+  });
+
+  // Update travel detail
+  app.put('/api/user/travel-details/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const replitId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(replitId);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      const travelId = parseInt(req.params.id);
+      
+      // Verify ownership
+      const existingTravel = await storage.getTravelDetail(travelId);
+      if (!existingTravel || existingTravel.userId !== user.id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Unauthorized to update this travel detail'
+        });
+      }
+
+      const updatedTravel = await storage.updateTravelDetail(travelId, req.body);
+      
+      res.json({
+        success: true,
+        message: 'Travel detail updated successfully',
+        data: updatedTravel
+      });
+    } catch (error: any) {
+      console.error('Error updating travel detail:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to update travel detail'
+      });
+    }
+  });
+
+  // Delete travel detail
+  app.delete('/api/user/travel-details/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const replitId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(replitId);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      const travelId = parseInt(req.params.id);
+      
+      // Verify ownership
+      const existingTravel = await storage.getTravelDetail(travelId);
+      if (!existingTravel || existingTravel.userId !== user.id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Unauthorized to delete this travel detail'
+        });
+      }
+
+      await storage.deleteTravelDetail(travelId);
+      
+      res.json({
+        success: true,
+        message: 'Travel detail deleted successfully'
+      });
+    } catch (error: any) {
+      console.error('Error deleting travel detail:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to delete travel detail'
+      });
+    }
+  });
+
   // Universal posting endpoint with context-aware features
   app.post('/api/posts/create-universal', isAuthenticated, upload.array('media', 10), async (req: any, res) => {
     try {

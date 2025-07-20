@@ -1616,3 +1616,6 @@ export type InsertGuestProfile = z.infer<typeof insertGuestProfileSchema>;
 
 // Export from hostHomes module
 export { homeAmenities, homePhotos } from './schema/hostHomes';
+
+// Export from travelDetails module
+export { travelDetails } from './travelDetails';

@@ -34,6 +34,7 @@ import {
   hostReviews,
   guestBookings,
   guestProfiles,
+  travelDetails,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -89,7 +90,10 @@ import {
   type GuestBooking,
   type InsertGuestBooking,
   type GuestProfile,
-  type InsertGuestProfile
+  type InsertGuestProfile,
+  type TravelDetail,
+  type InsertTravelDetail,
+  type UpdateTravelDetail
 } from '../shared/schema';
 import { db, pool } from './db';
 import { eq, desc, asc, sql, and, or, gte, lte, count, ilike, inArray } from 'drizzle-orm';
@@ -378,6 +382,14 @@ export interface IStorage {
   createGuestProfile(profile: InsertGuestProfile): Promise<GuestProfile>;
   updateGuestProfile(userId: number, updates: Partial<GuestProfile>): Promise<GuestProfile>;
   deleteGuestProfile(userId: number): Promise<void>;
+
+  // Travel Details Management
+  createTravelDetail(detail: InsertTravelDetail): Promise<TravelDetail>;
+  updateTravelDetail(id: number, updates: UpdateTravelDetail): Promise<TravelDetail>;
+  deleteTravelDetail(id: number): Promise<void>;
+  getTravelDetail(id: number): Promise<TravelDetail | undefined>;
+  getUserTravelDetails(userId: number): Promise<TravelDetail[]>;
+  getPublicTravelDetails(userId: number): Promise<TravelDetail[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3350,6 +3362,61 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(guestProfiles)
       .where(eq(guestProfiles.userId, userId));
+  }
+
+  // Travel Details Management Implementation
+  async createTravelDetail(detail: InsertTravelDetail): Promise<TravelDetail> {
+    const [newDetail] = await db
+      .insert(travelDetails)
+      .values(detail)
+      .returning();
+    return newDetail;
+  }
+
+  async updateTravelDetail(id: number, updates: UpdateTravelDetail): Promise<TravelDetail> {
+    const [updatedDetail] = await db
+      .update(travelDetails)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(travelDetails.id, id))
+      .returning();
+    return updatedDetail;
+  }
+
+  async deleteTravelDetail(id: number): Promise<void> {
+    await db
+      .delete(travelDetails)
+      .where(eq(travelDetails.id, id));
+  }
+
+  async getTravelDetail(id: number): Promise<TravelDetail | undefined> {
+    const [detail] = await db
+      .select()
+      .from(travelDetails)
+      .where(eq(travelDetails.id, id))
+      .limit(1);
+    return detail;
+  }
+
+  async getUserTravelDetails(userId: number): Promise<TravelDetail[]> {
+    return await db
+      .select()
+      .from(travelDetails)
+      .where(eq(travelDetails.userId, userId))
+      .orderBy(desc(travelDetails.startDate));
+  }
+
+  async getPublicTravelDetails(userId: number): Promise<TravelDetail[]> {
+    return await db
+      .select()
+      .from(travelDetails)
+      .where(and(
+        eq(travelDetails.userId, userId),
+        eq(travelDetails.isPublic, true)
+      ))
+      .orderBy(desc(travelDetails.startDate));
   }
 }
 
