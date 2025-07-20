@@ -35,6 +35,17 @@ const LAYER_COLORS = {
   recommendation: '#EF4444', // Red
 };
 
+// Map View Controller component to properly set view when center changes
+const MapViewController = ({ center, zoom }: { center: [number, number]; zoom: number }) => {
+  const map = useMap();
+  
+  React.useEffect(() => {
+    map.setView(center, zoom);
+  }, [map, center, zoom]);
+  
+  return null;
+};
+
 interface MapItem {
   id: string | number;
   lat: number;
@@ -528,6 +539,12 @@ export default function CommunityMapWithLayers({
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        
+        {/* Map Controller to properly set view */}
+        <MapViewController 
+          center={[centerLat || -15, centerLng || -60]} 
+          zoom={centerLat && centerLng ? 13 : 3} 
         />
         
         {/* Display City Groups - Always visible as base layer */}

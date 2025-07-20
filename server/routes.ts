@@ -12548,21 +12548,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hostId: userId,
         title: hostHomeData.title,
         description: hostHomeData.description,
+        propertyType: hostHomeData.propertyType || 'apartment',
+        roomType: hostHomeData.roomType || 'entire_place',
         address: hostHomeData.address,
         city: hostHomeData.city,
         state: hostHomeData.state || null,
         country: hostHomeData.country,
-        lat: hostHomeData.latitude || null,
-        lng: hostHomeData.longitude || null,
-        photos: hostHomeData.photos || [],
-        amenities: hostHomeData.amenities || [],
-        maxGuests: hostHomeData.maxGuests || 1,
-        pricePerNight: Math.round(hostHomeData.basePrice * 100), // Convert to cents
-        availability: {}, // Empty for now
-        isActive: true,
+        zipCode: hostHomeData.zipCode || null,
+        latitude: hostHomeData.latitude ? String(hostHomeData.latitude) : null,
+        longitude: hostHomeData.longitude ? String(hostHomeData.longitude) : null,
+        maxGuests: hostHomeData.maxGuests || hostHomeData.capacity || 1,
+        bedrooms: hostHomeData.bedrooms || 1,
+        beds: hostHomeData.beds || 1,
+        bathrooms: hostHomeData.bathrooms || '1',
+        basePrice: String(hostHomeData.basePrice || hostHomeData.pricePerNight || 100),
+        cleaningFee: hostHomeData.cleaningFee ? String(hostHomeData.cleaningFee) : '0',
+        currency: hostHomeData.currency || 'USD',
+        status: 'pending_review',
+        isInstantBook: hostHomeData.instantBook || false,
+        airbnbUrl: hostHomeData.airbnbUrl || null,
+        vrboUrl: hostHomeData.vrboUrl || null,
         createdAt: new Date(),
         updatedAt: new Date()
       }).returning();
+
+      // Create amenities
+      if (hostHomeData.amenities && hostHomeData.amenities.length > 0) {
+        const amenitiesData = hostHomeData.amenities.map((amenity: string) => ({
+          homeId: hostHome[0].id,
+          category: 'basic', // Default category, can be enhanced later
+          amenity: amenity
+        }));
+        
+        await db.insert(homeAmenities).values(amenitiesData);
+      }
+
+      // Create photos
+      if (hostHomeData.photos && hostHomeData.photos.length > 0) {
+        const photosData = hostHomeData.photos.map((photoUrl: string, index: number) => ({
+          homeId: hostHome[0].id,
+          url: photoUrl,
+          displayOrder: index + 1,
+          caption: `Photo ${index + 1}`
+        }));
+        
+        await db.insert(homePhotos).values(photosData);
+      }
 
       res.json({
         success: true,
