@@ -256,19 +256,101 @@ export const comprehensiveProjectData: ProjectItem[] = [
             description: 'Universal search across users, posts, events, groups, memories',
             type: 'Feature',
             status: 'In Progress',
-            completion: 70,
+            completion: 25,
             priority: 'Critical',
             team: ['Frontend', 'Backend'],
             children: [
               {
-                id: 'search-service-implementation',
-                title: 'Search Service Implementation',
-                description: 'Backend search service with type-specific search methods',
-                type: 'Task',
-                status: 'In Progress',
-                completion: 80,
+                id: 'phase-1-basic-search',
+                title: 'Phase 1: Basic Search Foundation',
+                description: 'Core search API and routes with memory search working',
+                type: 'Project',
+                status: 'Completed',
+                completion: 100,
                 priority: 'Critical',
+                team: ['Backend'],
+                children: [
+                  {
+                    id: 'search-route-mounting-fix',
+                    title: 'Search Route Mounting Fix',
+                    description: 'Fixed Express router middleware import/export',
+                    type: 'Task',
+                    status: 'Completed',
+                    completion: 100,
+                    priority: 'Critical',
+                    team: ['Backend']
+                  },
+                  {
+                    id: 'database-table-fix',
+                    title: 'Database Table Correction',
+                    description: 'Switched from empty posts table to memories table',
+                    type: 'Task',
+                    status: 'Completed',
+                    completion: 100,
+                    priority: 'Critical',
+                    team: ['Backend']
+                  },
+                  {
+                    id: 'schema-mismatch-fix',
+                    title: 'Schema Mismatch Resolution',
+                    description: 'Fixed isPrivate field and emotion_visibility checks',
+                    type: 'Task',
+                    status: 'Completed',
+                    completion: 100,
+                    priority: 'Critical',
+                    team: ['Backend']
+                  }
+                ]
+              },
+              {
+                id: 'phase-2-multi-content',
+                title: 'Phase 2: Multi-Content Type Search',
+                description: 'Extend search to events, groups, housing, recommendations',
+                type: 'Project',
+                status: 'Planned',
+                completion: 0,
+                priority: 'High',
                 team: ['Backend']
+              },
+              {
+                id: 'phase-3-intelligence',
+                title: 'Phase 3: Search Intelligence',
+                description: 'Fuzzy matching, relevance scoring, trending',
+                type: 'Project',
+                status: 'Planned',
+                completion: 0,
+                priority: 'Medium',
+                team: ['Backend']
+              },
+              {
+                id: 'phase-4-filters',
+                title: 'Phase 4: Advanced Filters',
+                description: 'Location, date, category, price filtering',
+                type: 'Project',
+                status: 'Planned',
+                completion: 0,
+                priority: 'Medium',
+                team: ['Backend', 'Frontend']
+              },
+              {
+                id: 'phase-5-ui-ux',
+                title: 'Phase 5: Search UI/UX',
+                description: 'Autocomplete, suggestions, history, mobile',
+                type: 'Project',
+                status: 'Planned',
+                completion: 0,
+                priority: 'Medium',
+                team: ['Frontend']
+              },
+              {
+                id: 'phase-6-analytics',
+                title: 'Phase 6: Analytics & Optimization',
+                description: 'Search metrics, A/B testing, performance',
+                type: 'Project',
+                status: 'Planned',
+                completion: 0,
+                priority: 'Low',
+                team: ['Backend', 'Frontend']
               },
               {
                 id: 'search-ui-components',
