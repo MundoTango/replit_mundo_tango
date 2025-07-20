@@ -22,12 +22,15 @@ import {
   Zap,
   RefreshCw,
   Activity,
-  Shield
+  Shield,
+  User
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import { useAuth } from '@/hooks/useAuth';
+import { ProfileCompletionAnalyzer, type ProfileCompletionResult } from '@/utils/profileCompletionAnalyzer';
 
 interface AgentMessage {
   id: string;
@@ -135,16 +138,35 @@ const FRAMEWORK_MAPPINGS: FrameworkMapping[] = [
     layers: [4, 17],
     phases: [2],
     description: 'User settings and configuration management'
+  },
+  // Profile Completion
+  {
+    keywords: ['profile completion', 'complete profile', 'profile complete', 'missing fields', 'profile analysis', 'profile check', 'profile status'],
+    layers: [5, 7, 11, 22],
+    phases: [1, 2, 7],
+    description: 'Profile completion analysis and field validation'
   }
 ];
 
 const LifeCEOFrameworkAgent: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCapabilities, setShowCapabilities] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
+  // Fetch profile data for completion analysis
+  const { data: travelDetails } = useQuery({
+    queryKey: ['/api/user/travel-details'],
+    enabled: !!user?.id
+  });
+  
+  const { data: guestProfile } = useQuery({
+    queryKey: ['/api/user/guest-profile'],
+    enabled: !!user?.id
+  });
 
   // Initialize with welcome message
   useEffect(() => {
@@ -159,6 +181,7 @@ Try asking me things like:
 • "Set up direct messaging between users"
 • "Generate documentation for the API"
 • "Deploy to production"
+• "Check my profile completion" or "Analyze profile completion"
 
 I'll analyze your request and activate the appropriate framework layers and phases.`,
       timestamp: new Date(),
@@ -173,6 +196,12 @@ I'll analyze your request and activate the appropriate framework layers and phas
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const generateProgressBar = (percentage: number): string => {
+    const filled = Math.round(percentage / 10);
+    const empty = 10 - filled;
+    return `[${'█'.repeat(filled)}${'░'.repeat(empty)}]`;
+  };
 
   const analyzeUserIntent = (input: string): AgentMessage['analysis'] => {
     const lowerInput = input.toLowerCase();
@@ -276,6 +305,67 @@ I'll analyze your request and activate the appropriate framework layers and phas
       response += `⚠️ Performance testing incomplete\n`;
       response += `❌ Load testing not performed\n`;
       response += `❌ Rollback plan not documented\n`;
+    } else if (userInput.toLowerCase().includes('profile complet') || userInput.toLowerCase().includes('profile check') || userInput.toLowerCase().includes('profile analysis')) {
+      // Perform profile completion analysis
+      if (!user) {
+        response += `**Profile Analysis Error**\n`;
+        response += `Unable to analyze profile - no user session found.\n`;
+        response += `Please ensure you're logged in to check your profile completion.\n`;
+      } else {
+        const analysis = ProfileCompletionAnalyzer.analyzeProfile(user, null, travelDetails, guestProfile);
+        
+        response += `**Profile Completion Analysis for ${user.name || user.username}**\n\n`;
+        
+        // Overall score with visual indicator
+        response += `📊 **Overall Completion: ${analysis.overallScore}%**\n`;
+        response += `${generateProgressBar(analysis.overallScore)}\n\n`;
+        
+        // Category breakdown
+        response += `**Category Scores:**\n`;
+        Object.entries(analysis.categoryScores).forEach(([category, score]) => {
+          const icon = score === 100 ? '✅' : score >= 60 ? '🔶' : '❌';
+          response += `${icon} ${category}: ${score}%\n`;
+        });
+        response += '\n';
+        
+        // Missing required fields
+        if (analysis.missingFields.length > 0) {
+          response += `**❗ Missing Required Fields (${analysis.missingFields.length}):**\n`;
+          analysis.missingFields.forEach(field => {
+            response += `• ${field.description || ProfileCompletionAnalyzer.getFieldDisplayName(field.name)}\n`;
+          });
+          response += '\n';
+        }
+        
+        // Framework mapping for improvements
+        response += `**Framework Activation for Profile Improvement:**\n`;
+        const categoryMappings = new Map<string, { layers: number[], phases: number[] }>();
+        
+        analysis.missingFields.forEach(field => {
+          const mapping = ProfileCompletionAnalyzer.getFrameworkMapping(field.category);
+          if (!categoryMappings.has(field.category)) {
+            categoryMappings.set(field.category, mapping);
+          }
+        });
+        
+        categoryMappings.forEach((mapping, category) => {
+          response += `• ${category}: Layers ${mapping.layers.join(', ')}, Phases ${mapping.phases.join(', ')}\n`;
+        });
+        response += '\n';
+        
+        // Recommendations
+        response += `**Recommendations:**\n`;
+        analysis.recommendations.forEach((rec, index) => {
+          response += `${index + 1}. ${rec}\n`;
+        });
+        
+        // Quick actions
+        response += `\n**Quick Actions:**\n`;
+        response += `• Navigate to your profile to update missing fields\n`;
+        response += `• Upload a profile photo for better visibility\n`;
+        response += `• Complete your tango experience details\n`;
+        response += `• Add languages you speak for international connections\n`;
+      }
     } else {
       response += `**General Recommendations:**\n`;
       response += `Based on your request, I recommend:\n`;
