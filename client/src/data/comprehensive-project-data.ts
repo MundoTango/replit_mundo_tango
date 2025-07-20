@@ -145,6 +145,58 @@ export const comprehensiveProjectData: ProjectItem[] = [
             completion: 100,
             priority: 'High',
             team: ['Frontend']
+          },
+          {
+            id: 'framework-40x20s',
+            title: '40x20s Framework Expert Worker System',
+            description: 'Expert Worker System that systematically reviews, builds, tests, and fixes platform work across 40 layers × 20 phases = 800 quality checkpoints',
+            type: 'Feature',
+            status: 'Completed',
+            completion: 100,
+            priority: 'Critical',
+            team: ['Frontend', 'Backend', 'QA', 'DevOps'],
+            children: [
+              {
+                id: 'framework-dashboard',
+                title: 'Framework Dashboard UI',
+                description: 'Interactive dashboard with 3 review levels (Quick, Standard, Comprehensive)',
+                type: 'Task',
+                status: 'Completed',
+                completion: 100,
+                priority: 'High',
+                team: ['Frontend']
+              },
+              {
+                id: 'backend-service',
+                title: 'Backend Service & API',
+                description: 'framework40x20sService with automated checks and team mappings',
+                type: 'Task',
+                status: 'Completed',
+                completion: 100,
+                priority: 'High',
+                team: ['Backend']
+              },
+              {
+                id: 'the-plan-integration',
+                title: 'The Plan Integration',
+                description: 'Seamless integration with project tracking, automatic progress updates',
+                type: 'Task',
+                status: 'Completed',
+                completion: 100,
+                priority: 'Critical',
+                team: ['Backend', 'Frontend']
+              },
+              {
+                id: 'performance-improvements',
+                title: 'Performance Optimization',
+                description: 'Redis caching on posts/feed & events/sidebar, React.memo optimizations - achieved 40-50% speed improvement',
+                type: 'Task',
+                status: 'Completed',
+                completion: 100,
+                priority: 'High',
+                team: ['Backend', 'Frontend']
+              }
+            ]
           }
         ]
       },
