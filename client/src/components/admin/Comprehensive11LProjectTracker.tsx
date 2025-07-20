@@ -3,7 +3,7 @@ import EnhancedHierarchicalTreeView from './EnhancedHierarchicalTreeView';
 import ErrorBoundary from './ErrorBoundary';
 import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
 import DailyActivityView from './DailyActivityView';
-import Framework35LDashboard from './Framework35LDashboard';
+import Framework40LDashboard from './Framework40LDashboard';
 import { countAllProjects, getAllTeams, comprehensiveProjectData, getTeamStatistics, getProjectAnalytics, getProjectTimeline } from '@/data/comprehensive-project-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -304,7 +304,7 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
           </TabsTrigger>
           <TabsTrigger value="35l" className="flex items-center gap-2">
             <Layers className="h-4 w-4" />
-            35L Framework
+            40L Framework
           </TabsTrigger>
         </TabsList>
 
@@ -1087,9 +1087,9 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
           <DailyActivityView />
         </TabsContent>
 
-        {/* 35L Framework View */}
+        {/* 40L Framework View */}
         <TabsContent value="35l" className="space-y-6">
-          <Framework35LDashboard />
+          <Framework40LDashboard />
         </TabsContent>
       </Tabs>
 
