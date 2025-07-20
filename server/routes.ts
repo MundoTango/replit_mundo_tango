@@ -12559,8 +12559,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ${hostHomeData.country},
           ${hostHomeData.latitude || null},
           ${hostHomeData.longitude || null},
-          ${hostHomeData.photos || []},
-          ${hostHomeData.amenities || []},
+          ${hostHomeData.photos && hostHomeData.photos.length > 0 
+            ? sql`ARRAY[${sql.join(hostHomeData.photos, sql`, `)}]::text[]`
+            : sql`ARRAY[]::text[]`},
+          ${hostHomeData.amenities && hostHomeData.amenities.length > 0
+            ? sql`ARRAY[${sql.join(hostHomeData.amenities, sql`, `)}]::text[]`
+            : sql`ARRAY[]::text[]`},
           ${hostHomeData.maxGuests || hostHomeData.capacity || 1},
           ${Math.round((hostHomeData.basePrice || hostHomeData.pricePerNight || 100) * 100)},
           true,

@@ -198,8 +198,7 @@ export default function ReviewStep({ data }: ReviewStepProps) {
             <div>
               <h4 className="font-medium text-green-900 mb-1">Ready to submit!</h4>
               <p className="text-sm text-green-800">
-                Your listing is complete. After submission, our team will review it within 
-                24-48 hours. You'll receive an email once it's approved and live.
+                Your listing is complete. Click submit to make it live!
               </p>
             </div>
           </div>

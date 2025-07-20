@@ -73,6 +73,7 @@ const STEPS = [
 export default function HostOnboarding() {
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [onboardingData, setOnboardingData] = useState<Partial<OnboardingData>>({
     currency: 'USD',
     instantBook: false,
@@ -91,16 +92,23 @@ export default function HostOnboarding() {
         const photoUrls: string[] = [];
         if (data.photos && data.photos.length > 0) {
           console.log('Uploading photos:', data.photos.length);
+          setUploadProgress(10); // Start progress
+          
           const formData = new FormData();
           data.photos.forEach((photo) => {
             formData.append('files', photo);
           });
           
           console.log('Sending photo upload request...');
+          setUploadProgress(30); // Uploading
+          
           const uploadResponse = await apiRequest('POST', '/api/upload/host-home-photos', formData);
           console.log('Upload response status:', uploadResponse.status);
+          setUploadProgress(80); // Almost done
+          
           const uploadData = await uploadResponse.json();
           console.log('Upload response data:', uploadData);
+          setUploadProgress(100); // Complete
           
           if (uploadData.urls) {
             photoUrls.push(...uploadData.urls);
@@ -284,13 +292,28 @@ export default function HostOnboarding() {
           </Button>
           
           {currentStep === STEPS.length - 1 ? (
-            <Button
-              onClick={handleSubmit}
-              disabled={createHostHomeMutation.isPending}
-              className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
-            >
-              {createHostHomeMutation.isPending ? 'Submitting...' : 'Submit Listing'}
-            </Button>
+            <div className="flex flex-col items-end gap-2">
+              {createHostHomeMutation.isPending && uploadProgress > 0 && (
+                <div className="w-64">
+                  <div className="text-sm text-gray-600 mb-1">
+                    Uploading photos... {uploadProgress}%
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-pink-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+              <Button
+                onClick={handleSubmit}
+                disabled={createHostHomeMutation.isPending}
+                className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+              >
+                {createHostHomeMutation.isPending ? 'Submitting...' : 'Submit Listing'}
+              </Button>
+            </div>
           ) : (
             <Button
               onClick={nextStep}

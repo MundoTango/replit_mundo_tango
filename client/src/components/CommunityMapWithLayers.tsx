@@ -40,10 +40,14 @@ const MapViewController = ({ center, zoom }: { center: [number, number]; zoom: n
   const map = useMap();
   
   React.useEffect(() => {
-    // Use flyTo for smooth animation and ensure the view is properly set
-    map.flyTo(center, zoom, {
-      duration: 1
-    });
+    // Delay to ensure map is ready, then set view
+    const timer = setTimeout(() => {
+      if (map) {
+        map.setView(center, zoom, { animate: true });
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [map, center[0], center[1], zoom]);
   
   return null;
@@ -533,7 +537,6 @@ export default function CommunityMapWithLayers({
       </div>
       
       <MapContainer
-        key={`${centerLat}-${centerLng}`} // Force re-render when center changes
         center={[centerLat || -15, centerLng || -60]} // Use provided center or default to South America
         zoom={centerLat && centerLng ? 13 : 3} // Use zoom 13 for city view, 3 for global view
         className="h-full w-full"
