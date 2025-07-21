@@ -295,7 +295,7 @@ export default function Framework40x20sDashboard() {
       <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-blue-100/50 p-8">
         <h3 className="text-2xl font-bold text-gray-900 mb-6">Framework Layers</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {FRAMEWORK_LAYERS.slice(0, 8).map((layer) => {
+          {FRAMEWORK_LAYERS.map((layer) => {
             const Icon = layer.icon;
             return (
               <button
