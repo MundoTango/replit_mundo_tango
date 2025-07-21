@@ -119,6 +119,9 @@ export interface IStorage {
   createPost(post: InsertPost): Promise<Post>;
   getPostById(id: number | string): Promise<Post | undefined>;
   getUserPosts(userId: number, limit?: number, offset?: number): Promise<Post[]>;
+  getUserPhotos(userId: number): Promise<any[]>;
+  getUserVideos(userId: number): Promise<any[]>;
+  getUserFriends(userId: number): Promise<any[]>;
   getFeedPosts(userId: number, limit?: number, offset?: number, filterTags?: string[]): Promise<Post[]>;
   likePost(postId: number, userId: number): Promise<void>;
   unlikePost(postId: number, userId: number): Promise<void>;
@@ -693,6 +696,48 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(posts.createdAt))
       .limit(limit)
       .offset(offset);
+  }
+
+  async getUserPhotos(userId: number): Promise<any[]> {
+    // Return user's photos from media assets
+    const result = await db
+      .select()
+      .from(mediaAssets)
+      .where(and(
+        eq(mediaAssets.userId, userId),
+        sql`content_type LIKE 'image/%'`
+      ))
+      .orderBy(desc(mediaAssets.createdAt));
+    
+    return result;
+  }
+
+  async getUserVideos(userId: number): Promise<any[]> {
+    // Return user's videos from media assets
+    const result = await db
+      .select()
+      .from(mediaAssets)
+      .where(and(
+        eq(mediaAssets.userId, userId),
+        sql`content_type LIKE 'video/%'`
+      ))
+      .orderBy(desc(mediaAssets.createdAt));
+    
+    return result;
+  }
+
+  async getUserFriends(userId: number): Promise<any[]> {
+    // Return user's friends list (followers and following)
+    const followers = await this.getFollowers(userId);
+    const following = await this.getFollowing(userId);
+    
+    // Combine and deduplicate
+    const friendsMap = new Map();
+    [...followers, ...following].forEach(user => {
+      friendsMap.set(user.id, user);
+    });
+    
+    return Array.from(friendsMap.values());
   }
 
   async getFeedPosts(userId: number, limit = 20, offset = 0, filterTags: string[] = []): Promise<Post[]> {

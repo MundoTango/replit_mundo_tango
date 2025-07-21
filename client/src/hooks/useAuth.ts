@@ -19,12 +19,20 @@ export function useAuth() {
     queryKey: ['/api/auth/user'],
     queryFn: async (): Promise<User | null> => {
       try {
-        const response = await fetch('/api/auth/user');
+        console.log('Fetching auth user...');
+        const response = await fetch('/api/auth/user', {
+          credentials: 'include'
+        });
+        console.log('Auth response status:', response.status);
         if (!response.ok) {
+          console.log('Auth response not ok');
           return null;
         }
-        return response.json();
+        const data = await response.json();
+        console.log('Auth user data:', data);
+        return data;
       } catch (error) {
+        console.error('Auth error:', error);
         return null;
       }
     },

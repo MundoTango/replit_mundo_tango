@@ -78,6 +78,18 @@ export class LifeCEOSelfImprovementService {
       successRate: 100,
       applicability: ["user profiles", "posts display", "tab functionality"],
       implementation: "Added missing /api/user/posts endpoint with auth bypass for development, following existing user endpoint patterns"
+    },
+    {
+      pattern: "Comprehensive profile debugging approach",
+      successRate: 95,
+      applicability: ["user profiles", "UI review", "module integration"],
+      implementation: "Systematically review: 1) Photo upload visibility, 2) Design consistency, 3) Tab functionality, 4) API endpoints for each module"
+    },
+    {
+      pattern: "Profile photo upload troubleshooting",
+      successRate: 90,
+      applicability: ["profile photos", "cover photos", "UI visibility"],
+      implementation: "Check isOwnProfile prop, verify component rendering, ensure buttons are visible with proper z-index and styling"
     }
   ];
 

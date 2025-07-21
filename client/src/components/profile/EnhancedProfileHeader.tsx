@@ -195,7 +195,7 @@ export default function EnhancedProfileHeader({
                 onClick={() => coverInputRef.current?.click()}
                 variant="secondary"
                 size="sm"
-                className="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white border-white/30"
+                className="bg-gradient-to-r from-turquoise-500 to-cyan-600 hover:from-turquoise-600 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transform transition-all hover:-translate-y-0.5 border-0"
                 disabled={uploadCoverMutation.isPending}
               >
                 <Camera className="mr-2 h-4 w-4" />
@@ -242,7 +242,7 @@ export default function EnhancedProfileHeader({
                       onClick={() => profileInputRef.current?.click()}
                       variant="secondary"
                       size="icon"
-                      className="absolute bottom-0 right-0 rounded-full shadow-lg"
+                      className="absolute bottom-0 right-0 rounded-full shadow-lg bg-gradient-to-r from-turquoise-500 to-cyan-600 hover:from-turquoise-600 hover:to-cyan-700 text-white border-2 border-white transform transition-all hover:scale-110"
                       disabled={uploadProfileMutation.isPending}
                     >
                       <Camera className="h-4 w-4" />

@@ -14,6 +14,10 @@ import { GuestProfileDisplay } from '@/components/GuestProfile/GuestProfileDispl
 import { Camera, Video, Users, Calendar, Star, UserCheck, Globe, PenLine } from 'lucide-react';
 import { TravelDetailsComponent } from '@/components/profile/TravelDetailsComponent';
 import { ProfileMemoryPostModal } from '@/components/profile/ProfileMemoryPostModal';
+import { UserPhotosGallery } from '@/components/profile/UserPhotosGallery';
+import { UserVideosGallery } from '@/components/profile/UserVideosGallery';
+import { UserFriendsList } from '@/components/profile/UserFriendsList';
+import { UserEventsList } from '@/components/profile/UserEventsList';
 
 // Phase 5: Production Hardening imports
 import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
@@ -325,19 +329,19 @@ export default function Profile() {
               </TabsContent>
 
               <TabsContent value="photos" className="space-y-4">
-                <PhotosFallback />
+                <UserPhotosGallery userId={user?.id || 0} isOwnProfile={true} />
               </TabsContent>
 
               <TabsContent value="videos" className="space-y-4">
-                <VideosFallback />
+                <UserVideosGallery userId={user?.id || 0} isOwnProfile={true} />
               </TabsContent>
 
               <TabsContent value="friends" className="space-y-4">
-                <FriendsFallback />
+                <UserFriendsList userId={user?.id || 0} isOwnProfile={true} />
               </TabsContent>
 
               <TabsContent value="experience" className="space-y-4">
-                <ExperienceFallback />
+                <UserEventsList userId={user?.id || 0} isOwnProfile={true} />
               </TabsContent>
 
               <TabsContent value="guest-profile" className="space-y-4">
