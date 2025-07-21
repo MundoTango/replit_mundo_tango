@@ -117,10 +117,8 @@ export default function Framework40x20sDashboard() {
   // Start framework review
   const startReview = useMutation({
     mutationFn: async (data: { workItemId: string; reviewLevel: string; layers?: number[] }) => {
-      return apiRequest('/api/admin/framework-reviews/start', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
+      const response = await apiRequest('POST', '/api/admin/framework-reviews/start', data);
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -135,10 +133,8 @@ export default function Framework40x20sDashboard() {
   // Perform Life CEO Review
   const performLifeCEOReview = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/admin/life-ceo-review', {
-        method: 'POST',
-        body: JSON.stringify({})
-      });
+      const response = await apiRequest('POST', '/api/admin/life-ceo-review', {});
+      return response.json();
     },
     onSuccess: (data) => {
       toast({
