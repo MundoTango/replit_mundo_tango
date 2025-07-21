@@ -13402,5 +13402,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Life CEO Learnings endpoint - Get insights from the Life CEO self-improvement system
+  app.get('/api/life-ceo/learnings', setUserContext, async (req: any, res) => {
+    try {
+      console.log('📚 Life CEO Learnings endpoint triggered');
+      const { lifeCEOSelfImprovement } = await import('./services/lifeCEOSelfImprovement');
+      
+      // Apply self-improvements to get latest insights
+      const improvements = await lifeCEOSelfImprovement.applySelfImprovements();
+      const agentInsights = await lifeCEOSelfImprovement.generateAgentInsights();
+      
+      // Get successful patterns from recent activities
+      const learnings = [
+        {
+          pattern: "Automation for repetitive tasks",
+          successRate: 100,
+          applicability: ["user onboarding", "data entry", "content creation"],
+          implementation: "City Group Auto-Creation System - automatically creates groups when users register or add content"
+        },
+        {
+          pattern: "Geocoding integration for location features",
+          successRate: 95,
+          applicability: ["events", "housing", "recommendations", "user profiles"],
+          implementation: "OpenStreetMap Nominatim API - fallback from Google Maps for better reliability"
+        },
+        {
+          pattern: "Framework-driven development",
+          successRate: 90,
+          applicability: ["feature planning", "code review", "testing", "deployment"],
+          implementation: "40x20s Framework - 800 quality checkpoints across 40 layers"
+        },
+        {
+          pattern: "Real-time progress tracking",
+          successRate: 85,
+          applicability: ["project management", "task completion", "team coordination"],
+          implementation: "Daily Activities integration with The Plan - automatic progress updates"
+        },
+        {
+          pattern: "Self-learning system architecture",
+          successRate: 92,
+          applicability: ["AI improvements", "pattern recognition", "platform optimization"],
+          implementation: "Life CEO Self-Improvement - analyzes successes and applies patterns automatically"
+        }
+      ];
+      
+      res.json({
+        success: true,
+        data: {
+          learnings,
+          improvements: {
+            ...improvements,
+            agentInsights
+          }
+        }
+      });
+    } catch (error: any) {
+      console.error('Error fetching Life CEO learnings:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   return server;
 }

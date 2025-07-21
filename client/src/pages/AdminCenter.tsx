@@ -19,6 +19,7 @@ import Framework35LDashboard from '@/components/admin/Framework35LDashboard';
 import Framework40LDashboard from '@/components/admin/Framework40LDashboard';
 import Framework40x20sDashboard from '@/components/admin/Framework40x20sDashboard';
 import LifeCEOFrameworkAgent from '@/components/life-ceo/LifeCEOFrameworkAgent';
+import { LifeCEOLearnings } from '@/components/admin/LifeCEOLearnings';
 import { 
   Users, 
   Activity, 
@@ -49,7 +50,8 @@ import {
   GitCommit,
   Brain,
   RefreshCw,
-  Code
+  Code,
+  Lightbulb
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -308,6 +310,7 @@ const AdminCenter: React.FC = React.memo(() => {
   const tabs = [
     { id: 'life-ceo', label: 'Life CEO Portal', icon: <Brain className="w-4 h-4" /> },
     { id: 'life-ceo-agent', label: 'Life CEO Agent', icon: <Brain className="w-4 h-4" />, isNew: true },
+    { id: 'life-ceo-learnings', label: 'Life CEO Learnings', icon: <Lightbulb className="w-4 h-4" />, isNew: true },
     { id: '40x20s-framework', label: '40x20s Expert Worker', icon: <Zap className="w-4 h-4" />, isNew: true },
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'statistics', label: 'Global Statistics', icon: <Globe className="w-4 h-4" />, isNew: true },
@@ -2407,6 +2410,7 @@ const AdminCenter: React.FC = React.memo(() => {
     switch (selectedTab) {
       case 'life-ceo': return <LifeCEOPortal />;
       case 'life-ceo-agent': return <LifeCEOFrameworkAgent />;
+      case 'life-ceo-learnings': return <LifeCEOLearnings />;
       case 'overview': return renderOverview();
       case 'statistics': return <GlobalStatisticsDashboard />;
       case 'daily-activity': return <DailyActivityView />;

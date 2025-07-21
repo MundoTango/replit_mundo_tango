@@ -1,5 +1,6 @@
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
+import { lifeCEOSelfImprovement } from './lifeCEOSelfImprovement';
 
 // 40x20s Framework Service - Expert Worker System Implementation
 // Manages framework reviews, layer-team mappings, and quality checkpoints
@@ -216,10 +217,14 @@ export class Framework40x20sService {
     // Update Life CEO system with results
     await this.updateLifeCEOSystem(finalUpdates);
     
+    // Apply self-improvements based on learnings
+    const selfImprovement = await this.applySelfImprovements(recentWork);
+    
     return {
       analysis: recentWork,
       updates: finalUpdates,
-      recommendations: this.generateRecommendations(finalUpdates)
+      recommendations: this.generateRecommendations(finalUpdates),
+      selfImprovement
     };
   }
   
@@ -425,6 +430,32 @@ export class Framework40x20sService {
     }
     
     return recommendations;
+  }
+  
+  // Apply self-improvements based on recent learnings
+  private async applySelfImprovements(recentWork: any): Promise<any> {
+    const improvements = await lifeCEOSelfImprovement.applySelfImprovements();
+    const agentInsights = await lifeCEOSelfImprovement.generateAgentInsights();
+    
+    // Store key learnings for future use
+    if (recentWork.completedWork?.length > 0) {
+      for (const work of recentWork.completedWork) {
+        if (work.completion === 100) {
+          await lifeCEOSelfImprovement.storeLearning({
+            pattern: work.title.includes('Auto-Creation') ? 'Automation' : 'Feature Development',
+            context: work.description,
+            outcome: 'Successfully completed',
+            applicability: work.tags || ['general']
+          });
+        }
+      }
+    }
+    
+    return {
+      ...improvements,
+      agentInsights,
+      learningsSummary: `Applied ${improvements.applied.length} improvements based on recent successes`
+    };
   }
   
   // Update "The Plan" when review completes successfully
