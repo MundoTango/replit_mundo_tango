@@ -9577,6 +9577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/analytics', async (req, res) => {
     try {
       const { storage } = await import('./storage');
+      const { pool } = await import('./db');
       
       let user;
       
@@ -9606,7 +9607,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
       // Daily Active Users - using session data or posts as proxy for activity
-      const dauQuery = await storage.db.execute(`
+      const dauQuery = await pool.query(`
         SELECT COUNT(DISTINCT user_id) as count
         FROM (
           SELECT user_id FROM posts WHERE created_at >= '${yesterday.toISOString()}'
@@ -9619,7 +9620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dailyActiveUsers = parseInt(dauQuery.rows[0]?.count || '0');
 
       // Page Views - counting content interactions
-      const pageViewsQuery = await storage.db.execute(`
+      const pageViewsQuery = await pool.query(`
         SELECT 
           (SELECT COUNT(*) FROM posts WHERE created_at >= '${lastWeek.toISOString()}') +
           (SELECT COUNT(*) FROM memories WHERE created_at >= '${lastWeek.toISOString()}') +
@@ -9628,7 +9629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pageViews = parseInt(pageViewsQuery.rows[0]?.count || '0');
 
       // Engagement Rate (users with posts or comments / total users)
-      const engagedUsersQuery = await storage.db.execute(`
+      const engagedUsersQuery = await pool.query(`
         SELECT COUNT(DISTINCT user_id) as count
         FROM (
           SELECT user_id FROM posts WHERE created_at >= '${lastWeek.toISOString()}'
@@ -9640,21 +9641,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `);
       const engagedUsers = parseInt(engagedUsersQuery.rows[0]?.count || '0');
       
-      const totalUsersQuery = await storage.db.execute(`
+      const totalUsersQuery = await pool.query(`
         SELECT COUNT(*) as count FROM users
       `);
       const totalUsers = parseInt(totalUsersQuery.rows[0]?.count || '0');
       const engagementRate = totalUsers > 0 ? (engagedUsers / totalUsers * 100).toFixed(1) : 0;
 
       // Top Locations
-      const topLocationsQuery = await storage.db.execute(`
+      const topLocationsQuery = await pool.query(`
         SELECT 
-          COALESCE(up.city, 'Unknown') as city,
-          COALESCE(up.country, 'Unknown') as country,
+          COALESCE(u.city, 'Unknown') as city,
+          COALESCE(u.country, 'Unknown') as country,
           COUNT(DISTINCT u.id) as user_count
         FROM users u
-        LEFT JOIN user_profiles up ON u.id = up.user_id
-        GROUP BY up.city, up.country
+        GROUP BY u.city, u.country
         ORDER BY user_count DESC
         LIMIT 5
       `);
@@ -9666,7 +9666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
 
       // Events this month
-      const eventsThisMonthQuery = await storage.db.execute(`
+      const eventsThisMonthQuery = await pool.query(`
         SELECT COUNT(*) as count
         FROM events
         WHERE created_at >= '${startOfMonth.toISOString()}'

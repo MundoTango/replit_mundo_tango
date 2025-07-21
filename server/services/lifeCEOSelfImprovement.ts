@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
-import { dailyActivities, lifeCEOProjects } from '../db/schema';
+import { dailyActivities, lifeCEOProjects } from '../../shared/schema';
 
 interface Learning {
   pattern: string;

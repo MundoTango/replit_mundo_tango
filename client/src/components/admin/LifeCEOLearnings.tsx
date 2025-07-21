@@ -60,8 +60,8 @@ export function LifeCEOLearnings() {
           locationAccuracy: 92,
           frameworkAdoption: 75,
           trackingAccuracy: 85
-          },
-          agentInsights: [
+        },
+        agentInsights: [
             {
               agentId: "business-agent",
               insight: "Automation patterns from City Groups can be applied to business workflows",
@@ -83,7 +83,6 @@ export function LifeCEOLearnings() {
               confidence: 0.88
             }
           ]
-        }
       };
       
       // Return the fetched data with defaults for missing fields
