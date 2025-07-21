@@ -133,6 +133,7 @@ export default function Framework40x20sDashboard() {
   // Perform Life CEO Review
   const performLifeCEOReview = useMutation({
     mutationFn: async () => {
+      console.log('Performing Life CEO Review...');
       const response = await apiRequest('POST', '/api/admin/life-ceo-review', {});
       return response.json();
     },
