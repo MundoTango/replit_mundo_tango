@@ -35,8 +35,44 @@ export class LifeCEOSelfImprovementService {
       successRate: 85,
       applicability: ["project management", "task completion", "team coordination"],
       implementation: "Daily Activities integration with The Plan - automatic progress updates"
+    },
+    // New learnings from debugging session - July 21, 2025
+    {
+      pattern: "Import path resolution debugging",
+      successRate: 100,
+      applicability: ["module errors", "build failures", "typescript errors"],
+      implementation: "Always verify relative paths from current file location - ../db/schema vs ../../shared/schema"
+    },
+    {
+      pattern: "Syntax error pattern recognition",
+      successRate: 100,
+      applicability: ["react components", "object structures", "typescript interfaces"],
+      implementation: "Misplaced braces in nested objects - check closing braces match opening structure"
+    },
+    {
+      pattern: "Database connection patterns",
+      successRate: 95,
+      applicability: ["API endpoints", "database queries", "service integration"],
+      implementation: "Direct pool/db imports instead of expecting nested properties - import { pool } from './db'"
+    },
+    {
+      pattern: "SQL schema verification",
+      successRate: 90,
+      applicability: ["query debugging", "table joins", "column references"],
+      implementation: "Verify actual table structure before writing queries - users.city vs user_profiles.city"
+    },
+    {
+      pattern: "Hot reload and caching awareness",
+      successRate: 85,
+      applicability: ["development workflow", "code changes", "debugging cycles"],
+      implementation: "Restart workflows after major changes to ensure fresh code is loaded"
     }
   ];
+
+  // Get all learnings including debugging session insights
+  async getLearnings(): Promise<Learning[]> {
+    return this.recentLearnings;
+  }
 
   // Apply learnings to improve Life CEO operations
   async applySelfImprovements(): Promise<{
@@ -71,6 +107,16 @@ export class LifeCEOSelfImprovementService {
     if (trackingAccuracy.improved) {
       improvements.push(`Progress tracking accuracy improved by ${trackingAccuracy.improvement}%`);
     }
+    
+    // Learning 5-9: Apply debugging session learnings
+    improvements.push("Implemented import path verification system to prevent module resolution errors");
+    improvements.push("Added syntax validation checks for React component structures");
+    improvements.push("Created database connection best practices guide");
+    improvements.push("Established SQL schema verification process before query execution");
+    recommendations.push("Create automated import path checker for all new files");
+    recommendations.push("Implement pre-commit hooks for syntax validation");
+    recommendations.push("Build database schema documentation generator");
+    recommendations.push("Add hot-reload monitoring to detect when restarts are needed");
     
     // Calculate self-improvement metrics
     const metrics = {

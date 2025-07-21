@@ -13406,45 +13406,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/life-ceo/learnings', setUserContext, async (req: any, res) => {
     try {
       console.log('📚 Life CEO Learnings endpoint triggered');
-      const { lifeCEOSelfImprovement } = await import('./services/lifeCEOSelfImprovement');
+      const { LifeCEOSelfImprovementService } = await import('./services/lifeCEOSelfImprovement');
+      
+      // Create instance of the service
+      const service = new LifeCEOSelfImprovementService();
       
       // Apply self-improvements to get latest insights
-      const improvements = await lifeCEOSelfImprovement.applySelfImprovements();
-      const agentInsights = await lifeCEOSelfImprovement.generateAgentInsights();
+      const improvements = await service.applySelfImprovements();
+      const agentInsights = await service.generateAgentInsights();
       
-      // Get successful patterns from recent activities
-      const learnings = [
-        {
-          pattern: "Automation for repetitive tasks",
-          successRate: 100,
-          applicability: ["user onboarding", "data entry", "content creation"],
-          implementation: "City Group Auto-Creation System - automatically creates groups when users register or add content"
-        },
-        {
-          pattern: "Geocoding integration for location features",
-          successRate: 95,
-          applicability: ["events", "housing", "recommendations", "user profiles"],
-          implementation: "OpenStreetMap Nominatim API - fallback from Google Maps for better reliability"
-        },
-        {
-          pattern: "Framework-driven development",
-          successRate: 90,
-          applicability: ["feature planning", "code review", "testing", "deployment"],
-          implementation: "40x20s Framework - 800 quality checkpoints across 40 layers"
-        },
-        {
-          pattern: "Real-time progress tracking",
-          successRate: 85,
-          applicability: ["project management", "task completion", "team coordination"],
-          implementation: "Daily Activities integration with The Plan - automatic progress updates"
-        },
-        {
-          pattern: "Self-learning system architecture",
-          successRate: 92,
-          applicability: ["AI improvements", "pattern recognition", "platform optimization"],
-          implementation: "Life CEO Self-Improvement - analyzes successes and applies patterns automatically"
-        }
-      ];
+      // Get learnings from the service (including debugging session learnings)
+      const learnings = await service.getLearnings();
       
       res.json({
         success: true,
@@ -13456,9 +13428,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       });
-    } catch (error: any) {
-      console.error('Error fetching Life CEO learnings:', error);
-      res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+      console.error('Life CEO learnings error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch Life CEO learnings' 
+      });
     }
   });
 
