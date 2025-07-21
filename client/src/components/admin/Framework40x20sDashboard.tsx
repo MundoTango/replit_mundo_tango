@@ -132,6 +132,35 @@ export default function Framework40x20sDashboard() {
     }
   });
 
+  // Perform Life CEO Review
+  const performLifeCEOReview = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/admin/life-ceo-review', {
+        method: 'POST',
+        body: JSON.stringify({})
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Life CEO Review Complete',
+        description: data.recommendations?.join(' ') || 'Review completed successfully.',
+      });
+      
+      // Log the analysis results
+      console.log('Life CEO Review Results:', data);
+      
+      // Refresh active work items
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/active-work-items'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Review Failed',
+        description: error.message || 'Failed to perform Life CEO review',
+        variant: 'destructive'
+      });
+    }
+  });
+
   const getCategoryColor = (category: string) => {
     const colors = {
       foundation: 'from-blue-500 to-cyan-500',
@@ -159,6 +188,23 @@ export default function Framework40x20sDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => performLifeCEOReview.mutate()}
+              disabled={performLifeCEOReview.isPending}
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {performLifeCEOReview.isPending ? (
+                <>
+                  <Clock className="w-5 h-5 inline mr-2 animate-spin" />
+                  Reviewing...
+                </>
+              ) : (
+                <>
+                  <Brain className="w-5 h-5 inline mr-2" />
+                  Life CEO Review
+                </>
+              )}
+            </button>
             <button
               onClick={() => startReview.mutate({
                 workItemId: activeWork?.current?.id || '',

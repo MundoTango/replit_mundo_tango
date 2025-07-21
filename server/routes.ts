@@ -13381,5 +13381,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Perform Life CEO Review - Analyze, Ideate, Build, Test, Fix
+  app.post('/api/admin/life-ceo-review', setUserContext, async (req: any, res) => {
+    try {
+      console.log('🚀 Life CEO Review endpoint triggered');
+      const { framework40x20sService } = await import('./services/framework40x20sService');
+      
+      const result = await framework40x20sService.performLifeCEOReview();
+      
+      res.json({ 
+        success: true, 
+        analysis: result.analysis,
+        updates: result.updates,
+        recommendations: result.recommendations,
+        message: 'Life CEO Review completed successfully'
+      });
+    } catch (error: any) {
+      console.error('Error performing Life CEO review:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   return server;
 }
