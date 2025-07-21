@@ -1432,6 +1432,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user posts endpoint
+  app.get('/api/user/posts', setUserContext, async (req: any, res) => {
+    try {
+      const user = (req as any).user;
+      if (!user || !user.id) {
+        // Use auth bypass for development
+        console.log('🔧 Auth bypass - using default user for development');
+        const defaultUser = await storage.getUserByReplitId('44164221'); // Scott's user ID
+        if (defaultUser) {
+          const { page = 1, limit = 20 } = req.query;
+          const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+          
+          const posts = await storage.getUserPosts(defaultUser.id, parseInt(limit as string), offset);
+          
+          return res.json({
+            success: true,
+            data: posts
+          });
+        }
+        return res.status(401).json({ 
+          success: false, 
+          message: 'User not authenticated' 
+        });
+      }
+
+      const { page = 1, limit = 20 } = req.query;
+      const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+      
+      const posts = await storage.getUserPosts(user.id, parseInt(limit as string), offset);
+      
+      res.json({
+        success: true,
+        data: posts
+      });
+    } catch (error) {
+      console.error('Error fetching user posts:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch user posts' 
+      });
+    }
+  });
+
   // Photographer Experience endpoints
   app.post('/api/user/photographer-experience/store', isAuthenticated, async (req: any, res) => {
     try {

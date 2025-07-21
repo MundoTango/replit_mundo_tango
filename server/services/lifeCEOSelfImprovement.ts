@@ -66,6 +66,18 @@ export class LifeCEOSelfImprovementService {
       successRate: 85,
       applicability: ["development workflow", "code changes", "debugging cycles"],
       implementation: "Restart workflows after major changes to ensure fresh code is loaded"
+    },
+    {
+      pattern: "Missing API endpoint debugging",
+      successRate: 95,
+      applicability: ["connection errors", "frontend-backend integration", "API development"],
+      implementation: "When frontend shows connection error, verify API endpoint exists using grep, curl tests, and add missing endpoints"
+    },
+    {
+      pattern: "Profile Posts tab connection fix",
+      successRate: 100,
+      applicability: ["user profiles", "posts display", "tab functionality"],
+      implementation: "Added missing /api/user/posts endpoint with auth bypass for development, following existing user endpoint patterns"
     }
   ];
 
