@@ -129,21 +129,20 @@ export class Framework40x20sService {
       const result = await db.execute(sql`
         SELECT 
           da.id,
-          da.title as name,
+          da.project_title as name,
           da.description,
-          da.impact,
-          da.completion,
-          da.category,
-          da.created_at,
+          da.completion_after as completion,
+          da.activity_type as category,
+          da.timestamp as created_at,
           da.metadata
         FROM daily_activities da
-        WHERE da.created_at >= NOW() - INTERVAL '24 hours'
-        ORDER BY da.created_at DESC
+        WHERE da.timestamp >= NOW() - INTERVAL '24 hours'
+        ORDER BY da.timestamp DESC
         LIMIT 20
       `);
       
       // Transform daily activities into work items for review
-      const workItems = result.rows.map(activity => ({
+      const workItems = result.rows.map((activity: any) => ({
         id: activity.id,
         name: activity.name,
         description: activity.description,
@@ -151,7 +150,6 @@ export class Framework40x20sService {
         progress: activity.completion || 0,
         category: activity.category,
         createdAt: activity.created_at,
-        impact: activity.impact,
         metadata: activity.metadata
       }));
       
@@ -231,40 +229,39 @@ export class Framework40x20sService {
       const result = await db.execute(sql`
         SELECT 
           da.id,
-          da.title,
+          da.project_title as title,
           da.description,
-          da.impact,
-          da.completion,
-          da.category,
-          da.created_at,
+          da.completion_after as completion,
+          da.activity_type as category,
+          da.timestamp as created_at,
           da.metadata,
-          da.team_names,
-          da.framework_layers
+          da.team,
+          da.tags
         FROM daily_activities da
-        WHERE da.created_at >= NOW() - INTERVAL '24 hours'
-        ORDER BY da.created_at DESC
+        WHERE da.timestamp >= NOW() - INTERVAL '24 hours'
+        ORDER BY da.timestamp DESC
       `);
       
       console.log(`📊 Found ${result.rows.length} activities in last 24 hours`);
       
-      // Group by category and impact
+      // Group by category and activity type
       const analysis = {
         totalActivities: result.rows.length,
         byCategory: {},
-        byImpact: {},
-        criticalWork: result.rows.filter(r => r.impact === 'critical'),
-        completedWork: result.rows.filter(r => r.completion === 100),
-        inProgressWork: result.rows.filter(r => r.completion < 100),
+        byActivityType: {},
+        criticalWork: result.rows.filter((r: any) => r.tags?.includes('critical') || r.category === 'completed'),
+        completedWork: result.rows.filter((r: any) => r.completion === 100 || r.category === 'completed'),
+        inProgressWork: result.rows.filter((r: any) => r.completion < 100 && r.category !== 'completed'),
         recentActivities: result.rows
       };
       
       // Categorize work
-      result.rows.forEach(activity => {
+      result.rows.forEach((activity: any) => {
         const cat = activity.category || 'uncategorized';
         analysis.byCategory[cat] = (analysis.byCategory[cat] || 0) + 1;
         
-        const impact = activity.impact || 'normal';
-        analysis.byImpact[impact] = (analysis.byImpact[impact] || 0) + 1;
+        const activityType = activity.category || 'updated';
+        analysis.byActivityType[activityType] = (analysis.byActivityType[activityType] || 0) + 1;
       });
       
       return analysis;
@@ -277,9 +274,9 @@ export class Framework40x20sService {
           id: '40x20s-integration',
           title: '40x20s Framework Integration',
           description: 'Complete integration of 40x20s Expert Worker System',
-          impact: 'critical',
+          tags: ['critical'],
           completion: 100,
-          category: 'framework',
+          category: 'completed',
           created_at: new Date()
         }],
         completedWork: [],
