@@ -1,11 +1,14 @@
 // Import Workbox libraries
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.0.0/workbox-sw.js');
 
+// Cache version - increment to force cache refresh
+const CACHE_VERSION = 'v4-mt-ocean-theme';
+
 // Check if Workbox loaded successfully
 if (!workbox) {
   console.error('Workbox failed to load');
 } else {
-  console.log('Workbox loaded successfully');
+  console.log('Workbox loaded successfully - Cache version:', CACHE_VERSION);
   
   // Configure Workbox
   workbox.setConfig({ debug: true });
@@ -18,7 +21,7 @@ if (!workbox) {
     // Match all API routes
     ({ url }) => url.pathname.startsWith('/api/'),
     new workbox.strategies.NetworkFirst({
-      cacheName: 'api-cache',
+      cacheName: `api-cache-${CACHE_VERSION}`,
       networkTimeoutSeconds: 5,
       plugins: [
         new workbox.expiration.ExpirationPlugin({
@@ -67,7 +70,7 @@ if (!workbox) {
   workbox.routing.registerRoute(
     ({ request }) => request.destination === 'image',
     new workbox.strategies.StaleWhileRevalidate({
-      cacheName: 'images-cache',
+      cacheName: `images-cache-${CACHE_VERSION}`,
       plugins: [
         new workbox.expiration.ExpirationPlugin({
           maxEntries: 100,
@@ -83,7 +86,7 @@ if (!workbox) {
     ({ request }) => request.destination === 'font' || 
                      request.url.includes('/static/'),
     new workbox.strategies.CacheFirst({
-      cacheName: 'static-resources',
+      cacheName: `static-resources-${CACHE_VERSION}`,
       plugins: [
         new workbox.expiration.ExpirationPlugin({
           maxEntries: 50,
@@ -114,8 +117,8 @@ if (!workbox) {
       caches.keys().then(cacheNames => {
         return Promise.all(
           cacheNames.map(cacheName => {
-            // Delete any non-workbox caches
-            if (!cacheName.includes('workbox-')) {
+            // Delete all caches that don't include our current version
+            if (!cacheName.includes(CACHE_VERSION)) {
               console.log('Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
@@ -146,6 +149,4 @@ if (!workbox) {
   });
 }
 
-// Version tracking for updates
-const CACHE_VERSION = 'v1.0.0';
-console.log('Service Worker Version:', CACHE_VERSION);
+// Service Worker is now using CACHE_VERSION defined at the top

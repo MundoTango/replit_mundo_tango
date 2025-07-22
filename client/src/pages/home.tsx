@@ -29,9 +29,18 @@ interface Post {
 }
 
 export default function Home() {
-  // MT Ocean Theme Restored - July 22, 2025 9:14PM - v3
-  // Force cache refresh with unique timestamp
+  // MT Ocean Theme Restored - July 22, 2025 9:20PM - v4 with service worker update
+  // Force cache refresh with service worker update
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // Check for service worker updates on mount
+  useEffect(() => {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
+    }
+  }, []);
 
   const { data: postsResponse, isLoading } = useQuery({
     queryKey: ['/api/posts/feed'],

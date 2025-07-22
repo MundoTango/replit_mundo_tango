@@ -35,6 +35,9 @@ if ('serviceWorker' in navigator) {
               // Show update notification
               const event = new CustomEvent('sw-update-available');
               window.dispatchEvent(event);
+              
+              // Force the new service worker to activate immediately
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
             }
           });
         }
@@ -44,10 +47,11 @@ if ('serviceWorker' in navigator) {
       console.error('Workbox Service Worker registration failed:', error);
     });
 
-  // Clear all old caches on startup
+  // Clear ALL caches on startup to force refresh
   caches.keys().then(cacheNames => {
     cacheNames.forEach(cacheName => {
-      if (!cacheName.includes('workbox-')) {
+      // Delete ALL caches that don't include v4-mt-ocean-theme
+      if (!cacheName.includes('v4-mt-ocean-theme')) {
         caches.delete(cacheName);
         console.log('Deleted old cache:', cacheName);
       }
