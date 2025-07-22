@@ -80,7 +80,7 @@ interface PostItemProps {
   onShare: (post: Post) => void;
 }
 
-export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProps) {
+function EnhancedPostItem({ post, onLike, onShare }: PostItemProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -663,3 +663,5 @@ export default function EnhancedPostItem({ post, onLike, onShare }: PostItemProp
     </article>
   );
 }
+
+export default React.memo(EnhancedPostItem);

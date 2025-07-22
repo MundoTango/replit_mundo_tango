@@ -9,6 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { TileSelect } from "@/components/ui/tile-select";
+import { LocationPicker } from "@/components/onboarding/LocationPicker";
+import GoogleMapsLocationPicker from "@/components/onboarding/GoogleMapsLocationPicker";
+import RoleSelector from "@/components/onboarding/RoleSelector";
+import SimpleRoleSelector from "@/components/debugging/SimpleRoleSelector";
+import ErrorBoundary from "@/components/debugging/ErrorBoundary";
 import { 
   Edit2, 
   Save, 
@@ -27,12 +34,85 @@ import {
   Users,
   Earth,
   Music,
-  Search
+  Search,
+  Sparkles,
+  ArrowLeft,
+  CheckCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+// Constants from registration form
+const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+const years = Array.from({ length: 100 }, (_, i) => (new Date().getFullYear() - i).toString());
+
+const languages = [
+  { value: "spanish", label: "Spanish", emoji: "🇪🇸" },
+  { value: "english", label: "English", emoji: "🇺🇸" },
+  { value: "italian", label: "Italian", emoji: "🇮🇹" },
+  { value: "french", label: "French", emoji: "🇫🇷" },
+  { value: "german", label: "German", emoji: "🇩🇪" },
+  { value: "portuguese", label: "Portuguese", emoji: "🇵🇹" },
+  { value: "russian", label: "Russian", emoji: "🇷🇺" },
+  { value: "japanese", label: "Japanese", emoji: "🇯🇵" },
+  { value: "chinese", label: "Chinese (Mandarin)", emoji: "🇨🇳" },
+  { value: "arabic", label: "Arabic", emoji: "🇸🇦" },
+  { value: "dutch", label: "Dutch", emoji: "🇳🇱" },
+  { value: "swedish", label: "Swedish", emoji: "🇸🇪" },
+  { value: "norwegian", label: "Norwegian", emoji: "🇳🇴" },
+  { value: "polish", label: "Polish", emoji: "🇵🇱" },
+  { value: "korean", label: "Korean", emoji: "🇰🇷" },
+  { value: "hindi", label: "Hindi", emoji: "🇮🇳" },
+  { value: "turkish", label: "Turkish", emoji: "🇹🇷" },
+  { value: "hebrew", label: "Hebrew", emoji: "🇮🇱" },
+  { value: "greek", label: "Greek", emoji: "🇬🇷" },
+  { value: "czech", label: "Czech", emoji: "🇨🇿" },
+];
+
+// Role icons mapping for visual display
+const roleIcons: Record<string, string> = {
+  dancer: "💃",
+  performer: "⭐",
+  teacher: "📚", 
+  learning_source: "📖",
+  dj: "🎵",
+  musician: "🎼",
+  organizer: "🎪",
+  host: "🏠",
+  photographer: "📸",
+  content_creator: "🎙️",
+  choreographer: "✨",
+  tango_traveler: "🌍",
+  tour_operator: "✈️",
+  vendor: "🛒",
+  wellness_provider: "💆",
+  tango_school: "🏫",
+  tango_hotel: "🏨"
+};
+
+const danceExperienceOptions = [
+  { value: "0", label: "Just Starting", emoji: "🌱", description: "New to tango, taking first steps" },
+  { value: "1", label: "1 Year", emoji: "👶", description: "Learning basic steps and rhythm" },
+  { value: "2", label: "2 Years", emoji: "🚶", description: "Building foundation and confidence" },
+  { value: "3", label: "3 Years", emoji: "🌿", description: "Gaining social dancing experience" },
+  { value: "4", label: "4 Years", emoji: "🌳", description: "Expanding vocabulary and style" },
+  { value: "5", label: "5 Years", emoji: "💪", description: "Solid social dancer" },
+  { value: "7", label: "7 Years", emoji: "⭐", description: "Advanced social dancer" },
+  { value: "10", label: "10 Years", emoji: "🏆", description: "Very experienced dancer" },
+  { value: "15", label: "15 Years", emoji: "👑", description: "Master level dancer" },
+  { value: "20", label: "20+ Years", emoji: "🔥", description: "Tango legend" },
+];
 
 interface LocationSuggestion {
   id: string;
@@ -42,6 +122,27 @@ interface LocationSuggestion {
   country: string;
   type: 'city' | 'state' | 'country';
 }
+
+// Schema matching the registration form exactly
+const aboutSchema = z.object({
+  nickname: z.string().min(1, "Nickname is required").max(50, "Nickname too long"),
+  languages: z.array(z.string()).min(1, "Select at least one language"),
+  selectedRoles: z.array(z.string()).optional(),
+  leaderLevel: z.number().min(0).max(10),
+  followerLevel: z.number().min(0).max(10),
+  yearsOfDancing: z.number().min(0).max(50).optional(),
+  startedDancingYear: z.number().min(1900).max(new Date().getFullYear()).optional(),
+  location: z.object({
+    country: z.string().min(1, "Country is required"),
+    state: z.string().optional(),
+    city: z.string().optional(),
+    countryId: z.number().min(1, "Country is required"),
+    stateId: z.number().optional(),
+    cityId: z.number().optional(),
+  }),
+});
+
+type AboutData = z.infer<typeof aboutSchema>;
 
 interface UserProfile {
   id: number;
@@ -85,734 +186,503 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [showGoogleMaps, setShowGoogleMaps] = useState(false);
   
-  // Parse arrays and objects from database strings
-  const parseTangoRoles = (roles: string[] | string | undefined): string[] => {
-    if (!roles) return [];
-    if (Array.isArray(roles)) return roles;
-    try {
-      return JSON.parse(roles);
-    } catch {
-      return [];
+  // Initialize form with user data matching registration form structure
+  const form = useForm<AboutData>({
+    resolver: zodResolver(aboutSchema),
+    defaultValues: {
+      nickname: user.name || '',
+      languages: user.languages ? (typeof user.languages === 'string' ? JSON.parse(user.languages) : user.languages) : [],
+      selectedRoles: user.tangoRoles ? (typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles) : [],
+      leaderLevel: user.leaderLevel || 5,
+      followerLevel: user.followerLevel || 5,
+      yearsOfDancing: 0,
+      startedDancingYear: user.startedDancingYear || new Date().getFullYear(),
+      location: {
+        country: user.country || '',
+        state: user.state || '',
+        city: user.city || '',
+        countryId: 0,
+        stateId: 0,
+        cityId: 0
+      }
     }
-  };
-
-  const parseLanguages = (langs: string[] | string | undefined): string[] => {
-    if (!langs) return [];
-    if (Array.isArray(langs)) return langs;
-    try {
-      return JSON.parse(langs);
-    } catch {
-      return [];
-    }
-  };
-
-  const parseVisibility = (vis: any) => {
-    const defaultVis = {
-      bio: 'public',
-      location: 'public',
-      contact: 'public',
-      tangoDetails: 'public'
-    };
-    
-    if (!vis) return defaultVis;
-    if (typeof vis === 'object') return vis;
-    
-    try {
-      return JSON.parse(vis);
-    } catch {
-      return defaultVis;
-    }
-  };
-
-  const [formData, setFormData] = useState({
-    bio: user.bio || '',
-    city: user.city || '',
-    state: user.state || '',
-    country: user.country || '',
-    occupation: user.occupation || '',
-    tangoStartYear: user.startedDancingYear || user.tangoStartYear || new Date().getFullYear(),
-    tangoRoles: parseTangoRoles(user.tangoRoles),
-    leaderLevel: user.leaderLevel || 0,
-    followerLevel: user.followerLevel || 0,
-    languages: parseLanguages(user.languages),
-    website: user.website || '',
-    phone: user.phone || '',
-    profileVisibility: parseVisibility(user.profileVisibility)
   });
-
-  // Location search state
-  const [locationSearch, setLocationSearch] = useState('');
-  const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
-  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
-  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
-  const searchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   
-  // Debug log to verify component is loading with updates
-  console.log('ProfileAboutSection loaded - v2 with location search, checkboxes, and sliders', {
-    user,
-    isOwnProfile,
-    timestamp: new Date().toISOString()
-  });
 
-  // Initialize location search when entering edit mode
-  useEffect(() => {
-    if (isEditing && formData.city) {
-      const location = [formData.city, formData.state, formData.country]
-        .filter(Boolean)
-        .join(', ');
-      setLocationSearch(location);
-    }
-  }, [isEditing]);
 
-  // Location search functionality
-  const searchLocations = useCallback(async (query: string) => {
-    if (query.length < 2) {
-      setLocationSuggestions([]);
-      return;
-    }
-
-    setIsSearchingLocation(true);
-    try {
-      const response = await fetch(`/api/search/locations?q=${encodeURIComponent(query)}&limit=10`);
-      const suggestions = await response.json();
-      setLocationSuggestions(suggestions);
-      setShowLocationSuggestions(true);
-    } catch (error) {
-      console.error('Error searching locations:', error);
-    } finally {
-      setIsSearchingLocation(false);
-    }
-  }, []);
-
-  // Handle location search input
-  const handleLocationSearchChange = (value: string) => {
-    setLocationSearch(value);
-    
-    // Clear previous timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    
-    // Set new timeout for debounced search
-    searchTimeoutRef.current = setTimeout(() => {
-      searchLocations(value);
-    }, 300);
-  };
-
-  // Handle location selection
-  const handleLocationSelect = (location: LocationSuggestion) => {
-    setFormData(prev => ({
-      ...prev,
-      city: location.city,
-      state: location.state,
-      country: location.country
-    }));
-    setLocationSearch(location.display);
-    setShowLocationSuggestions(false);
-  };
-
-  // Update profile mutation
+  // Update profile mutation matching registration form
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      return apiRequest('PUT', '/api/user/profile', data);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully."
+    mutationFn: async (data: AboutData) => {
+      return apiRequest('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.nickname,
+          city: data.location.city,
+          state: data.location.state,
+          country: data.location.country,
+          startedDancingYear: data.startedDancingYear,
+          tangoRoles: data.selectedRoles,
+          leaderLevel: data.leaderLevel,
+          followerLevel: data.followerLevel,
+          languages: data.languages
+        })
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+    },
+    onSuccess: (response) => {
+      toast({
+        title: "Success", 
+        description: "Profile updated successfully"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/', user.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
       setIsEditing(false);
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
-        title: "Update failed",
-        description: "Failed to update profile. Please try again.",
+        title: "Error",
+        description: error.message || "Failed to update profile",
         variant: "destructive"
       });
     }
   });
 
-  const handleSave = () => {
-    updateProfileMutation.mutate(formData);
+  const onSubmit = async (data: AboutData) => {
+    updateProfileMutation.mutate(data);
   };
 
   const handleCancel = () => {
-    setFormData({
-      bio: user.bio || '',
-      city: user.city || '',
-      state: user.state || '',
-      country: user.country || '',
-      occupation: user.occupation || '',
-      tangoStartYear: user.startedDancingYear || user.tangoStartYear || new Date().getFullYear(),
-      tangoRoles: parseTangoRoles(user.tangoRoles),
-      leaderLevel: user.leaderLevel || 0,
-      followerLevel: user.followerLevel || 0,
-      languages: parseLanguages(user.languages),
-      website: user.website || '',
-      phone: user.phone || '',
-      profileVisibility: parseVisibility(user.profileVisibility)
-    });
-    setLocationSearch('');
-    setShowLocationSuggestions(false);
+    form.reset();
     setIsEditing(false);
   };
 
-  const canViewField = (field: keyof typeof formData.profileVisibility) => {
-    if (isOwnProfile) return true;
-    const visibility = formData.profileVisibility[field];
-    if (visibility === 'public') return true;
-    if (visibility === 'friends' && isFriend) return true;
-    return false;
-  };
-
-  const getVisibilityIcon = (visibility: string) => {
-    switch (visibility) {
-      case 'public':
-        return <Earth className="h-3 w-3" />;
-      case 'friends':
-        return <Users className="h-3 w-3" />;
-      case 'private':
-        return <Lock className="h-3 w-3" />;
-      default:
-        return <Earth className="h-3 w-3" />;
-    }
-  };
-
-  const yearsOfDancing = user.tangoStartYear ? new Date().getFullYear() - user.tangoStartYear : 0;
-
-  return (
-    <Card className="w-full bg-white/90 backdrop-blur-sm border-turquoise-200/50 shadow-lg hover:shadow-xl transition-all duration-300">
-      <CardHeader className="bg-gradient-to-r from-turquoise-50/50 to-cyan-50/50 border-b border-turquoise-100/50">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-700 bg-clip-text text-transparent">
-            About
+  // Get Google Maps API key
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+  
+  if (!isOwnProfile && !isEditing) {
+    // Display view for other users
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Heart className="w-5 h-5 text-turquoise-500" />
+            About {user.name}
           </CardTitle>
-          {isOwnProfile && (
-            <Button
-              onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-              variant={isEditing ? "default" : "outline"}
-              size="sm"
-              className={cn(
-                "transition-all duration-200",
-                isEditing 
-                  ? "bg-gradient-to-r from-turquoise-500 to-cyan-600 hover:from-turquoise-600 hover:to-cyan-700 text-white border-0"
-                  : "border-turquoise-300 hover:bg-turquoise-50"
-              )}
-              disabled={updateProfileMutation.isPending}
-            >
-              {isEditing ? (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  {updateProfileMutation.isPending ? "Saving..." : "Save"}
-                </>
-              ) : (
-                <>
-                  <Edit2 className="h-4 w-4 mr-2" />
-                  Edit
-                </>
-              )}
-            </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {user.bio && (
+            <div>
+              <h3 className="font-semibold mb-2">Bio</h3>
+              <p className="text-gray-600">{user.bio}</p>
+            </div>
           )}
-        </div>
-      </CardHeader>
-      <CardContent className="pt-6 space-y-6">
-          {/* Bio Section */}
-          {(canViewField('bio') || isEditing) && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium text-gray-700">Bio</Label>
-              {isEditing && (
-                <Select
-                  value={formData.profileVisibility.bio}
-                  onValueChange={(value: any) => setFormData({
-                    ...formData,
-                    profileVisibility: { ...formData.profileVisibility, bio: value }
-                  })}
-                >
-                  <SelectTrigger className="w-32 h-8 border-turquoise-200">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">
-                      <div className="flex items-center gap-2">
-                        <Earth className="h-3 w-3" />
-                        Public
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="friends">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-3 w-3" />
-                        Friends
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="private">
-                      <div className="flex items-center gap-2">
-                        <Lock className="h-3 w-3" />
-                        Private
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+          
+          {(user.city || user.country) && (
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-gray-500" />
+              <span>{[user.city, user.state, user.country].filter(Boolean).join(', ')}</span>
             </div>
-            {isEditing ? (
-              <Textarea
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Tell us about yourself..."
-                className="min-h-24 border-turquoise-200 focus:border-turquoise-400"
-              />
-            ) : (
-              <p className="text-gray-600">{user.bio || 'No bio added yet'}</p>
-            )}
-          </div>
-        )}
-
-        {/* Location Section */}
-        {(canViewField('location') || isEditing) && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-turquoise-600" />
-                Location
-              </Label>
-              {isEditing && (
-                <Select
-                  value={formData.profileVisibility.location}
-                  onValueChange={(value: any) => setFormData({
-                    ...formData,
-                    profileVisibility: { ...formData.profileVisibility, location: value }
-                  })}
-                >
-                  <SelectTrigger className="w-32 h-8 border-turquoise-200">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">
-                      <div className="flex items-center gap-2">
-                        <Earth className="h-3 w-3" />
-                        Public
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="friends">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-3 w-3" />
-                        Friends
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="private">
-                      <div className="flex items-center gap-2">
-                        <Lock className="h-3 w-3" />
-                        Private
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-            {isEditing ? (
-              <div className="relative">
-                <div className="relative">
-                  <Input
-                    value={locationSearch || `${formData.city}, ${formData.state}, ${formData.country}`.replace(/^, |, $|, , /g, '')}
-                    onChange={(e) => handleLocationSearchChange(e.target.value)}
-                    placeholder="Search for your location..."
-                    className="border-turquoise-200 focus:border-turquoise-400 pr-10"
-                  />
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                </div>
-                {showLocationSuggestions && locationSuggestions.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-turquoise-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                    {locationSuggestions.map((suggestion) => (
-                      <button
-                        key={suggestion.id}
-                        type="button"
-                        onClick={() => handleLocationSelect(suggestion)}
-                        className="w-full px-4 py-2 text-left hover:bg-turquoise-50 transition-colors duration-200 border-b border-gray-100 last:border-0"
-                      >
-                        <p className="text-sm font-medium text-gray-900">{suggestion.display}</p>
-                        <p className="text-xs text-gray-500">{suggestion.type === 'city' ? 'City' : suggestion.type}</p>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {isSearchingLocation && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-turquoise-200 rounded-lg shadow-lg p-4 text-center">
-                    <p className="text-sm text-gray-500">Searching locations...</p>
-                  </div>
-                )}
+          )}
+          
+          {user.languages && (
+            <div>
+              <h3 className="font-semibold mb-2 flex items-center gap-2">
+                <Languages className="w-4 h-4" />
+                Languages
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {(typeof user.languages === 'string' ? JSON.parse(user.languages) : user.languages).map((lang: string) => {
+                  const language = languages.find(l => l.value === lang);
+                  return (
+                    <Badge key={lang} variant="secondary">
+                      {language?.emoji} {language?.label || lang}
+                    </Badge>
+                  );
+                })}
               </div>
-            ) : (
-              <p className="text-gray-600">
-                {[user.city, user.state, user.country].filter(Boolean).join(', ') || 'Location not specified'}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Tango Details Section - Matching Registration Form Design */}
-        {(canViewField('tangoDetails') || isEditing) && (
-          <div className="space-y-6">
-            {!isEditing ? (
-              // Non-editing view with glassmorphic cards
-              <>
-                {/* Tango Activities Card */}
-                <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50 glassmorphic-card">
-                  <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-teal-300 transition-colors">
-                    <div className="w-10 h-10 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-full flex items-center justify-center group-hover:animate-pulse shadow-lg">
-                      <Users className="w-5 h-5 text-teal-600 group-hover:text-emerald-600 transition-colors duration-300" />
-                    </div>
-                    <h2 className="text-xl font-medium text-gray-900 group-hover:text-teal-700 transition-colors">Tango Activities</h2>
-                    <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full">💃 Your tango style!</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {parseTangoRoles(user.tangoRoles).map((role) => (
-                      <Badge
-                        key={role}
-                        className="bg-gradient-to-r from-turquoise-500/10 to-cyan-600/10 text-turquoise-700 border-turquoise-300"
-                      >
-                        {role}
-                      </Badge>
-                    ))}
-                    {parseTangoRoles(user.tangoRoles).length === 0 && (
-                      <span className="text-sm text-gray-500">No roles specified</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Dance Role Skills Card */}
-                {(user.leaderLevel > 0 || user.followerLevel > 0) && (
-                  <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50 glassmorphic-card">
-                    <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-purple-300 transition-colors">
-                      <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center group-hover:animate-pulse shadow-lg">
-                        <Music className="w-5 h-5 text-purple-600 group-hover:text-pink-600 transition-colors duration-300" />
-                      </div>
-                      <h2 className="text-xl font-medium text-gray-900 group-hover:text-purple-700 transition-colors">Dance Style</h2>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">🕺 Your dance levels!</span>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      {user.leaderLevel > 0 && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">🤵</span>
-                          <span className="text-sm text-gray-700">Leader Level: {user.leaderLevel}/10</span>
-                        </div>
-                      )}
-                      {user.followerLevel > 0 && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">💃</span>
-                          <span className="text-sm text-gray-700">Follower Level: {user.followerLevel}/10</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Dancing Since */}
+            </div>
+          )}
+          
+          {user.tangoRoles && (
+            <div>
+              <h3 className="font-semibold mb-2">Tango Roles</h3>
+              <div className="flex flex-wrap gap-2">
+                {(typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles).map((role: string) => (
+                  <Badge key={role} variant="outline">
+                    {roleIcons[role]} {role.replace(/_/g, ' ')}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <div className="grid grid-cols-2 gap-4">
+            {user.leaderLevel !== undefined && user.leaderLevel > 0 && (
+              <div>
+                <p className="text-sm text-gray-600">Leader Level</p>
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-turquoise-500" />
-                  <span className="text-sm text-gray-600">
-                    Dancing for {yearsOfDancing} {yearsOfDancing === 1 ? 'year' : 'years'}
-                  </span>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-turquoise-500 h-2 rounded-full"
+                      style={{ width: `${user.leaderLevel * 10}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium">{user.leaderLevel}/10</span>
                 </div>
-              </>
-            ) : (
-              // Editing view with registration form style
-              <div className="space-y-6">
-                {/* Visibility selector */}
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-turquoise-600" />
-                    Tango Details
-                  </Label>
-                  <Select
-                    value={formData.profileVisibility.tangoDetails}
-                    onValueChange={(value: any) => setFormData({
-                      ...formData,
-                      profileVisibility: { ...formData.profileVisibility, tangoDetails: value }
-                    })}
-                  >
-                    <SelectTrigger className="w-32 h-8 border-turquoise-200">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="public">
-                        <div className="flex items-center gap-2">
-                          <Earth className="h-3 w-3" />
-                          Public
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="friends">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-3 w-3" />
-                          Friends
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="private">
-                        <div className="flex items-center gap-2">
-                          <Lock className="h-3 w-3" />
-                          Private
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              </div>
+            )}
             
-                <div className="space-y-6">
-                  {/* Dancing Since */}
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-turquoise-500" />
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">Dancing since</span>
-                      <Input
-                        type="number"
-                        value={formData.tangoStartYear}
-                        onChange={(e) => setFormData({ ...formData, tangoStartYear: parseInt(e.target.value) })}
-                        min="1900"
-                        max={new Date().getFullYear()}
-                        className="w-24 border-turquoise-200 focus:border-turquoise-400"
-                      />
-                    </div>
+            {user.followerLevel !== undefined && user.followerLevel > 0 && (
+              <div>
+                <p className="text-sm text-gray-600">Follower Level</p>
+                <div className="flex items-center gap-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-cyan-500 h-2 rounded-full"
+                      style={{ width: `${user.followerLevel * 10}%` }}
+                    />
                   </div>
-
-                  {/* Tango Roles - Matching Registration Form Style */}
-                  <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50 glassmorphic-card">
-                    <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-teal-300 transition-colors">
-                      <div className="w-10 h-10 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-full flex items-center justify-center group-hover:animate-pulse shadow-lg">
-                        <Users className="w-5 h-5 text-teal-600 group-hover:text-emerald-600 transition-colors duration-300" />
-                      </div>
-                      <h2 className="text-xl font-medium text-gray-900 group-hover:text-teal-700 transition-colors">Tango Activities</h2>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full">💃 Your tango style!</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      {[
-                        { id: 'dancer', label: 'Dancer' },
-                        { id: 'teacher', label: 'Teacher' },
-                        { id: 'organizer', label: 'Organizer' },
-                        { id: 'dj', label: 'DJ' },
-                        { id: 'musician', label: 'Musician' }
-                      ].map((role) => (
-                        <div key={role.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={role.id}
-                            checked={formData.tangoRoles.includes(role.label)}
-                            onCheckedChange={(checked) => {
-                              const newRoles = checked
-                                ? [...formData.tangoRoles, role.label]
-                                : formData.tangoRoles.filter(r => r !== role.label);
-                              setFormData({ ...formData, tangoRoles: newRoles });
-                            }}
-                            className="h-5 w-5 rounded border-gray-300 text-turquoise-600 focus:ring-turquoise-500"
-                          />
-                          <label
-                            htmlFor={role.id}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {role.label}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Dance Role Skills - Matching Registration Form Style */}
-                  <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50 glassmorphic-card">
-                    <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-purple-300 transition-colors">
-                      <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center group-hover:animate-pulse shadow-lg">
-                        <Music className="w-5 h-5 text-purple-600 group-hover:text-pink-600 transition-colors duration-300" />
-                      </div>
-                      <h2 className="text-xl font-medium text-gray-900 group-hover:text-purple-700 transition-colors">Do you dance as:</h2>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">🕺 Your dance style!</span>
-                      </div>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {/* Leader Level */}
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700 group-hover:text-purple-700 transition-colors flex items-center gap-2">
-                          <span className="text-lg">🤵</span>
-                          Leader Level: {formData.leaderLevel}/10
-                        </Label>
-                        <div className="px-3">
-                          <Slider
-                            value={[formData.leaderLevel]}
-                            onValueChange={(value) => setFormData({ ...formData, leaderLevel: value[0] })}
-                            max={10}
-                            step={1}
-                            className="w-full"
-                          />
-                          <div className="flex justify-between text-xs text-gray-500 mt-1">
-                            <span>Beginner</span>
-                            <span>Expert</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Follower Level */}
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700 group-hover:text-purple-700 transition-colors flex items-center gap-2">
-                          <span className="text-lg">💃</span>
-                          Follower Level: {formData.followerLevel}/10
-                        </Label>
-                        <div className="px-3">
-                          <Slider
-                            value={[formData.followerLevel]}
-                            onValueChange={(value) => setFormData({ ...formData, followerLevel: value[0] })}
-                            max={10}
-                            step={1}
-                            className="w-full"
-                          />
-                          <div className="flex justify-between text-xs text-gray-500 mt-1">
-                            <span>Beginner</span>
-                            <span>Expert</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Languages */}
-                  <div className="flex items-start gap-2">
-                    <Languages className="h-4 w-4 text-turquoise-500 mt-1" />
-                    <div className="flex-1">
-                      <Label className="text-sm font-medium text-gray-700 mb-2 block">Languages</Label>
-                      <Input
-                        value={formData.languages.join(', ')}
-                        onChange={(e) => setFormData({ 
-                          ...formData, 
-                          languages: e.target.value.split(',').map(l => l.trim()).filter(Boolean)
-                        })}
-                        placeholder="English, Spanish, etc."
-                        className="border-turquoise-200 focus:border-turquoise-400"
-                      />
-                    </div>
-                  </div>
+                  <span className="text-sm font-medium">{user.followerLevel}/10</span>
                 </div>
               </div>
             )}
           </div>
-        )}
-
-        {/* Contact Information */}
-        {(canViewField('contact') || isEditing) && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium text-gray-700">Contact</Label>
-              {isEditing && (
-                <Select
-                  value={formData.profileVisibility.contact}
-                  onValueChange={(value: any) => setFormData({
-                    ...formData,
-                    profileVisibility: { ...formData.profileVisibility, contact: value }
-                  })}
-                >
-                  <SelectTrigger className="w-32 h-8 border-turquoise-200">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">
-                      <div className="flex items-center gap-2">
-                        <Earth className="h-3 w-3" />
-                        Public
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="friends">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-3 w-3" />
-                        Friends
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="private">
-                      <div className="flex items-center gap-2">
-                        <Lock className="h-3 w-3" />
-                        Private
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              {isEditing ? (
-                <>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-turquoise-500" />
-                    <span className="text-sm text-gray-600">{user.email}</span>
-                    <Badge variant="outline" className="text-xs">Not editable</Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-turquoise-500" />
-                    <Input
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="Phone number"
-                      className="flex-1 border-turquoise-200 focus:border-turquoise-400"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Globe2 className="h-4 w-4 text-turquoise-500" />
-                    <Input
-                      value={formData.website}
-                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      placeholder="Website URL"
-                      className="flex-1 border-turquoise-200 focus:border-turquoise-400"
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-turquoise-500" />
-                    <span className="text-sm text-gray-600">{user.email}</span>
-                  </div>
-                  {user.phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-turquoise-500" />
-                      <span className="text-sm text-gray-600">{user.phone}</span>
-                    </div>
-                  )}
-                  {user.website && (
-                    <div className="flex items-center gap-2">
-                      <Globe2 className="h-4 w-4 text-turquoise-500" />
-                      <a 
-                        href={user.website} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-sm text-turquoise-600 hover:text-turquoise-700 underline"
-                      >
-                        {user.website}
-                      </a>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Cancel button when editing */}
-        {isEditing && (
-          <div className="flex justify-end pt-4 border-t border-turquoise-100">
-            <Button
-              onClick={handleCancel}
-              variant="outline"
-              size="sm"
-              className="border-turquoise-300 hover:bg-turquoise-50"
-            >
-              <X className="h-4 w-4 mr-2" />
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // Edit mode - exact copy of registration form
+  if (isEditing) {
+    return (
+      <Card className="glassmorphic-card">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Edit2 className="w-5 h-5 text-turquoise-500" />
+            Edit Profile
+          </CardTitle>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" onClick={handleCancel}>
+              <X className="w-4 h-4 mr-1" />
               Cancel
             </Button>
+            <Button 
+              size="sm" 
+              onClick={form.handleSubmit(onSubmit)}
+              disabled={updateProfileMutation.isPending}
+            >
+              <Save className="w-4 h-4 mr-1" />
+              Save
+            </Button>
           </div>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Step 1: Basic Info */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-turquoise-500" />
+                  Basic Information
+                </h3>
+                
+                <FormField
+                  control={form.control}
+                  name="nickname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>How should we call you?</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Your nickname" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="languages"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>What languages do you speak?</FormLabel>
+                      <FormControl>
+                        <MultiSelect
+                          options={languages}
+                          selected={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select languages"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              {/* Step 2: Tango Roles */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Music className="w-5 h-5 text-turquoise-500" />
+                  Your Tango Journey
+                </h3>
+                
+                <FormField
+                  control={form.control}
+                  name="selectedRoles"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>What roles do you play in tango?</FormLabel>
+                      <FormControl>
+                        <ErrorBoundary>
+                          <SimpleRoleSelector
+                            selectedRoles={field.value || []}
+                            onRolesChange={field.onChange}
+                          />
+                        </ErrorBoundary>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="leaderLevel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Leader Level (0-10)</FormLabel>
+                        <FormControl>
+                          <div className="space-y-2">
+                            <Slider
+                              value={[field.value]}
+                              onValueChange={(value) => field.onChange(value[0])}
+                              min={0}
+                              max={10}
+                              step={1}
+                              className="w-full"
+                            />
+                            <div className="text-center text-sm text-gray-600">
+                              {field.value}/10
+                            </div>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="followerLevel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Follower Level (0-10)</FormLabel>
+                        <FormControl>
+                          <div className="space-y-2">
+                            <Slider
+                              value={[field.value]}
+                              onValueChange={(value) => field.onChange(value[0])}
+                              min={0}
+                              max={10}
+                              step={1}
+                              className="w-full"
+                            />
+                            <div className="text-center text-sm text-gray-600">
+                              {field.value}/10
+                            </div>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="startedDancingYear"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>What year did you start dancing tango?</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value?.toString()}
+                          onValueChange={(value) => field.onChange(parseInt(value))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select year" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {years.map((year) => (
+                              <SelectItem key={year} value={year}>
+                                {year}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              {/* Step 3: Location */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Globe2 className="w-5 h-5 text-turquoise-500" />
+                  Location
+                </h3>
+                
+                {googleMapsApiKey && showGoogleMaps ? (
+                  <GoogleMapsLocationPicker
+                    selectedLocation={form.watch('location')}
+                    onLocationSelect={(location) => {
+                      form.setValue('location', location);
+                    }}
+                  />
+                ) : (
+                  <LocationPicker
+                    selectedLocation={form.watch('location')}
+                    onLocationSelect={(location) => {
+                      form.setValue('location', location);
+                    }}
+                  />
+                )}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowGoogleMaps(!showGoogleMaps)}
+                  className="w-full"
+                >
+                  {showGoogleMaps ? 'Use Simple Location Picker' : 'Use Map Location Picker'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // View mode for own profile
+  return (
+    <Card className="glassmorphic-card">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+          <Heart className="w-5 h-5 text-turquoise-500" />
+          About
+        </CardTitle>
+        {isOwnProfile && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+            className="beautiful-hover"
+          >
+            <Edit2 className="w-4 h-4 mr-1" />
+            Edit
+          </Button>
         )}
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Display user data in view mode */}
+        <div className="grid gap-4">
+          <div>
+            <p className="text-sm text-gray-600 mb-1">Name</p>
+            <p className="font-medium">{user.name}</p>
+          </div>
+          
+          {(user.city || user.country) && (
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Location</p>
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-turquoise-500" />
+                <span>{[user.city, user.state, user.country].filter(Boolean).join(', ')}</span>
+              </div>
+            </div>
+          )}
+          
+          {user.languages && (
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Languages</p>
+              <div className="flex flex-wrap gap-2">
+                {(typeof user.languages === 'string' ? JSON.parse(user.languages) : user.languages).map((lang: string) => {
+                  const language = languages.find(l => l.value === lang);
+                  return (
+                    <Badge key={lang} variant="secondary" className="glassmorphic-badge">
+                      {language?.emoji} {language?.label || lang}
+                    </Badge>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
+          {user.tangoRoles && (
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Tango Roles</p>
+              <div className="flex flex-wrap gap-2">
+                {(typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles).map((role: string) => (
+                  <Badge key={role} variant="outline" className="glassmorphic-badge">
+                    {roleIcons[role]} {role.replace(/_/g, ' ')}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <div className="grid grid-cols-2 gap-4">
+            {user.leaderLevel !== undefined && (
+              <div>
+                <p className="text-sm text-gray-600 mb-2">Leader Level</p>
+                <div className="flex items-center gap-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-turquoise-400 to-cyan-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${user.leaderLevel * 10}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium">{user.leaderLevel}/10</span>
+                </div>
+              </div>
+            )}
+            
+            {user.followerLevel !== undefined && (
+              <div>
+                <p className="text-sm text-gray-600 mb-2">Follower Level</p>
+                <div className="flex items-center gap-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-cyan-400 to-blue-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${user.followerLevel * 10}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium">{user.followerLevel}/10</span>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {user.startedDancingYear && (
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Dancing Since</p>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-turquoise-500" />
+                <span>{user.startedDancingYear} ({new Date().getFullYear() - user.startedDancingYear} years)</span>
+              </div>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

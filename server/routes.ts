@@ -28,6 +28,7 @@ import { registerStatisticsRoutes } from "./routes/statisticsRoutes";
 import cityAutoCreationTestRoutes from "./routes/cityAutoCreationTest";
 import searchRouter from "./routes/searchRoutes";
 import { CityAutoCreationService } from './services/cityAutoCreationService';
+import { cacheMiddleware, invalidateCacheAfter } from "./middleware/cacheMiddleware";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add compression middleware for better performance
@@ -460,7 +461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const upload = setupUpload();
 
   // Authentication user endpoint - for frontend authentication context
-  app.get("/api/auth/user", async (req: any, res) => {
+  app.get("/api/auth/user", cacheMiddleware({ ttl: 'medium' }), async (req: any, res) => {
     try {
       console.log('🔐 Auth check - req.isAuthenticated():', req.isAuthenticated?.());
       console.log('🔐 Auth check - session:', req.session?.passport?.user);
@@ -3290,16 +3291,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const offset = parseInt(req.query.offset as string) || 0;
       const filterTags = req.query.tags ? (Array.isArray(req.query.tags) ? req.query.tags : [req.query.tags]) : [];
 
-      // Import cache service for performance optimization
-      const { cacheService } = await import('./services/cacheService');
+      // Import Redis cache for better performance
+      const { redisCache } = await import('./services/redisCache');
       
       // Create cache key based on query parameters
       const cacheKey = `posts:feed:${user.id}:${limit}:${offset}:${filterTags.join(',')}`;
       
       // Try to get cached result first
-      const cachedPosts = await cacheService.get(cacheKey);
+      const cachedPosts = await redisCache.get(cacheKey);
       if (cachedPosts) {
-        console.log('📊 Posts served from cache');
+        console.log('📊 Posts served from Redis cache');
         return res.json({ success: true, data: cachedPosts });
       }
 
@@ -3360,8 +3361,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       
       // Cache the results for 5 minutes (300 seconds)
-      await cacheService.set(cacheKey, posts, 300);
-      console.log('📊 Posts cached for future requests');
+      await redisCache.set(cacheKey, posts, 300);
+      console.log('📊 Posts cached in Redis for future requests');
       
       res.json({ success: true, data: posts });
     } catch (error: any) {
@@ -3590,8 +3591,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Events sidebar API for Memories page with personalized content
   app.get("/api/events/sidebar", async (req: any, res) => {
     try {
-      // Import cache service for performance optimization
-      const { cacheService } = await import('./services/cacheService');
+      // Import Redis cache for performance optimization
+      const { redisCache } = await import('./services/redisCache');
       
       // Use fallback authentication for compatibility
       let user = null;
@@ -3604,9 +3605,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const cacheKey = user ? `events:sidebar:${user.id}` : 'events:sidebar:guest';
       
       // Try to get cached result first
-      const cachedEvents = await cacheService.get(cacheKey);
+      const cachedEvents = await redisCache.get(cacheKey);
       if (cachedEvents) {
-        console.log('📊 Events served from cache');
+        console.log('📊 Events served from Redis cache');
         return res.json(cachedEvents);
       }
       
@@ -3636,8 +3637,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         
         // Cache the guest events for 10 minutes
-        await cacheService.set(cacheKey, response, 600);
-        console.log('📊 Guest events cached for future requests');
+        await redisCache.set(cacheKey, response, 600);
+        console.log('📊 Guest events cached in Redis for future requests');
         
         return res.json(response);
       }
@@ -3731,8 +3732,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       // Cache the personalized events for 10 minutes
-      await cacheService.set(cacheKey, response, 600);
-      console.log('📊 Personalized events cached for future requests');
+      await redisCache.set(cacheKey, response, 600);
+      console.log('📊 Personalized events cached in Redis for future requests');
       
       res.json(response);
     } catch (error: any) {
@@ -4055,7 +4056,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notification preferences - NEW production-ready endpoint
-  app.get('/api/notifications/preferences', setUserContext, async (req, res) => {
+  app.get('/api/notifications/preferences', setUserContext, cacheMiddleware({ ttl: 'medium' }), async (req, res) => {
     try {
       const userId = getUserId(req);
       if (!userId) {
