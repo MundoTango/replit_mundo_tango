@@ -147,6 +147,13 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const searchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  
+  // Debug log to verify component is loading with updates
+  console.log('ProfileAboutSection loaded - v2 with location search, checkboxes, and sliders', {
+    user,
+    isOwnProfile,
+    timestamp: new Date().toISOString()
+  });
 
   // Initialize location search when entering edit mode
   useEffect(() => {
