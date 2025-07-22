@@ -11,7 +11,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { TileSelect } from "@/components/ui/tile-select";
-import { SimpleLocationPicker } from "@/components/profile/SimpleLocationPicker";
+import { AutocompleteLocationPicker } from "@/components/profile/AutocompleteLocationPicker";
 import GoogleMapsLocationPicker from "@/components/onboarding/GoogleMapsLocationPicker";
 import RoleSelector from "@/components/onboarding/RoleSelector";
 import SimpleRoleSelector from "@/components/debugging/SimpleRoleSelector";
@@ -56,6 +56,16 @@ const months = [
 
 const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
 const years = Array.from({ length: 100 }, (_, i) => (new Date().getFullYear() - i).toString());
+
+// Community roles data
+const communityRoles = [
+  { name: 'dancer', description: 'I enjoy dancing tango socially' },
+  { name: 'teacher', description: 'I teach tango classes or workshops' },
+  { name: 'organizer', description: 'I organize milongas or tango events' },
+  { name: 'dj', description: 'I DJ at milongas and tango events' },
+  { name: 'performer', description: 'I perform tango professionally' },
+  { name: 'beginner', description: 'I\'m new to tango and learning' }
+];
 
 const languages = [
   { value: "spanish", label: "Spanish", emoji: "🇪🇸" },
@@ -441,8 +451,9 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                       <FormControl>
                         <ErrorBoundary>
                           <SimpleRoleSelector
+                            roles={communityRoles}
                             selectedRoles={field.value || []}
-                            onRolesChange={field.onChange}
+                            onRoleChange={field.onChange}
                           />
                         </ErrorBoundary>
                       </FormControl>
@@ -541,7 +552,7 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                   Location
                 </h3>
                 
-                <SimpleLocationPicker
+                <AutocompleteLocationPicker
                   selectedLocation={form.watch('location') || { country: '', state: '', city: '' }}
                   onLocationSelect={(location) => {
                     form.setValue('location', location);

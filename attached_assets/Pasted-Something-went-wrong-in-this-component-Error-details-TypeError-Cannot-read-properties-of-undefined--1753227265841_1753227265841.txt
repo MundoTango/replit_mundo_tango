@@ -1,0 +1,57 @@
+Something went wrong in this component
+Error details
+TypeError: Cannot read properties of undefined (reading 'length')
+
+    at SimpleRoleSelector (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/components/debugging/SimpleRoleSelector.tsx:22:3)
+    at ErrorBoundary (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/components/debugging/ErrorBoundary.tsx:7:5)
+    at https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GR3B7I3S.js?v=45350eda:79:13
+    at https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GR3B7I3S.js?v=45350eda:56:13
+    at https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/components/ui/form.tsx:130:9
+    at div
+    at https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/components/ui/form.tsx:72:6
+    at Controller (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-ZMK6IBQW.js?v=45350eda:297:35)
+    at FormField (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/components/ui/form.tsx:33:6)
+    at div
+    at form
+    at FormProvider (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-ZMK6IBQW.js?v=45350eda:104:11)
+    at div
+    at _c9 (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/components/ui/card.tsx:20:11)
+    at ProfileAboutSection (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/components/profile/ProfileAboutSection.tsx?t=1753227198846:135:3)
+    at div
+    at https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DVHSTOKX.js?v=45350eda:42:13
+    at Presence (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-ED5C5U6M.js?v=45350eda:24:11)
+    at https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=45350eda:176:13
+    at _c5 (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at div
+    at https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DVHSTOKX.js?v=45350eda:42:13
+    at Provider (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3RXG37ZK.js?v=45350eda:38:15)
+    at https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=45350eda:54:7
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at DashboardLayout (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/layouts/DashboardLayout.tsx:49:43)
+    at ProfileErrorBoundary (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/components/profile/ProfileErrorBoundary.tsx:9:5)
+    at Profile (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/pages/profile.tsx?t=1753227198846:48:20)
+    at Suspense
+    at Route (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=45350eda:265:16)
+    at Switch (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=45350eda:321:17)
+    at Suspense
+    at ErrorBoundary (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/App.tsx?t=1753227198846&v=aW-dF-nQ3MW0nan4c1iyT:93:5)
+    at Router (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/App.tsx?t=1753227198846&v=aW-dF-nQ3MW0nan4c1iyT:126:48)
+    at ErrorBoundary (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/App.tsx?t=1753227198846&v=aW-dF-nQ3MW0nan4c1iyT:93:5)
+    at MicroInteractionProvider (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/components/MicroInteractionProvider.tsx:20:44)
+    at Provider (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3RXG37ZK.js?v=45350eda:38:15)
+    at TooltipProvider (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=45350eda:64:5)
+    at SocketProvider (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/contexts/socket-context.tsx:21:34)
+    at ThemeProvider (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/lib/theme/theme-provider.tsx:228:33)
+    at TenantProvider (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/contexts/TenantContext.tsx:21:34)
+    at AuthProvider (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/contexts/auth-context.tsx:20:32)
+    at QueryClientProvider (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=45350eda:2805:3)
+    at App (https://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev/src/App.tsx?t=1753227198846&v=aW-dF-nQ3MW0nan4c1iyT:482:3)
+Try Again
