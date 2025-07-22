@@ -135,23 +135,23 @@ export default function PostCard({ post }: PostCardProps) {
   };
 
   return (
-    <Card className="card-shadow">
+    <Card className="glassmorphic-card rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
       {/* Post Header */}
-      <div className="p-4 border-b border-gray-100">
+      <div className="p-4 border-b border-turquoise-100/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Avatar className="w-12 h-12">
+            <Avatar className="w-12 h-12 ring-2 ring-turquoise-200">
               <AvatarImage src={post.user?.profileImage} alt={post.user?.name} />
-              <AvatarFallback>{post.user?.name?.charAt(0) || 'U'}</AvatarFallback>
+              <AvatarFallback className="bg-gradient-to-br from-turquoise-400 to-cyan-500 text-white">{post.user?.name?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             <div>
-              <h4 className="font-semibold text-tango-black">{post.user?.name || 'Unknown User'}</h4>
-              <p className="text-sm text-gray-500">
+              <h4 className="font-semibold text-gray-800">{post.user?.name || 'Unknown User'}</h4>
+              <p className="text-sm text-turquoise-600">
                 {formatTimeAgo(post.createdAt)} • @{post.user?.username}
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-600">
+          <Button variant="ghost" size="sm" className="text-turquoise-400 hover:text-turquoise-600">
             <MoreHorizontal className="h-5 w-5" />
           </Button>
         </div>
@@ -159,7 +159,7 @@ export default function PostCard({ post }: PostCardProps) {
 
       {/* Post Content */}
       <CardContent className="p-4">
-        <p className="text-tango-black mb-4 whitespace-pre-wrap">{post.content}</p>
+        <p className="text-gray-700 mb-4 whitespace-pre-wrap">{post.content}</p>
         
         {/* Media */}
         {post.imageUrl && (
@@ -180,12 +180,21 @@ export default function PostCard({ post }: PostCardProps) {
       </CardContent>
 
       {/* Post Actions */}
-      <div className="px-4 py-3 border-t border-gray-100">
+      <div className="px-4 py-3 border-t border-turquoise-100/50">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-4 text-sm text-gray-500">
-            <span>{post.likesCount} likes</span>
-            <span>{post.commentsCount} comments</span>
-            <span>{post.sharesCount} shares</span>
+          <div className="flex items-center space-x-4 text-sm text-turquoise-700">
+            <span className="flex items-center gap-1">
+              <Heart className="h-4 w-4" />
+              {post.likesCount} likes
+            </span>
+            <span className="flex items-center gap-1">
+              <MessageCircle className="h-4 w-4" />
+              {post.commentsCount} comments
+            </span>
+            <span className="flex items-center gap-1">
+              <Share2 className="h-4 w-4" />
+              {post.sharesCount} shares
+            </span>
           </div>
         </div>
         
@@ -195,7 +204,7 @@ export default function PostCard({ post }: PostCardProps) {
             size="sm"
             onClick={handleLike}
             disabled={likeMutation.isPending}
-            className={`flex items-center space-x-2 ${isLiked ? 'text-red-500' : 'text-gray-600'} hover:text-tango-red`}
+            className={`flex items-center space-x-2 ${isLiked ? 'text-pink-500' : 'text-turquoise-600'} hover:text-pink-500 transition-colors`}
           >
             <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
             <span>Like</span>
@@ -205,7 +214,7 @@ export default function PostCard({ post }: PostCardProps) {
             variant="ghost"
             size="sm"
             onClick={() => setShowComments(!showComments)}
-            className="flex items-center space-x-2 text-gray-600 hover:text-tango-red"
+            className="flex items-center space-x-2 text-turquoise-600 hover:text-cyan-600 transition-colors"
           >
             <MessageCircle className="h-5 w-5" />
             <span>Comment</span>
@@ -215,7 +224,7 @@ export default function PostCard({ post }: PostCardProps) {
             variant="ghost"
             size="sm"
             onClick={handleShare}
-            className="flex items-center space-x-2 text-gray-600 hover:text-tango-red"
+            className="flex items-center space-x-2 text-turquoise-600 hover:text-cyan-600 transition-colors"
           >
             <Share2 className="h-5 w-5" />
             <span>Share</span>

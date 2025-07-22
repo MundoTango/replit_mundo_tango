@@ -96,18 +96,18 @@ export default function CreatePost() {
   };
 
   return (
-    <Card className="card-shadow mb-6">
+    <Card className="glassmorphic-card rounded-xl shadow-lg mb-6">
       <CardContent className="p-4">
         <div className="flex items-center space-x-3 mb-4">
-          <Avatar className="w-10 h-10">
+          <Avatar className="w-10 h-10 ring-2 ring-turquoise-200">
             <AvatarImage src={user?.profileImage || ""} alt={user?.name} />
-            <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+            <AvatarFallback className="bg-gradient-to-br from-turquoise-400 to-cyan-500 text-white">{user?.name?.charAt(0) || 'U'}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
             {!isExpanded ? (
               <button
                 onClick={() => setIsExpanded(true)}
-                className="w-full text-left bg-gray-100 rounded-full px-4 py-2 text-gray-500 hover:bg-gray-200 transition-colors"
+                className="w-full text-left bg-gradient-to-r from-turquoise-50 to-cyan-50 rounded-full px-4 py-2 text-turquoise-600 hover:from-turquoise-100 hover:to-cyan-100 transition-all duration-300"
               >
                 Share your tango experience...
               </button>
@@ -116,7 +116,7 @@ export default function CreatePost() {
                 placeholder="Share your tango experience..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="resize-none border-none p-0 text-base placeholder:text-gray-500 focus-visible:ring-0"
+                className="resize-none border-none p-0 text-base placeholder:text-turquoise-400 focus-visible:ring-0 bg-transparent"
                 rows={3}
               />
             )}
@@ -149,7 +149,7 @@ export default function CreatePost() {
 
         <div className="flex items-center justify-between">
           <div className="flex space-x-4">
-            <label className="flex items-center space-x-2 text-gray-600 hover:text-tango-red cursor-pointer">
+            <label className="flex items-center space-x-2 text-turquoise-600 hover:text-cyan-600 cursor-pointer transition-colors">
               <input
                 type="file"
                 accept="image/*,video/*"
@@ -160,7 +160,7 @@ export default function CreatePost() {
               <span className="text-sm">Photo/Video</span>
             </label>
             
-            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-tango-red p-0">
+            <Button variant="ghost" size="sm" className="text-turquoise-600 hover:text-cyan-600 p-0 transition-colors">
               <Calendar className="h-5 w-5 mr-2" />
               <span className="text-sm">Event</span>
             </Button>
@@ -176,6 +176,7 @@ export default function CreatePost() {
                   setContent("");
                   removeFile();
                 }}
+                className="border-turquoise-200 text-turquoise-600 hover:bg-turquoise-50"
               >
                 Cancel
               </Button>
@@ -183,7 +184,7 @@ export default function CreatePost() {
                 size="sm"
                 onClick={handleSubmit}
                 disabled={createPostMutation.isPending}
-                className="bg-tango-red hover:bg-tango-red/90"
+                className="bg-gradient-to-r from-turquoise-500 to-cyan-500 hover:from-turquoise-600 hover:to-cyan-600 text-white transition-all duration-300"
               >
                 {createPostMutation.isPending ? "Posting..." : "Post"}
               </Button>
