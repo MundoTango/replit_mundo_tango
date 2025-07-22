@@ -541,31 +541,12 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                   Location
                 </h3>
                 
-                {googleMapsApiKey && showGoogleMaps ? (
-                  <GoogleMapsLocationPicker
-                    selectedLocation={form.watch('location')}
-                    onLocationSelect={(location) => {
-                      form.setValue('location', location);
-                    }}
-                  />
-                ) : (
-                  <SimpleLocationPicker
-                    selectedLocation={form.watch('location')}
-                    onLocationSelect={(location) => {
-                      form.setValue('location', location);
-                    }}
-                  />
-                )}
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowGoogleMaps(!showGoogleMaps)}
-                  className="w-full"
-                >
-                  {showGoogleMaps ? 'Use Simple Location Picker' : 'Use Map Location Picker'}
-                </Button>
+                <SimpleLocationPicker
+                  selectedLocation={form.watch('location') || { country: '', state: '', city: '' }}
+                  onLocationSelect={(location) => {
+                    form.setValue('location', location);
+                  }}
+                />
               </div>
             </form>
           </Form>
