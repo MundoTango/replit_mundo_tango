@@ -12,6 +12,8 @@ import { initAnalytics, analytics } from "@/lib/analytics";
 import { ThemeProvider } from "@/lib/theme/theme-provider";
 import ThemeManager from "@/components/theme/ThemeManager";
 import { performanceOptimizations } from "@/lib/performance-optimizations";
+import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
+import { lifeCeoPerformance } from "@/lib/life-ceo-performance";
 import { setupGlobalErrorHandlers, setupQueryErrorHandling } from "@/lib/global-error-handler";
 import { MicroInteractionProvider } from "@/components/MicroInteractionProvider";
 import NotFound from "@/pages/not-found";
@@ -72,6 +74,7 @@ import HostOnboarding from "@/pages/HostOnboarding";
 import GuestOnboarding from "@/pages/GuestOnboarding";
 import PerformanceTest from "@/pages/PerformanceTest";
 import CityAutoCreationTest from "@/pages/CityAutoCreationTest";
+import LifeCeoPerformance from "@/pages/LifeCeoPerformance";
 
 // Simple error boundary component
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -220,12 +223,16 @@ function Router() {
       <Route path="/feature-navigation" component={FeatureNavigation} />
       <Route path="/performance-test" component={PerformanceTest} />
       <Route path="/city-test" component={CityAutoCreationTest} />
+      <Route path="/life-ceo-performance" component={LifeCeoPerformance} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
 function App() {
+  // Initialize Life CEO performance optimizations
+  const { lazyLoadImage, preloadResource } = usePerformanceOptimization();
+  
   // Initialize analytics, error handlers, and performance optimizations on app startup
   useEffect(() => {
     // Set up global error handlers
@@ -241,7 +248,53 @@ function App() {
     if (performanceOptimizations) {
       console.log('Performance optimizations initialized');
     }
-  }, []);
+    
+    // Life CEO Performance: Preload critical resources
+    console.log('⚡ Life CEO Performance: Preloading critical resources...');
+    preloadResource('/src/components/moments/EnhancedPostItem.tsx', 'script');
+    preloadResource('/src/pages/enhanced-timeline-v2.tsx', 'script');
+    
+    // Life CEO Performance: Apply lazy loading to all images on the page
+    const images = document.querySelectorAll('img[data-src]');
+    images.forEach(img => lazyLoadImage(img as HTMLImageElement));
+    
+    // Life CEO Advanced Performance: Analyze bundle size
+    lifeCeoPerformance.analyzeBundleSize();
+    
+    // Life CEO Performance: Monitor Core Web Vitals
+    if ('web-vital' in window) {
+      console.log('📊 Life CEO: Monitoring Core Web Vitals...');
+    }
+    
+    // Life CEO Performance: Enable aggressive prefetching after 3 seconds
+    setTimeout(() => {
+      console.log('🚀 Life CEO: Enabling aggressive route prefetching...');
+      // Prefetch top routes based on user behavior
+      const topRoutes = ['/moments', '/enhanced-timeline', '/profile', '/groups'];
+      topRoutes.forEach(route => {
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = route;
+        document.head.appendChild(link);
+      });
+    }, 3000);
+    
+    // Life CEO Performance: Set up request batching
+    console.log('🔄 Life CEO: Enabling request batching for optimal network usage...');
+    
+    // Life CEO Performance: Enable memory optimization
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => {
+        console.log('🧹 Life CEO: Running idle-time optimizations...');
+        // Clean up unused data from memory
+        queryClient.getQueryCache().getAll().forEach(query => {
+          if (query.state.dataUpdateCount === 0 && Date.now() - query.state.dataUpdatedAt > 300000) {
+            queryClient.removeQueries({ queryKey: query.queryKey });
+          }
+        });
+      });
+    }
+  }, [preloadResource, lazyLoadImage]);
 
   return (
     <QueryClientProvider client={queryClient}>

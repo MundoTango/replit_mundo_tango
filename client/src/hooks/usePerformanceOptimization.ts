@@ -1,141 +1,249 @@
-import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 
-// Custom hook for optimizing heavy computations
-export function useOptimizedComputation<T>(
-  computation: () => T,
-  dependencies: any[]
-): T {
-  return useMemo(() => computation(), dependencies);
+// Life CEO Performance Optimization Hook
+export function usePerformanceOptimization() {
+  const observersRef = useRef<Map<string, IntersectionObserver>>(new Map());
+
+  // Lazy load images with intersection observer
+  const lazyLoadImage = useCallback((imgElement: HTMLImageElement) => {
+    if (!imgElement.dataset.src) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target as HTMLImageElement;
+          img.src = img.dataset.src!;
+          img.classList.add('loaded');
+          observer.unobserve(img);
+        }
+      });
+    }, {
+      rootMargin: '50px'
+    });
+
+    observer.observe(imgElement);
+    observersRef.current.set(imgElement.dataset.src, observer);
+  }, []);
+
+  // Preload critical resources
+  const preloadResource = useCallback((url: string, type: 'image' | 'script' | 'style') => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.href = url;
+    
+    switch (type) {
+      case 'image':
+        link.as = 'image';
+        break;
+      case 'script':
+        link.as = 'script';
+        break;
+      case 'style':
+        link.as = 'style';
+        break;
+    }
+    
+    document.head.appendChild(link);
+  }, []);
+
+  // Defer non-critical scripts
+  const deferScript = useCallback((src: string) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.defer = true;
+    document.body.appendChild(script);
+  }, []);
+
+  // Optimize animations based on device performance
+  const optimizeAnimations = useCallback(() => {
+    // Check if user prefers reduced motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    
+    if (prefersReducedMotion) {
+      document.body.classList.add('reduce-motion');
+    }
+
+    // Disable animations on low-end devices
+    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) {
+      document.body.classList.add('low-performance-mode');
+    }
+  }, []);
+
+  // Resource hints for faster DNS resolution
+  const addResourceHints = useCallback(() => {
+    const hints = [
+      { rel: 'dns-prefetch', href: '//api.mundotango.life' },
+      { rel: 'preconnect', href: '//api.mundotango.life' },
+      { rel: 'dns-prefetch', href: '//images.pexels.com' },
+      { rel: 'preconnect', href: '//images.pexels.com' },
+    ];
+
+    hints.forEach(hint => {
+      const link = document.createElement('link');
+      link.rel = hint.rel;
+      link.href = hint.href;
+      document.head.appendChild(link);
+    });
+  }, []);
+
+  // Performance monitoring
+  const measurePerformance = useCallback(() => {
+    if ('performance' in window && 'measure' in window.performance) {
+      // Measure page load time
+      window.addEventListener('load', () => {
+        const perfData = window.performance.timing;
+        const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
+        const connectTime = perfData.responseEnd - perfData.requestStart;
+        const renderTime = perfData.domComplete - perfData.domLoading;
+
+        console.log('Life CEO Performance Metrics:', {
+          pageLoadTime: `${pageLoadTime}ms`,
+          connectTime: `${connectTime}ms`,
+          renderTime: `${renderTime}ms`,
+          totalResources: window.performance.getEntriesByType('resource').length
+        });
+
+        // Send metrics to Life CEO Performance Service
+        fetch('/api/performance/metrics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pageLoadTime,
+            connectTime,
+            renderTime,
+            url: window.location.pathname,
+            timestamp: new Date().toISOString()
+          })
+        }).catch(() => {}); // Silent fail
+      });
+    }
+  }, []);
+
+  // Initialize optimizations
+  useEffect(() => {
+    optimizeAnimations();
+    addResourceHints();
+    measurePerformance();
+
+    // Cleanup
+    return () => {
+      observersRef.current.forEach(observer => observer.disconnect());
+      observersRef.current.clear();
+    };
+  }, [optimizeAnimations, addResourceHints, measurePerformance]);
+
+  return {
+    lazyLoadImage,
+    preloadResource,
+    deferScript
+  };
 }
 
-// Custom hook for optimizing callbacks
-export function useOptimizedCallback<T extends (...args: any[]) => any>(
-  callback: T,
-  dependencies: any[]
-): T {
-  return useCallback(callback, dependencies);
-}
-
-// Custom hook for lazy loading with intersection observer
-export function useLazyLoad(threshold = 0.1) {
-  const { ref, inView } = useInView({
+// Hook for lazy loading components
+export function useLazyComponent(threshold = 0.1) {
+  const { ref, inView, entry } = useInView({
     threshold,
     triggerOnce: true
   });
-  
-  return { ref, isVisible: inView };
+
+  return { ref, shouldLoad: inView, entry };
 }
 
-// Custom hook for request deduplication
-export function useRequestDeduplication<T>(
-  key: string,
-  fetcher: () => Promise<T>,
-  ttl = 5000 // 5 seconds default
+// Hook for performance-optimized data fetching
+export function useOptimizedFetch<T>(
+  url: string,
+  options?: RequestInit,
+  dependencies: any[] = []
 ) {
-  const cache = useRef<Map<string, { data: T; timestamp: number }>>(new Map());
-  
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const abortControllerRef = useRef<AbortController>();
+
   const fetchData = useCallback(async () => {
-    const cached = cache.current.get(key);
-    const now = Date.now();
-    
-    if (cached && now - cached.timestamp < ttl) {
-      return cached.data;
+    // Abort previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
-    
-    const data = await fetcher();
-    cache.current.set(key, { data, timestamp: now });
-    
-    // Clean up old entries
-    setTimeout(() => {
-      cache.current.delete(key);
-    }, ttl);
-    
-    return data;
-  }, [key, fetcher, ttl]);
-  
-  return fetchData;
-}
 
-// Custom hook for batch API requests
-export function useBatchRequests<T>(
-  batchSize = 10,
-  delay = 100
-) {
-  const queue = useRef<Array<{
-    request: () => Promise<T>;
-    resolve: (value: T) => void;
-    reject: (error: any) => void;
-  }>>([]);
-  
-  const timer = useRef<NodeJS.Timeout | null>(null);
-  
-  const processBatch = useCallback(async () => {
-    const batch = queue.current.splice(0, batchSize);
-    
-    const results = await Promise.allSettled(
-      batch.map(item => item.request())
-    );
-    
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        batch[index].resolve(result.value);
-      } else {
-        batch[index].reject(result.reason);
-      }
-    });
-  }, [batchSize]);
-  
-  const addRequest = useCallback((request: () => Promise<T>) => {
-    return new Promise<T>((resolve, reject) => {
-      queue.current.push({ request, resolve, reject });
-      
-      if (timer.current) {
-        clearTimeout(timer.current);
-      }
-      
-      timer.current = setTimeout(() => {
-        processBatch();
-      }, delay);
-    });
-  }, [delay, processBatch]);
-  
-  return addRequest;
-}
+    abortControllerRef.current = new AbortController();
+    setLoading(true);
+    setError(null);
 
-// Custom hook for image preloading
-export function useImagePreloader(urls: string[]) {
-  const [loaded, setLoaded] = useState(false);
-  
-  useEffect(() => {
-    let isMounted = true;
-    
-    const preloadImages = async () => {
-      const promises = urls.map(url => {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = url;
-        });
-      });
-      
-      try {
-        await Promise.all(promises);
-        if (isMounted) {
-          setLoaded(true);
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: abortControllerRef.current.signal,
+        headers: {
+          ...options?.headers,
+          'X-Request-Priority': 'high' // Life CEO priority header
         }
-      } catch (error) {
-        console.error('Failed to preload images:', error);
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setData(result);
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        setError(err);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [url, ...dependencies]);
+
+  useEffect(() => {
+    fetchData();
+
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
-    
-    preloadImages();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [urls]);
-  
-  return loaded;
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
 }
+
+// Performance optimization utilities
+export const performanceUtils = {
+  // Debounce function for search and input handlers
+  debounce: <T extends (...args: any[]) => any>(
+    func: T,
+    wait: number
+  ): ((...args: Parameters<T>) => void) => {
+    let timeout: NodeJS.Timeout;
+    return (...args: Parameters<T>) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  },
+
+  // Throttle function for scroll and resize handlers
+  throttle: <T extends (...args: any[]) => any>(
+    func: T,
+    limit: number
+  ): ((...args: Parameters<T>) => void) => {
+    let inThrottle: boolean;
+    return (...args: Parameters<T>) => {
+      if (!inThrottle) {
+        func(...args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    };
+  },
+
+  // Request idle callback wrapper
+  requestIdleCallback: (callback: () => void) => {
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(callback);
+    } else {
+      setTimeout(callback, 1);
+    }
+  }
+};
