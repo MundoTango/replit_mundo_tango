@@ -44,7 +44,7 @@ queryClient.setDefaultOptions({
 // 3. API Request Batching for multiple endpoints
 export const apiBatcher = {
   // Batch user-related requests
-  userBatcher: new RequestBatcher<string, any>(
+  userBatcher: new RequestBatcher<any>(
     async (userIds: string[]) => {
       const response = await fetch('/api/users/batch', {
         method: 'POST',
@@ -58,7 +58,7 @@ export const apiBatcher = {
   ),
 
   // Batch notification requests
-  notificationBatcher: new RequestBatcher<string, any>(
+  notificationBatcher: new RequestBatcher<any>(
     async (types: string[]) => {
       const response = await fetch('/api/notifications/batch', {
         method: 'POST',
