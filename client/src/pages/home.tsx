@@ -29,6 +29,8 @@ interface Post {
 }
 
 export default function Home() {
+  // MT Ocean Theme Restored - July 22, 2025 9:14PM - v3
+  // Force cache refresh with unique timestamp
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const { data: postsResponse, isLoading } = useQuery({
@@ -49,7 +51,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-turquoise-50 via-cyan-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-turquoise-50 via-cyan-50 to-blue-50" key="mt-ocean-theme-v2">
       <Navbar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
       
       <div className="flex">
