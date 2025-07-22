@@ -38,7 +38,7 @@ const tangoRoles: Role[] = [
     name: 'dancer',
     label: 'Social Dancer',
     description: 'I enjoy dancing tango socially at milongas and events',
-    icon: <Heart className="w-5 h-5" />,
+    icon: <span className="text-2xl">💃</span>,
     color: 'from-pink-400 to-rose-500',
     details: [
       'Attend milongas regularly',
@@ -48,53 +48,11 @@ const tangoRoles: Role[] = [
     ]
   },
   {
-    id: 'teacher',
-    name: 'teacher',
-    label: 'Tango Teacher',
-    description: 'I teach tango classes, workshops, or private lessons',
-    icon: <GraduationCap className="w-5 h-5" />,
-    color: 'from-purple-400 to-indigo-500',
-    details: [
-      'Lead regular classes',
-      'Conduct workshops and seminars',
-      'Offer private lessons',
-      'Share technique and philosophy'
-    ]
-  },
-  {
-    id: 'organizer',
-    name: 'organizer',
-    label: 'Event Organizer',
-    description: 'I organize milongas, festivals, or tango events',
-    icon: <Calendar className="w-5 h-5" />,
-    color: 'from-blue-400 to-cyan-500',
-    details: [
-      'Host regular milongas',
-      'Organize tango festivals',
-      'Coordinate workshops and events',
-      'Build tango communities'
-    ]
-  },
-  {
-    id: 'dj',
-    name: 'dj',
-    label: 'Tango DJ',
-    description: 'I DJ at milongas and tango events',
-    icon: <Music className="w-5 h-5" />,
-    color: 'from-green-400 to-emerald-500',
-    details: [
-      'Create tandas and cortinas',
-      'Read the dance floor energy',
-      'Curate musical journeys',
-      'Mix traditional and nuevo'
-    ]
-  },
-  {
     id: 'performer',
     name: 'performer',
     label: 'Professional Performer',
     description: 'I perform tango professionally on stage',
-    icon: <Star className="w-5 h-5" />,
+    icon: <span className="text-2xl">⭐</span>,
     color: 'from-yellow-400 to-orange-500',
     details: [
       'Stage performances',
@@ -104,11 +62,53 @@ const tangoRoles: Role[] = [
     ]
   },
   {
+    id: 'teacher',
+    name: 'teacher',
+    label: 'Tango Teacher',
+    description: 'I teach tango classes, workshops, or private lessons',
+    icon: <span className="text-2xl">📚</span>,
+    color: 'from-purple-400 to-indigo-500',
+    details: [
+      'Lead regular classes',
+      'Conduct workshops and seminars',
+      'Offer private lessons',
+      'Share technique and philosophy'
+    ]
+  },
+  {
+    id: 'learning_source',
+    name: 'learning_source',
+    label: 'Learning Resource',
+    description: 'I provide learning resources and educational content',
+    icon: <span className="text-2xl">📖</span>,
+    color: 'from-blue-400 to-indigo-500',
+    details: [
+      'Create educational materials',
+      'Develop online courses',
+      'Write instructional guides',
+      'Share learning resources'
+    ]
+  },
+  {
+    id: 'dj',
+    name: 'dj',
+    label: 'Tango DJ',
+    description: 'I DJ at milongas and tango events',
+    icon: <span className="text-2xl">🎵</span>,
+    color: 'from-green-400 to-emerald-500',
+    details: [
+      'Create tandas and cortinas',
+      'Read the dance floor energy',
+      'Curate musical journeys',
+      'Mix traditional and nuevo'
+    ]
+  },
+  {
     id: 'musician',
     name: 'musician',
     label: 'Tango Musician',
     description: 'I play tango music professionally',
-    icon: <Mic className="w-5 h-5" />,
+    icon: <span className="text-2xl">🎼</span>,
     color: 'from-red-400 to-pink-500',
     details: [
       'Play in tango orchestras',
@@ -118,39 +118,95 @@ const tangoRoles: Role[] = [
     ]
   },
   {
-    id: 'producer',
-    name: 'producer',
-    label: 'Festival Producer',
-    description: 'I produce large-scale tango festivals and events',
-    icon: <Briefcase className="w-5 h-5" />,
+    id: 'organizer',
+    name: 'organizer',
+    label: 'Event Organizer',
+    description: 'I organize milongas, festivals, or tango events',
+    icon: <span className="text-2xl">🎪</span>,
+    color: 'from-blue-400 to-cyan-500',
+    details: [
+      'Host regular milongas',
+      'Organize tango festivals',
+      'Coordinate workshops and events',
+      'Build tango communities'
+    ]
+  },
+  {
+    id: 'host',
+    name: 'host',
+    label: 'Host/Venue Owner',
+    description: 'I host tango events or own a tango venue',
+    icon: <span className="text-2xl">🏠</span>,
+    color: 'from-amber-400 to-orange-500',
+    details: [
+      'Provide venue for milongas',
+      'Host weekly practicas',
+      'Maintain dance floors',
+      'Create welcoming spaces'
+    ]
+  },
+  {
+    id: 'guide',
+    name: 'guide',
+    label: 'Tango Guide',
+    description: 'I guide visitors through the local tango scene',
+    icon: <span className="text-2xl">🗺️</span>,
+    color: 'from-teal-400 to-cyan-500',
+    details: [
+      'Show visitors best milongas',
+      'Provide local insights',
+      'Connect with communities',
+      'Share cultural knowledge'
+    ]
+  },
+  {
+    id: 'photographer',
+    name: 'photographer',
+    label: 'Tango Photographer',
+    description: 'I photograph tango events and dancers',
+    icon: <span className="text-2xl">📸</span>,
+    color: 'from-purple-400 to-pink-500',
+    details: [
+      'Capture milonga moments',
+      'Professional dance photos',
+      'Event documentation',
+      'Artistic tango imagery'
+    ]
+  },
+  {
+    id: 'content_creator',
+    name: 'content_creator',
+    label: 'Content Creator',
+    description: 'I create tango content for social media and blogs',
+    icon: <span className="text-2xl">🎙️</span>,
+    color: 'from-pink-400 to-purple-500',
+    details: [
+      'Create social media content',
+      'Produce tango podcasts',
+      'Film dance videos',
+      'Share tango stories'
+    ]
+  },
+  {
+    id: 'choreographer',
+    name: 'choreographer',
+    label: 'Choreographer',
+    description: 'I create tango choreographies for shows and performances',
+    icon: <span className="text-2xl">✨</span>,
     color: 'from-indigo-400 to-purple-500',
     details: [
-      'Produce major festivals',
-      'Manage event logistics',
-      'Book international artists',
-      'Create tango experiences'
+      'Design show choreographies',
+      'Create performance pieces',
+      'Stage theatrical tangos',
+      'Develop artistic concepts'
     ]
   },
   {
-    id: 'blogger',
-    name: 'blogger',
-    label: 'Tango Blogger/Influencer',
-    description: 'I create content about tango culture and community',
-    icon: <Globe className="w-5 h-5" />,
-    color: 'from-cyan-400 to-blue-500',
-    details: [
-      'Write about tango culture',
-      'Share dance experiences',
-      'Review events and venues',
-      'Document tango history'
-    ]
-  },
-  {
-    id: 'traveler',
+    id: 'tango_traveler',
     name: 'tango_traveler',
     label: 'Tango Traveler',
     description: 'I travel the world to dance tango in different cities',
-    icon: <MapPin className="w-5 h-5" />,
+    icon: <span className="text-2xl">🌍</span>,
     color: 'from-turquoise-400 to-cyan-500',
     details: [
       'Visit tango festivals globally',
@@ -160,31 +216,87 @@ const tangoRoles: Role[] = [
     ]
   },
   {
-    id: 'beginner',
-    name: 'beginner',
-    label: 'Tango Beginner',
-    description: 'I\'m new to tango and actively learning',
-    icon: <Baby className="w-5 h-5" />,
-    color: 'from-emerald-400 to-green-500',
+    id: 'tour_operator',
+    name: 'tour_operator',
+    label: 'Tour Operator',
+    description: 'I organize tango travel experiences and tours',
+    icon: <span className="text-2xl">✈️</span>,
+    color: 'from-sky-400 to-blue-500',
     details: [
-      'Taking beginner classes',
-      'Learning basic steps',
-      'Discovering tango music',
-      'Building confidence'
+      'Organize tango trips',
+      'Plan festival packages',
+      'Coordinate group travel',
+      'Create tango vacations'
     ]
   },
   {
-    id: 'enthusiast',
-    name: 'enthusiast',
-    label: 'Tango Enthusiast',
-    description: 'I\'m passionate about all aspects of tango culture',
-    icon: <Sparkles className="w-5 h-5" />,
-    color: 'from-pink-400 to-purple-500',
+    id: 'vendor',
+    name: 'vendor',
+    label: 'Tango Vendor',
+    description: 'I sell tango-related products (shoes, clothes, accessories)',
+    icon: <span className="text-2xl">🛒</span>,
+    color: 'from-emerald-400 to-green-500',
     details: [
-      'Study tango history',
-      'Collect tango music',
-      'Support the community',
-      'Promote tango culture'
+      'Sell tango shoes',
+      'Provide dance clothing',
+      'Offer tango accessories',
+      'Supply community needs'
+    ]
+  },
+  {
+    id: 'wellness_provider',
+    name: 'wellness_provider',
+    label: 'Wellness Provider',
+    description: 'I provide wellness services for tango dancers',
+    icon: <span className="text-2xl">💆</span>,
+    color: 'from-rose-400 to-pink-500',
+    details: [
+      'Massage therapy for dancers',
+      'Body work and alignment',
+      'Injury prevention',
+      'Holistic health services'
+    ]
+  },
+  {
+    id: 'tango_school',
+    name: 'tango_school',
+    label: 'Tango School',
+    description: 'I run or represent a tango school',
+    icon: <span className="text-2xl">🏫</span>,
+    color: 'from-indigo-400 to-blue-500',
+    details: [
+      'Manage dance academy',
+      'Structured curriculum',
+      'Student programs',
+      'Professional training'
+    ]
+  },
+  {
+    id: 'tango_hotel',
+    name: 'tango_hotel',
+    label: 'Tango Hotel',
+    description: 'I provide accommodation specifically for tango dancers',
+    icon: <span className="text-2xl">🏨</span>,
+    color: 'from-purple-400 to-indigo-500',
+    details: [
+      'Tango-friendly lodging',
+      'Practice spaces',
+      'Dancer amenities',
+      'Festival accommodation'
+    ]
+  },
+  {
+    id: 'other',
+    name: 'other',
+    label: 'Other',
+    description: 'I contribute to tango in other ways',
+    icon: <span className="text-2xl">➕</span>,
+    color: 'from-gray-400 to-gray-500',
+    details: [
+      'Unique contributions',
+      'Support services',
+      'Community involvement',
+      'Special projects'
     ]
   }
 ];
