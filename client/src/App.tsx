@@ -168,7 +168,7 @@ function Router() {
       <Suspense fallback={<LoadingFallback />}>
         <Switch>
           {/* Core routes - minimal bundle */}
-          <Route path="/">{() => <Redirect to="/life-ceo-test" />}</Route>
+          <Route path="/" component={Home} />
           <Route path="/life-ceo-test" component={LifeCeoTest} />
           <Route path="/register">{() => <Redirect to="/" />}</Route>
           
