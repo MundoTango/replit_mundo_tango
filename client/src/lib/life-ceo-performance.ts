@@ -10,6 +10,11 @@ interface PerformanceConfig {
 }
 
 class LifeCeoPerformanceOptimizer {
+  // Add init method for compatibility
+  public init() {
+    // Already initialized in constructor
+    return this;
+  }
   private config: PerformanceConfig = {
     enablePrefetch: true,
     enableLazyLoading: true,
