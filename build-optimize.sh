@@ -1,27 +1,24 @@
 #!/bin/bash
+
 # Optimized build script with memory management
 
-# Load build environment variables
-if [ -f .env.build ]; then
-  export $(cat .env.build | xargs)
-fi
+echo "🚀 Starting optimized build process..."
 
-# Set Node.js memory limit
-export NODE_OPTIONS="--max_old_space_size=8192"
-
-# Clear cache before build
+# Clear any existing build cache
+echo "🧹 Clearing build cache..."
 rm -rf node_modules/.vite
 rm -rf dist
+rm -rf client/dist
 
-# Run the build with optimized settings
-echo "Starting optimized build process..."
+# Export build environment variables
+export NODE_OPTIONS="--max_old_space_size=8192"
+export NODE_ENV="production"
+export VITE_BUILD_SOURCEMAP="false"
+export VITE_BUILD_MINIFY="true"
 
-# Build frontend with Vite
-echo "Building frontend..."
-NODE_OPTIONS="--max_old_space_size=8192" vite build
+echo "📦 Building with 8GB memory allocation..."
 
-# Build backend with esbuild
-echo "Building backend..."
-esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+# Run the build with increased memory
+npm run build
 
-echo "Build completed successfully!"
+echo "✅ Build completed successfully!"

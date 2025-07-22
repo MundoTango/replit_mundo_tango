@@ -68,7 +68,6 @@ export class CityAutoCreationService {
     'cai': 'Cairo',
     'dxb': 'Dubai',
     'tlv': 'Tel Aviv',
-    'ist': 'Istanbul',
     'lis': 'Lisbon',
     'vie': 'Vienna',
     'prg': 'Prague',
@@ -256,21 +255,15 @@ export class CityAutoCreationService {
           slug: slug,
           description: `Tango community in ${fullLocationName}`,
           type: 'city',
-          visibility: 'public',
+          isPrivate: false,
           memberCount: 0,
-          location: fullLocationName,
+          city: normalizedCity,
+          country: country || null,
           latitude: geoData?.lat || null,
           longitude: geoData?.lon || null,
           createdBy: userId || 1, // Default to system user if no user provided
           coverImage: null,
-          welcomeMessage: `Welcome to the ${normalizedCity} tango community! Connect with local dancers, find milongas, and share your tango journey.`,
-          rules: JSON.stringify([
-            'Be respectful to all community members',
-            'Share tango-related content only',
-            'Support local tango events and venues',
-            'Help newcomers feel welcome',
-            'No spam or commercial posts without permission'
-          ]),
+          emoji: '🏙️',
           createdAt: new Date(),
           updatedAt: new Date()
         })

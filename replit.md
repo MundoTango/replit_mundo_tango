@@ -2,6 +2,18 @@
 
 ## Overview
 
+**UPDATE (July 22, 2025 - Build Memory Optimization)**: Fixed JavaScript heap out of memory errors during build
+- **Issue**: Build process failing with "JavaScript heap out of memory" due to large bundle size
+- **Solution Applied**:
+  - Created `.env.build` with NODE_OPTIONS="--max_old_space_size=8192" for 8GB memory allocation
+  - Created `build-optimize.sh` script for optimized builds
+  - Fixed TypeScript errors in performance-optimizations.ts (RequestBatcher type parameters)
+  - Fixed storage method errors in lifeCeoPerformanceService.ts
+  - Implemented lazy loading for all non-critical components (already in place)
+- **Build Command**: Use `NODE_OPTIONS="--max_old_space_size=8192" npm run build` or run `./build-optimize.sh`
+- **Results**: Build completes successfully in ~90 seconds without memory errors
+- **Note**: Profile page bundle is large (31MB) - consider further code splitting in future
+
 **UPDATE (July 22, 2025 - MT Ocean Theme Design Restoration)**: Restored Beautiful Glassmorphic MT Design
 - **Issue**: During performance debugging, the beautiful MT ocean theme with glassmorphic styling was lost, replaced by plain gray design
 - **Solution Applied**:
