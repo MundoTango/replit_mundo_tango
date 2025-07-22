@@ -11,7 +11,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { TileSelect } from "@/components/ui/tile-select";
-import { LocationPicker } from "@/components/onboarding/LocationPicker";
+import { SimpleLocationPicker } from "@/components/profile/SimpleLocationPicker";
 import GoogleMapsLocationPicker from "@/components/onboarding/GoogleMapsLocationPicker";
 import RoleSelector from "@/components/onboarding/RoleSelector";
 import SimpleRoleSelector from "@/components/debugging/SimpleRoleSelector";
@@ -549,7 +549,7 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                     }}
                   />
                 ) : (
-                  <LocationPicker
+                  <SimpleLocationPicker
                     selectedLocation={form.watch('location')}
                     onLocationSelect={(location) => {
                       form.setValue('location', location);
