@@ -318,8 +318,8 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
         </div>
       </CardHeader>
       <CardContent className="pt-6 space-y-6">
-        {/* Bio Section */}
-        {(canViewField('bio') || isEditing) && (
+          {/* Bio Section */}
+          {(canViewField('bio') || isEditing) && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-sm font-medium text-gray-700">Bio</Label>
@@ -452,78 +452,145 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
           </div>
         )}
 
-        {/* Tango Details Section */}
+        {/* Tango Details Section - Matching Registration Form Design */}
         {(canViewField('tangoDetails') || isEditing) && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <Heart className="h-4 w-4 text-turquoise-600" />
-                Tango Details
-              </Label>
-              {isEditing && (
-                <Select
-                  value={formData.profileVisibility.tangoDetails}
-                  onValueChange={(value: any) => setFormData({
-                    ...formData,
-                    profileVisibility: { ...formData.profileVisibility, tangoDetails: value }
-                  })}
-                >
-                  <SelectTrigger className="w-32 h-8 border-turquoise-200">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">
-                      <div className="flex items-center gap-2">
-                        <Earth className="h-3 w-3" />
-                        Public
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="friends">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-3 w-3" />
-                        Friends
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="private">
-                      <div className="flex items-center gap-2">
-                        <Lock className="h-3 w-3" />
-                        Private
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-            
-            <div className="space-y-3">
-              {/* Dancing Since */}
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-turquoise-500" />
-                {isEditing ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Dancing since</span>
-                    <Input
-                      type="number"
-                      value={formData.tangoStartYear}
-                      onChange={(e) => setFormData({ ...formData, tangoStartYear: parseInt(e.target.value) })}
-                      min="1900"
-                      max={new Date().getFullYear()}
-                      className="w-24 border-turquoise-200 focus:border-turquoise-400"
-                    />
+          <div className="space-y-6">
+            {!isEditing ? (
+              // Non-editing view with glassmorphic cards
+              <>
+                {/* Tango Activities Card */}
+                <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50 glassmorphic-card">
+                  <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-teal-300 transition-colors">
+                    <div className="w-10 h-10 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-full flex items-center justify-center group-hover:animate-pulse shadow-lg">
+                      <Users className="w-5 h-5 text-teal-600 group-hover:text-emerald-600 transition-colors duration-300" />
+                    </div>
+                    <h2 className="text-xl font-medium text-gray-900 group-hover:text-teal-700 transition-colors">Tango Activities</h2>
+                    <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full">💃 Your tango style!</span>
+                    </div>
                   </div>
-                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {parseTangoRoles(user.tangoRoles).map((role) => (
+                      <Badge
+                        key={role}
+                        className="bg-gradient-to-r from-turquoise-500/10 to-cyan-600/10 text-turquoise-700 border-turquoise-300"
+                      >
+                        {role}
+                      </Badge>
+                    ))}
+                    {parseTangoRoles(user.tangoRoles).length === 0 && (
+                      <span className="text-sm text-gray-500">No roles specified</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Dance Role Skills Card */}
+                {(user.leaderLevel > 0 || user.followerLevel > 0) && (
+                  <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50 glassmorphic-card">
+                    <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-purple-300 transition-colors">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center group-hover:animate-pulse shadow-lg">
+                        <Music className="w-5 h-5 text-purple-600 group-hover:text-pink-600 transition-colors duration-300" />
+                      </div>
+                      <h2 className="text-xl font-medium text-gray-900 group-hover:text-purple-700 transition-colors">Dance Style</h2>
+                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">🕺 Your dance levels!</span>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {user.leaderLevel > 0 && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">🤵</span>
+                          <span className="text-sm text-gray-700">Leader Level: {user.leaderLevel}/10</span>
+                        </div>
+                      )}
+                      {user.followerLevel > 0 && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">💃</span>
+                          <span className="text-sm text-gray-700">Follower Level: {user.followerLevel}/10</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Dancing Since */}
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-turquoise-500" />
                   <span className="text-sm text-gray-600">
                     Dancing for {yearsOfDancing} {yearsOfDancing === 1 ? 'year' : 'years'}
                   </span>
-                )}
-              </div>
+                </div>
+              </>
+            ) : (
+              // Editing view with registration form style
+              <div className="space-y-6">
+                {/* Visibility selector */}
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Heart className="h-4 w-4 text-turquoise-600" />
+                    Tango Details
+                  </Label>
+                  <Select
+                    value={formData.profileVisibility.tangoDetails}
+                    onValueChange={(value: any) => setFormData({
+                      ...formData,
+                      profileVisibility: { ...formData.profileVisibility, tangoDetails: value }
+                    })}
+                  >
+                    <SelectTrigger className="w-32 h-8 border-turquoise-200">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">
+                        <div className="flex items-center gap-2">
+                          <Earth className="h-3 w-3" />
+                          Public
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="friends">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-3 w-3" />
+                          Friends
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="private">
+                        <div className="flex items-center gap-2">
+                          <Lock className="h-3 w-3" />
+                          Private
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+            
+                <div className="space-y-6">
+                  {/* Dancing Since */}
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-turquoise-500" />
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">Dancing since</span>
+                      <Input
+                        type="number"
+                        value={formData.tangoStartYear}
+                        onChange={(e) => setFormData({ ...formData, tangoStartYear: parseInt(e.target.value) })}
+                        min="1900"
+                        max={new Date().getFullYear()}
+                        className="w-24 border-turquoise-200 focus:border-turquoise-400"
+                      />
+                    </div>
+                  </div>
 
-              {/* Tango Roles */}
-              <div className="flex items-start gap-2">
-                <Briefcase className="h-4 w-4 text-turquoise-500 mt-1" />
-                <div className="flex-1">
-                  <Label className="text-sm font-medium text-gray-700 mb-2 block">What do you do in tango?</Label>
-                  {isEditing ? (
+                  {/* Tango Roles - Matching Registration Form Style */}
+                  <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50 glassmorphic-card">
+                    <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-teal-300 transition-colors">
+                      <div className="w-10 h-10 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-full flex items-center justify-center group-hover:animate-pulse shadow-lg">
+                        <Users className="w-5 h-5 text-teal-600 group-hover:text-emerald-600 transition-colors duration-300" />
+                      </div>
+                      <h2 className="text-xl font-medium text-gray-900 group-hover:text-teal-700 transition-colors">Tango Activities</h2>
+                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full">💃 Your tango style!</span>
+                      </div>
+                    </div>
                     <div className="space-y-2">
                       {[
                         { id: 'dancer', label: 'Dancer' },
@@ -542,7 +609,7 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                                 : formData.tangoRoles.filter(r => r !== role.label);
                               setFormData({ ...formData, tangoRoles: newRoles });
                             }}
-                            className="border-turquoise-300 data-[state=checked]:bg-turquoise-500 data-[state=checked]:border-turquoise-500"
+                            className="h-5 w-5 rounded border-gray-300 text-turquoise-600 focus:ring-turquoise-500"
                           />
                           <label
                             htmlFor={role.id}
@@ -553,110 +620,84 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {parseTangoRoles(user.tangoRoles).map((role) => (
-                        <Badge
-                          key={role}
-                          className="bg-gradient-to-r from-turquoise-500/10 to-cyan-600/10 text-turquoise-700 border-turquoise-300"
-                        >
-                          {role}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              {/* Leader/Follower Levels */}
-              <div className="space-y-4">
-                <div className="flex items-start gap-2">
-                  <Music className="h-4 w-4 text-turquoise-500 mt-1" />
-                  <div className="flex-1">
-                    <Label className="text-sm font-medium text-gray-700 mb-3 block">Do you dance as:</Label>
-                    {isEditing ? (
-                      <div className="space-y-4">
-                        {/* Leader Level */}
-                        <div className="space-y-2">
-                          <Label className="text-sm text-gray-600 flex items-center gap-2">
-                            <span className="text-lg">🤵</span>
-                            Leader Level: {formData.leaderLevel}/10
-                          </Label>
-                          <div className="px-3">
-                            <Slider
-                              value={[formData.leaderLevel]}
-                              onValueChange={(value) => setFormData({ ...formData, leaderLevel: value[0] })}
-                              max={10}
-                              step={1}
-                              className="w-full"
-                            />
-                            <div className="flex justify-between text-xs text-gray-500 mt-1">
-                              <span>Beginner</span>
-                              <span>Expert</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Follower Level */}
-                        <div className="space-y-2">
-                          <Label className="text-sm text-gray-600 flex items-center gap-2">
-                            <span className="text-lg">💃</span>
-                            Follower Level: {formData.followerLevel}/10
-                          </Label>
-                          <div className="px-3">
-                            <Slider
-                              value={[formData.followerLevel]}
-                              onValueChange={(value) => setFormData({ ...formData, followerLevel: value[0] })}
-                              max={10}
-                              step={1}
-                              className="w-full"
-                            />
-                            <div className="flex justify-between text-xs text-gray-500 mt-1">
-                              <span>Beginner</span>
-                              <span>Expert</span>
-                            </div>
+                  {/* Dance Role Skills - Matching Registration Form Style */}
+                  <div className="space-y-4 group hover:scale-[1.02] transition-all duration-300 hover:shadow-lg rounded-xl p-4 hover:bg-white/50 glassmorphic-card">
+                    <div className="flex items-center gap-3 pb-2 border-b border-gray-200 group-hover:border-purple-300 transition-colors">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center group-hover:animate-pulse shadow-lg">
+                        <Music className="w-5 h-5 text-purple-600 group-hover:text-pink-600 transition-colors duration-300" />
+                      </div>
+                      <h2 className="text-xl font-medium text-gray-900 group-hover:text-purple-700 transition-colors">Do you dance as:</h2>
+                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">🕺 Your dance style!</span>
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {/* Leader Level */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700 group-hover:text-purple-700 transition-colors flex items-center gap-2">
+                          <span className="text-lg">🤵</span>
+                          Leader Level: {formData.leaderLevel}/10
+                        </Label>
+                        <div className="px-3">
+                          <Slider
+                            value={[formData.leaderLevel]}
+                            onValueChange={(value) => setFormData({ ...formData, leaderLevel: value[0] })}
+                            max={10}
+                            step={1}
+                            className="w-full"
+                          />
+                          <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>Beginner</span>
+                            <span>Expert</span>
                           </div>
                         </div>
                       </div>
-                    ) : (
-                      <div className="space-y-2 text-sm text-gray-600">
-                        {user.leaderLevel > 0 && (
-                          <div>Leader Level: {user.leaderLevel}/10</div>
-                        )}
-                        {user.followerLevel > 0 && (
-                          <div>Follower Level: {user.followerLevel}/10</div>
-                        )}
-                        {!user.leaderLevel && !user.followerLevel && (
-                          <div>Dance levels not specified</div>
-                        )}
+                      
+                      {/* Follower Level */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700 group-hover:text-purple-700 transition-colors flex items-center gap-2">
+                          <span className="text-lg">💃</span>
+                          Follower Level: {formData.followerLevel}/10
+                        </Label>
+                        <div className="px-3">
+                          <Slider
+                            value={[formData.followerLevel]}
+                            onValueChange={(value) => setFormData({ ...formData, followerLevel: value[0] })}
+                            max={10}
+                            step={1}
+                            className="w-full"
+                          />
+                          <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>Beginner</span>
+                            <span>Expert</span>
+                          </div>
+                        </div>
                       </div>
-                    )}
+                    </div>
+                  </div>
+
+                  {/* Languages */}
+                  <div className="flex items-start gap-2">
+                    <Languages className="h-4 w-4 text-turquoise-500 mt-1" />
+                    <div className="flex-1">
+                      <Label className="text-sm font-medium text-gray-700 mb-2 block">Languages</Label>
+                      <Input
+                        value={formData.languages.join(', ')}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          languages: e.target.value.split(',').map(l => l.trim()).filter(Boolean)
+                        })}
+                        placeholder="English, Spanish, etc."
+                        className="border-turquoise-200 focus:border-turquoise-400"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-
-              {/* Languages */}
-              <div className="flex items-start gap-2">
-                <Languages className="h-4 w-4 text-turquoise-500 mt-1" />
-                <div className="flex-1">
-                  {isEditing ? (
-                    <Input
-                      value={formData.languages.join(', ')}
-                      onChange={(e) => setFormData({ 
-                        ...formData, 
-                        languages: e.target.value.split(',').map(l => l.trim()).filter(Boolean)
-                      })}
-                      placeholder="English, Spanish, etc."
-                      className="border-turquoise-200 focus:border-turquoise-400"
-                    />
-                  ) : (
-                    <span className="text-sm text-gray-600">
-                      {user.languages?.join(', ') || 'Languages not specified'}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         )}
 

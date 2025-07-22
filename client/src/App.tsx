@@ -170,7 +170,7 @@ function Router() {
   
   return (
     <Switch>
-      <Route path="/" component={Moments} />
+      <Route path="/">{() => <Redirect to="/enhanced-timeline" />}</Route>
       <Route path="/moments" component={Moments} />
       <Route path="/register">{() => <Redirect to="/" />}</Route>
       <Route path="/community">{() => <Redirect to="/community-world-map" />}</Route>
