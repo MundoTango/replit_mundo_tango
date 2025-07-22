@@ -205,4 +205,11 @@ export const getClientFeatureFlags = (userId?: number, userGroups?: string[]) =>
   return clientFlags;
 };
 
+// Initialize feature flags
+export const initializeFeatureFlags = async () => {
+  console.log('🚩 Life CEO: Initializing feature flags...');
+  // Feature flags are already initialized on import
+  return true;
+};
+
 console.log('🚩 Life CEO: Feature flags system initialized');

@@ -13,6 +13,19 @@ export const esClient = new Client({
   sniffOnStart: true,
 });
 
+// Initialize Elasticsearch
+export const initializeElasticsearch = async () => {
+  console.log('🔍 Elasticsearch: Initializing connection...');
+  try {
+    const info = await esClient.info();
+    console.log('✅ Elasticsearch connected:', info);
+    return true;
+  } catch (error: any) {
+    console.warn('⚠️ Elasticsearch not available:', error.message);
+    return false;
+  }
+};
+
 // Index definitions
 export const indices = {
   posts: 'mundotango_posts',

@@ -70,6 +70,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/bcrypt": "^5.0.2",
     "@types/chokidar": "^1.7.5",
+    "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/css": "^0.0.38",
     "@types/dompurify": "^3.0.5",

@@ -224,4 +224,7 @@ export const getQueueMetrics = async (queueName: string) => {
   };
 };
 
+// Export register for main server
+export { register };
+
 console.log('📊 Life CEO: Prometheus metrics initialized');

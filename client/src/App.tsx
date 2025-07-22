@@ -17,6 +17,7 @@ import { lifeCeoPerformance } from "@/lib/life-ceo-performance";
 import { setupGlobalErrorHandlers, setupQueryErrorHandling } from "@/lib/global-error-handler";
 import { MicroInteractionProvider } from "@/components/MicroInteractionProvider";
 import BuildOptimizer from "@/lib/build-optimizations";
+import * as Sentry from "@sentry/react";
 
 // Critical components that load immediately - minimal initial bundle
 import NotFound from "@/pages/not-found";
@@ -285,6 +286,22 @@ export default function App() {
     
     // Initialize analytics
     initAnalytics();
+    
+    // Initialize Sentry error tracking (production only)
+    if (process.env.NODE_ENV === 'production' && import.meta.env.VITE_SENTRY_DSN) {
+      Sentry.init({
+        dsn: import.meta.env.VITE_SENTRY_DSN,
+        integrations: [
+          Sentry.browserTracingIntegration(),
+          Sentry.replayIntegration()
+        ],
+        tracesSampleRate: 0.1,
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+        environment: 'production'
+      });
+      console.log('🎯 Sentry error tracking initialized');
+    }
     
     // Initialize performance optimizations
     if (performanceOptimizations) {

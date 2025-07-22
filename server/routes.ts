@@ -29,6 +29,7 @@ import cityAutoCreationTestRoutes from "./routes/cityAutoCreationTest";
 import searchRouter from "./routes/searchRoutes";
 import { CityAutoCreationService } from './services/cityAutoCreationService';
 import { cacheMiddleware, invalidateCacheAfter } from "./middleware/cacheMiddleware";
+import metricsRouter from "./routes/metrics";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add compression middleware for better performance
@@ -11446,6 +11447,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Statistics Routes
   // ========================================================================
   registerStatisticsRoutes(app);
+  
+  // ========================================================================
+  // Metrics Routes (Prometheus, Health checks)
+  // ========================================================================
+  app.use('/api', metricsRouter);
   
   // Evolution service routes (super admin only)
   const evolutionRoutes = await import('./routes/evolutionRoutes.js');

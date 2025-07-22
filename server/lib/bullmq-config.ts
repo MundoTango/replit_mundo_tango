@@ -182,6 +182,13 @@ export const getQueueMetrics = async (queueName: keyof typeof queues) => {
   };
 };
 
+// Initialize BullMQ
+export const initializeBullMQ = async () => {
+  console.log('🚀 BullMQ: Initializing queues and workers...');
+  // Workers will be started in separate processes
+  return true;
+};
+
 // Graceful shutdown
 export const gracefulShutdown = async () => {
   console.log('🛑 Life CEO: Shutting down job queues...');

@@ -3,8 +3,18 @@ import * as pathModule from "path";
 import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { initSentry } from "./lib/sentry";
+import { initializeBullMQ } from "./lib/bullmq-config";
+import { register } from "./lib/prometheus-metrics";
+import { initializeElasticsearch } from "./lib/elasticsearch-config";
+import { initializeFeatureFlags } from "./lib/feature-flags";
 
 const app = express();
+
+// Initialize Sentry error tracking
+initSentry(app);
+
+// Prometheus metrics register is already initialized on import
 
 // Enable compression for all responses
 app.use(compression({
@@ -123,6 +133,17 @@ app.get('/service-worker-workbox.js', (req, res) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Initialize performance tools
+    Promise.all([
+      initializeBullMQ(),
+      initializeElasticsearch(),
+      initializeFeatureFlags()
+    ]).then(results => {
+      console.log('🚀 Performance tools initialization complete:', results);
+    }).catch(error => {
+      console.warn('⚠️ Some performance tools failed to initialize:', error);
+    });
     
     // Initialize GDPR Compliance Monitoring
     try {
