@@ -41,7 +41,7 @@ export function useAuth() {
         console.log('Auth user data:', data);
         return data;
       } catch (error) {
-        if (error.name === 'AbortError') {
+        if (error instanceof Error && error.name === 'AbortError') {
           console.error('Auth request timed out after 5 seconds');
         } else {
           console.error('Auth error:', error);

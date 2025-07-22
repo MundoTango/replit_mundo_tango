@@ -393,6 +393,9 @@ export interface IStorage {
   getTravelDetail(id: number): Promise<TravelDetail | undefined>;
   getUserTravelDetails(userId: number): Promise<TravelDetail[]>;
   getPublicTravelDetails(userId: number): Promise<TravelDetail[]>;
+  
+  // Life CEO Performance Service
+  getRecentUserActivity(limit: number): Promise<{ route: string; userId?: number; timestamp: Date }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3462,6 +3465,22 @@ export class DatabaseStorage implements IStorage {
         eq(travelDetails.isPublic, true)
       ))
       .orderBy(desc(travelDetails.startDate));
+  }
+  
+  // Life CEO Performance Service Implementation
+  async getRecentUserActivity(limit: number): Promise<{ route: string; userId?: number; timestamp: Date }[]> {
+    // For now, return mock data since we don't have a user activity tracking table
+    // In a real implementation, this would query an activity log table
+    const mockActivities = [
+      { route: '/', userId: 1, timestamp: new Date() },
+      { route: '/moments', userId: 1, timestamp: new Date(Date.now() - 60000) },
+      { route: '/enhanced-timeline', userId: 1, timestamp: new Date(Date.now() - 120000) },
+      { route: '/profile', userId: 1, timestamp: new Date(Date.now() - 180000) },
+      { route: '/moments', userId: 2, timestamp: new Date(Date.now() - 240000) },
+      { route: '/', userId: 2, timestamp: new Date(Date.now() - 300000) }
+    ];
+    
+    return mockActivities.slice(0, limit);
   }
 }
 

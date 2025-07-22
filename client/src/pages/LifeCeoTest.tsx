@@ -8,16 +8,21 @@ export default function LifeCeoTest() {
     // Test Life CEO performance features
     console.log('🚀 Life CEO Test Page Loaded');
     
-    // Get performance metrics
-    const perfMetrics = lifeCeoPerformance.getMetrics();
-    setMetrics(perfMetrics);
+    // Get performance report
+    const loadMetrics = async () => {
+      try {
+        const report = await lifeCeoPerformance.getPerformanceReport();
+        setMetrics(report);
+      } catch (error) {
+        console.error('Failed to load performance report:', error);
+        setMetrics({ error: 'Failed to load metrics' });
+      }
+    };
+    loadMetrics();
     
     // Test virtual scrolling
     const testData = Array.from({ length: 1000 }, (_, i) => `Item ${i + 1}`);
     console.log('📊 Created test data with 1000 items for virtual scrolling');
-    
-    // Test predictive caching
-    lifeCeoPerformance.predictNavigation('/enhanced-timeline');
     
     // Analyze bundle
     lifeCeoPerformance.analyzeBundleSize();

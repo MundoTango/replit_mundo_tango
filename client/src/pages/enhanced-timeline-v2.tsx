@@ -266,8 +266,8 @@ function MemoryCard({ memory }: MemoryCardProps) {
                 
                 <RoleEmojiDisplay
                   tangoRoles={memory.user?.tangoRoles}
-                  leaderLevel={memory.user?.leaderLevel}
-                  followerLevel={memory.user?.followerLevel}
+                  leaderLevel={memory.user?.leaderLevel ? Number(memory.user.leaderLevel) : undefined}
+                  followerLevel={memory.user?.followerLevel ? Number(memory.user.followerLevel) : undefined}
                   size="sm"
                   maxRoles={3}
                   className="inline-flex"
@@ -360,7 +360,7 @@ function MemoryCard({ memory }: MemoryCardProps) {
         </div>
 
         <PostContextMenu
-          postId={memory.id}
+          postId={Number(memory.id)}
           isOwner={isOwner}
           onEdit={() => toast({ title: "Edit feature coming soon" })}
           onDelete={() => toast({ title: "Delete feature coming soon" })}
@@ -373,7 +373,7 @@ function MemoryCard({ memory }: MemoryCardProps) {
       {showComments && (
         <div className="space-y-4 pt-4 border-t">
           <RichTextCommentEditor
-            postId={memory.id}
+            postId={Number(memory.id)}
             onSubmit={handleComment}
             placeholder="Write a comment..."
           />
@@ -447,7 +447,7 @@ function MemoryCard({ memory }: MemoryCardProps) {
       {/* Report Modal */}
       <ReportModal
         isOpen={isReportModalOpen}
-        postId={memory.id}
+        postId={Number(memory.id)}
         onClose={() => setIsReportModalOpen(false)}
         onSubmit={handleReport}
       />
