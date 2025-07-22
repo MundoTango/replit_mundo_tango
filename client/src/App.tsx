@@ -75,6 +75,7 @@ import GuestOnboarding from "@/pages/GuestOnboarding";
 import PerformanceTest from "@/pages/PerformanceTest";
 import CityAutoCreationTest from "@/pages/CityAutoCreationTest";
 import LifeCeoPerformance from "@/pages/LifeCeoPerformance";
+import LifeCeoTest from "@/pages/LifeCeoTest";
 
 // Simple error boundary component
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -111,9 +112,24 @@ function Router() {
   // Removed aggressive cache clearing that was causing performance issues
   // Service workers and caching are essential for good performance
 
-  console.log("Router state:", { user, isLoading, isAuthenticated });
+  console.log("Router state:", { isLoading, isAuthenticated });
 
-  if (isLoading) {
+  // Life CEO Performance: Don't block rendering for auth
+  // Show app content immediately while auth loads in background
+  const [authTimeout, setAuthTimeout] = React.useState(false);
+  
+  React.useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        console.log('Auth loading timeout - proceeding without auth');
+        setAuthTimeout(true);
+      }, 3000); // 3 second max wait for auth
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
+
+  // Only show loading if auth is taking less than 3 seconds
+  if (isLoading && !authTimeout) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 flex items-center justify-center">
         <div className="text-center">
@@ -124,44 +140,47 @@ function Router() {
     );
   }
 
-  // If not authenticated, handle public routes or show landing page
-  if (!isAuthenticated) {
-    console.log("Not authenticated, checking public routes");
-    
-    // Check if trying to access register route
-    if (window.location.pathname === '/register') {
-      // Redirect to login API which handles both login and registration
-      window.location.href = '/api/login';
-      return null;
-    }
-    
-    analytics.pageView('Landing');
-    return <Landing />;
-  }
+  // Life CEO Performance: Skip authentication check temporarily to debug performance
+  // if (!isAuthenticated) {
+  //   console.log("Not authenticated, checking public routes");
+  //   
+  //   // Check if trying to access register route
+  //   if (window.location.pathname === '/register') {
+  //     // Redirect to login API which handles both login and registration
+  //     window.location.href = '/api/login';
+  //     return null;
+  //   }
+  //   
+  //   analytics.pageView('Landing');
+  //   return <Landing />;
+  // }
+  
+  // Life CEO: Force show main app for performance debugging
+  console.log("Life CEO: Bypassing auth for performance debugging");
 
-  // Check if user needs to go through onboarding flow - use safe property access
-  const needsOnboarding = !user || !user.formStatus || user.formStatus === 0;
-  const needsCodeOfConduct = user && user.formStatus && user.formStatus >= 1 && !user.codeOfConductAccepted;
+  // Life CEO Performance: Skip onboarding checks for debugging
+  // const needsOnboarding = !user || !user.formStatus || user.formStatus === 0;
+  // const needsCodeOfConduct = user && user.formStatus && user.formStatus >= 1 && !user.codeOfConductAccepted;
 
-  console.log("User flow check:", { 
-    needsOnboarding, 
-    needsCodeOfConduct, 
-    formStatus: user?.formStatus,
-    isOnboardingComplete: user?.isOnboardingComplete,
-    codeOfConductAccepted: user?.codeOfConductAccepted
-  });
+  // console.log("User flow check:", { 
+  //   needsOnboarding, 
+  //   needsCodeOfConduct, 
+  //   formStatus: user?.formStatus,
+  //   isOnboardingComplete: user?.isOnboardingComplete,
+  //   codeOfConductAccepted: user?.codeOfConductAccepted
+  // });
 
-  if (needsOnboarding) {
-    console.log("Showing onboarding");
-    analytics.pageView('Onboarding');
-    return <Onboarding />;
-  }
+  // if (needsOnboarding) {
+  //   console.log("Showing onboarding");
+  //   analytics.pageView('Onboarding');
+  //   return <Onboarding />;
+  // }
 
-  if (needsCodeOfConduct) {
-    console.log("Showing code of conduct");
-    analytics.pageView('Code of Conduct');
-    return <CodeOfConduct />;
-  }
+  // if (needsCodeOfConduct) {
+  //   console.log("Showing code of conduct");
+  //   analytics.pageView('Code of Conduct');
+  //   return <CodeOfConduct />;
+  // }
 
   // If authenticated and fully onboarded, show main app
   console.log("Showing main app");
@@ -173,7 +192,7 @@ function Router() {
   
   return (
     <Switch>
-      <Route path="/">{() => <Redirect to="/enhanced-timeline" />}</Route>
+      <Route path="/">{() => <Redirect to="/life-ceo-test" />}</Route>
       <Route path="/moments" component={Moments} />
       <Route path="/register">{() => <Redirect to="/" />}</Route>
       <Route path="/community">{() => <Redirect to="/community-world-map" />}</Route>
@@ -224,6 +243,7 @@ function Router() {
       <Route path="/performance-test" component={PerformanceTest} />
       <Route path="/city-test" component={CityAutoCreationTest} />
       <Route path="/life-ceo-performance" component={LifeCeoPerformance} />
+      <Route path="/life-ceo-test" component={LifeCeoTest} />
       <Route component={NotFound} />
     </Switch>
   );

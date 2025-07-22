@@ -20,9 +20,18 @@ export function useAuth() {
     queryFn: async (): Promise<User | null> => {
       try {
         console.log('Fetching auth user...');
+        
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
         const response = await fetch('/api/auth/user', {
-          credentials: 'include'
+          credentials: 'include',
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+        
         console.log('Auth response status:', response.status);
         if (!response.ok) {
           console.log('Auth response not ok');
@@ -32,11 +41,16 @@ export function useAuth() {
         console.log('Auth user data:', data);
         return data;
       } catch (error) {
-        console.error('Auth error:', error);
+        if (error.name === 'AbortError') {
+          console.error('Auth request timed out after 5 seconds');
+        } else {
+          console.error('Auth error:', error);
+        }
         return null;
       }
     },
-    retry: false
+    retry: false,
+    staleTime: 30000 // Consider data fresh for 30 seconds
   });
 
   const logout = () => {
