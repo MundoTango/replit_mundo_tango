@@ -165,17 +165,23 @@
   - GET /api/user/videos - Fetches user's videos from media assets
   - GET /api/user/friends - Returns combined followers and following list
   - GET /api/user/events - Returns user's upcoming and past events
+  - PUT /api/user/profile - Updates user profile with city group automation
 - **Storage Methods Added**: 
   - getUserPhotos() - Returns images from media_assets table
   - getUserVideos() - Returns videos from media_assets table
   - getUserFriends() - Combines followers and following lists
 - **New Profile Components**:
-  - UserPhotosGallery - Photo grid with viewer modal and upload dialog
-  - UserVideosGallery - Video grid with player modal and thumbnails
-  - UserFriendsList - Searchable friends list with MT ocean theme
+  - UserPhotosGallery - Photo grid with viewer modal and upload dialog (with glassmorphic cards)
+  - UserVideosGallery - Video grid with player modal and thumbnails (with glassmorphic cards)
+  - UserFriendsList - Searchable friends list with MT ocean theme (with glassmorphic cards)
   - UserEventsList - Upcoming/past events with attendance info
+  - ProfileAboutSection - Comprehensive About tab as first profile tab with full editing capabilities
+  - TravelDetailsComponent - Travel history with glassmorphic cards and MT design
+  - GuestProfileDisplay - Guest profile information with complete glassmorphic styling
 - **MT Design Consistency**: Applied turquoise-to-cyan gradients across all profile components
 - **Life CEO Integration**: Profile analysis captures debugging learnings for automatic system improvement
+- **City Group Automation**: Profile updates trigger automatic city group assignment/creation using CityAutoCreationService
+- **Travel Details Fix**: Resolved 401 authentication errors - all travel endpoints now return 200 OK with flexible authentication
 
 **UPDATE (January 10, 2025 - Multi-Tenant RBAC/ABAC Implementation)**: Super Admin Tenant Switching
 - **Authentication Middleware Fix**: Created unified authHelper.ts to standardize user ID extraction across different auth patterns

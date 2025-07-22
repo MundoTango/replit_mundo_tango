@@ -11,13 +11,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { GuestProfileDisplay } from '@/components/GuestProfile/GuestProfileDisplay';
-import { Camera, Video, Users, Calendar, Star, UserCheck, Globe, PenLine } from 'lucide-react';
+import { Camera, Video, Users, Calendar, Star, UserCheck, Globe, PenLine, UserCircle } from 'lucide-react';
 import { TravelDetailsComponent } from '@/components/profile/TravelDetailsComponent';
 import { ProfileMemoryPostModal } from '@/components/profile/ProfileMemoryPostModal';
 import { UserPhotosGallery } from '@/components/profile/UserPhotosGallery';
 import { UserVideosGallery } from '@/components/profile/UserVideosGallery';
 import { UserFriendsList } from '@/components/profile/UserFriendsList';
 import { UserEventsList } from '@/components/profile/UserEventsList';
+import { ProfileAboutSection } from '@/components/profile/ProfileAboutSection';
 
 // Phase 5: Production Hardening imports
 import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
@@ -41,7 +42,7 @@ export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('posts');
+  const [activeTab, setActiveTab] = useState('about');
   const [showMemoryPostModal, setShowMemoryPostModal] = useState(false);
 
   // Track component performance
@@ -208,6 +209,13 @@ export default function Profile() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full justify-start border-b rounded-none h-auto p-0">
               <TabsTrigger 
+                value="about" 
+                className="data-[state=active]:border-b-2 data-[state=active]:border-turquoise-500 rounded-none px-6 py-4"
+              >
+                <UserCircle className="mr-2 h-4 w-4" />
+                <span className="font-medium">About</span>
+              </TabsTrigger>
+              <TabsTrigger 
                 value="posts" 
                 className="data-[state=active]:border-b-2 data-[state=active]:border-turquoise-500 rounded-none px-6 py-4"
               >
@@ -264,6 +272,15 @@ export default function Profile() {
               </TabsTrigger>
             </TabsList>
             <div className="p-6">
+              <TabsContent value="about" className="space-y-4">
+                <ProfileAboutSection 
+                  user={user} 
+                  isOwnProfile={true}
+                  currentUserId={user?.id}
+                  isFriend={false}
+                />
+              </TabsContent>
+              
               <TabsContent value="posts" className="space-y-4">
                 {/* Memory Post Button */}
                 <div className="flex justify-end mb-4">

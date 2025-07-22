@@ -57,7 +57,7 @@ export function GuestProfileDisplay({ profile, isOwnProfile }: GuestProfileDispl
       )}
 
       {/* Accommodation Preferences */}
-      <Card>
+      <Card className="glassmorphic-card beautiful-hover">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Home className="h-5 w-5 text-purple-600" />
@@ -93,7 +93,7 @@ export function GuestProfileDisplay({ profile, isOwnProfile }: GuestProfileDispl
       </Card>
 
       {/* Travel Information */}
-      <Card>
+      <Card className="glassmorphic-card beautiful-hover">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-blue-600" />
@@ -132,7 +132,7 @@ export function GuestProfileDisplay({ profile, isOwnProfile }: GuestProfileDispl
       </Card>
 
       {/* Dietary & Special Needs */}
-      <Card>
+      <Card className="glassmorphic-card beautiful-hover">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Utensils className="h-5 w-5 text-orange-600" />
@@ -162,7 +162,7 @@ export function GuestProfileDisplay({ profile, isOwnProfile }: GuestProfileDispl
       </Card>
 
       {/* Budget & Duration */}
-      <Card>
+      <Card className="glassmorphic-card beautiful-hover">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5 text-green-600" />
@@ -188,7 +188,7 @@ export function GuestProfileDisplay({ profile, isOwnProfile }: GuestProfileDispl
 
       {/* Emergency Contact - Only visible to own profile */}
       {isOwnProfile && profile.emergencyContact && (
-        <Card>
+        <Card className="glassmorphic-card beautiful-hover">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Phone className="h-5 w-5 text-red-600" />

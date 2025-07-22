@@ -161,9 +161,9 @@ export const TravelDetailsComponent: React.FC<TravelDetailsComponentProps> = ({ 
 
       {/* No travel details message */}
       {(!travelDetails || travelDetails.length === 0) && (
-        <Card className="p-8 text-center border-dashed">
-          <Globe className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-500 mb-4">
+        <Card className="p-8 text-center border-dashed glassmorphic-card">
+          <Globe className="w-12 h-12 mx-auto mb-4 text-turquoise-500" />
+          <p className="text-gray-600 mb-4">
             {isOwnProfile ? "You haven't added any travel details yet." : "No travel details available."}
           </p>
           {isOwnProfile && (
@@ -309,7 +309,7 @@ const TravelCard: React.FC<TravelCardProps> = ({ travel, isOwnProfile, onEdit, o
   };
 
   return (
-    <Card className="p-4 hover:shadow-md transition-shadow">
+    <Card className="p-4 hover:shadow-md transition-shadow glassmorphic-card beautiful-hover">
       <div className="flex items-start justify-between">
         <div className="flex-1 space-y-2">
           {/* Event Name and Type */}
