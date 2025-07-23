@@ -33,6 +33,7 @@ import Framework40x20sDashboard from './Framework40x20sDashboard';
 import Framework40LDashboard from './Framework40LDashboard';
 import { activityLogger } from '@/services/activityLoggingService';
 import LifeCEOFourDayLearnings from '../life-ceo/LifeCEOFourDayLearnings';
+import JiraExportDashboard from './JiraExportDashboard';
 
 const LifeCEOCommandCenter: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -360,7 +361,7 @@ const LifeCEOCommandCenter: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-5 gap-2 bg-white/50 p-1">
+        <TabsList className="grid grid-cols-6 gap-2 bg-white/50 p-1">
           <TabsTrigger 
             value="dashboard" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white"
@@ -397,6 +398,14 @@ const LifeCEOCommandCenter: React.FC = () => {
             <Layers className="w-4 h-4 mr-2" />
             Framework
           </TabsTrigger>
+          <TabsTrigger 
+            value="jira"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white relative"
+          >
+            <GitBranch className="w-4 h-4 mr-2" />
+            JIRA Export
+            <Badge className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs px-1">40x20s</Badge>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="mt-6">
@@ -430,6 +439,10 @@ const LifeCEOCommandCenter: React.FC = () => {
               <Framework40x20sDashboard />
             </div>
           </div>
+        </TabsContent>
+        
+        <TabsContent value="jira" className="mt-6">
+          <JiraExportDashboard />
         </TabsContent>
       </Tabs>
     </div>
