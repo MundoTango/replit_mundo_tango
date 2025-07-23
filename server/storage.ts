@@ -90,11 +90,13 @@ import {
   type GuestBooking,
   type InsertGuestBooking,
   type GuestProfile,
-  type InsertGuestProfile,
+  type InsertGuestProfile
+} from '../shared/schema';
+import { 
   type TravelDetail,
   type InsertTravelDetail,
   type UpdateTravelDetail
-} from '../shared/schema';
+} from '../shared/travelDetails';
 import { db, pool } from './db';
 import { eq, desc, asc, sql, and, or, gte, lte, count, ilike, inArray } from 'drizzle-orm';
 

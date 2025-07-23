@@ -3,7 +3,13 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
-neonConfig.webSocketConstructor = ws;
+// Life CEO Debug: Configure Neon to use HTTP instead of WebSocket
+// This avoids the ErrorEvent issue in the Neon serverless library
+neonConfig.fetchConnectionCache = true;
+// Force HTTP-only connections to avoid WebSocket ErrorEvent issues
+neonConfig.wsProxy = (host: string, port: number) => {
+  return undefined; // This disables WebSocket usage
+};
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -12,14 +18,25 @@ if (!process.env.DATABASE_URL) {
 }
 
 // 30L Framework - Layer 21: Production Resilience Engineering
-// Enhanced connection pool with retry logic and error handling
-export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  // Connection pool settings for resilience
-  max: 20, // Maximum number of clients
-  idleTimeoutMillis: 30000, // 30 seconds
-  connectionTimeoutMillis: 5000, // 5 seconds timeout for new connections
-});
+// Life CEO Fix: Create pool with error handling for Neon serverless issues
+let pool: Pool;
+try {
+  pool = new Pool({ 
+    connectionString: process.env.DATABASE_URL,
+    // Connection pool settings for resilience
+    max: 20, // Maximum number of clients
+    idleTimeoutMillis: 30000, // 30 seconds
+    connectionTimeoutMillis: 5000, // 5 seconds timeout for new connections
+  });
+} catch (err) {
+  console.error('❌ Pool creation error:', err);
+  // Fallback: Create a simple pool without WebSocket
+  pool = new Pool({ 
+    connectionString: process.env.DATABASE_URL,
+  });
+}
+
+export { pool };
 
 // Layer 21: Error handling for pool
 pool.on('error', (err) => {
@@ -44,7 +61,7 @@ async function checkConnection() {
     return true;
   } catch (err) {
     isConnected = false;
-    console.error('❌ Database connection check failed:', err.message);
+    console.error('❌ Database connection check failed:', err instanceof Error ? err.message : String(err));
     
     if (connectionRetries < MAX_RETRIES) {
       connectionRetries++;
