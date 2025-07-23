@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'wouter';
-import { ArrowLeft, Mic, MicOff, Volume2, Globe, Brain, Calendar, Heart, DollarSign, Shield, Send, Plus, Search, FolderOpen, MessageSquare, Settings, MoreVertical, Trash2, Edit2 } from 'lucide-react';
+import { ArrowLeft, Mic, MicOff, Volume2, Globe, Brain, Calendar, Heart, DollarSign, Shield, Send, Plus, Search, FolderOpen, MessageSquare, Settings, MoreVertical, Trash2, Edit2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-hot-toast';
+import { cn } from '@/lib/utils';
 
 interface Conversation {
   id: string;
@@ -689,41 +690,118 @@ export default function LifeCEOEnhanced() {
           </div>
         </div>
 
-        {/* Agent Switcher Modal */}
+        {/* Enhanced Agent Switcher Modal with MT Ocean Theme */}
         {showAgentSwitcher && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Select AI Agent</h2>
-                <Button
-                  onClick={() => setShowAgentSwitcher(false)}
-                  variant="ghost"
-                  size="sm"
-                >
-                  ✕
-                </Button>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+            <div className="glassmorphic-card max-w-4xl w-full max-h-[90vh] overflow-hidden rounded-2xl animate-scaleIn">
+              <div className="bg-gradient-to-r from-turquoise-400 to-cyan-500 p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold mb-2">Life CEO Agent Selection</h2>
+                    <p className="text-turquoise-100 text-sm">
+                      Choose your AI assistant to help manage different aspects of your life
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => setShowAgentSwitcher(false)}
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-white/20 rounded-full"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {LIFE_CEO_AGENTS.map(agent => (
-                  <button
-                    key={agent.id}
-                    onClick={() => {
-                      setSelectedAgentId(agent.id);
-                      setShowAgentSwitcher(false);
-                      toast.success(`Switched to ${agent.name}`);
-                    }}
-                    className={`p-4 rounded-lg border transition-all ${
-                      selectedAgentId === agent.id
-                        ? 'border-purple-600 bg-purple-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="text-3xl mb-2">{agent.icon}</div>
-                    <div className="text-sm font-medium">{agent.name}</div>
-                    <div className="text-xs text-gray-500 mt-1">{agent.description}</div>
-                  </button>
-                ))}
+              {/* Current Agent Display */}
+              <div className="p-6 bg-gradient-to-r from-turquoise-50/50 to-cyan-50/50 border-b border-turquoise-200/30">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-turquoise-400 to-cyan-500 rounded-xl flex items-center justify-center text-3xl shadow-lg">
+                    {LIFE_CEO_AGENTS.find(a => a.id === selectedAgentId)?.icon || '👔'}
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Currently Active</p>
+                    <h3 className="text-xl font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+                      {LIFE_CEO_AGENTS.find(a => a.id === selectedAgentId)?.name || 'Life CEO'}
+                    </h3>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Agent Grid */}
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-300px)]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {LIFE_CEO_AGENTS.map(agent => {
+                    const isSelected = selectedAgentId === agent.id;
+                    return (
+                      <button
+                        key={agent.id}
+                        onClick={() => {
+                          setSelectedAgentId(agent.id);
+                          setShowAgentSwitcher(false);
+                          toast.success(`Switched to ${agent.name}`, {
+                            icon: agent.icon,
+                            style: {
+                              background: 'linear-gradient(to right, #38b2ac, #06b6d4)',
+                              color: 'white',
+                            },
+                          });
+                        }}
+                        className={cn(
+                          "group relative p-6 rounded-xl transition-all duration-300",
+                          "hover:scale-105 hover:shadow-xl",
+                          isSelected 
+                            ? "glassmorphic-card ring-2 ring-turquoise-500 ring-offset-2" 
+                            : "glassmorphic-card hover:ring-2 hover:ring-turquoise-300"
+                        )}
+                      >
+                        {/* Selected Badge */}
+                        {isSelected && (
+                          <div className="absolute -top-2 -right-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white text-xs px-3 py-1 rounded-full shadow-lg">
+                            Active
+                          </div>
+                        )}
+                        
+                        {/* Agent Icon */}
+                        <div className={cn(
+                          "w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center text-4xl transition-all duration-300",
+                          "bg-gradient-to-br from-white/80 to-white/60 shadow-lg",
+                          "group-hover:shadow-xl group-hover:scale-110"
+                        )}>
+                          {agent.icon}
+                        </div>
+                        
+                        {/* Agent Info */}
+                        <div className="text-center">
+                          <h3 className={cn(
+                            "text-lg font-semibold mb-2 transition-colors",
+                            isSelected 
+                              ? "bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent"
+                              : "text-gray-800 group-hover:text-turquoise-600"
+                          )}>
+                            {agent.name}
+                          </h3>
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            {agent.description}
+                          </p>
+                        </div>
+                        
+                        {/* Hover Effect */}
+                        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-turquoise-400/0 to-cyan-400/0 group-hover:from-turquoise-400/10 group-hover:to-cyan-400/10 transition-all duration-300 pointer-events-none" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* Footer Info */}
+              <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200">
+                <p className="text-center text-sm text-gray-600">
+                  <span className="inline-flex items-center gap-1">
+                    <Brain className="h-4 w-4 text-turquoise-500" />
+                    Each agent specializes in different areas of your life
+                  </span>
+                </p>
               </div>
             </div>
           </div>
