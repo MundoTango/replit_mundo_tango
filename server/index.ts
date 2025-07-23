@@ -20,24 +20,34 @@ initSentry(app);
 // Prometheus metrics register is already initialized on import
 
 // [SECURITY] Apply Helmet.js security headers - CRITICAL for preventing attacks
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://*.googleapis.com", "https://*.gstatic.com", "https://plausible.io"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://*.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "wss:", "https:", "http://localhost:*"],
-      fontSrc: ["'self'", "https://*.gstatic.com"],
-      frameSrc: ["'self'", "https://*.google.com"],
+// Temporarily relaxed for development debugging
+if (process.env.NODE_ENV === 'production') {
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://*.googleapis.com", "https://*.gstatic.com", "https://plausible.io"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://*.googleapis.com"],
+        imgSrc: ["'self'", "data:", "https:", "blob:"],
+        connectSrc: ["'self'", "wss:", "https:", "http://localhost:*"],
+        fontSrc: ["'self'", "https://*.gstatic.com"],
+        frameSrc: ["'self'", "https://*.google.com"],
+      },
     },
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  }
-}));
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true
+    }
+  }));
+} else {
+  // Development mode - disable CSP to allow Vite HMR and dev scripts
+  app.use(helmet({
+    contentSecurityPolicy: false,
+    hsts: false
+  }));
+  console.log('⚠️  CSP disabled for development - DO NOT use in production!');
+}
 
 // [SECURITY] IP blocking middleware - Block suspicious IPs
 app.use((req, res, next) => {

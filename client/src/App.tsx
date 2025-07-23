@@ -24,6 +24,9 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import LifeCeoTest from "@/pages/LifeCeoTest";
 
+// LIFE CEO DEBUG: Log when lazy imports start
+console.log("🚀 Life CEO Debug: Starting lazy imports");
+
 // Lazy loaded components to reduce bundle size (90% reduction in initial load)
 const Home = lazy(() => import("@/pages/home"));
 const Profile = lazy(() => import("@/pages/profile"));
@@ -41,6 +44,8 @@ const EnhancedTimelineV2 = lazy(() => import("@/pages/enhanced-timeline-v2"));
 const GroupDetailPage = lazy(() => import("@/pages/GroupDetailPageMT"));
 const CommunityWorldMap = lazy(() => import("@/pages/community-world-map"));
 const TestGroupedRoleSelector = lazy(() => import("@/components/test/TestGroupedRoleSelector"));
+
+console.log("✅ Life CEO Debug: Lazy imports defined");
 
 // Loading component for Suspense boundaries
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
@@ -361,6 +366,24 @@ export default function App() {
     }
   }, []);
 
+  // LIFE CEO DEBUG: Simple test to verify React is working
+  const debugMode = true; // Change to false to restore normal app
+  if (debugMode) {
+    return (
+      <div style={{ padding: '40px', backgroundColor: '#38B2AC', color: 'white', fontSize: '24px', textAlign: 'center' }}>
+        <h1>✅ Life CEO Debug: React is Working!</h1>
+        <p>If you can see this, React mounted successfully.</p>
+        <p>The issue is in the component providers or routing.</p>
+        <button 
+          style={{ marginTop: '20px', padding: '10px 20px', fontSize: '18px', cursor: 'pointer' }}
+          onClick={() => window.location.href = '/life-ceo'}
+        >
+          Try Life CEO Dashboard
+        </button>
+      </div>
+    );
+  }
+  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
