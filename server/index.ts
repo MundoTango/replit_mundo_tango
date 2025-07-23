@@ -127,6 +127,12 @@ app.get('/service-worker-workbox.js', (req, res) => {
   res.sendFile(pathModule.join(process.cwd(), 'client/service-worker-workbox.js'));
 });
 
+// LIFE CEO 40x20s DEBUG: Serve test page explicitly
+app.get('/test.html', (req, res) => {
+  console.log('🔍 Life CEO Debug: Serving test.html');
+  res.sendFile(pathModule.join(process.cwd(), 'client/public/test.html'));
+});
+
 (async () => {
   // 30L Framework - Layer 23: Business Continuity
   // Initialize with database resilience
