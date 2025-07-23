@@ -37,6 +37,7 @@ const roleIcons: Record<string, string> = {
   wellness_provider: "💆",
   tango_school: "🏫",
   tango_hotel: "🏨",
+  taxi_dancer: "🎫",
   other: "➕"
 };
 

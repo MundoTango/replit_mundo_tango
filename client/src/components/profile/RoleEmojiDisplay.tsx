@@ -20,6 +20,7 @@ export const roleEmojiMapping: Record<string, { emoji: string; label: string }> 
   wellness_provider: { emoji: "💆", label: "Wellness Provider" },
   tango_school: { emoji: "🏫", label: "Tango School" },
   tango_hotel: { emoji: "🏨", label: "Tango Hotel" },
+  taxi_dancer: { emoji: "🎫", label: "Taxi Dancer" },
   other: { emoji: "➕", label: "Other" }
 };
 

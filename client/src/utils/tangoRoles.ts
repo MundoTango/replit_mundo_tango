@@ -18,8 +18,9 @@ export const TANGO_ROLES: TangoRole[] = [
   { id: 'dancer_leader', name: 'Dancer', emoji: '🕺', description: 'Dancer: Leader', category: 'dance', priority: 2 },
   { id: 'dancer_follower', name: 'Dancer', emoji: '💃', description: 'Dancer: Follower', category: 'dance', priority: 3 },
   { id: 'dancer_switch', name: 'Dancer', emoji: '🕺💃', description: 'Dancer: Switch', category: 'dance', priority: 4 },
-  { id: 'teacher', name: 'Teacher', emoji: '🎓', description: 'Teaches tango techniques and steps', category: 'dance', priority: 5 },
-  { id: 'performer', name: 'Performer', emoji: '🎭', description: 'Performs tango shows and exhibitions', category: 'dance', priority: 5 },
+  { id: 'taxi_dancer', name: 'Taxi Dancer', emoji: '🎫', description: 'Professional dancer hired to partner with guests at milongas and events, helping balance roles and ensure everyone can dance', category: 'dance', priority: 5 },
+  { id: 'teacher', name: 'Teacher', emoji: '🎓', description: 'Teaches tango techniques and steps', category: 'dance', priority: 6 },
+  { id: 'performer', name: 'Performer', emoji: '🎭', description: 'Performs tango shows and exhibitions', category: 'dance', priority: 7 },
   
   // Music Roles
   { id: 'dj', name: 'DJ', emoji: '🎧', description: 'Plays tango music at milongas', category: 'music', priority: 6 },

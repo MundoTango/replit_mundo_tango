@@ -99,7 +99,8 @@ const roleIcons: Record<string, string> = {
   vendor: "🛒",
   wellness_provider: "💆",
   tango_school: "🏫",
-  tango_hotel: "🏨"
+  tango_hotel: "🏨",
+  taxi_dancer: "🎫"
 };
 
 const danceExperienceOptions = [

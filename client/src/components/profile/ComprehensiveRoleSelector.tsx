@@ -48,6 +48,21 @@ const tangoRoles: Role[] = [
     ]
   },
   {
+    id: 'taxi_dancer',
+    name: 'taxi_dancer',
+    label: 'Taxi Dancer',
+    description: 'Professional social dancer hired to partner with guests at milongas and events',
+    icon: <span className="text-2xl">🎫</span>,
+    color: 'from-amber-400 to-yellow-500',
+    details: [
+      'Ensure everyone can dance regardless of partner availability',
+      'Help balance follower/leader ratios at events',
+      'Create inclusive atmosphere for newcomers',
+      'Professional service at milongas and festivals',
+      'Support event organizers with social dynamics'
+    ]
+  },
+  {
     id: 'performer',
     name: 'performer',
     label: 'Professional Performer',
