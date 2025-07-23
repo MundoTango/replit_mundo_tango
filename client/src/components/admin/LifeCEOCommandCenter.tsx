@@ -31,7 +31,7 @@ import LifeCEOFrameworkAgent from '../life-ceo/LifeCEOFrameworkAgent';
 import { LifeCEOLearnings } from './LifeCEOLearnings';
 import Framework40x20sDashboard from './Framework40x20sDashboard';
 import Framework40LDashboard from './Framework40LDashboard';
-import ActivityLoggingService from '@/services/activityLoggingService';
+import { activityLogger } from '@/services/activityLoggingService';
 import LifeCEOFourDayLearnings from '../life-ceo/LifeCEOFourDayLearnings';
 
 const LifeCEOCommandCenter: React.FC = () => {
@@ -68,7 +68,7 @@ const LifeCEOCommandCenter: React.FC = () => {
   }, []);
 
   // Get today's activities
-  const { data: todayActivities, refetch } = useQuery({
+  const { data: todayActivities, refetch } = useQuery<{ data: any[] }>({
     queryKey: ['/api/daily-activities'],
     refetchInterval: 60000, // Refresh every minute
   });
@@ -225,15 +225,13 @@ const LifeCEOCommandCenter: React.FC = () => {
                 size="sm"
                 variant="outline"
                 onClick={async () => {
-                  const service = ActivityLoggingService.getInstance();
-                  await service.logSystemOptimization(
+                  await activityLogger.logSystemOptimization(
                     'Automatic Work Capture Test',
                     'Testing automatic daily activity logging from Life CEO Command Center',
-                    'High',
-                    [40]
+                    { impact: 'High', layers: [40] }
                   );
                   // Force flush immediately
-                  await service.flushPendingActivities();
+                  await activityLogger.flushPendingActivities();
                   // Refetch activities
                   refetch();
                 }}
