@@ -2,61 +2,75 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-// LIFE CEO 40x20s DEBUG: Phase 1 - Initial Load Check
-console.log('🚀 Life CEO Debug 1: main.tsx loaded');
-
-// TEMPORARILY DISABLED SERVICE WORKER FOR DEBUGGING
-console.log('Service worker registration disabled for debugging');
-
-// Unregister all existing service workers
+// Register service worker with updated cache version
 if ('serviceWorker' in navigator) {
+  // Unregister old service worker and register Workbox
   navigator.serviceWorker.getRegistrations().then(registrations => {
     registrations.forEach(registration => {
-      registration.unregister();
-      console.log('Unregistered service worker:', registration.scope);
+      if (registration.active && registration.active.scriptURL.includes('/service-worker.js')) {
+        registration.unregister();
+        console.log('Unregistered old service worker');
+      }
     });
   });
   
-  // Clear ALL caches
+  // Register the Workbox service worker
+  navigator.serviceWorker.register('/service-worker-workbox.js')
+    .then(registration => {
+      console.log('Workbox Service Worker registered with scope:', registration.scope);
+      
+      // Force update check every 30 seconds
+      setInterval(() => {
+        registration.update();
+      }, 30000);
+      
+      // Handle updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New service worker available
+              console.log('New Workbox service worker installed, will activate on reload');
+              // Show update notification
+              const event = new CustomEvent('sw-update-available');
+              window.dispatchEvent(event);
+              
+              // Force the new service worker to activate immediately
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
+          });
+        }
+      });
+    })
+    .catch(error => {
+      console.error('Workbox Service Worker registration failed:', error);
+    });
+
+  // Clear ALL caches on startup to force refresh
   caches.keys().then(cacheNames => {
     cacheNames.forEach(cacheName => {
-      caches.delete(cacheName);
-      console.log('Deleted cache:', cacheName);
+      // Delete ALL caches that don't include v4-mt-ocean-theme
+      if (!cacheName.includes('v4-mt-ocean-theme')) {
+        caches.delete(cacheName);
+        console.log('Deleted old cache:', cacheName);
+      }
     });
   });
+
+  // Clear theme from localStorage if it's causing issues
+  const currentTheme = localStorage.getItem('life-ceo-theme');
+  if (currentTheme && currentTheme !== 'mundo-tango') {
+    localStorage.removeItem('life-ceo-theme');
+    console.log('Cleared old theme from localStorage');
+  }
 }
 
-console.log('🚀 Life CEO Debug 2: About to get root element');
-
 const rootElement = document.getElementById("root");
-console.log('🚀 Life CEO Debug 3: Root element:', rootElement);
 
 if (!rootElement) {
-  console.error('❌ Life CEO Debug: Root element not found!');
-  // Add fallback to create root element
-  const body = document.body;
-  const newRoot = document.createElement('div');
-  newRoot.id = 'root';
-  newRoot.innerHTML = '<h1 style="color: red;">Life CEO Debug: Had to create root element!</h1>';
-  body.appendChild(newRoot);
   throw new Error("Failed to find the root element");
 }
 
-console.log('🚀 Life CEO Debug 4: About to create React root');
-
-try {
-  const root = createRoot(rootElement);
-  console.log('🚀 Life CEO Debug 5: React root created:', root);
-  
-  console.log('🚀 Life CEO Debug 6: About to render App');
-  root.render(<App />);
-  console.log('🚀 Life CEO Debug 7: App render called successfully');
-} catch (error) {
-  console.error('❌ Life CEO Debug: Error in React mounting:', error);
-  rootElement.innerHTML = `
-    <div style="padding: 40px; background: #ff6b6b; color: white;">
-      <h1>Life CEO Debug: React Failed to Mount</h1>
-      <pre>${error}</pre>
-    </div>
-  `;
-}
+const root = createRoot(rootElement);
+root.render(<App />);

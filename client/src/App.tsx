@@ -24,9 +24,6 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import LifeCeoTest from "@/pages/LifeCeoTest";
 
-// LIFE CEO DEBUG: Log when lazy imports start
-console.log("🚀 Life CEO Debug: Starting lazy imports");
-
 // Lazy loaded components to reduce bundle size (90% reduction in initial load)
 const Home = lazy(() => import("@/pages/home"));
 const Profile = lazy(() => import("@/pages/profile"));
@@ -44,9 +41,6 @@ const EnhancedTimelineV2 = lazy(() => import("@/pages/enhanced-timeline-v2"));
 const GroupDetailPage = lazy(() => import("@/pages/GroupDetailPageMT"));
 const CommunityWorldMap = lazy(() => import("@/pages/community-world-map"));
 const TestGroupedRoleSelector = lazy(() => import("@/components/test/TestGroupedRoleSelector"));
-const LifeCEOOpenSourceVerification = lazy(() => import("@/pages/LifeCEOOpenSourceVerification"));
-
-console.log("✅ Life CEO Debug: Lazy imports defined");
 
 // Loading component for Suspense boundaries
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
@@ -175,62 +169,16 @@ function Router() {
     <ErrorBoundary>
       <Suspense fallback={<LoadingFallback />}>
         <Switch>
-          {/* Life CEO 40x20s Debug Route */}
-          <Route path="/debug">
-            <div style={{ padding: '40px', background: '#38b2ac', color: 'white' }}>
-              <h1>🚀 Life CEO 40x20s Debug: React is working!</h1>
-              <p>If you can see this, React is rendering correctly.</p>
-              <p>Time: {new Date().toLocaleTimeString()}</p>
-            </div>
-          </Route>
-          
           {/* Core routes - minimal bundle */}
           <Route path="/">
-            <div className="min-h-screen bg-gradient-to-br from-turquoise-50 via-cyan-50 to-blue-50 p-8">
-              <h1 className="text-4xl font-bold text-turquoise-600 mb-4">🚀 Life CEO 40x20s: Main Route Working!</h1>
-              <p className="text-gray-700 mb-4">React routing is functioning correctly.</p>
-              <div className="space-y-4">
-                <a href="/enhanced-timeline" className="inline-block px-6 py-3 bg-turquoise-500 text-white rounded-lg hover:bg-turquoise-600">
-                  Go to Enhanced Timeline
-                </a>
-                <br />
-                <a href="/life-ceo" className="inline-block px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                  Go to Life CEO
-                </a>
-                <br />
-                <a href="/debug" className="inline-block px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600">
-                  Go to Debug Page
-                </a>
-              </div>
-            </div>
+            <Suspense fallback={<LoadingFallback message="Loading Memories..." />}>
+              <EnhancedTimelineV2 />
+            </Suspense>
           </Route>
           <Route path="/life-ceo">
             <Suspense fallback={<LoadingFallback message="Loading Life CEO..." />}>
               <LifeCEOEnhanced />
             </Suspense>
-          </Route>
-          <Route path="/enhanced-timeline">
-            <div className="min-h-screen bg-gradient-to-br from-turquoise-50 via-cyan-50 to-blue-50 p-8">
-              <div className="max-w-7xl mx-auto">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent mb-4">
-                  Enhanced Timeline (Simplified)
-                </h1>
-                <p className="text-gray-700 mb-8">This is a simplified version without DashboardLayout</p>
-                
-                <div className="glassmorphic-card p-6 rounded-2xl shadow-xl">
-                  <h2 className="text-2xl font-semibold text-gray-800 mb-4">Memories Feed</h2>
-                  <div className="space-y-4">
-                    <div className="p-4 bg-white/50 rounded-lg">
-                      <p className="text-gray-600">Memory posts will appear here...</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-8">
-                  <a href="/" className="text-turquoise-600 hover:text-turquoise-700">← Back to Home</a>
-                </div>
-              </div>
-            </div>
           </Route>
           <Route path="/feed" component={() => <Home key="mt-ocean-v3" />} />
           <Route path="/life-ceo-test" component={LifeCeoTest} />
@@ -293,9 +241,9 @@ function Router() {
             </Suspense>
           </Route>
           
-          <Route path="/life-ceo-verification">
-            <Suspense fallback={<LoadingFallback message="Loading verification..." />}>
-              <LifeCEOOpenSourceVerification />
+          <Route path="/life-ceo">
+            <Suspense fallback={<LoadingFallback message="Loading Life CEO..." />}>
+              <LifeCEOEnhanced />
             </Suspense>
           </Route>
           
@@ -413,34 +361,6 @@ export default function App() {
     }
   }, []);
 
-  // LIFE CEO DEBUG: Simple test to verify React is working
-  console.log('🔥 Life CEO Debug: App component render function called');
-  
-  const debugMode = true; // Change to false to restore normal app
-  if (debugMode) {
-    // Write directly to DOM to verify we reach this point
-    setTimeout(() => {
-      const debugDiv = document.createElement('div');
-      debugDiv.innerHTML = 'Life CEO: App render reached';
-      debugDiv.style.cssText = 'position: fixed; top: 0; left: 0; background: red; color: white; padding: 10px; z-index: 9999;';
-      document.body.appendChild(debugDiv);
-    }, 100);
-    
-    return (
-      <div style={{ padding: '40px', backgroundColor: '#38B2AC', color: 'white', fontSize: '24px', textAlign: 'center' }}>
-        <h1>✅ Life CEO Debug: React is Working!</h1>
-        <p>If you can see this, React mounted successfully.</p>
-        <p>The issue is in the component providers or routing.</p>
-        <button 
-          style={{ marginTop: '20px', padding: '10px 20px', fontSize: '18px', cursor: 'pointer' }}
-          onClick={() => window.location.href = '/life-ceo'}
-        >
-          Try Life CEO Dashboard
-        </button>
-      </div>
-    );
-  }
-  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

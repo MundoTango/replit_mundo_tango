@@ -1585,24 +1585,6 @@ export const guestProfiles = pgTable("guest_profiles", {
   unique().on(table.userId),
 ]);
 
-// Audit logs table for security event tracking
-export const auditLogs = pgTable("audit_logs", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  action: varchar("action", { length: 100 }).notNull(),
-  resource: varchar("resource", { length: 100 }).notNull(),
-  resourceId: text("resource_id"),
-  details: jsonb("details").default({}),
-  ipAddress: varchar("ip_address", { length: 45 }),
-  userAgent: text("user_agent"),
-  timestamp: timestamp("timestamp").defaultNow().notNull(),
-}, (table) => [
-  index("idx_audit_logs_user_id").on(table.userId),
-  index("idx_audit_logs_action").on(table.action),
-  index("idx_audit_logs_timestamp").on(table.timestamp),
-  index("idx_audit_logs_resource").on(table.resource),
-]);
-
 // Insert schemas
 export const insertDailyActivitySchema = createInsertSchema(dailyActivities).omit({
   id: true,

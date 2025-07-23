@@ -90,14 +90,12 @@ import {
   type GuestBooking,
   type InsertGuestBooking,
   type GuestProfile,
-  type InsertGuestProfile
-} from '../shared/schema';
-import { 
+  type InsertGuestProfile,
   type TravelDetail,
   type InsertTravelDetail,
   type UpdateTravelDetail
-} from '../shared/travelDetails';
-import { db, sql as neonSql } from './db';
+} from '../shared/schema';
+import { db, pool } from './db';
 import { eq, desc, asc, sql, and, or, gte, lte, count, ilike, inArray } from 'drizzle-orm';
 
 export interface IStorage {
@@ -1487,13 +1485,13 @@ export class DatabaseStorage implements IStorage {
     return { id: 1, postId, reporterId, reason, description, status: 'pending', createdAt: new Date() };
   }
 
-  async createShare(data: { post_id: number; user_id: number }): Promise<any> {
+  async createShare(data: { postId: number | string; userId: number; comment?: string | null }): Promise<any> {
     // Create a share record
     return { 
       id: Date.now(), 
-      postId: data.post_id, 
-      userId: data.user_id, 
-      comment: null,
+      postId: data.postId, 
+      userId: data.userId, 
+      comment: data.comment || null,
       sharedAt: new Date(),
       success: true 
     };
@@ -2037,29 +2035,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async followGroup(groupId: number, userId: number): Promise<void> {
-    await neonSql(
+    await pool.query(
       'INSERT INTO group_followers (user_id, group_id) VALUES ($1, $2) ON CONFLICT (user_id, group_id) DO NOTHING',
       [userId, groupId]
     );
   }
 
   async unfollowGroup(groupId: number, userId: number): Promise<void> {
-    await neonSql(
+    await pool.query(
       'DELETE FROM group_followers WHERE user_id = $1 AND group_id = $2',
       [userId, groupId]
     );
   }
 
   async checkUserFollowingGroup(groupId: number, userId: number): Promise<boolean> {
-    const result = await neonSql(
+    const result = await pool.query(
       'SELECT 1 FROM group_followers WHERE user_id = $1 AND group_id = $2',
       [userId, groupId]
     );
-    return result.length > 0;
+    return result.rows.length > 0;
   }
 
   async getUserFollowingGroups(userId: number): Promise<any[]> {
-    const result = await neonSql(
+    const result = await pool.query(
       `SELECT g.*, gf.created_at as followed_at 
        FROM groups g 
        JOIN group_followers gf ON g.id = gf.group_id 
@@ -2067,7 +2065,7 @@ export class DatabaseStorage implements IStorage {
        ORDER BY gf.created_at DESC`,
       [userId]
     );
-    return result;
+    return result.rows;
   }
 
   async addUserToGroup(groupId: number, userId: number, role: string = 'member'): Promise<GroupMember> {

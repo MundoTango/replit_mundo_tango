@@ -15,21 +15,14 @@ class OnboardingRateLimiter {
   private redis: Redis | null = null;
 
   constructor() {
-    // Life CEO Debug: Skip Redis connection in Replit environment
-    // We'll use in-memory rate limiting instead
-    if (process.env.REDIS_URL && process.env.NODE_ENV === 'production') {
-      try {
-        this.redis = new Redis(process.env.REDIS_URL, {
-          maxRetriesPerRequest: 1,
-          enableReadyCheck: false,
-          lazyConnect: true,
-          retryStrategy: () => null, // Don't retry
-        });
-      } catch (error) {
-        console.log('⚠️ Redis not available, using in-memory rate limiting');
+    // Try to connect to Redis if available
+    try {
+      if (process.env.REDIS_URL) {
+        this.redis = new Redis(process.env.REDIS_URL);
+        console.log('✅ Redis connected for rate limiting');
       }
-    } else {
-      console.log('📝 Using in-memory rate limiting (Redis not configured)');
+    } catch (error) {
+      console.log('⚠️ Redis not available, using in-memory rate limiting');
     }
   }
 

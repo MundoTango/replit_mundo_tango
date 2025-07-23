@@ -1,31 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life CEO Debug Test</title>
+    <title>Test Page</title>
 </head>
 <body>
-    <h1 style="color: green;">✅ Life CEO: Basic HTML Works!</h1>
-    <p>If you can see this, the server is serving HTML correctly.</p>
-    
-    <div id="test-root" style="padding: 20px; background: #38B2AC; color: white;">
-        <h2>JavaScript Test:</h2>
-        <p id="js-status">JavaScript not loaded yet...</p>
-    </div>
-    
+    <h1>Test Page - Server is Working!</h1>
+    <p>If you can see this, the server is serving static files correctly.</p>
     <script>
-        console.log('Life CEO Test: Inline script executing');
-        document.getElementById('js-status').textContent = '✅ JavaScript is working!';
+        // Try to unregister any service workers that might be causing issues
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                    console.log('Service worker unregistered:', registration);
+                }
+            });
+        }
         
-        // Test module loading
-        const script = document.createElement('script');
-        script.type = 'module';
-        script.textContent = `
-            console.log('Life CEO Test: Module script executing');
-            document.getElementById('js-status').textContent += ' ✅ ES Modules working!';
-        `;
-        document.body.appendChild(script);
+        // Clear all caches
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => {
+                    caches.delete(name);
+                    console.log('Cache deleted:', name);
+                });
+            });
+        }
     </script>
 </body>
 </html>

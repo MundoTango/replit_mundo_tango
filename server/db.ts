@@ -1,14 +1,9 @@
-import { neon, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from "ws";
 import * as schema from "@shared/schema";
 
-// Life CEO Debug: Configure Neon for HTTP-only mode (no WebSocket)
-// This completely avoids WebSocket issues in Replit environment
-neonConfig.fetchConnectionCache = true;
-neonConfig.fetchEndpoint = (host: string) => {
-  const protocol = host.includes('localhost') ? 'http' : 'https';
-  return `${protocol}://${host}/sql`;
-};
+neonConfig.webSocketConstructor = ws;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -16,11 +11,21 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Life CEO: Create HTTP-only connection function
-const sql = neon(process.env.DATABASE_URL!);
+// 30L Framework - Layer 21: Production Resilience Engineering
+// Enhanced connection pool with retry logic and error handling
+export const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  // Connection pool settings for resilience
+  max: 20, // Maximum number of clients
+  idleTimeoutMillis: 30000, // 30 seconds
+  connectionTimeoutMillis: 5000, // 5 seconds timeout for new connections
+});
 
-// Export the SQL function for direct queries
-export { sql };
+// Layer 21: Error handling for pool
+pool.on('error', (err) => {
+  console.error('❌ Database pool error:', err.message);
+  // Don't crash the app - Layer 23: Business Continuity
+});
 
 // Layer 21: Connection health check
 let isConnected = false;
@@ -30,17 +35,16 @@ const RETRY_DELAY = 2000; // 2 seconds
 
 async function checkConnection() {
   try {
-    // Life CEO: Use HTTP connection for health check
-    await sql`SELECT 1`;
+    await pool.query('SELECT 1');
     if (!isConnected) {
-      console.log('✅ Database connection established via HTTP');
+      console.log('✅ Database connection restored');
       isConnected = true;
       connectionRetries = 0;
     }
     return true;
   } catch (err) {
     isConnected = false;
-    console.error('❌ Database connection check failed:', err instanceof Error ? err.message : String(err));
+    console.error('❌ Database connection check failed:', err.message);
     
     if (connectionRetries < MAX_RETRIES) {
       connectionRetries++;
@@ -59,8 +63,7 @@ checkConnection();
 // Periodic health check every 30 seconds
 setInterval(checkConnection, 30000);
 
-// Life CEO: Initialize drizzle with HTTP connection
-export const db = drizzle(sql, { schema });
+export const db = drizzle({ client: pool, schema });
 
 // Layer 21: Graceful query wrapper with retry logic
 export async function resilientQuery<T>(
