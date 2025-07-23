@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import * as pathModule from "path";
+import * as fs from "fs";
 import compression from "compression";
 import helmet from "helmet";
 import { registerRoutes } from "./routes";
@@ -127,12 +128,6 @@ app.get('/service-worker-workbox.js', (req, res) => {
   res.sendFile(pathModule.join(process.cwd(), 'client/service-worker-workbox.js'));
 });
 
-// LIFE CEO 40x20s DEBUG: Serve test page explicitly
-app.get('/test.html', (req, res) => {
-  console.log('🔍 Life CEO Debug: Serving test.html');
-  res.sendFile(pathModule.join(process.cwd(), 'client/public/test.html'));
-});
-
 (async () => {
   // 30L Framework - Layer 23: Business Continuity
   // Initialize with database resilience
@@ -155,6 +150,51 @@ app.get('/test.html', (req, res) => {
     console.error('⚠️  Compliance monitoring initialization failed:', err.message);
     // Continue without compliance monitoring
   }
+
+  // LIFE CEO 40x20s DEBUG ROUTES - MUST BE BEFORE registerRoutes
+  console.log('🔧 Life CEO Debug: Adding debug routes...');
+  
+  // Simple text response to verify server is working
+  app.get('/debug', (req, res) => {
+    console.log('🚨 Life CEO Debug: /debug route hit!');
+    res.set({
+      'Content-Type': 'text/plain',
+      'Cache-Control': 'no-cache'
+    });
+    res.send('Life CEO Debug: Server is working! If you see this, routes are accessible.');
+  });
+  
+  // Test HTML page route
+  app.get('/test.html', (req, res) => {
+    console.log('🔍 Life CEO Debug: Serving test.html');
+    const testPath = pathModule.join(process.cwd(), 'client/public/test.html');
+    if (fs.existsSync(testPath)) {
+      res.sendFile(testPath);
+    } else {
+      res.status(404).send('Test file not found');
+    }
+  });
+  
+  // Debug JSON endpoint
+  app.get('/debug-json', (req, res) => {
+    console.log('📊 Life CEO Debug: /debug-json route hit!');
+    res.json({
+      status: 'working',
+      timestamp: new Date().toISOString(),
+      message: 'Life CEO Debug: JSON responses are working'
+    });
+  });
+  
+  // Life CEO Debug Dashboard
+  app.get('/life-ceo-debug', (req, res) => {
+    console.log('🎯 Life CEO Debug: Serving debug dashboard');
+    const debugPath = pathModule.join(process.cwd(), 'client/public/life-ceo-debug.html');
+    if (fs.existsSync(debugPath)) {
+      res.sendFile(debugPath);
+    } else {
+      res.status(404).send('Debug dashboard not found');
+    }
+  });
 
   const server = await registerRoutes(app);
 

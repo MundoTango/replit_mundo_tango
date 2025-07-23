@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life CEO 40x20s Debug Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .success {
+            background: rgba(46, 213, 115, 0.3);
+            border: 1px solid #2ed573;
+        }
+        .error {
+            background: rgba(255, 71, 87, 0.3);
+            border: 1px solid #ff4757;
+        }
+        .pending {
+            background: rgba(255, 193, 7, 0.3);
+            border: 1px solid #ffc107;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        #urlInfo {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+        .debug-log {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Life CEO 40x20s Debug Dashboard</h1>
+        
+        <div id="urlInfo">
+            <h3>Current URL Information</h3>
+            <div id="urlDetails"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Basic Tests</h2>
+            <div id="basicTests" class="test-result pending">Running basic tests...</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>API Tests</h2>
+            <button onclick="testDebugAPI()">Test /debug Endpoint</button>
+            <button onclick="testJSONAPI()">Test /debug-json Endpoint</button>
+            <button onclick="testMainPage()">Test Main React App</button>
+            <div id="apiTests" class="test-result pending">Click buttons to test API endpoints</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>React Status</h2>
+            <div id="reactStatus" class="test-result pending">Checking React mount point...</div>
+            <button onclick="attemptReactMount()">Try to Mount React</button>
+        </div>
+        
+        <div class="debug-log">
+            <h3>Debug Log</h3>
+            <div id="debugLog"></div>
+        </div>
+    </div>
+    
+    <script>
+        const log = (message, type = 'info') => {
+            const debugLog = document.getElementById('debugLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff4757' : type === 'success' ? '#2ed573' : '#ffc107';
+            debugLog.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            debugLog.scrollTop = debugLog.scrollHeight;
+        };
+        
+        // Show URL information
+        const showURLInfo = () => {
+            const urlDetails = document.getElementById('urlDetails');
+            const info = {
+                'Full URL': window.location.href,
+                'Origin': window.location.origin,
+                'Hostname': window.location.hostname,
+                'Port': window.location.port || '(default)',
+                'Protocol': window.location.protocol,
+                'Is Replit': window.location.hostname.includes('replit') ? 'Yes' : 'No'
+            };
+            
+            urlDetails.innerHTML = Object.entries(info)
+                .map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`)
+                .join('');
+                
+            log('URL information loaded', 'success');
+        };
+        
+        // Basic JavaScript tests
+        const runBasicTests = () => {
+            const testsDiv = document.getElementById('basicTests');
+            const tests = [];
+            
+            // Test 1: JavaScript execution
+            tests.push('✅ JavaScript is executing');
+            log('JavaScript execution confirmed', 'success');
+            
+            // Test 2: DOM manipulation
+            try {
+                const testDiv = document.createElement('div');
+                testDiv.id = 'test-dom';
+                document.body.appendChild(testDiv);
+                document.body.removeChild(testDiv);
+                tests.push('✅ DOM manipulation working');
+                log('DOM manipulation test passed', 'success');
+            } catch (e) {
+                tests.push('❌ DOM manipulation failed: ' + e.message);
+                log('DOM manipulation failed: ' + e.message, 'error');
+            }
+            
+            // Test 3: ES6 features
+            try {
+                const testArrow = () => 'works';
+                const testTemplate = `Template ${testArrow()}`;
+                tests.push('✅ ES6 features working');
+                log('ES6 features test passed', 'success');
+            } catch (e) {
+                tests.push('❌ ES6 features failed: ' + e.message);
+                log('ES6 features failed: ' + e.message, 'error');
+            }
+            
+            // Test 4: Fetch API
+            if (window.fetch) {
+                tests.push('✅ Fetch API available');
+                log('Fetch API available', 'success');
+            } else {
+                tests.push('❌ Fetch API not available');
+                log('Fetch API not available', 'error');
+            }
+            
+            testsDiv.className = 'test-result success';
+            testsDiv.innerHTML = tests.join('<br>');
+        };
+        
+        // Construct API URL based on current location
+        const getAPIUrl = (path) => {
+            // For Replit, we need to use the same origin
+            return window.location.origin + path;
+        };
+        
+        // Test debug API
+        const testDebugAPI = async () => {
+            const apiDiv = document.getElementById('apiTests');
+            apiDiv.className = 'test-result pending';
+            apiDiv.innerHTML = 'Testing /debug endpoint...';
+            log('Testing /debug endpoint...', 'info');
+            
+            try {
+                const url = getAPIUrl('/debug');
+                log('Fetching: ' + url, 'info');
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                const text = await response.text();
+                apiDiv.className = 'test-result success';
+                apiDiv.innerHTML = `✅ /debug endpoint working!<br>Response: ${text}`;
+                log('/debug endpoint success: ' + text, 'success');
+            } catch (e) {
+                apiDiv.className = 'test-result error';
+                apiDiv.innerHTML = `❌ /debug endpoint failed: ${e.message}`;
+                log('/debug endpoint error: ' + e.message, 'error');
+            }
+        };
+        
+        // Test JSON API
+        const testJSONAPI = async () => {
+            const apiDiv = document.getElementById('apiTests');
+            apiDiv.className = 'test-result pending';
+            apiDiv.innerHTML = 'Testing /debug-json endpoint...';
+            log('Testing /debug-json endpoint...', 'info');
+            
+            try {
+                const url = getAPIUrl('/debug-json');
+                log('Fetching: ' + url, 'info');
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                apiDiv.className = 'test-result success';
+                apiDiv.innerHTML = `✅ /debug-json endpoint working!<br>Response: ${JSON.stringify(data, null, 2)}`;
+                log('/debug-json endpoint success', 'success');
+            } catch (e) {
+                apiDiv.className = 'test-result error';
+                apiDiv.innerHTML = `❌ /debug-json endpoint failed: ${e.message}`;
+                log('/debug-json endpoint error: ' + e.message, 'error');
+            }
+        };
+        
+        // Test main page
+        const testMainPage = async () => {
+            const apiDiv = document.getElementById('apiTests');
+            apiDiv.className = 'test-result pending';
+            apiDiv.innerHTML = 'Testing main React app...';
+            log('Testing main React app...', 'info');
+            
+            try {
+                const url = getAPIUrl('/');
+                log('Fetching: ' + url, 'info');
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                const text = await response.text();
+                const hasReact = text.includes('src="/src/main.tsx');
+                
+                if (hasReact) {
+                    apiDiv.className = 'test-result success';
+                    apiDiv.innerHTML = '✅ Main page HTML loaded with React script';
+                    log('Main page loaded successfully', 'success');
+                } else {
+                    apiDiv.className = 'test-result error';
+                    apiDiv.innerHTML = '❌ Main page loaded but React script not found';
+                    log('Main page missing React script', 'error');
+                }
+            } catch (e) {
+                apiDiv.className = 'test-result error';
+                apiDiv.innerHTML = `❌ Main page failed: ${e.message}`;
+                log('Main page error: ' + e.message, 'error');
+            }
+        };
+        
+        // Check React mount point
+        const checkReactStatus = () => {
+            const reactDiv = document.getElementById('reactStatus');
+            const root = document.getElementById('root');
+            
+            if (root) {
+                reactDiv.className = 'test-result success';
+                reactDiv.innerHTML = '✅ React mount point (#root) exists';
+                log('React mount point found', 'success');
+            } else {
+                reactDiv.className = 'test-result error';
+                reactDiv.innerHTML = '❌ React mount point (#root) not found';
+                log('React mount point missing', 'error');
+            }
+        };
+        
+        // Try to mount React manually
+        const attemptReactMount = () => {
+            log('Attempting to create React mount point...', 'info');
+            
+            if (!document.getElementById('root')) {
+                const root = document.createElement('div');
+                root.id = 'root';
+                root.style.marginTop = '20px';
+                root.style.padding = '20px';
+                root.style.background = 'rgba(255, 255, 255, 0.2)';
+                root.style.borderRadius = '10px';
+                root.innerHTML = '<h3>React Mount Point Created</h3><p>Loading React app...</p>';
+                document.querySelector('.container').appendChild(root);
+                log('Created #root element', 'success');
+                
+                // Try to load React
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = '/src/main.tsx';
+                document.body.appendChild(script);
+                log('Added React script tag', 'success');
+            } else {
+                log('React mount point already exists', 'info');
+            }
+            
+            checkReactStatus();
+        };
+        
+        // Run tests on load
+        window.addEventListener('DOMContentLoaded', () => {
+            showURLInfo();
+            runBasicTests();
+            checkReactStatus();
+            log('Life CEO 40x20s Debug Dashboard loaded', 'success');
+        });
+    </script>
+</body>
+</html>
