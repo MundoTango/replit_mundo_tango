@@ -41,7 +41,10 @@ export const TANGO_ROLES: TangoRole[] = [
   // Business Roles
   { id: 'tango_house', name: 'Tango House', emoji: '🏢', description: 'Operates tango venue or business', category: 'business', priority: 16 },
   { id: 'tango_school', name: 'Tango School', emoji: '🏫', description: 'Runs tango educational institution', category: 'business', priority: 17 },
-  { id: 'tour_operator', name: 'Tour Operator', emoji: '✈️', description: 'Organizes tango tours and trips', category: 'business', priority: 18 }
+  { id: 'tour_operator', name: 'Tour Operator', emoji: '✈️', description: 'Organizes tango tours and trips', category: 'business', priority: 18 },
+  
+  // Travel Role
+  { id: 'tango_traveler', name: 'Tango Traveler', emoji: '🌍', description: 'Travels the world for tango festivals and events', category: 'community', priority: 19 }
 ];
 
 export const ROLE_CATEGORIES = {

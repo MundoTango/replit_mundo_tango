@@ -68,10 +68,12 @@
 
 **UPDATE (January 23, 2025 - Comprehensive Tango Role System)**: Full Role Selector with Registration Form Consistency
 - **ComprehensiveRoleSelector Created**: Replaced simple role selectors with detailed interface matching registration form
-- **All 19 Tango Roles**: dancer (💃), performer (⭐), teacher (📚), learning_source (📖), dj (🎵), musician (🎼), organizer (🎪), host (🏠), guide (🗺️), photographer (📸), content_creator (🎙️), choreographer (✨), tango_traveler (🌍), tour_operator (✈️), vendor (🛒), wellness_provider (💆), tango_school (🏫), tango_hotel (🏨), other (➕)
+- **All 20 Tango Roles**: dancer (💃), performer (🎭), teacher (🎓), dj (🎧), musician (🎵), organizer (📅), host (🏠), guide (🗺️), photographer (📸), content_creator (📱), tango_traveler (🌍), tour_operator (✈️), volunteer (🤝), historian (📚), singer (🎤), taxi_dancer (🎫), dancer_leader (🕺), dancer_follower (💃), dancer_switch (🕺💃), tango_school (🏫), tango_house (🏢)
 - **RoleEmojiDisplay Component**: Created centralized emoji display component for consistent role emojis throughout the application
 - **MT Ocean Theme Applied**: Glassmorphic cards with turquoise-to-cyan gradients and smooth animations
 - **Role Impact**: These roles affect many product features including friend suggestions, event recommendations, and content personalization
+- **Edit Mode Enhancement**: Edit mode already uses ComprehensiveRoleSelector providing comprehensive interface
+- **View Mode Enhancement**: Beautiful role cards with hover effects showing role descriptions, fadeInScale animations, and glassmorphic design
 
 **UPDATE (January 23, 2025 - Profile Tango Roles Section Enhancement)**: Beautiful MT Ocean Theme with Animations
 - **"What do you do in Tango" Section Redesigned**: Enhanced with MT ocean theme glassmorphic cards and fun animations

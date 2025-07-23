@@ -628,18 +628,11 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
           )}
           
           {user.tangoRoles && (
-            <div className="mt-6 border-4 border-red-500 bg-red-50 p-2" style={{ border: '4px solid red', backgroundColor: 'rgba(255,0,0,0.1)' }}>
-              {console.log('🔍 Life CEO Debug: Rendering Tango roles section', {
-                tangoRoles: user.tangoRoles,
-                parsedRoles: typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles,
-                roleIcons,
-                roleIconsKeys: Object.keys(roleIcons),
-                hasMusicIcon: !!Music
-              })}
+            <div className="mt-6">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
                   <span className="bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
-                    What do you do in Tango? (DEBUG: THIS SHOULD BE VISIBLE WITH RED BORDER)
+                    What do you do in Tango?
                   </span>
                   <Music className="w-5 h-5 text-turquoise-500 animate-pulse" />
                 </h3>
@@ -652,12 +645,8 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                     word.charAt(0).toUpperCase() + word.slice(1)
                   ).join(' ');
                   
-                  console.log('🔍 Life CEO Debug: Rendering role card', {
-                    role,
-                    roleDisplayName,
-                    icon: roleIcons[role],
-                    index
-                  });
+                  // Get role details from TANGO_ROLES
+                  const roleDetails = TANGO_ROLES.find(r => r.id === role);
                   
                   return (
                     <div
@@ -670,7 +659,7 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                       
                       {/* Role icon */}
                       <div className="text-4xl mb-2 transform group-hover:scale-110 transition-transform duration-300">
-                        {roleIcons[role] || '🎭'}
+                        {roleDetails?.emoji || roleIcons[role] || '🎭'}
                       </div>
                       
                       {/* Role name */}
@@ -678,8 +667,15 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                         {roleDisplayName}
                       </p>
                       
+                      {/* Role description on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-turquoise-400/95 to-cyan-500/95 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center p-3 rounded-xl">
+                        <p className="text-xs text-white text-center font-medium">
+                          {roleDetails?.description || 'Passionate about tango'}
+                        </p>
+                      </div>
+                      
                       {/* Hover effect border */}
-                      <div className="absolute inset-0 border-2 border-turquoise-400 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 border-2 border-turquoise-400 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                     </div>
                   );
                 })}
