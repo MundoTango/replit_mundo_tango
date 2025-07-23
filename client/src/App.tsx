@@ -326,6 +326,20 @@ export default function App() {
     
     console.log("⚡ Life CEO Performance Optimizer initialized");
     
+    // Initialize aggressive optimizations for <3s target
+    import('./lib/aggressive-optimization').then(({ initializeAggressiveOptimizations }) => {
+      initializeAggressiveOptimizations();
+    });
+    
+    // Prefetch critical data
+    import('./lib/performance-critical-fix').then((module) => {
+      if (module.prefetchCriticalData) {
+        module.prefetchCriticalData();
+      }
+    }).catch(error => {
+      console.warn('Failed to load prefetch module:', error);
+    });
+    
     // Life CEO Performance: Apply optimizations
     console.log('⚡ Life CEO Performance: Preloading critical resources...');
     

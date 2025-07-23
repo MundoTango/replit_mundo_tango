@@ -41,6 +41,16 @@ class OnboardingRateLimiter {
           console.log('⚠️ Redis not available, switching to in-memory rate limiting');
           this.redis.disconnect();
           this.redis = null;
+          
+          // Recreate all limiters with memory backend
+          this.limiters.forEach((limiter, name) => {
+            const options = {
+              points: limiter.points,
+              duration: limiter.duration,
+              blockDuration: limiter.blockDuration
+            };
+            this.limiters.set(name, new RateLimiterMemory(options));
+          });
         });
       }
     } catch (error) {

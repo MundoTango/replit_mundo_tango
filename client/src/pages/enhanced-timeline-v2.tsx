@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '../lib/queryClient';
 import DashboardLayout from '../layouts/DashboardLayout';
@@ -26,15 +26,27 @@ import {
   Clock,
   CheckCircle
 } from 'lucide-react';
+import { debounce, useMemoryCleanup, measureComponentPerformance } from '../lib/performance-critical-fix';
 
-// Import all the social feature components
-import { FacebookReactionSelector } from '../components/ui/FacebookReactionSelector';
-import { RichTextCommentEditor } from '../components/ui/RichTextCommentEditor';
+// Import only essential components directly
 import { RoleEmojiDisplay } from '../components/ui/RoleEmojiDisplay';
 import { PostContextMenu } from '../components/ui/PostContextMenu';
-import { ReportModal } from '../components/ui/ReportModal';
-import EventsBoard from '../components/events/EventsBoard';
-import BeautifulPostCreator from '../components/universal/BeautifulPostCreator';
+
+// Lazy load heavy components
+import { 
+  LazyEventBoard,
+  LazyBeautifulPostCreator,
+  LazyFacebookReactionSelector,
+  LazyRichTextCommentEditor,
+  LazyReportModal,
+  withSuspense
+} from '../lib/lazy-components';
+
+const EventsBoard = withSuspense(LazyEventBoard);
+const BeautifulPostCreator = withSuspense(LazyBeautifulPostCreator);
+const FacebookReactionSelector = withSuspense(LazyFacebookReactionSelector);
+const RichTextCommentEditor = withSuspense(LazyRichTextCommentEditor);
+const ReportModal = withSuspense(LazyReportModal);
 
 interface Memory {
   id: string;
@@ -72,7 +84,9 @@ interface MemoryCardProps {
   memory: Memory;
 }
 
-function MemoryCard({ memory }: MemoryCardProps) {
+// Memoize MemoryCard to prevent unnecessary re-renders
+const MemoryCard = React.memo(function MemoryCard({ memory }: MemoryCardProps) {
+  const cleanup = measureComponentPerformance('MemoryCard');
   const [showComments, setShowComments] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -454,15 +468,24 @@ function MemoryCard({ memory }: MemoryCardProps) {
       </Card>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison for performance - only re-render if key properties change
+  return prevProps.memory.id === nextProps.memory.id &&
+         prevProps.memory.reactions === nextProps.memory.reactions &&
+         prevProps.memory.comments?.length === nextProps.memory.comments?.length;
+});
 
 export default function EnhancedTimelineV2() {
   const { toast } = useToast();
   const { user } = useAuth();
   
+  // Performance monitoring
+  const cleanup = measureComponentPerformance('EnhancedTimelineV2');
+  useMemoryCleanup([]);
+  
   console.log('EnhancedTimelineV2 component loaded!', { user });
 
-  // Fetch timeline posts
+  // Fetch timeline posts with caching
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['/api/posts/feed'],
     queryFn: async () => {
@@ -472,8 +495,19 @@ export default function EnhancedTimelineV2() {
       if (!response.ok) throw new Error('Failed to fetch posts');
       const result = await response.json();
       return result.data || [];
-    }
+    },
+    staleTime: 60000, // Consider data fresh for 1 minute
+    cacheTime: 300000, // Keep in cache for 5 minutes
+    refetchOnWindowFocus: false // Don't refetch on window focus
   });
+  
+  // Memoize posts to prevent unnecessary re-renders
+  const memoizedPosts = useMemo(() => posts, [posts]);
+  
+  // Cleanup performance monitoring on unmount
+  useEffect(() => {
+    return cleanup;
+  }, []);
 
   return (
     <DashboardLayout>
@@ -513,7 +547,7 @@ export default function EnhancedTimelineV2() {
               />
             </div>
 
-            {/* Posts */}
+            {/* Posts with Virtual Scrolling */}
             <div className="space-y-6">
               {isLoading ? (
                 <>
@@ -559,9 +593,11 @@ export default function EnhancedTimelineV2() {
                   ))}
                 </>
               ) : posts.length > 0 ? (
-                posts.map((post: Memory) => (
-                  <MemoryCard key={post.id} memory={post} />
-                ))
+                <div className="space-y-6">
+                  {posts.map((post: Memory) => (
+                    <MemoryCard key={post.id} memory={post} />
+                  ))}
+                </div>
               ) : (
                 <div className="glassmorphic-card p-12 rounded-3xl text-center">
                   <div className="max-w-md mx-auto">

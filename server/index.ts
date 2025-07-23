@@ -170,4 +170,11 @@ app.get('/service-worker-workbox.js', (req, res) => {
       console.warn('⚠️ Project tracking not available');
     }
   });
+  
+  // Apply performance fixes from 40x20s optimization
+  import('./lib/performance-fixes.js').then(({ applyPerformanceFixes }) => {
+    applyPerformanceFixes(app);
+  }).catch(error => {
+    console.warn('⚠️ Performance fixes could not be applied:', error);
+  });
 })();

@@ -5,11 +5,31 @@ import { users, posts, notifications, events, memories } from '@shared/schema';
 import { eq, gt, and, lt } from 'drizzle-orm';
 import { getCache, invalidateCache } from './cacheService';
 
-// Redis connection for job queue
-const redisConnection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-  maxRetriesPerRequest: null,
-  enableReadyCheck: false,
-});
+// Redis connection for job queue - only if Redis is enabled
+let redisConnection: Redis | null = null;
+
+if (process.env.DISABLE_REDIS !== 'true') {
+  try {
+    redisConnection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+      maxRetriesPerRequest: null,
+      enableReadyCheck: false,
+      enableOfflineQueue: false,
+      retryStrategy: () => null,
+      reconnectOnError: () => false,
+    });
+    
+    redisConnection.on('error', (err) => {
+      console.log('⚠️ Job Queue Redis not available');
+      redisConnection?.disconnect();
+      redisConnection = null;
+    });
+  } catch (error) {
+    console.log('⚠️ Job Queue Redis not available');
+    redisConnection = null;
+  }
+} else {
+  console.log('ℹ️ Redis disabled, job queues not available');
+}
 
 // Define job types
 export enum JobType {
@@ -43,17 +63,17 @@ export enum JobType {
   CLEANUP_INACTIVE_USERS = 'cleanup-inactive-users',
 }
 
-// Create queues for different job types
-export const queues = {
+// Create queues for different job types - only if Redis is available
+export const queues = redisConnection ? {
   email: new Queue('email', { connection: redisConnection }),
   notifications: new Queue('notifications', { connection: redisConnection }),
   images: new Queue('images', { connection: redisConnection }),
   data: new Queue('data', { connection: redisConnection }),
   analytics: new Queue('analytics', { connection: redisConnection }),
-};
+} : {} as any;
 
-// Email worker
-const emailWorker = new Worker('email', async (job: Job) => {
+// Email worker - only if Redis is available
+const emailWorker = redisConnection ? new Worker('email', async (job: Job) => {
   const { type, data } = job.data;
   
   switch (type) {
@@ -67,10 +87,10 @@ const emailWorker = new Worker('email', async (job: Job) => {
 }, {
   connection: redisConnection,
   concurrency: 5, // Process 5 emails at a time
-});
+}) : null;
 
-// Notification worker
-const notificationWorker = new Worker('notifications', async (job: Job) => {
+// Notification worker - only if Redis is available
+const notificationWorker = redisConnection ? new Worker('notifications', async (job: Job) => {
   const { type, data } = job.data;
   
   switch (type) {
