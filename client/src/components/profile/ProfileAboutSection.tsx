@@ -404,27 +404,32 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6 bg-gradient-to-br from-white via-turquoise-50/20 to-cyan-50/20">
+        <CardContent className="p-8 bg-gradient-to-br from-white via-turquoise-50/30 to-cyan-50/30">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               {/* Step 1: Basic Info */}
-              <div className="space-y-6 glassmorphic-card p-6">
-                <h3 className="text-lg font-semibold flex items-center gap-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
-                  <Sparkles className="w-5 h-5 text-turquoise-500" />
-                  Basic Information
+              <div className="space-y-6 glassmorphic-card p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-turquoise-200/50">
+                <h3 className="text-xl font-bold flex items-center gap-3 mb-4">
+                  <Sparkles className="w-6 h-6 text-turquoise-500 animate-pulse" />
+                  <span className="bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                    Basic Information
+                  </span>
                 </h3>
                 
                 <FormField
                   control={form.control}
                   name="nickname"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 font-medium">How should we call you?</FormLabel>
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-gray-700 font-semibold text-base flex items-center gap-2">
+                        <User className="w-4 h-4 text-turquoise-500" />
+                        How should we call you?
+                      </FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
                           placeholder="Your nickname" 
-                          className="glassmorphic-input border-turquoise-200/50 focus:border-turquoise-400 transition-all duration-300"
+                          className="glassmorphic-input border-2 border-turquoise-200/50 focus:border-turquoise-400 bg-white/70 backdrop-blur-xl hover:bg-white/80 transition-all duration-300 px-4 py-2.5 rounded-lg"
                         />
                       </FormControl>
                       <FormMessage />
@@ -436,15 +441,18 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                   control={form.control}
                   name="languages"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 font-medium">What languages do you speak?</FormLabel>
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-gray-700 font-semibold text-base flex items-center gap-2">
+                        <Languages className="w-4 h-4 text-turquoise-500" />
+                        What languages do you speak?
+                      </FormLabel>
                       <FormControl>
                         <MultiSelect
                           options={languages}
                           selected={field.value}
                           onChange={field.onChange}
                           placeholder="Select languages"
-                          className="glassmorphic-input"
+                          className="glassmorphic-input border-2 border-turquoise-200/50 focus-within:border-turquoise-400 bg-white/70 backdrop-blur-xl hover:bg-white/80 transition-all duration-300"
                         />
                       </FormControl>
                       <FormMessage />
@@ -454,25 +462,32 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
               </div>
               
               {/* Step 2: Tango Roles */}
-              <div className="space-y-6 glassmorphic-card p-6">
-                <h3 className="text-lg font-semibold flex items-center gap-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
-                  <Music className="w-5 h-5 text-turquoise-500" />
-                  Your Tango Journey
+              <div className="space-y-6 glassmorphic-card p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-turquoise-200/50">
+                <h3 className="text-xl font-bold flex items-center gap-3 mb-4">
+                  <Music className="w-6 h-6 text-turquoise-500 animate-pulse" />
+                  <span className="bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                    Your Tango Journey
+                  </span>
                 </h3>
                 
                 <FormField
                   control={form.control}
                   name="selectedRoles"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 font-medium">What roles do you play in tango?</FormLabel>
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-gray-700 font-semibold text-base flex items-center gap-2">
+                        <Heart className="w-4 h-4 text-turquoise-500" />
+                        What roles do you play in tango?
+                      </FormLabel>
                       <FormControl>
-                        <ErrorBoundary>
-                          <ComprehensiveRoleSelector
-                            selectedRoles={field.value || []}
-                            onRoleChange={field.onChange}
-                          />
-                        </ErrorBoundary>
+                        <div className="p-4 glassmorphic-card border border-turquoise-200/30">
+                          <ErrorBoundary>
+                            <ComprehensiveRoleSelector
+                              selectedRoles={field.value || []}
+                              onRoleChange={field.onChange}
+                            />
+                          </ErrorBoundary>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -484,19 +499,22 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                     control={form.control}
                     name="leaderLevel"
                     render={({ field }) => (
-                      <FormItem className="glassmorphic-card p-4">
-                        <FormLabel className="text-gray-700 font-medium">Leader Level (0-10)</FormLabel>
+                      <FormItem className="glassmorphic-card p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-turquoise-200/30">
+                        <FormLabel className="text-gray-700 font-semibold flex items-center gap-2 mb-3">
+                          <User className="w-4 h-4 text-turquoise-500" />
+                          Leader Level (0-10)
+                        </FormLabel>
                         <FormControl>
-                          <div className="space-y-3">
+                          <div className="space-y-4">
                             <Slider
                               value={[field.value]}
                               onValueChange={(value) => field.onChange(value[0])}
                               min={0}
                               max={10}
                               step={1}
-                              className="w-full [&_.slider-thumb]:bg-turquoise-500 [&_.slider-track]:bg-turquoise-200 [&_.slider-range]:bg-gradient-to-r [&_.slider-range]:from-turquoise-400 [&_.slider-range]:to-cyan-500"
+                              className="w-full [&_.slider-thumb]:bg-turquoise-500 [&_.slider-thumb]:shadow-lg [&_.slider-track]:bg-turquoise-200/50 [&_.slider-range]:bg-gradient-to-r [&_.slider-range]:from-turquoise-400 [&_.slider-range]:to-cyan-500"
                             />
-                            <div className="text-center text-sm font-medium bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                            <div className="text-center text-lg font-bold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
                               {field.value}/10
                             </div>
                           </div>
@@ -510,19 +528,22 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                     control={form.control}
                     name="followerLevel"
                     render={({ field }) => (
-                      <FormItem className="glassmorphic-card p-4">
-                        <FormLabel className="text-gray-700 font-medium">Follower Level (0-10)</FormLabel>
+                      <FormItem className="glassmorphic-card p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-turquoise-200/30">
+                        <FormLabel className="text-gray-700 font-semibold flex items-center gap-2 mb-3">
+                          <Users className="w-4 h-4 text-cyan-500" />
+                          Follower Level (0-10)
+                        </FormLabel>
                         <FormControl>
-                          <div className="space-y-3">
+                          <div className="space-y-4">
                             <Slider
                               value={[field.value]}
                               onValueChange={(value) => field.onChange(value[0])}
                               min={0}
                               max={10}
                               step={1}
-                              className="w-full [&_.slider-thumb]:bg-turquoise-500 [&_.slider-track]:bg-turquoise-200 [&_.slider-range]:bg-gradient-to-r [&_.slider-range]:from-turquoise-400 [&_.slider-range]:to-cyan-500"
+                              className="w-full [&_.slider-thumb]:bg-cyan-500 [&_.slider-thumb]:shadow-lg [&_.slider-track]:bg-cyan-200/50 [&_.slider-range]:bg-gradient-to-r [&_.slider-range]:from-cyan-400 [&_.slider-range]:to-blue-500"
                             />
-                            <div className="text-center text-sm font-medium bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                            <div className="text-center text-lg font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
                               {field.value}/10
                             </div>
                           </div>
@@ -537,19 +558,22 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                   control={form.control}
                   name="startedDancingYear"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 font-medium">What year did you start dancing tango?</FormLabel>
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-gray-700 font-semibold text-base flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-turquoise-500" />
+                        What year did you start dancing tango?
+                      </FormLabel>
                       <FormControl>
                         <Select
                           value={field.value?.toString()}
                           onValueChange={(value) => field.onChange(parseInt(value))}
                         >
-                          <SelectTrigger className="glassmorphic-input border-turquoise-200/50 focus:border-turquoise-400 transition-all duration-300">
+                          <SelectTrigger className="glassmorphic-input border-2 border-turquoise-200/50 focus:border-turquoise-400 bg-white/70 backdrop-blur-xl hover:bg-white/80 transition-all duration-300 px-4 py-2.5 rounded-lg">
                             <SelectValue placeholder="Select year" />
                           </SelectTrigger>
-                          <SelectContent className="glassmorphic-card">
+                          <SelectContent className="glassmorphic-card max-h-60 overflow-y-auto border border-turquoise-200/50">
                             {years.map((year) => (
-                              <SelectItem key={year} value={year} className="hover:bg-turquoise-50/50 transition-colors">
+                              <SelectItem key={year} value={year} className="hover:bg-turquoise-50/70 transition-colors cursor-pointer px-4 py-2">
                                 {year}
                               </SelectItem>
                             ))}
@@ -563,29 +587,33 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
               </div>
               
               {/* Step 3: Location */}
-              <div className="space-y-6 glassmorphic-card p-6">
-                <h3 className="text-lg font-semibold flex items-center gap-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
-                  <Globe2 className="w-5 h-5 text-turquoise-500" />
-                  Location
+              <div className="space-y-6 glassmorphic-card p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-turquoise-200/50">
+                <h3 className="text-xl font-bold flex items-center gap-3 mb-4">
+                  <Globe2 className="w-6 h-6 text-turquoise-500 animate-pulse" />
+                  <span className="bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                    Location
+                  </span>
                 </h3>
                 
-                <AutocompleteLocationPicker
-                  selectedLocation={{
-                    country: form.watch('location')?.country || '',
-                    state: form.watch('location')?.state || '',
-                    city: form.watch('location')?.city || ''
-                  }}
-                  onLocationSelect={(location) => {
-                    form.setValue('location', {
-                      country: location.country,
-                      state: location.state || '',
-                      city: location.city,
-                      countryId: 0,
-                      stateId: 0,
-                      cityId: 0
-                    });
-                  }}
-                />
+                <div className="glassmorphic-card p-4 border border-turquoise-200/30">
+                  <AutocompleteLocationPicker
+                    selectedLocation={{
+                      country: form.watch('location')?.country || '',
+                      state: form.watch('location')?.state || '',
+                      city: form.watch('location')?.city || ''
+                    }}
+                    onLocationSelect={(location) => {
+                      form.setValue('location', {
+                        country: location.country,
+                        state: location.state || '',
+                        city: location.city,
+                        countryId: 0,
+                        stateId: 0,
+                        cityId: 0
+                      });
+                    }}
+                  />
+                </div>
               </div>
             </form>
           </Form>

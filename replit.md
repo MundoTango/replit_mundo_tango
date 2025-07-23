@@ -90,7 +90,14 @@
 - **MT Ocean Theme Applied to ALL Views**:
   - **Non-owner view**: Complete glassmorphic redesign with gradient headers and turquoise-themed elements
   - **Owner view**: Enhanced with glassmorphic cards for all sections (Basic Info, Languages, Tango Roles, Dance Levels, Tango Journey)
-  - **Edit mode**: Already had MT styling, maintained consistency
+  - **Edit mode**: Comprehensive MT ocean theme enhancements applied:
+    - Enhanced header with larger icons, animated pulse effects, gradient shadow on Save button
+    - All form sections now have shadow-xl hover effects and border border-turquoise-200/50
+    - Form labels with icons, semibold text, and proper spacing
+    - Input fields with glassmorphic styling, border-2, backdrop-blur-xl, hover states
+    - Dance level sliders with enhanced shadow-lg on thumbs and gradient ranges
+    - Location picker wrapped in glassmorphic card within card for better visual hierarchy
+    - Consistent 8px padding on all major sections vs 6px before
 - **Design Elements Implemented**:
   - Glassmorphic cards with backdrop blur for all content sections
   - Gradient header backgrounds (turquoise-50 → cyan-50 → blue-50)
