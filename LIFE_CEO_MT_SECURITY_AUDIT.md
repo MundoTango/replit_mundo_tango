@@ -13,8 +13,8 @@ As Life CEO, I'm implementing comprehensive safeguards to prevent security breac
 - [x] CSRF protection on all forms
 - [x] Rate limiting on authentication endpoints
 - [ ] Two-factor authentication (2FA) for admin accounts
-- [ ] Session timeout after inactivity
-- [ ] Suspicious login detection
+- [x] Session timeout after inactivity (implemented via sessionTimeout middleware)
+- [x] Suspicious login detection (implemented via suspiciousLogin service)
 
 ### 2. Data Protection
 - [x] PostgreSQL with Row Level Security (RLS) on 40+ tables

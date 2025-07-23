@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-hot-toast';
 import { cn } from '@/lib/utils';
+import { SecurityDashboard } from '@/components/life-ceo/SecurityDashboard';
 
 interface Conversation {
   id: string;
@@ -82,6 +83,7 @@ export default function LifeCEOEnhanced() {
   ]);
   const [selectedAgentId, setSelectedAgentId] = useState<string>('life-ceo');
   const [showAgentSwitcher, setShowAgentSwitcher] = useState(false);
+  const [showSecurityDashboard, setShowSecurityDashboard] = useState(false);
 
   // Check if user is super admin
   const isSuperAdmin = (user as any)?.isSuperAdmin === true;
@@ -93,6 +95,11 @@ export default function LifeCEOEnhanced() {
       setLocation('/');
     }
   }, [user, isSuperAdmin, setLocation]);
+
+  // Update security dashboard visibility when agent changes
+  useEffect(() => {
+    setShowSecurityDashboard(selectedAgentId === 'security');
+  }, [selectedAgentId]);
 
   // Register service worker and handle PWA installation
   useEffect(() => {
@@ -594,39 +601,44 @@ export default function LifeCEOEnhanced() {
           </div>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {activeConversation?.messages.map(message => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`max-w-2xl p-4 rounded-lg ${
-                message.role === 'user' 
-                  ? 'bg-purple-600 text-white' 
-                  : 'bg-gray-100 text-gray-800'
-              }`}>
-                <p className="text-sm">{message.content}</p>
-                <span className="text-xs opacity-70">
-                  {new Date(message.timestamp).toLocaleTimeString()}
-                </span>
-              </div>
-            </div>
-          ))}
-          
-          {isProcessing && (
-            <div className="flex justify-start">
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="animate-pulse">Processing...</div>
+        {/* Conditional rendering: Security Dashboard or Chat Interface */}
+        {showSecurityDashboard ? (
+          <SecurityDashboard />
+        ) : (
+          <>
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {activeConversation?.messages.map(message => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`max-w-2xl p-4 rounded-lg ${
+                    message.role === 'user' 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    <p className="text-sm">{message.content}</p>
+                    <span className="text-xs opacity-70">
+                      {new Date(message.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              ))}
+              
+              {isProcessing && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-100 p-4 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="animate-pulse">Processing...</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Input Area */}
-        <div className="bg-white border-t border-gray-200 p-4">
+            {/* Input Area */}
+            <div className="bg-white border-t border-gray-200 p-4">
           <div className="flex items-center gap-4">
             <Button
               onClick={toggleRecording}
@@ -665,6 +677,8 @@ export default function LifeCEOEnhanced() {
             </div>
           )}
         </div>
+          </>
+        )}
 
         {/* Agent Status Bar */}
         <div className="bg-gray-100 border-t border-gray-200 p-2">
