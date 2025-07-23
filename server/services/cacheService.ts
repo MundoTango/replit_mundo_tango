@@ -7,6 +7,7 @@ class CacheService {
   private redis: Redis | null = null;
   private fallbackCache: Map<string, { data: any; expiry: number }> = new Map();
   private connected = false;
+  private redisFallbackLogged = false; // Life CEO: Track fallback logging
 
   constructor() {
     this.initializeRedis();
@@ -18,15 +19,20 @@ class CacheService {
       const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
       
       this.redis = new Redis(redisUrl, {
-        maxRetriesPerRequest: 3,
-        enableReadyCheck: true,
+        maxRetriesPerRequest: 1, // Life CEO: Fail fast
+        enableReadyCheck: false,
+        lazyConnect: true, // Don't connect until first use
         retryStrategy: (times) => {
-          if (times > 3) {
-            console.log('⚠️  Redis connection failed, using in-memory fallback cache');
-            return null; // Stop retrying
+          if (times >= 1) {
+            if (!this.redisFallbackLogged) {
+              console.log('⚠️  Redis connection failed, using in-memory fallback cache');
+              this.redisFallbackLogged = true;
+            }
+            return null; // Stop retrying immediately
           }
-          return Math.min(times * 200, 2000);
-        }
+          return 100; // Only retry once quickly
+        },
+        reconnectOnError: () => false, // Life CEO: Don't reconnect
       });
 
       this.redis.on('connect', () => {

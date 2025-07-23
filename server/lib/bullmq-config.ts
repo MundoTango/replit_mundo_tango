@@ -3,11 +3,15 @@ import { Queue, Worker, QueueEvents } from 'bullmq';
 import Redis from 'ioredis';
 
 // Redis connection for BullMQ
+// Life CEO Debug: BullMQ requires Redis, but we'll create a minimal connection
+// that fails fast if Redis isn't available
 const connection = new Redis({
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379'),
-  maxRetriesPerRequest: null,
+  maxRetriesPerRequest: null, // BullMQ requires this to be null
   enableReadyCheck: false,
+  retryStrategy: () => null, // Don't retry on connection failure
+  reconnectOnError: () => false, // Don't reconnect on errors
 });
 
 // Queue definitions
