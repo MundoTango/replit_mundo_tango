@@ -32,6 +32,7 @@ import { LifeCEOLearnings } from './LifeCEOLearnings';
 import Framework40x20sDashboard from './Framework40x20sDashboard';
 import Framework40LDashboard from './Framework40LDashboard';
 import ActivityLoggingService from '@/services/activityLoggingService';
+import LifeCEOFourDayLearnings from '../life-ceo/LifeCEOFourDayLearnings';
 
 const LifeCEOCommandCenter: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -361,13 +362,21 @@ const LifeCEOCommandCenter: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-4 gap-2 bg-white/50 p-1">
+        <TabsList className="grid grid-cols-5 gap-2 bg-white/50 p-1">
           <TabsTrigger 
             value="dashboard" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white"
           >
             <Activity className="w-4 h-4 mr-2" />
             Dashboard
+          </TabsTrigger>
+          <TabsTrigger 
+            value="learnings"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white relative"
+          >
+            <Brain className="w-4 h-4 mr-2" />
+            4-Day Learnings
+            <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1">NEW</Badge>
           </TabsTrigger>
           <TabsTrigger 
             value="agent"
@@ -394,6 +403,10 @@ const LifeCEOCommandCenter: React.FC = () => {
 
         <TabsContent value="dashboard" className="mt-6">
           {renderDashboard()}
+        </TabsContent>
+
+        <TabsContent value="learnings" className="mt-6">
+          <LifeCEOFourDayLearnings />
         </TabsContent>
 
         <TabsContent value="agent" className="mt-6">
