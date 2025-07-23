@@ -361,33 +361,41 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
   // Edit mode - exact copy of registration form
   if (isEditing) {
     return (
-      <Card className="glassmorphic-card">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Edit2 className="w-5 h-5 text-turquoise-500" />
-            Edit Profile
-          </CardTitle>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={handleCancel}>
-              <X className="w-4 h-4 mr-1" />
-              Cancel
-            </Button>
-            <Button 
-              size="sm" 
-              onClick={form.handleSubmit(onSubmit)}
-              disabled={updateProfileMutation.isPending}
-            >
-              <Save className="w-4 h-4 mr-1" />
-              Save
-            </Button>
+      <Card className="glassmorphic-card overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-turquoise-50 via-cyan-50 to-blue-50 border-b border-turquoise-200/30">
+          <div className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+              <Edit2 className="w-5 h-5 text-turquoise-500" />
+              Edit Profile
+            </CardTitle>
+            <div className="flex gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleCancel}
+                className="hover:bg-white/50 hover:shadow-md transition-all duration-300"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Cancel
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={form.handleSubmit(onSubmit)}
+                disabled={updateProfileMutation.isPending}
+                className="bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white hover:shadow-lg hover:scale-105 transition-all duration-300"
+              >
+                <Save className="w-4 h-4 mr-1" />
+                Save
+              </Button>
+            </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6 bg-gradient-to-br from-white via-turquoise-50/20 to-cyan-50/20">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               {/* Step 1: Basic Info */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
+              <div className="space-y-6 glassmorphic-card p-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
                   <Sparkles className="w-5 h-5 text-turquoise-500" />
                   Basic Information
                 </h3>
@@ -397,9 +405,13 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                   name="nickname"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>How should we call you?</FormLabel>
+                      <FormLabel className="text-gray-700 font-medium">How should we call you?</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Your nickname" />
+                        <Input 
+                          {...field} 
+                          placeholder="Your nickname" 
+                          className="glassmorphic-input border-turquoise-200/50 focus:border-turquoise-400 transition-all duration-300"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -411,13 +423,14 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                   name="languages"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>What languages do you speak?</FormLabel>
+                      <FormLabel className="text-gray-700 font-medium">What languages do you speak?</FormLabel>
                       <FormControl>
                         <MultiSelect
                           options={languages}
                           selected={field.value}
                           onChange={field.onChange}
                           placeholder="Select languages"
+                          className="glassmorphic-input"
                         />
                       </FormControl>
                       <FormMessage />
@@ -427,8 +440,8 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
               </div>
               
               {/* Step 2: Tango Roles */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
+              <div className="space-y-6 glassmorphic-card p-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
                   <Music className="w-5 h-5 text-turquoise-500" />
                   Your Tango Journey
                 </h3>
@@ -438,7 +451,7 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                   name="selectedRoles"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>What roles do you play in tango?</FormLabel>
+                      <FormLabel className="text-gray-700 font-medium">What roles do you play in tango?</FormLabel>
                       <FormControl>
                         <ErrorBoundary>
                           <ComprehensiveRoleSelector
@@ -452,24 +465,24 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                   )}
                 />
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
                     name="leaderLevel"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Leader Level (0-10)</FormLabel>
+                      <FormItem className="glassmorphic-card p-4">
+                        <FormLabel className="text-gray-700 font-medium">Leader Level (0-10)</FormLabel>
                         <FormControl>
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             <Slider
                               value={[field.value]}
                               onValueChange={(value) => field.onChange(value[0])}
                               min={0}
                               max={10}
                               step={1}
-                              className="w-full"
+                              className="w-full [&_.slider-thumb]:bg-turquoise-500 [&_.slider-track]:bg-turquoise-200 [&_.slider-range]:bg-gradient-to-r [&_.slider-range]:from-turquoise-400 [&_.slider-range]:to-cyan-500"
                             />
-                            <div className="text-center text-sm text-gray-600">
+                            <div className="text-center text-sm font-medium bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
                               {field.value}/10
                             </div>
                           </div>
@@ -483,19 +496,19 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                     control={form.control}
                     name="followerLevel"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Follower Level (0-10)</FormLabel>
+                      <FormItem className="glassmorphic-card p-4">
+                        <FormLabel className="text-gray-700 font-medium">Follower Level (0-10)</FormLabel>
                         <FormControl>
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             <Slider
                               value={[field.value]}
                               onValueChange={(value) => field.onChange(value[0])}
                               min={0}
                               max={10}
                               step={1}
-                              className="w-full"
+                              className="w-full [&_.slider-thumb]:bg-turquoise-500 [&_.slider-track]:bg-turquoise-200 [&_.slider-range]:bg-gradient-to-r [&_.slider-range]:from-turquoise-400 [&_.slider-range]:to-cyan-500"
                             />
-                            <div className="text-center text-sm text-gray-600">
+                            <div className="text-center text-sm font-medium bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
                               {field.value}/10
                             </div>
                           </div>
@@ -511,18 +524,18 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                   name="startedDancingYear"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>What year did you start dancing tango?</FormLabel>
+                      <FormLabel className="text-gray-700 font-medium">What year did you start dancing tango?</FormLabel>
                       <FormControl>
                         <Select
                           value={field.value?.toString()}
                           onValueChange={(value) => field.onChange(parseInt(value))}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="glassmorphic-input border-turquoise-200/50 focus:border-turquoise-400 transition-all duration-300">
                             <SelectValue placeholder="Select year" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="glassmorphic-card">
                             {years.map((year) => (
-                              <SelectItem key={year} value={year}>
+                              <SelectItem key={year} value={year} className="hover:bg-turquoise-50/50 transition-colors">
                                 {year}
                               </SelectItem>
                             ))}
@@ -536,8 +549,8 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
               </div>
               
               {/* Step 3: Location */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
+              <div className="space-y-6 glassmorphic-card p-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
                   <Globe2 className="w-5 h-5 text-turquoise-500" />
                   Location
                 </h3>
