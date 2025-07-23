@@ -538,7 +538,11 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                 </h3>
                 
                 <AutocompleteLocationPicker
-                  selectedLocation={form.watch('location') || { country: '', state: '', city: '' }}
+                  selectedLocation={{
+                    country: form.watch('location')?.country || '',
+                    state: form.watch('location')?.state || '',
+                    city: form.watch('location')?.city || ''
+                  }}
                   onLocationSelect={(location) => {
                     form.setValue('location', {
                       country: location.country,
