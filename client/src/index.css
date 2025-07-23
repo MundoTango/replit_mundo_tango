@@ -1321,3 +1321,24 @@ body {
   border-color: rgba(6, 182, 212, 0.6);
   box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
 }
+
+/* Card Flip Animation Styles */
+.perspective {
+  perspective: 1000px;
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.duration-600 {
+  transition-duration: 600ms;
+}

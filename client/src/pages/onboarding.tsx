@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { LocationPicker } from "@/components/onboarding/LocationPicker";
 import GoogleMapsLocationPicker from "@/components/onboarding/GoogleMapsLocationPicker";
-import RoleSelector from "@/components/onboarding/RoleSelector";
+import GroupedRoleSelector from "@/components/profile/GroupedRoleSelector";
 import SimpleRoleSelector from "@/components/debugging/SimpleRoleSelector";
 import ErrorBoundary from "@/components/debugging/ErrorBoundary";
 import { Heart, Sparkles, Globe, Users, Music, Calendar, ArrowLeft, CheckCircle, Mail } from "lucide-react";
@@ -64,6 +64,7 @@ const roleIcons: Record<string, string> = {
   musician: "🎼",
   organizer: "🎪",
   host: "🏠",
+  guide: "🗺️",
   photographer: "📸",
   content_creator: "🎙️",
   choreographer: "✨",
@@ -72,7 +73,9 @@ const roleIcons: Record<string, string> = {
   vendor: "🛒",
   wellness_provider: "💆",
   tango_school: "🏫",
-  tango_hotel: "🏨"
+  tango_hotel: "🏨",
+  taxi_dancer: "🎫",
+  other: "➕"
 };
 
 const danceExperienceOptions = [
@@ -306,14 +309,13 @@ export default function Onboarding() {
                           console.error('Error Info:', errorInfo);
                         }}
                       >
-                        <RoleSelector
-                          roles={communityRoles || []}
+                        <GroupedRoleSelector
                           selectedRoles={field.value || []}
                           onRoleChange={(roles) => {
                             console.log('Role change from onboarding:', roles);
                             field.onChange(roles);
                           }}
-                          isLoading={rolesLoading}
+                          allowMultiple={true}
                         />
                       </ErrorBoundary>
                     </FormControl>
