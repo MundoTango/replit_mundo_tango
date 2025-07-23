@@ -119,6 +119,13 @@ export const GroupedRoleSelector: React.FC<GroupedRoleSelectorProps> = ({
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
+  
+  // Debug logging
+  console.log('🎭 GroupedRoleSelector rendering with:', {
+    selectedRoles,
+    categoriesCount: roleCategories.length,
+    currentCategory: roleCategories[currentCategoryIndex]?.name
+  });
 
   const currentCategory = roleCategories[currentCategoryIndex];
 

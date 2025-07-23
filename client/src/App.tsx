@@ -40,6 +40,7 @@ const LifeCEOEnhanced = lazy(() => import("@/pages/LifeCEOEnhanced"));
 const EnhancedTimelineV2 = lazy(() => import("@/pages/enhanced-timeline-v2"));
 const GroupDetailPage = lazy(() => import("@/pages/GroupDetailPageMT"));
 const CommunityWorldMap = lazy(() => import("@/pages/community-world-map"));
+const TestGroupedRoleSelector = lazy(() => import("@/components/test/TestGroupedRoleSelector"));
 
 // Loading component for Suspense boundaries
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
@@ -261,6 +262,12 @@ function Router() {
           <Route path="/code-of-conduct">
             <Suspense fallback={<LoadingFallback message="Loading terms..." />}>
               <CodeOfConduct />
+            </Suspense>
+          </Route>
+          
+          <Route path="/test-grouped-roles">
+            <Suspense fallback={<LoadingFallback message="Loading test..." />}>
+              <TestGroupedRoleSelector />
             </Suspense>
           </Route>
           
