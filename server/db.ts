@@ -3,13 +3,14 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
-// Life CEO Debug: Configure Neon to use HTTP instead of WebSocket
-// This avoids the ErrorEvent issue in the Neon serverless library
+// Life CEO Debug: Configure Neon for HTTP-only mode
+// This completely avoids WebSocket issues
 neonConfig.fetchConnectionCache = true;
-// Force HTTP-only connections to avoid WebSocket ErrorEvent issues
-neonConfig.wsProxy = (host: string, port: number) => {
-  return undefined; // This disables WebSocket usage
+neonConfig.fetchEndpoint = (host: string) => {
+  return `https://${host}/sql`;
 };
+// Disable WebSocket entirely
+neonConfig.webSocketConstructor = undefined as any;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(

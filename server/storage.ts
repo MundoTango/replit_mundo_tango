@@ -1487,13 +1487,13 @@ export class DatabaseStorage implements IStorage {
     return { id: 1, postId, reporterId, reason, description, status: 'pending', createdAt: new Date() };
   }
 
-  async createShare(data: { postId: number | string; userId: number; comment?: string | null }): Promise<any> {
+  async createShare(data: { post_id: number; user_id: number }): Promise<any> {
     // Create a share record
     return { 
       id: Date.now(), 
-      postId: data.postId, 
-      userId: data.userId, 
-      comment: data.comment || null,
+      postId: data.post_id, 
+      userId: data.user_id, 
+      comment: null,
       sharedAt: new Date(),
       success: true 
     };
