@@ -88,27 +88,7 @@ const languages = [
   { value: "czech", label: "Czech", emoji: "🇨🇿" },
 ];
 
-// Role icons mapping for visual display
-const roleIcons: Record<string, string> = {
-  dancer: "💃",
-  performer: "⭐",
-  teacher: "📚", 
-  learning_source: "📖",
-  dj: "🎵",
-  musician: "🎼",
-  organizer: "🎪",
-  host: "🏠",
-  photographer: "📸",
-  content_creator: "🎙️",
-  choreographer: "✨",
-  tango_traveler: "🌍",
-  tour_operator: "✈️",
-  vendor: "🛒",
-  wellness_provider: "💆",
-  tango_school: "🏫",
-  tango_hotel: "🏨",
-  taxi_dancer: "🎫"
-};
+
 
 const danceExperienceOptions = [
   { value: "0", label: "Just Starting", emoji: "🌱", description: "New to tango, taking first steps" },
@@ -225,22 +205,16 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
   // Update profile mutation matching registration form
   const updateProfileMutation = useMutation({
     mutationFn: async (data: AboutData) => {
-      return apiRequest('/api/user/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: data.nickname,
-          city: data.location.city,
-          state: data.location.state,
-          country: data.location.country,
-          startedDancingYear: data.startedDancingYear,
-          tangoRoles: data.selectedRoles,
-          leaderLevel: data.leaderLevel,
-          followerLevel: data.followerLevel,
-          languages: data.languages
-        })
+      return apiRequest('/api/user/profile', 'PUT', {
+        name: data.nickname,
+        city: data.location.city,
+        state: data.location.state,
+        country: data.location.country,
+        startedDancingYear: data.startedDancingYear,
+        tangoRoles: data.selectedRoles,
+        leaderLevel: data.leaderLevel,
+        followerLevel: data.followerLevel,
+        languages: data.languages
       });
     },
     onSuccess: (response) => {
@@ -566,7 +540,14 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                 <AutocompleteLocationPicker
                   selectedLocation={form.watch('location') || { country: '', state: '', city: '' }}
                   onLocationSelect={(location) => {
-                    form.setValue('location', location);
+                    form.setValue('location', {
+                      country: location.country,
+                      state: location.state || '',
+                      city: location.city,
+                      countryId: 0,
+                      stateId: 0,
+                      cityId: 0
+                    });
                   }}
                 />
               </div>
