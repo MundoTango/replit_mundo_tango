@@ -8860,6 +8860,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize Supabase Storage bucket on server start
   initializeStorageBucket();
 
+  // Life CEO 40x20s Framework - Test endpoints for open source tools verification
+  
+  // Test endpoint for Sentry error tracking
+  app.get("/api/test/sentry-error", (req, res) => {
+    try {
+      console.log("🔴 Life CEO Debug: Triggering test error for Sentry");
+      
+      // Trigger a test error for Sentry
+      const testError = new Error("Life CEO 40x20s Test Error - Sentry Verification");
+      (testError as any).tags = { test: true, framework: "40x20s" };
+      
+      // Import Sentry and capture if available
+      import('./lib/sentry.js').then(({ default: Sentry }) => {
+        if (Sentry && Sentry.captureException) {
+          Sentry.captureException(testError);
+        }
+      }).catch(() => {
+        console.log("Sentry not available");
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Test error sent to Sentry",
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to send test error",
+        details: error.message 
+      });
+    }
+  });
+
+  // BullMQ queue status endpoint
+  app.get("/api/admin/queues", async (req, res) => {
+    try {
+      const { getQueues } = await import('./lib/bullmq-config.js');
+      const queues = await getQueues();
+      
+      const queueStatus = await Promise.all(
+        Object.entries(queues).map(async ([name, queue]) => {
+          const [waiting, active, completed, failed] = await Promise.all([
+            queue.getWaitingCount(),
+            queue.getActiveCount(),
+            queue.getCompletedCount(),
+            queue.getFailedCount()
+          ]);
+          
+          return {
+            name,
+            waiting,
+            active,
+            completed,
+            failed,
+            total: waiting + active + completed + failed
+          };
+        })
+      );
+      
+      res.json({
+        success: true,
+        queues: queueStatus,
+        totalQueues: queueStatus.length
+      });
+    } catch (error) {
+      console.error("Failed to get queue status:", error);
+      res.json({
+        success: false,
+        queues: [],
+        error: error.message
+      });
+    }
+  });
+
   // 30L Framework - Layer 10: Deployment & Infrastructure
   // Health check endpoint for monitoring
   app.get('/api/health', async (req, res) => {

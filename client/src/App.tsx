@@ -44,6 +44,7 @@ const EnhancedTimelineV2 = lazy(() => import("@/pages/enhanced-timeline-v2"));
 const GroupDetailPage = lazy(() => import("@/pages/GroupDetailPageMT"));
 const CommunityWorldMap = lazy(() => import("@/pages/community-world-map"));
 const TestGroupedRoleSelector = lazy(() => import("@/components/test/TestGroupedRoleSelector"));
+const LifeCEOOpenSourceVerification = lazy(() => import("@/pages/LifeCEOOpenSourceVerification"));
 
 console.log("✅ Life CEO Debug: Lazy imports defined");
 
@@ -246,9 +247,9 @@ function Router() {
             </Suspense>
           </Route>
           
-          <Route path="/life-ceo">
-            <Suspense fallback={<LoadingFallback message="Loading Life CEO..." />}>
-              <LifeCEOEnhanced />
+          <Route path="/life-ceo-verification">
+            <Suspense fallback={<LoadingFallback message="Loading verification..." />}>
+              <LifeCEOOpenSourceVerification />
             </Suspense>
           </Route>
           
