@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Activity, Zap, TrendingUp, Server, Database, Clock } from 'lucide-react';
+import { SentryErrorTester } from './life-ceo/SentryErrorTester';
 
 interface PerformanceMetrics {
   responseTime: number;
@@ -265,6 +266,11 @@ export function LifeCeoPerformanceDashboard() {
               </CardContent>
             </Card>
           )}
+          
+          {/* 40x20s Sentry Error Testing */}
+          <div className="mt-6">
+            <SentryErrorTester />
+          </div>
         </>
       )}
     </div>

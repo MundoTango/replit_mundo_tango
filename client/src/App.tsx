@@ -41,6 +41,7 @@ const EnhancedTimelineV2 = lazy(() => import("@/pages/enhanced-timeline-v2"));
 const GroupDetailPage = lazy(() => import("@/pages/GroupDetailPageMT"));
 const CommunityWorldMap = lazy(() => import("@/pages/community-world-map"));
 const TestGroupedRoleSelector = lazy(() => import("@/components/test/TestGroupedRoleSelector"));
+const LifeCeoPerformance = lazy(() => import("@/pages/LifeCeoPerformance"));
 
 // Loading component for Suspense boundaries
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
@@ -182,6 +183,11 @@ function Router() {
           </Route>
           <Route path="/feed" component={() => <Home key="mt-ocean-v3" />} />
           <Route path="/life-ceo-test" component={LifeCeoTest} />
+          <Route path="/life-ceo-performance">
+            <Suspense fallback={<LoadingFallback message="Loading Life CEO Performance..." />}>
+              <LifeCeoPerformance />
+            </Suspense>
+          </Route>
           <Route path="/register">{() => <Redirect to="/" />}</Route>
           
           {/* Heavy components - lazy loaded with individual fallbacks */}

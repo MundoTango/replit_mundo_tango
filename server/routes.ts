@@ -11460,6 +11460,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Test data routes for development
   const testDataRoutes = await import('./routes/testDataRoutes.js');
   app.use('/', testDataRoutes.default);
+  
+  // ========================================================================
+  // 40x20s Layer 7: Test endpoints for Sentry error tracking
+  // ========================================================================
+  app.get('/api/test/error', (req, res) => {
+    try {
+      // Intentional error for testing
+      throw new Error('40x20s Sentry test error - this is intentional');
+    } catch (error) {
+      console.error('Test error for Sentry:', error);
+      res.status(500).json({
+        message: 'Test error logged successfully',
+        sentryEnabled: !!process.env.SENTRY_DSN,
+        timestamp: new Date()
+      });
+    }
+  });
+
+  // Test endpoint to check Sentry status
+  app.get('/api/test/sentry-status', (req, res) => {
+    res.json({
+      sentryEnabled: !!process.env.SENTRY_DSN,
+      sampleRate: process.env.SENTRY_SAMPLE_RATE || '0.1',
+      environment: process.env.NODE_ENV,
+      message: process.env.SENTRY_DSN ? 
+        'Sentry is configured and active' : 
+        'Sentry is disabled (no DSN configured)'
+    });
+  });
 
   // ========================================================================
   // Life CEO Chat API Routes
