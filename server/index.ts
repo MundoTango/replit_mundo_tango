@@ -195,6 +195,24 @@ app.get('/service-worker-workbox.js', (req, res) => {
       res.status(404).send('Debug dashboard not found');
     }
   });
+  
+  // Simple HTML test
+  app.get('/simple.html', (req, res) => {
+    console.log('🔵 Life CEO Debug: Serving simple.html');
+    const simplePath = pathModule.join(process.cwd(), 'client/public/simple.html');
+    if (fs.existsSync(simplePath)) {
+      res.sendFile(simplePath);
+    } else {
+      res.status(404).send('Simple test file not found');
+    }
+  });
+  
+  // Ultra-simple text test
+  app.get('/ping', (req, res) => {
+    console.log('🏓 Life CEO Debug: Ping route hit!');
+    res.type('text/plain');
+    res.send('PONG - Life CEO 40x20s Server Working!');
+  });
 
   const server = await registerRoutes(app);
 
