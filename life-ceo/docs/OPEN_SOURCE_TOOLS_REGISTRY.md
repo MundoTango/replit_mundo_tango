@@ -131,6 +131,76 @@
 - **Implementation Status**: To be implemented
 - **Features**: Automated security testing
 
+### 20. Helmet.js (Security Headers)
+- **Purpose**: Secure Express apps by setting various HTTP headers
+- **License**: MIT
+- **Implementation Status**: ✅ Implemented (January 23, 2025)
+- **Features**: CSP, HSTS, X-Frame-Options, X-Content-Type-Options
+- **Current Usage**: Protecting against XSS, clickjacking, and other attacks
+
+### 21. express-rate-limit (Rate Limiting)
+- **Purpose**: Basic rate limiting middleware for Express
+- **License**: MIT
+- **Implementation Status**: ✅ Implemented (Already in use)
+- **Features**: Memory store, custom key generation, skip functions
+- **Current Usage**: API endpoint protection, brute force prevention
+
+### 22. rate-limiter-flexible (Advanced Rate Limiting)
+- **Purpose**: Advanced rate limiting with Redis/Memory stores
+- **License**: ISC
+- **Implementation Status**: ✅ Implemented (Already in use)
+- **Features**: Distributed rate limiting, multiple strategies
+- **Current Usage**: Login attempt limiting, API protection
+
+### 23. bcrypt (Password Hashing)
+- **Purpose**: Password hashing library
+- **License**: MIT
+- **Implementation Status**: ✅ Implemented (Already in use)
+- **Features**: Salted password hashing, configurable rounds
+- **Note**: Using OAuth, but bcrypt available for fallback auth
+
+### 24. jsonwebtoken (JWT Tokens)
+- **Purpose**: JSON Web Token implementation
+- **License**: MIT
+- **Implementation Status**: ✅ Implemented (Already in use)
+- **Features**: Token signing and verification
+- **Current Usage**: Session management, API authentication
+
+### 25. cors (CORS Management)
+- **Purpose**: Configure Cross-Origin Resource Sharing
+- **License**: MIT
+- **Implementation Status**: ✅ Implemented (Already in use)
+- **Features**: Dynamic origin validation, credentials support
+- **Current Usage**: API access control
+
+### 26. dotenv (Environment Variables)
+- **Purpose**: Load environment variables from .env file
+- **License**: BSD 2-Clause
+- **Implementation Status**: ✅ Implemented (Already in use)
+- **Features**: Secure configuration management
+- **Security Note**: .env files never committed to repository
+
+### 27. node-2fa (Two-Factor Authentication)
+- **Purpose**: Generate and verify 2FA tokens
+- **License**: Apache 2.0
+- **Implementation Status**: To be implemented
+- **Features**: TOTP support, QR code generation
+- **Priority**: High - Phase 1 security enhancement
+
+### 28. Argon2 (Advanced Password Hashing)
+- **Purpose**: Winner of Password Hashing Competition
+- **License**: CC0/Apache 2.0
+- **Implementation Status**: To be implemented
+- **Features**: Memory-hard hashing, side-channel resistant
+- **Alternative to**: bcrypt (for enhanced security)
+
+### 29. fail2ban-js (Intrusion Prevention)
+- **Purpose**: JavaScript implementation of fail2ban
+- **License**: MIT
+- **Implementation Status**: To be implemented
+- **Features**: IP blocking, pattern matching, ban management
+- **Use Case**: Blocking suspicious IPs automatically
+
 ## Databases & Data Management
 
 ### 20. TimescaleDB (Time-Series Data)
