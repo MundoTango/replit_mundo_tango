@@ -186,9 +186,23 @@ function Router() {
           
           {/* Core routes - minimal bundle */}
           <Route path="/">
-            <Suspense fallback={<LoadingFallback message="Loading Memories..." />}>
-              <EnhancedTimelineV2 />
-            </Suspense>
+            <div className="min-h-screen bg-gradient-to-br from-turquoise-50 via-cyan-50 to-blue-50 p-8">
+              <h1 className="text-4xl font-bold text-turquoise-600 mb-4">🚀 Life CEO 40x20s: Main Route Working!</h1>
+              <p className="text-gray-700 mb-4">React routing is functioning correctly.</p>
+              <div className="space-y-4">
+                <a href="/enhanced-timeline" className="inline-block px-6 py-3 bg-turquoise-500 text-white rounded-lg hover:bg-turquoise-600">
+                  Go to Enhanced Timeline
+                </a>
+                <br />
+                <a href="/life-ceo" className="inline-block px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                  Go to Life CEO
+                </a>
+                <br />
+                <a href="/debug" className="inline-block px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600">
+                  Go to Debug Page
+                </a>
+              </div>
+            </div>
           </Route>
           <Route path="/life-ceo">
             <Suspense fallback={<LoadingFallback message="Loading Life CEO..." />}>
@@ -196,9 +210,27 @@ function Router() {
             </Suspense>
           </Route>
           <Route path="/enhanced-timeline">
-            <Suspense fallback={<LoadingFallback message="Loading Memories..." />}>
-              <EnhancedTimelineV2 />
-            </Suspense>
+            <div className="min-h-screen bg-gradient-to-br from-turquoise-50 via-cyan-50 to-blue-50 p-8">
+              <div className="max-w-7xl mx-auto">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent mb-4">
+                  Enhanced Timeline (Simplified)
+                </h1>
+                <p className="text-gray-700 mb-8">This is a simplified version without DashboardLayout</p>
+                
+                <div className="glassmorphic-card p-6 rounded-2xl shadow-xl">
+                  <h2 className="text-2xl font-semibold text-gray-800 mb-4">Memories Feed</h2>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-white/50 rounded-lg">
+                      <p className="text-gray-600">Memory posts will appear here...</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-8">
+                  <a href="/" className="text-turquoise-600 hover:text-turquoise-700">← Back to Home</a>
+                </div>
+              </div>
+            </div>
           </Route>
           <Route path="/feed" component={() => <Home key="mt-ocean-v3" />} />
           <Route path="/life-ceo-test" component={LifeCeoTest} />
