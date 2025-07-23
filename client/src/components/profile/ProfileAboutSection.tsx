@@ -563,6 +563,17 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
   }
   
   // View mode for own profile
+  
+  // Debug logging for Life CEO debugging
+  console.log('🔍 Life CEO Debug: ProfileAboutSection rendering in view mode', {
+    user,
+    tangoRoles: user.tangoRoles,
+    tangoRolesType: typeof user.tangoRoles,
+    isOwnProfile,
+    hasRoles: !!user.tangoRoles,
+    rolesLength: user.tangoRoles ? (typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles).length : user.tangoRoles.length) : 0
+  });
+  
   return (
     <Card className="glassmorphic-card">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -617,11 +628,18 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
           )}
           
           {user.tangoRoles && (
-            <div className="mt-6">
+            <div className="mt-6 border-4 border-red-500 bg-red-50 p-2" style={{ border: '4px solid red', backgroundColor: 'rgba(255,0,0,0.1)' }}>
+              {console.log('🔍 Life CEO Debug: Rendering Tango roles section', {
+                tangoRoles: user.tangoRoles,
+                parsedRoles: typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles,
+                roleIcons,
+                roleIconsKeys: Object.keys(roleIcons),
+                hasMusicIcon: !!Music
+              })}
               <div className="mb-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
                   <span className="bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
-                    What do you do in Tango?
+                    What do you do in Tango? (DEBUG: THIS SHOULD BE VISIBLE WITH RED BORDER)
                   </span>
                   <Music className="w-5 h-5 text-turquoise-500 animate-pulse" />
                 </h3>
@@ -633,6 +651,13 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                   const roleDisplayName = role.replace(/_/g, ' ').split(' ').map((word: string) => 
                     word.charAt(0).toUpperCase() + word.slice(1)
                   ).join(' ');
+                  
+                  console.log('🔍 Life CEO Debug: Rendering role card', {
+                    role,
+                    roleDisplayName,
+                    icon: roleIcons[role],
+                    index
+                  });
                   
                   return (
                     <div
