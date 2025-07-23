@@ -1866,7 +1866,7 @@ const AdminCenter: React.FC = React.memo(() => {
             <div className="bg-gradient-to-br from-turquoise-50/50 to-cyan-50/50 rounded-xl p-4">
               <div className="text-2xl font-bold text-turquoise-700">3.2s</div>
               <div className="text-sm text-gray-600">Render Time</div>
-              <div className="text-xs text-gray-500">Target: <3s</div>
+              <div className="text-xs text-gray-500">Target: {'<3s'}</div>
               <Progress value={93} className="mt-2 h-1" />
             </div>
             <div className="bg-gradient-to-br from-turquoise-50/50 to-cyan-50/50 rounded-xl p-4">
@@ -2427,10 +2427,7 @@ const AdminCenter: React.FC = React.memo(() => {
                     <span className="font-medium">{rbacData.performance.avgEvaluationTime}ms</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                    <div 
-                      className="bg-purple-500 h-2 rounded-full" 
-                      style={{ width: `${Math.min(rbacData.performance.avgEvaluationTime / 10, 100)}%` }}
-                    />
+                    <div className="bg-purple-500 h-2 rounded-full" style={{ width: `${Math.min(rbacData.performance.avgEvaluationTime / 10, 100)}%` }} />
                   </div>
                 </div>
                 <div>
@@ -2439,10 +2436,7 @@ const AdminCenter: React.FC = React.memo(() => {
                     <span className="font-medium">{rbacData.performance.cacheHitRate}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                    <div 
-                      className="bg-green-500 h-2 rounded-full" 
-                      style={{ width: `${rbacData.performance.cacheHitRate}%` }}
-                    />
+                    <div className="bg-green-500 h-2 rounded-full" style={{ width: `${rbacData.performance.cacheHitRate}%` }} />
                   </div>
                 </div>
               </div>

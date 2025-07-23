@@ -25,8 +25,8 @@ import {
 
 // Import existing Life CEO components
 import LifeCEOPortal from './LifeCEOPortal';
-import LifeCEOFrameworkAgent from './LifeCEOFrameworkAgent';
-import LifeCEOLearnings from './LifeCEOLearnings';
+import LifeCEOFrameworkAgent from '../life-ceo/LifeCEOFrameworkAgent';
+import { LifeCEOLearnings } from './LifeCEOLearnings';
 import Framework40x20sDashboard from './Framework40x20sDashboard';
 import Framework40LDashboard from './Framework40LDashboard';
 
