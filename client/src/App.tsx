@@ -367,8 +367,18 @@ export default function App() {
   }, []);
 
   // LIFE CEO DEBUG: Simple test to verify React is working
+  console.log('🔥 Life CEO Debug: App component render function called');
+  
   const debugMode = true; // Change to false to restore normal app
   if (debugMode) {
+    // Write directly to DOM to verify we reach this point
+    setTimeout(() => {
+      const debugDiv = document.createElement('div');
+      debugDiv.innerHTML = 'Life CEO: App render reached';
+      debugDiv.style.cssText = 'position: fixed; top: 0; left: 0; background: red; color: white; padding: 10px; z-index: 9999;';
+      document.body.appendChild(debugDiv);
+    }, 100);
+    
     return (
       <div style={{ padding: '40px', backgroundColor: '#38B2AC', color: 'white', fontSize: '24px', textAlign: 'center' }}>
         <h1>✅ Life CEO Debug: React is Working!</h1>
