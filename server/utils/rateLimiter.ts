@@ -15,14 +15,37 @@ class OnboardingRateLimiter {
   private redis: Redis | null = null;
 
   constructor() {
+    // Check if Redis is disabled
+    if (process.env.DISABLE_REDIS === 'true') {
+      console.log('ℹ️ Redis disabled, using in-memory rate limiting');
+      this.redis = null;
+      return;
+    }
+
     // Try to connect to Redis if available
     try {
       if (process.env.REDIS_URL) {
-        this.redis = new Redis(process.env.REDIS_URL);
-        console.log('✅ Redis connected for rate limiting');
+        this.redis = new Redis(process.env.REDIS_URL, {
+          maxRetriesPerRequest: 1,
+          enableOfflineQueue: false,
+          retryStrategy: () => null, // Don't retry
+          reconnectOnError: () => false, // Don't reconnect
+        });
+        
+        this.redis.on('connect', () => {
+          console.log('✅ Redis connected for rate limiting');
+        });
+        
+        this.redis.on('error', (err) => {
+          if (!this.redis) return; // Already handled
+          console.log('⚠️ Redis not available, switching to in-memory rate limiting');
+          this.redis.disconnect();
+          this.redis = null;
+        });
       }
     } catch (error) {
       console.log('⚠️ Redis not available, using in-memory rate limiting');
+      this.redis = null;
     }
   }
 

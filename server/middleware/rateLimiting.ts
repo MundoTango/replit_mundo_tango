@@ -3,9 +3,28 @@ import RedisStore from 'rate-limit-redis';
 import Redis from 'ioredis';
 import { Request, Response } from 'express';
 
-// Create Redis client for rate limiting
-const redisClient = process.env.REDIS_URL ? 
-  new Redis(process.env.REDIS_URL) : null;
+// Create Redis client for rate limiting - only if Redis is enabled
+let redisClient: Redis | null = null;
+
+if (process.env.DISABLE_REDIS !== 'true' && process.env.REDIS_URL) {
+  try {
+    redisClient = new Redis(process.env.REDIS_URL, {
+      maxRetriesPerRequest: 1,
+      enableOfflineQueue: false,
+      retryStrategy: () => null,
+      reconnectOnError: () => false,
+    });
+    
+    redisClient.on('error', (err) => {
+      console.log('⚠️ Rate limiting Redis not available, using memory store');
+      redisClient?.disconnect();
+      redisClient = null;
+    });
+  } catch (error) {
+    console.log('⚠️ Rate limiting Redis not available, using memory store');
+    redisClient = null;
+  }
+}
 
 // Default rate limit configuration
 const defaultOptions = {

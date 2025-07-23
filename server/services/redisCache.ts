@@ -11,19 +11,25 @@ class CacheService {
   }
 
   private async initRedis() {
+    // Check if Redis is disabled
+    if (process.env.DISABLE_REDIS === 'true') {
+      console.log('ℹ️ Redis disabled, using in-memory cache');
+      this.redis = null;
+      this.connected = false;
+      return;
+    }
+
     try {
       // Try to connect to Redis if available
       this.redis = new Redis({
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379'),
         password: process.env.REDIS_PASSWORD,
-        retryStrategy: (times) => {
-          if (times > 3) {
-            console.log('⚠️ Redis unavailable, using in-memory cache');
-            return null;
-          }
-          return Math.min(times * 50, 2000);
-        }
+        maxRetriesPerRequest: 1,
+        enableOfflineQueue: false,
+        lazyConnect: true,
+        retryStrategy: () => null, // Don't retry
+        reconnectOnError: () => false, // Don't reconnect
       });
 
       this.redis.on('connect', () => {
@@ -32,15 +38,23 @@ class CacheService {
       });
 
       this.redis.on('error', (err) => {
-        console.error('Redis error:', err);
+        if (!this.connected && this.redis) {
+          console.log('⚠️ Redis not available, using in-memory cache');
+          this.redis.disconnect();
+          this.redis = null;
+        }
         this.connected = false;
       });
 
       // Test connection
+      await this.redis.connect();
       await this.redis.ping();
       this.connected = true;
     } catch (error) {
       console.log('⚠️ Redis not available, using in-memory cache');
+      if (this.redis) {
+        this.redis.disconnect();
+      }
       this.redis = null;
       this.connected = false;
     }

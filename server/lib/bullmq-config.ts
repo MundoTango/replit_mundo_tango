@@ -2,36 +2,56 @@
 import { Queue, Worker, QueueEvents } from 'bullmq';
 import Redis from 'ioredis';
 
-// Redis connection for BullMQ
-const connection = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  maxRetriesPerRequest: null,
-  enableReadyCheck: false,
-});
+// Redis connection for BullMQ - only if Redis is enabled
+let connection: Redis | null = null;
 
-// Queue definitions
-export const queues = {
+if (process.env.DISABLE_REDIS !== 'true') {
+  try {
+    connection = new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      maxRetriesPerRequest: null,
+      enableReadyCheck: false,
+      enableOfflineQueue: false,
+      retryStrategy: () => null,
+      reconnectOnError: () => false,
+    });
+    
+    connection.on('error', (err) => {
+      console.log('⚠️ BullMQ Redis not available, job queues disabled');
+      connection?.disconnect();
+      connection = null;
+    });
+  } catch (error) {
+    console.log('⚠️ BullMQ Redis not available, job queues disabled');
+    connection = null;
+  }
+} else {
+  console.log('ℹ️ Redis disabled, BullMQ job queues not available');
+}
+
+// Queue definitions - only create if Redis is available
+export const queues = connection ? {
   email: new Queue('email', { connection }),
   imageProcessing: new Queue('image-processing', { connection }),
   analytics: new Queue('analytics', { connection }),
   notifications: new Queue('notifications', { connection }),
   dataSync: new Queue('data-sync', { connection }),
   performanceMetrics: new Queue('performance-metrics', { connection }),
-};
+} : {} as any;
 
 // Note: QueueScheduler is deprecated in BullMQ v3+
 // Delayed and repeated jobs are now handled automatically by the Queue
 
-// Queue events for monitoring
-export const queueEvents = {
+// Queue events for monitoring - only create if Redis is available
+export const queueEvents = connection ? {
   email: new QueueEvents('email', { connection }),
   imageProcessing: new QueueEvents('image-processing', { connection }),
   analytics: new QueueEvents('analytics', { connection }),
   notifications: new QueueEvents('notifications', { connection }),
   dataSync: new QueueEvents('data-sync', { connection }),
   performanceMetrics: new QueueEvents('performance-metrics', { connection }),
-};
+} : {} as any;
 
 // Job types
 export interface EmailJob {
