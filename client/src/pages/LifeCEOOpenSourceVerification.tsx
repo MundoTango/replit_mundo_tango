@@ -30,7 +30,7 @@ interface ToolStatus {
   lastChecked?: Date;
 }
 
-export function LifeCEOOpenSourceVerification() {
+export default function LifeCEOOpenSourceVerification() {
   const [toolStatuses, setToolStatuses] = useState<ToolStatus[]>([
     { name: 'Sentry', status: 'testing', icon: <AlertTriangle className="w-5 h-5" /> },
     { name: 'BullMQ', status: 'testing', icon: <Package className="w-5 h-5" /> },
