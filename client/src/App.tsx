@@ -176,14 +176,15 @@ function Router() {
       <Suspense fallback={<LoadingFallback />}>
         <Switch>
           {/* Core routes - minimal bundle */}
-          <Route path="/">
-            <Suspense fallback={<LoadingFallback message="Loading Memories..." />}>
-              <EnhancedTimelineV2 />
-            </Suspense>
-          </Route>
+          <Route path="/" component={() => <Home key="mt-ocean-v3" />} />
           <Route path="/life-ceo">
             <Suspense fallback={<LoadingFallback message="Loading Life CEO..." />}>
               <LifeCEOEnhanced />
+            </Suspense>
+          </Route>
+          <Route path="/enhanced-timeline">
+            <Suspense fallback={<LoadingFallback message="Loading Memories..." />}>
+              <EnhancedTimelineV2 />
             </Suspense>
           </Route>
           <Route path="/feed" component={() => <Home key="mt-ocean-v3" />} />
