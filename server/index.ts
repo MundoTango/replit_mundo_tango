@@ -29,6 +29,27 @@ app.use(compression({
   }
 }));
 
+// Add support for Brotli compression headers
+app.use((req, res, next) => {
+  const acceptEncoding = req.headers['accept-encoding'] || '';
+  if (acceptEncoding.includes('br')) {
+    res.setHeader('Vary', 'Accept-Encoding');
+  }
+  next();
+});
+
+// HTTP/2 Server Push hints
+app.use((req, res, next) => {
+  if (req.path === '/' || req.path === '/enhanced-timeline') {
+    res.setHeader('Link', [
+      '</src/index.css>; rel=preload; as=style',
+      '</api/auth/user>; rel=preload; as=fetch; crossorigin',
+      '</api/posts/feed>; rel=preload; as=fetch; crossorigin'
+    ].join(', '));
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

@@ -340,6 +340,11 @@ export default function App() {
       console.warn('Failed to load prefetch module:', error);
     });
     
+    // Critical path optimization for <3s target
+    import('./lib/critical-path-optimization').then(({ initializeCriticalPathOptimizations }) => {
+      initializeCriticalPathOptimizations();
+    });
+    
     // Life CEO Performance: Apply optimizations
     console.log('⚡ Life CEO Performance: Preloading critical resources...');
     
