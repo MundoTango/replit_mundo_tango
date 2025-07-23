@@ -175,6 +175,15 @@ function Router() {
     <ErrorBoundary>
       <Suspense fallback={<LoadingFallback />}>
         <Switch>
+          {/* Life CEO 40x20s Debug Route */}
+          <Route path="/debug">
+            <div style={{ padding: '40px', background: '#38b2ac', color: 'white' }}>
+              <h1>🚀 Life CEO 40x20s Debug: React is working!</h1>
+              <p>If you can see this, React is rendering correctly.</p>
+              <p>Time: {new Date().toLocaleTimeString()}</p>
+            </div>
+          </Route>
+          
           {/* Core routes - minimal bundle */}
           <Route path="/">
             <Suspense fallback={<LoadingFallback message="Loading Memories..." />}>

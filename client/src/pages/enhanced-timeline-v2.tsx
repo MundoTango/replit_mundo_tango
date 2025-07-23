@@ -460,7 +460,7 @@ export default function EnhancedTimelineV2() {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  console.log('EnhancedTimelineV2 component loaded!', { user });
+  console.log('🔥 Life CEO 40x20s Phase 1: EnhancedTimelineV2 render started', { user });
 
   // Fetch timeline posts
   const { data: posts = [], isLoading } = useQuery({
@@ -475,6 +475,23 @@ export default function EnhancedTimelineV2() {
     }
   });
 
+  console.log('🔥 Life CEO 40x20s Phase 2: About to render, posts:', posts.length, 'loading:', isLoading);
+  
+  // Life CEO 40x20s: Temporarily bypass DashboardLayout for debugging
+  const debugMode = window.location.search.includes('debug=true');
+  
+  if (debugMode) {
+    return (
+      <div style={{ padding: '40px', background: '#e6fffa', minHeight: '100vh' }}>
+        <h1 style={{ color: '#38b2ac' }}>🔥 Life CEO 40x20s: Enhanced Timeline (Debug Mode)</h1>
+        <p>Posts: {posts.length}, Loading: {isLoading ? 'Yes' : 'No'}</p>
+        <p>User: {user ? user.name : 'Not authenticated'}</p>
+        <hr />
+        <h2>If you see this, the component is rendering!</h2>
+      </div>
+    );
+  }
+  
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-br from-turquoise-50/50 via-cyan-50 to-blue-50/50 relative overflow-hidden">
@@ -506,7 +523,7 @@ export default function EnhancedTimelineV2() {
             <div className="mb-6">
               <BeautifulPostCreator 
                 context={{ type: 'memory' }}
-                user={user}
+                user={user || undefined}
                 onPostCreated={() => {
                   queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
                 }}
