@@ -1291,6 +1291,134 @@ export const comprehensiveProjectData: ProjectItem[] = [
             team: ['Frontend']
           }
         ]
+      },
+      {
+        id: 'security-compliance',
+        title: 'Security & Compliance Enhancement',
+        description: 'Enterprise-grade security and compliance implementation',
+        type: 'Section',
+        status: 'In Progress',
+        completion: 35,
+        priority: 'Critical',
+        team: ['Security', 'Backend', 'Compliance'],
+        children: [
+          {
+            id: 'soc2-type2-compliance',
+            title: 'SOC 2 Type II Compliance',
+            description: 'Achieve SOC 2 Type II certification - currently at 70% readiness',
+            type: 'Feature',
+            status: 'In Progress',
+            completion: 70,
+            priority: 'Critical',
+            team: ['Security', 'Compliance'],
+            children: [
+              {
+                id: 'access-controls',
+                title: 'Access Control Policies',
+                description: 'Implement comprehensive access control and authentication policies',
+                type: 'Task',
+                status: 'In Progress',
+                completion: 80,
+                priority: 'Critical',
+                team: ['Security']
+              },
+              {
+                id: 'data-encryption',
+                title: 'Data Encryption at Rest',
+                description: 'Implement encryption for all sensitive data at rest',
+                type: 'Task',
+                status: 'Planned',
+                completion: 0,
+                priority: 'Critical',
+                team: ['Security', 'Backend']
+              },
+              {
+                id: 'audit-trail-enhancement',
+                title: 'Comprehensive Audit Trail',
+                description: 'Enhance audit logging to cover all critical operations',
+                type: 'Task',
+                status: 'In Progress',
+                completion: 60,
+                priority: 'High',
+                team: ['Backend', 'Security']
+              }
+            ]
+          },
+          {
+            id: 'enterprise-data-handling',
+            title: 'Enterprise Data Handling',
+            description: 'Improve data handling to meet enterprise standards',
+            type: 'Feature',
+            status: 'In Progress',
+            completion: 45,
+            priority: 'Critical',
+            team: ['Backend', 'Security'],
+            children: [
+              {
+                id: 'data-classification',
+                title: 'Data Classification System',
+                description: 'Implement data classification for PII and sensitive information',
+                type: 'Task',
+                status: 'In Progress',
+                completion: 50,
+                priority: 'Critical',
+                team: ['Security']
+              },
+              {
+                id: 'data-retention-policies',
+                title: 'Data Retention Policies',
+                description: 'Implement automated data retention and deletion policies',
+                type: 'Task',
+                status: 'Planned',
+                completion: 0,
+                priority: 'High',
+                team: ['Backend', 'Compliance']
+              },
+              {
+                id: 'gdpr-compliance-enhancement',
+                title: 'GDPR Compliance Enhancement',
+                description: 'Enhance GDPR compliance features including data export and deletion',
+                type: 'Task',
+                status: 'In Progress',
+                completion: 65,
+                priority: 'High',
+                team: ['Backend', 'Compliance']
+              }
+            ]
+          },
+          {
+            id: 'security-monitoring',
+            title: 'Real-time Security Monitoring',
+            description: 'Implement real-time security threat detection and monitoring',
+            type: 'Feature',
+            status: 'Planned',
+            completion: 0,
+            priority: 'High',
+            team: ['Security', 'DevOps'],
+            children: [
+              {
+                id: 'intrusion-detection',
+                title: 'Intrusion Detection System',
+                description: 'Deploy IDS/IPS for real-time threat detection',
+                type: 'Task',
+                status: 'Planned',
+                completion: 0,
+                priority: 'High',
+                team: ['Security', 'DevOps']
+              },
+              {
+                id: 'security-dashboard',
+                title: 'Security Operations Dashboard',
+                description: 'Build comprehensive security monitoring dashboard',
+                type: 'Task',
+                status: 'Planned',
+                completion: 0,
+                priority: 'Medium',
+                team: ['Frontend', 'Security']
+              }
+            ]
+          }
+        ]
       }
     ]
   }
