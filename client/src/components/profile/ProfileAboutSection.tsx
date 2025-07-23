@@ -32,6 +32,7 @@ import {
   Eye,
   EyeOff,
   Lock,
+  User,
   Users,
   Earth,
   Music,
