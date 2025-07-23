@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { useQuery } from '@tanstack/react-query';
 import {
   Brain,
   Zap,
@@ -20,7 +21,8 @@ import {
   Gauge,
   Bot,
   Lightbulb,
-  GitBranch
+  GitBranch,
+  CalendarDays
 } from 'lucide-react';
 
 // Import existing Life CEO components
@@ -29,18 +31,63 @@ import LifeCEOFrameworkAgent from '../life-ceo/LifeCEOFrameworkAgent';
 import { LifeCEOLearnings } from './LifeCEOLearnings';
 import Framework40x20sDashboard from './Framework40x20sDashboard';
 import Framework40LDashboard from './Framework40LDashboard';
+import ActivityLoggingService from '@/services/activityLoggingService';
 
 const LifeCEOCommandCenter: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Quick stats for dashboard
-  const stats = {
+  // Import project data to get real counts
+  const getActiveProjectCount = () => {
+    // Import dynamically to avoid circular dependencies
+    import('../../data/comprehensive-project-data').then(({ comprehensiveProjectData }) => {
+      const countActiveProjects = (items: any[]): number => {
+        return items.reduce((count, item) => {
+          const itemCount = item.status === 'In Progress' ? 1 : 0;
+          const childCount = item.children ? countActiveProjects(item.children) : 0;
+          return count + itemCount + childCount;
+        }, 0);
+      };
+      const activeCount = countActiveProjects(comprehensiveProjectData);
+      setRealStats(prev => ({ ...prev, activeProjects: activeCount }));
+    });
+  };
+
+  // Real stats with actual data
+  const [realStats, setRealStats] = useState({
     agentStatus: 'Active',
     learningsToday: 12,
     frameworkProgress: 78,
     activeProjects: 8,
     performanceScore: 92
-  };
+  });
+
+  // Fetch real data on mount
+  useEffect(() => {
+    getActiveProjectCount();
+  }, []);
+
+  // Get today's activities
+  const { data: todayActivities, refetch } = useQuery({
+    queryKey: ['/api/daily-activities'],
+    refetchInterval: 60000, // Refresh every minute
+  });
+
+  // Count today's activities
+  const todayCount = todayActivities?.data?.filter((activity: any) => {
+    const activityDate = new Date(activity.date).toDateString();
+    const today = new Date().toDateString();
+    return activityDate === today;
+  }).length || 0;
+
+  // Update stats with real data
+  useEffect(() => {
+    setRealStats(prev => ({
+      ...prev,
+      learningsToday: todayCount
+    }));
+  }, [todayCount]);
+
+  const stats = realStats;
 
   const renderDashboard = () => (
     <div className="space-y-6">
@@ -100,9 +147,9 @@ const LifeCEOCommandCenter: React.FC = () => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
-              Active
+              {stats.activeProjects}
             </p>
-            <p className="text-sm text-gray-600 mt-1">Projects</p>
+            <p className="text-sm text-gray-600 mt-1">Active Projects</p>
           </CardContent>
         </Card>
 
@@ -169,36 +216,69 @@ const LifeCEOCommandCenter: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="glassmorphic-card">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
-              Recent Agent Activity
-            </CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-lg font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+                Recent Agent Activity
+              </CardTitle>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  const service = ActivityLoggingService.getInstance();
+                  await service.logSystemOptimization(
+                    'Automatic Work Capture Test',
+                    'Testing automatic daily activity logging from Life CEO Command Center',
+                    'High',
+                    [40]
+                  );
+                  // Force flush immediately
+                  await service.flushPendingActivities();
+                  // Refetch activities
+                  refetch();
+                }}
+                className="text-xs"
+              >
+                Test Log
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-turquoise-50/50">
-                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Optimized platform performance</p>
-                  <p className="text-xs text-gray-600">Achieved 72% render time improvement</p>
-                  <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
+              {todayActivities?.data?.slice(0, 3).map((activity: any, index: number) => {
+                const activityTime = new Date(activity.timestamp || activity.date);
+                const timeAgo = Math.floor((Date.now() - activityTime.getTime()) / 1000 / 60);
+                const timeString = timeAgo < 60 ? `${timeAgo} minutes ago` : `${Math.floor(timeAgo / 60)} hours ago`;
+                
+                const iconMap: Record<string, any> = {
+                  bug_fix: CheckCircle,
+                  system_optimization: Activity,
+                  feature_update: Brain,
+                  ui_enhancement: Sparkles,
+                  framework_progress: Layers,
+                  performance: Zap
+                };
+                
+                const Icon = iconMap[activity.type] || Activity;
+                const bgColors = ['bg-turquoise-50/50', 'bg-cyan-50/50', 'bg-purple-50/50'];
+                
+                return (
+                  <div key={activity.id || index} className={`flex items-start gap-3 p-3 rounded-lg ${bgColors[index % 3]}`}>
+                    <Icon className="w-5 h-5 text-blue-500 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{activity.project_title || activity.activity}</p>
+                      <p className="text-xs text-gray-600">{activity.description}</p>
+                      <p className="text-xs text-gray-500 mt-1">{timeString}</p>
+                    </div>
+                  </div>
+                );
+              })}
+              {(!todayActivities?.data || todayActivities.data.length === 0) && (
+                <div className="text-center py-4 text-gray-500">
+                  <CalendarDays className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <p className="text-sm">No activities logged today</p>
+                  <p className="text-xs mt-1">Activities will appear here automatically</p>
                 </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-cyan-50/50">
-                <Activity className="w-5 h-5 text-blue-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Security compliance analysis</p>
-                  <p className="text-xs text-gray-600">SOC 2 readiness at 70%</p>
-                  <p className="text-xs text-gray-500 mt-1">4 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-purple-50/50">
-                <Brain className="w-5 h-5 text-purple-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">New pattern discovered</p>
-                  <p className="text-xs text-gray-600">Caching strategy optimization</p>
-                  <p className="text-xs text-gray-500 mt-1">6 hours ago</p>
-                </div>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -11305,21 +11305,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/daily-activities', setUserContext, async (req: Request, res: Response) => {
     try {
       const userId = req.session?.passport?.user?.claims?.id || req.user?.id || 7;
-      const { projectId, projectName, activityType, description, metadata } = req.body;
+      const { 
+        date,
+        activity,
+        description,
+        type,
+        featureId,
+        team,
+        frameworkLayers,
+        impact,
+        metadata,
+        timestamp,
+        projectId,
+        projectName,
+        activityType 
+      } = req.body;
       
-      const activity = await storage.createDailyActivity({
+      // Handle both formats - new activityLoggingService format and old format
+      const activityData = {
         user_id: userId,
-        project_id: projectId,
-        project_name: projectName,
-        activity_type: activityType,
-        description: description,
-        metadata: metadata || {},
-        timestamp: new Date()
-      });
+        project_id: featureId || projectId || 'life-ceo-system',
+        project_title: activity || projectName || 'Life CEO System Update', 
+        activity_type: type || activityType || 'updated',
+        description: description || 'Activity logged',
+        changes: description ? [description] : [],
+        team: team || [],
+        tags: frameworkLayers ? frameworkLayers.map(layer => `layer-${layer}`) : [],
+        metadata: {
+          ...metadata,
+          impact: impact || 'Medium',
+          date: date || new Date().toISOString().split('T')[0],
+          originalType: type
+        }
+      };
+      
+      const result = await storage.createDailyActivity(activityData);
       
       res.json({
         success: true,
-        data: activity
+        data: result
       });
     } catch (error) {
       console.error('Error creating daily activity:', error);
