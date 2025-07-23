@@ -248,41 +248,48 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
   
   if (!isOwnProfile && !isEditing) {
-    // Display view for other users
+    // Display view for other users with MT ocean theme
     return (
-      <Card>
-        <CardHeader>
+      <Card className="glassmorphic-card overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-turquoise-50 via-cyan-50 to-blue-50 border-b border-turquoise-200/30">
           <CardTitle className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-turquoise-500" />
-            About {user.name}
+            <span className="bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+              About {user.name}
+            </span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-6 bg-gradient-to-br from-white via-turquoise-50/20 to-cyan-50/20 space-y-6">
           {user.bio && (
-            <div>
-              <h3 className="font-semibold mb-2">Bio</h3>
-              <p className="text-gray-600">{user.bio}</p>
+            <div className="glassmorphic-card p-4">
+              <h3 className="font-semibold mb-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">Bio</h3>
+              <p className="text-gray-700">{user.bio}</p>
             </div>
           )}
           
           {(user.city || user.country) && (
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-gray-500" />
-              <span>{[user.city, user.state, user.country].filter(Boolean).join(', ')}</span>
+            <div className="flex items-center gap-2 glassmorphic-card p-4">
+              <MapPin className="w-5 h-5 text-turquoise-500" />
+              <span className="text-gray-700 font-medium">{[user.city, user.state, user.country].filter(Boolean).join(', ')}</span>
             </div>
           )}
           
           {user.languages && (
-            <div>
-              <h3 className="font-semibold mb-2 flex items-center gap-2">
-                <Languages className="w-4 h-4" />
-                Languages
+            <div className="glassmorphic-card p-4">
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <Languages className="w-5 h-5 text-turquoise-500" />
+                <span className="bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                  Languages
+                </span>
               </h3>
               <div className="flex flex-wrap gap-2">
                 {(typeof user.languages === 'string' ? JSON.parse(user.languages) : user.languages).map((lang: string) => {
                   const language = languages.find(l => l.value === lang);
                   return (
-                    <Badge key={lang} variant="secondary">
+                    <Badge 
+                      key={lang} 
+                      className="bg-gradient-to-r from-turquoise-100 to-cyan-100 text-turquoise-700 border-turquoise-200 hover:shadow-md transition-all duration-300"
+                    >
                       {language?.emoji} {language?.label || lang}
                     </Badge>
                   );
@@ -292,45 +299,70 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
           )}
           
           {user.tangoRoles && (
-            <div>
-              <h3 className="font-semibold mb-2">Tango Roles</h3>
-              <div className="flex flex-wrap gap-2">
-                {(typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles).map((role: string) => (
-                  <Badge key={role} variant="outline">
-                    {roleIcons[role]} {role.replace(/_/g, ' ')}
-                  </Badge>
-                ))}
+            <div className="glassmorphic-card p-4">
+              <h3 className="font-semibold mb-3 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                Tango Roles
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {(typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles).map((role: string, index: number) => {
+                  const roleDisplayName = role.replace(/_/g, ' ').split(' ').map((word: string) => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                  ).join(' ');
+                  const roleDetails = TANGO_ROLES.find(r => r.id === role);
+                  
+                  return (
+                    <div
+                      key={role}
+                      className="group relative animate-fadeInScale glassmorphic-card p-3 hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-turquoise-400/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="flex items-center gap-2">
+                        <div className="text-2xl">
+                          {roleDetails?.emoji || roleIcons[role] || '🎭'}
+                        </div>
+                        <p className="text-sm font-medium text-gray-700 group-hover:text-turquoise-600 transition-colors duration-300">
+                          {roleDisplayName}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
           
           <div className="grid grid-cols-2 gap-4">
             {user.leaderLevel !== undefined && user.leaderLevel > 0 && (
-              <div>
-                <p className="text-sm text-gray-600">Leader Level</p>
+              <div className="glassmorphic-card p-4">
+                <p className="text-sm text-gray-600 mb-2">Leader Level</p>
                 <div className="flex items-center gap-2">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200/50 rounded-full h-2.5 overflow-hidden">
                     <div 
-                      className="bg-turquoise-500 h-2 rounded-full"
+                      className="bg-gradient-to-r from-turquoise-400 to-cyan-500 h-2.5 rounded-full transition-all duration-1000"
                       style={{ width: `${user.leaderLevel * 10}%` }}
                     />
                   </div>
-                  <span className="text-sm font-medium">{user.leaderLevel}/10</span>
+                  <span className="text-sm font-bold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                    {user.leaderLevel}/10
+                  </span>
                 </div>
               </div>
             )}
             
             {user.followerLevel !== undefined && user.followerLevel > 0 && (
-              <div>
-                <p className="text-sm text-gray-600">Follower Level</p>
+              <div className="glassmorphic-card p-4">
+                <p className="text-sm text-gray-600 mb-2">Follower Level</p>
                 <div className="flex items-center gap-2">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200/50 rounded-full h-2.5 overflow-hidden">
                     <div 
-                      className="bg-cyan-500 h-2 rounded-full"
+                      className="bg-gradient-to-r from-cyan-400 to-blue-500 h-2.5 rounded-full transition-all duration-1000"
                       style={{ width: `${user.followerLevel * 10}%` }}
                     />
                   </div>
-                  <span className="text-sm font-medium">{user.followerLevel}/10</span>
+                  <span className="text-sm font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                    {user.followerLevel}/10
+                  </span>
                 </div>
               </div>
             )}
@@ -575,50 +607,72 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
   });
   
   return (
-    <Card className="glassmorphic-card">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+    <Card className="glassmorphic-card overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-turquoise-50 via-cyan-50 to-blue-50 border-b border-turquoise-200/30 flex flex-row items-center justify-between">
+        <CardTitle className="flex items-center gap-2">
           <Heart className="w-5 h-5 text-turquoise-500" />
-          About
+          <span className="bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+            About
+          </span>
         </CardTitle>
         {isOwnProfile && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsEditing(true)}
-            className="beautiful-hover"
+            className="hover:bg-white/50 hover:shadow-md transition-all duration-300"
           >
             <Edit2 className="w-4 h-4 mr-1" />
             Edit
           </Button>
         )}
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Display user data in view mode */}
-        <div className="grid gap-4">
-          <div>
-            <p className="text-sm text-gray-600 mb-1">Name</p>
-            <p className="font-medium">{user.name}</p>
-          </div>
-          
-          {(user.city || user.country) && (
-            <div>
-              <p className="text-sm text-gray-600 mb-1">Location</p>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-turquoise-500" />
-                <span>{[user.city, user.state, user.country].filter(Boolean).join(', ')}</span>
-              </div>
+      <CardContent className="p-6 bg-gradient-to-br from-white via-turquoise-50/20 to-cyan-50/20 space-y-6">
+        {/* Display user data in view mode with MT ocean theme */}
+        <div className="space-y-6">
+          {user.bio && (
+            <div className="glassmorphic-card p-4">
+              <h3 className="font-semibold mb-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">Bio</h3>
+              <p className="text-gray-700">{user.bio}</p>
             </div>
           )}
           
+          <div className="glassmorphic-card p-4">
+            <h3 className="font-semibold mb-3 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">Basic Information</h3>
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Name</p>
+                <p className="font-medium text-gray-800">{user.name}</p>
+              </div>
+              
+              {(user.city || user.country) && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Location</p>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-turquoise-500" />
+                    <span className="text-gray-700 font-medium">{[user.city, user.state, user.country].filter(Boolean).join(', ')}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
           {user.languages && (
-            <div>
-              <p className="text-sm text-gray-600 mb-1">Languages</p>
+            <div className="glassmorphic-card p-4">
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <Languages className="w-5 h-5 text-turquoise-500" />
+                <span className="bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                  Languages
+                </span>
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {(typeof user.languages === 'string' ? JSON.parse(user.languages) : user.languages).map((lang: string) => {
                   const language = languages.find(l => l.value === lang);
                   return (
-                    <Badge key={lang} variant="secondary" className="glassmorphic-badge">
+                    <Badge 
+                      key={lang} 
+                      className="bg-gradient-to-r from-turquoise-100 to-cyan-100 text-turquoise-700 border-turquoise-200 hover:shadow-md transition-all duration-300"
+                    >
                       {language?.emoji} {language?.label || lang}
                     </Badge>
                   );
@@ -697,44 +751,57 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
             </div>
           )}
           
-          <div className="grid grid-cols-2 gap-4">
-            {user.leaderLevel !== undefined && (
-              <div>
-                <p className="text-sm text-gray-600 mb-2">Leader Level</p>
-                <div className="flex items-center gap-2">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-turquoise-400 to-cyan-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${user.leaderLevel * 10}%` }}
-                    />
+          {(user.leaderLevel !== undefined || user.followerLevel !== undefined) && (
+            <div className="glassmorphic-card p-4">
+              <h3 className="font-semibold mb-3 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                Dance Levels
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                {user.leaderLevel !== undefined && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Leader Level</p>
+                    <div className="flex items-center gap-2">
+                      <div className="w-full bg-gray-200/50 rounded-full h-2.5 overflow-hidden">
+                        <div 
+                          className="bg-gradient-to-r from-turquoise-400 to-cyan-500 h-2.5 rounded-full transition-all duration-1000"
+                          style={{ width: `${user.leaderLevel * 10}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-bold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                        {user.leaderLevel}/10
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-sm font-medium">{user.leaderLevel}/10</span>
-                </div>
-              </div>
-            )}
-            
-            {user.followerLevel !== undefined && (
-              <div>
-                <p className="text-sm text-gray-600 mb-2">Follower Level</p>
-                <div className="flex items-center gap-2">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-cyan-400 to-blue-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${user.followerLevel * 10}%` }}
-                    />
+                )}
+                
+                {user.followerLevel !== undefined && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Follower Level</p>
+                    <div className="flex items-center gap-2">
+                      <div className="w-full bg-gray-200/50 rounded-full h-2.5 overflow-hidden">
+                        <div 
+                          className="bg-gradient-to-r from-cyan-400 to-blue-500 h-2.5 rounded-full transition-all duration-1000"
+                          style={{ width: `${user.followerLevel * 10}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                        {user.followerLevel}/10
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-sm font-medium">{user.followerLevel}/10</span>
-                </div>
+                )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
           
           {user.startedDancingYear && (
-            <div>
-              <p className="text-sm text-gray-600 mb-1">Dancing Since</p>
+            <div className="glassmorphic-card p-4">
+              <h3 className="font-semibold mb-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                Tango Journey
+              </h3>
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-turquoise-500" />
-                <span>{user.startedDancingYear} ({new Date().getFullYear() - user.startedDancingYear} years)</span>
+                <Calendar className="w-5 h-5 text-turquoise-500" />
+                <span className="text-gray-700 font-medium">Dancing since {user.startedDancingYear} ({new Date().getFullYear() - user.startedDancingYear} years)</span>
               </div>
             </div>
           )}
