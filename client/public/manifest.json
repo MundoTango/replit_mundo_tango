@@ -1,0 +1,21 @@
+{
+  "name": "Life CEO",
+  "short_name": "LifeCEO",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#7c3aed",
+  "description": "AI-powered life management with enterprise performance",
+  "icons": [
+    {
+      "src": "/life-ceo-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/life-ceo-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
