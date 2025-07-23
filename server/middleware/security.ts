@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { pool } from '../db';
+import { sql } from '../db';
 
 // Security middleware to set current user context for RLS policies
 export const setUserContext = async (req: any, res: Response, next: NextFunction) => {
@@ -19,11 +19,11 @@ export const setUserContext = async (req: any, res: Response, next: NextFunction
 
     if (userId) {
       // Set the current user context for RLS policies
-      await pool.query('SELECT set_config($1, $2, true)', ['app.current_user_id', userId.toString()]);
+      await sql('SELECT set_config($1, $2, true)', ['app.current_user_id', userId.toString()]);
       console.log('🔒 Security context set for user:', userId);
     } else {
       // Clear any existing context
-      await pool.query('SELECT set_config($1, $2, true)', ['app.current_user_id', '0']);
+      await sql('SELECT set_config($1, $2, true)', ['app.current_user_id', '0']);
     }
 
     next();
@@ -53,7 +53,7 @@ export const auditSecurityEvent = (eventType: string) => {
         // Log security event asynchronously
         setTimeout(async () => {
           try {
-            await pool.query(
+            await sql(
               'SELECT log_security_event($1, $2, $3, $4)',
               [eventType, req.path.split('/')[2] || 'unknown', userId, JSON.stringify(eventData)]
             );
@@ -110,8 +110,8 @@ export const checkResourcePermission = (resourceType: 'post' | 'event' | 'chat' 
         }
 
         if (query) {
-          const result = await pool.query(query, params);
-          if (result.rows.length === 0) {
+          const result = await sql(query, params);
+          if (result.length === 0) {
             return res.status(403).json({ 
               success: false, 
               message: 'Access denied to this resource' 

@@ -1,7 +1,7 @@
 // 30L Framework - Layer 23: Business Continuity
 // Database health monitoring and recovery utilities
 
-import { pool } from '../db';
+import { sql } from '../db';
 
 export interface DatabaseHealth {
   isHealthy: boolean;
@@ -23,14 +23,14 @@ let lastHealth: DatabaseHealth = {
 export async function getDatabaseHealth(): Promise<DatabaseHealth> {
   try {
     // Test query
-    await pool.query('SELECT 1');
+    await sql`SELECT 1`;
     
-    // Get pool stats
+    // HTTP connections don't have pool stats
     const health: DatabaseHealth = {
       isHealthy: true,
-      connectionCount: pool.totalCount || 0,
-      idleCount: pool.idleCount || 0,
-      waitingCount: pool.waitingCount || 0,
+      connectionCount: 1, // HTTP connection
+      idleCount: 0,
+      waitingCount: 0,
       lastChecked: new Date()
     };
     
@@ -39,9 +39,9 @@ export async function getDatabaseHealth(): Promise<DatabaseHealth> {
   } catch (err: any) {
     const health: DatabaseHealth = {
       isHealthy: false,
-      connectionCount: pool.totalCount || 0,
-      idleCount: pool.idleCount || 0,
-      waitingCount: pool.waitingCount || 0,
+      connectionCount: 0,
+      idleCount: 0,
+      waitingCount: 0,
       lastError: err.message,
       lastChecked: new Date()
     };
