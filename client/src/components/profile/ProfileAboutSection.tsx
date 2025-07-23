@@ -625,14 +625,61 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
           )}
           
           {user.tangoRoles && (
-            <div>
-              <p className="text-sm text-gray-600 mb-1">Tango Roles</p>
-              <div className="flex flex-wrap gap-2">
-                {(typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles).map((role: string) => (
-                  <Badge key={role} variant="outline" className="glassmorphic-badge">
-                    {roleIcons[role]} {role.replace(/_/g, ' ')}
-                  </Badge>
-                ))}
+            <div className="mt-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                  <span className="bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                    What do you do in Tango?
+                  </span>
+                  <Music className="w-5 h-5 text-turquoise-500 animate-pulse" />
+                </h3>
+                <p className="text-sm text-gray-600">Your roles in the tango community</p>
+              </div>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {(typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles).map((role: string, index: number) => {
+                  const roleDisplayName = role.replace(/_/g, ' ').split(' ').map((word: string) => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                  ).join(' ');
+                  
+                  return (
+                    <div
+                      key={role}
+                      className="group relative animate-fadeInScale glassmorphic-card p-4 hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      {/* Background gradient animation */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-turquoise-400/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      
+                      {/* Role icon */}
+                      <div className="text-4xl mb-2 transform group-hover:scale-110 transition-transform duration-300">
+                        {roleIcons[role] || '🎭'}
+                      </div>
+                      
+                      {/* Role name */}
+                      <p className="text-sm font-medium text-gray-700 group-hover:text-turquoise-600 transition-colors duration-300">
+                        {roleDisplayName}
+                      </p>
+                      
+                      {/* Hover effect border */}
+                      <div className="absolute inset-0 border-2 border-turquoise-400 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Fun fact about roles */}
+              <div className="mt-4 p-3 bg-gradient-to-r from-turquoise-50/50 to-cyan-50/50 rounded-lg">
+                <p className="text-sm text-gray-600 italic">
+                  {(() => {
+                    const rolesArray = typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles;
+                    return rolesArray.length > 3 
+                      ? "🌟 Wow! You're a multi-talented tango enthusiast!" 
+                      : rolesArray.length > 1 
+                      ? "✨ Great to see you contribute in multiple ways!" 
+                      : "💃 Every role is important in our tango community!";
+                  })()}
+                </p>
               </div>
             </div>
           )}
