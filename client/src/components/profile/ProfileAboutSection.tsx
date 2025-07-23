@@ -48,6 +48,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { TANGO_ROLES } from '@/utils/tangoRoles';
+
+// Create roleIcons mapping from TANGO_ROLES
+const roleIcons = TANGO_ROLES.reduce((acc, role) => {
+  acc[role.id] = role.emoji;
+  return acc;
+}, {} as Record<string, string>);
 
 // Constants from registration form
 const months = [
