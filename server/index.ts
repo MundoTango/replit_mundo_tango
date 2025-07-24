@@ -109,7 +109,7 @@ app.get('/service-worker-workbox.js', (req, res) => {
     await pool.query('SELECT 1');
     console.log('✅ Database connection established');
   } catch (err) {
-    console.error('❌ Initial database connection failed:', err.message);
+    console.error('❌ Initial database connection failed:', err instanceof Error ? err.message : String(err));
     console.log('⚠️  Starting server in degraded mode - some features may be unavailable');
   }
   
@@ -119,7 +119,7 @@ app.get('/service-worker-workbox.js', (req, res) => {
       await initializeComplianceAuditTable();
     await automatedComplianceMonitor.startAutomatedMonitoring();
   } catch (err) {
-    console.error('⚠️  Compliance monitoring initialization failed:', err.message);
+    console.error('⚠️  Compliance monitoring initialization failed:', err instanceof Error ? err.message : String(err));
     // Continue without compliance monitoring
   }
 

@@ -1,9 +1,8 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { drizzle } from 'drizzle-orm/node-postgres';
+import pg from 'pg';
 import * as schema from "@shared/schema";
 
-neonConfig.webSocketConstructor = ws;
+const { Pool } = pg;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,14 +10,18 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// 30L Framework - Layer 21: Production Resilience Engineering
-// Enhanced connection pool with retry logic and error handling
-export const pool = new Pool({ 
+// 40x20s Framework - Layer 21: Production Resilience Engineering
+// Use standard PostgreSQL connection to avoid Neon WebSocket issues
+console.log('🔄 Initializing database connection...');
+
+const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
   // Connection pool settings for resilience
   max: 20, // Maximum number of clients
   idleTimeoutMillis: 30000, // 30 seconds
   connectionTimeoutMillis: 5000, // 5 seconds timeout for new connections
+  // SSL configuration for Replit database
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 // Layer 21: Error handling for pool
@@ -63,7 +66,7 @@ checkConnection();
 // Periodic health check every 30 seconds
 setInterval(checkConnection, 30000);
 
-export const db = drizzle({ client: pool, schema });
+export const db = drizzle(pool, { schema });
 
 // Layer 21: Graceful query wrapper with retry logic
 export async function resilientQuery<T>(
@@ -74,18 +77,20 @@ export async function resilientQuery<T>(
   for (let i = 0; i < retries; i++) {
     try {
       return await queryFn();
-    } catch (err: any) {
-      console.error(`❌ Query failed (attempt ${i + 1}/${retries}):`, err.message);
-      
+    } catch (err) {
+      console.error(`❌ Query attempt ${i + 1} failed:`, err.message);
       if (i < retries - 1) {
         console.log(`🔄 Retrying in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
         delay *= 2; // Exponential backoff
       } else {
-        console.error('❌ Query failed after all retries');
+        console.error('❌ All query retries exhausted');
         return null;
       }
     }
   }
   return null;
 }
+
+// 40x20s Framework - Export pool for direct usage if needed
+export { pool };
