@@ -11,6 +11,19 @@ import { initializeFeatureFlags } from "./lib/feature-flags";
 
 const app = express();
 
+// 40x20s Framework - Layer 21: Production Resilience
+// Add process-level error handlers to prevent crashes
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  console.error(error.stack);
+  // Don't exit - keep the server running
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit - keep the server running
+});
+
 // Initialize Sentry error tracking
 initSentry(app);
 
@@ -179,6 +192,8 @@ app.get('/service-worker-workbox.js', (req, res) => {
     }
 
     // Initialize Automatic Project Tracking
+    // TEMPORARILY DISABLED: Debugging restart issue
+    /*
     try {
       import('../scripts/watch-project-updates').then(({ ProjectDataWatcher }) => {
         const watcher = new ProjectDataWatcher();
@@ -190,6 +205,7 @@ app.get('/service-worker-workbox.js', (req, res) => {
     } catch (error) {
       console.warn('⚠️ Project tracking not available');
     }
+    */
   });
   
   // Apply performance fixes from 40x20s optimization
