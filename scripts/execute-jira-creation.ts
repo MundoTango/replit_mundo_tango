@@ -10,7 +10,7 @@ const JIRA_CREDENTIALS = {
   instanceUrl: 'https://mundotango-team.atlassian.net',
   email: 'admin@mundotango.life',
   apiToken: 'ATATT3xFfGF0Nb_1iigWiEviNSi-kFvP965nAMjH9z8Vs9nGCu87drxemBvCdolRWcSuyDezhWll2jYjakMNp3k60H5J_eR_4uzXIb4ElbG04zEpMc2v1H7-ng_3huq3Ao41EE9VMVHWLKDFKY59whw24pQjc9Xr43lpoKTG2YLknL0o_iRHvQ8=517ED328',
-  projectKey: 'KAN'
+  projectKey: 'MT'
 };
 
 async function executeJiraCreation() {
