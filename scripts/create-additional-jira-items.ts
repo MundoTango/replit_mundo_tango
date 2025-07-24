@@ -1,199 +1,194 @@
 #!/usr/bin/env tsx
 
-// Script to create additional JIRA items (bugs, tech debt, performance, etc.)
+// Script to create the additional 33 missing items in JIRA
 
-import fetch from 'node-fetch';
+import fs from 'fs';
+import { jiraApiService } from '../client/src/services/jiraApiService.js';
 
-const JIRA_CREDENTIALS = {
-  instanceUrl: 'https://mundotango-team.atlassian.net',
-  email: 'admin@mundotango.life',
-  apiToken: 'ATATT3xFfGF0Nb_1iigWiEviNSi-kFvP965nAMjH9z8Vs9nGCu87drxemBvCdolRWcSuyDezhWll2jYjakMNp3k60H5J_eR_4uzXIb4ElbG04zEpMc2v1H7-ng_3huq3Ao41EE9VMVHWLKDFKY59whw24pQjc9Xr43lpoKTG2YLknL0o_iRHvQ8=517ED328',
-  projectKey: 'KAN'
-};
+// JIRA configuration
+const jiraDomain = 'mundotango-team.atlassian.net';
+const jiraEmail = 'sboddye@gmail.com';
+const jiraApiToken = process.env.JIRA_API_TOKEN;
 
-interface AdditionalItem {
-  type: 'Bug' | 'Technical Debt' | 'Security Finding' | 'Performance Issue' | 'Learning';
-  summary: string;
-  description: string;
-  labels: string[];
-  priority: 'High' | 'Medium' | 'Low';
+if (!jiraApiToken) {
+  console.error('❌ Error: JIRA_API_TOKEN environment variable not set');
+  console.log('Please set your JIRA API token:');
+  console.log('export JIRA_API_TOKEN="your-api-token-here"');
+  process.exit(1);
 }
 
-const additionalItems: AdditionalItem[] = [
-  // Security Findings
-  {
-    type: 'Security Finding',
-    summary: 'SOC 2 Type II readiness below 75%',
-    description: 'Enterprise data handling below acceptable threshold. Current compliance score: 74%. Need to improve security controls and documentation.',
-    labels: ['40x20s', 'security', 'compliance', 'Layer-22'],
-    priority: 'High'
-  },
-  {
-    type: 'Security Finding',
-    summary: 'Enable Redis for production caching',
-    description: 'Redis connection errors present, falling back to in-memory cache which affects performance and scalability. Need proper Redis setup.',
-    labels: ['40x20s', 'security', 'infrastructure', 'Layer-18'],
-    priority: 'Medium'
-  },
-  {
-    type: 'Security Finding',
-    summary: 'Implement proper error tracking with Sentry',
-    description: 'Sentry integration exists but needs proper configuration and error monitoring setup for production environment.',
-    labels: ['40x20s', 'security', 'monitoring', 'Layer-11'],
-    priority: 'Medium'
-  },
-  
-  // Performance Issues
-  {
-    type: 'Performance Issue',
-    summary: 'Render time exceeds 3s target (currently ~13s)',
-    description: 'Despite optimizations, initial render time is 13.17s. Target is <3s. Need further optimization including code splitting, lazy loading, and server-side rendering.',
-    labels: ['40x20s', 'performance', 'optimization', 'Layer-10'],
-    priority: 'High'
-  },
-  {
-    type: 'Performance Issue',
-    summary: 'Long tasks detected (>50ms)',
-    description: 'Multiple long tasks detected: 134ms, 97ms, 74ms, 52ms. These block main thread and affect user interaction responsiveness.',
-    labels: ['40x20s', 'performance', 'optimization', 'Layer-10'],
-    priority: 'Medium'
-  },
-  {
-    type: 'Performance Issue',
-    summary: 'Google Maps loaded without async',
-    description: 'Google Maps JavaScript API loaded directly without loading=async, causing suboptimal performance and blocking page render.',
-    labels: ['40x20s', 'performance', 'optimization', 'Layer-7'],
-    priority: 'Low'
-  },
-  {
-    type: 'Performance Issue',
-    summary: 'Bundle size optimization needed',
-    description: 'Profile page bundle is 31MB. Need code splitting and lazy loading improvements. Target should be <5MB per route.',
-    labels: ['40x20s', 'performance', 'optimization', 'Layer-7'],
-    priority: 'Medium'
-  },
-  
-  // Bugs
-  {
-    type: 'Bug',
-    summary: 'Elasticsearch connection refused errors',
-    description: 'Elasticsearch not available: connect ECONNREFUSED 127.0.0.1:9200. Service is not running or misconfigured.',
-    labels: ['40x20s', 'bug', 'infrastructure', 'Layer-18'],
-    priority: 'Low'
-  },
-  {
-    type: 'Bug',
-    summary: 'Browser cache causing stale UI issues',
-    description: 'Service worker aggressive caching sometimes shows old UI despite updates. Need cache versioning and update strategy.',
-    labels: ['40x20s', 'bug', 'caching', 'Layer-7'],
-    priority: 'Medium'
-  },
-  {
-    type: 'Bug',
-    summary: 'Memory leak in performance monitoring',
-    description: 'Memory cleanup runs every 30s but some components may still leak memory. Need proper cleanup in useEffect hooks.',
-    labels: ['40x20s', 'bug', 'memory', 'Layer-10'],
-    priority: 'Medium'
-  },
-  
-  // Life CEO Learnings
-  {
-    type: 'Learning',
-    summary: 'Implement automatic field mapping validation',
-    description: 'Life CEO learned to auto-detect client-server field mismatches. This should be built into the system as a development tool.',
-    labels: ['40x20s', 'life-ceo', 'improvement', 'Layer-32'],
-    priority: 'Medium'
-  },
-  {
-    type: 'Learning',
-    summary: 'Add resilient service patterns',
-    description: 'Implement automatic Redis fallback to in-memory caching pattern across all services for better resilience.',
-    labels: ['40x20s', 'life-ceo', 'improvement', 'Layer-34'],
-    priority: 'Medium'
-  },
-  {
-    type: 'Learning',
-    summary: 'Create design consistency checker',
-    description: 'Maintain MT ocean theme automatically during debugging and development. Build a visual regression testing system.',
-    labels: ['40x20s', 'life-ceo', 'improvement', 'Layer-31'],
-    priority: 'Low'
-  }
-];
+// Read the missing items
+const missingItemsData = JSON.parse(
+  fs.readFileSync('scripts/missing-jira-items.json', 'utf-8')
+);
 
-async function createJiraIssue(item: AdditionalItem, index: number): Promise<string | null> {
-  const authHeader = `Basic ${Buffer.from(`${JIRA_CREDENTIALS.email}:${JIRA_CREDENTIALS.apiToken}`).toString('base64')}`;
+// Map internal types to JIRA issue types (based on successful migration)
+function mapToJiraIssueType(type: string): string {
+  switch (type) {
+    case 'Platform':
+      return 'Epic';
+    case 'Section':
+      return 'Epic'; // Sections are also epics in JIRA
+    case 'Feature':
+      return 'Task'; // Features are mapped to Task in JIRA (not Story)
+    case 'Project':
+      return 'Task'; // Projects are also tasks
+    case 'Task':
+      return 'Task'; // Tasks map to Task (not Sub-task)
+    case 'Sub-task':
+      return 'Task'; // Sub-tasks also map to Task
+    default:
+      return 'Task';
+  }
+}
+
+// Determine layer for an item based on its context
+function determineLayer(item: any): number {
+  const title = item.title.toLowerCase();
+  const path = item.parentPath.toLowerCase();
   
+  if (title.includes('agent') || title.includes('ai')) return 18; // AI
+  if (title.includes('api') && title.includes('doc')) return 20; // Documentation
+  if (title.includes('test') || title.includes('qa')) return 10; // Testing
+  if (title.includes('performance')) return 11; // Performance
+  if (title.includes('security') || title.includes('compliance')) return 22; // Security
+  if (title.includes('search')) return 7; // Frontend
+  if (title.includes('community') || title.includes('social')) return 7; // Frontend
+  if (title.includes('dashboard') || title.includes('ui')) return 7; // Frontend
+  if (title.includes('database') || title.includes('storage')) return 5; // Data
+  if (title.includes('infrastructure')) return 4; // Infrastructure
+  
+  // Default based on type
+  if (item.type === 'Section') return 2; // Architecture
+  if (item.type === 'Feature') return 7; // Frontend
+  return 8; // Backend
+}
+
+// Generate acceptance criteria based on item
+function generateAcceptanceCriteria(item: any): string[] {
+  const criteria: string[] = [];
+  
+  if (item.completion === 100) {
+    criteria.push('Feature is fully implemented and tested');
+    criteria.push('Documentation is complete');
+    criteria.push('No known bugs or issues');
+  } else if (item.status === 'In Progress') {
+    criteria.push(`Complete implementation to ${item.completion}% → 100%`);
+    criteria.push('All tests passing');
+    criteria.push('Code reviewed and approved');
+  } else if (item.status === 'Blocked') {
+    criteria.push('Unblock the issue by resolving dependencies');
+    criteria.push('Complete implementation');
+    criteria.push('Verify functionality works as expected');
+  } else {
+    criteria.push('Implementation complete according to requirements');
+    criteria.push('Unit tests written and passing');
+    criteria.push('Integration tested with related features');
+  }
+  
+  return criteria;
+}
+
+// Main function to create items
+async function createMissingItems() {
+  console.log('🚀 Creating additional JIRA items from gap analysis\n');
+  
+  const items = missingItemsData.missingItems;
+  let successCount = 0;
+  let failureCount = 0;
+  
+  // Initialize service with credentials
+  jiraApiService.setCredentials({
+    instanceUrl: `https://${jiraDomain}`,
+    email: jiraEmail,
+    apiToken: jiraApiToken,
+    projectKey: 'KAN'
+  });
+  
+  // Test connection first
+  console.log('🔍 Testing JIRA connection...');
   try {
-    const response = await fetch(`${JIRA_CREDENTIALS.instanceUrl}/rest/api/3/issue`, {
-      method: 'POST',
-      headers: {
-        'Authorization': authHeader,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        fields: {
-          summary: item.summary,
-          description: {
-            type: 'doc',
-            version: 1,
-            content: [{
-              type: 'paragraph',
-              content: [{
-                type: 'text',
-                text: item.description
-              }]
-            }]
-          },
-          issuetype: { name: 'Task' }, // Using Task since Story doesn't exist
-          project: { key: JIRA_CREDENTIALS.projectKey },
-          labels: item.labels
-        }
-      })
-    });
-    
-    if (!response.ok) {
-      const error = await response.text();
-      console.error(`Failed to create issue: ${error}`);
-      return null;
+    const connectionTest = await jiraApiService.testConnection();
+    if (!connectionTest.success) {
+      console.error('❌ JIRA connection failed:', connectionTest.message);
+      console.error('Please check your JIRA_API_TOKEN permissions');
+      process.exit(1);
     }
-    
-    const result = await response.json();
-    return result.key;
+    console.log('✅ Connection successful:', connectionTest.message);
   } catch (error) {
-    console.error(`Error creating issue:`, error);
-    return null;
+    console.error('❌ Failed to connect to JIRA:', error);
+    process.exit(1);
   }
-}
-
-async function main() {
-  console.log('🚀 Creating additional JIRA items...');
-  console.log(`📍 Instance: ${JIRA_CREDENTIALS.instanceUrl}`);
-  console.log(`📧 Email: ${JIRA_CREDENTIALS.email}`);
-  console.log(`🔑 Project Key: ${JIRA_CREDENTIALS.projectKey}\n`);
   
-  const results = { success: 0, failed: 0 };
+  // Starting issue key (after KAN-100)
+  let currentKey = 101;
   
-  for (let i = 0; i < additionalItems.length; i++) {
-    const item = additionalItems[i];
-    const issueKey = await createJiraIssue(item, i);
+  for (const item of items) {
+    const issueType = mapToJiraIssueType(item.type);
+    const layer = determineLayer(item);
+    const acceptanceCriteria = generateAcceptanceCriteria(item);
     
-    if (issueKey) {
-      console.log(`✅ Created ${i + 1}/${additionalItems.length}: [${item.type}] ${item.summary} (${issueKey})`);
-      results.success++;
-    } else {
-      console.log(`❌ Failed ${i + 1}/${additionalItems.length}: [${item.type}] ${item.summary}`);
-      results.failed++;
+    const issueData = {
+      fields: {
+        project: {
+          key: 'KAN'
+        },
+        summary: `[Gap Analysis] ${item.title}`,
+        description: `${item.description}\n\n` +
+          `**Status:** ${item.status}\n` +
+          `**Completion:** ${item.completion}%\n` +
+          `**Path:** ${item.parentPath}\n` +
+          `**Team:** ${item.team.join(', ')}\n` +
+          `**Priority:** ${item.priority}\n\n` +
+          `**40x20s Framework:**\n` +
+          `- Layer: ${layer}\n` +
+          `- Type: ${item.type}`,
+        issuetype: {
+          name: issueType
+        },
+        labels: [
+          '40x20s',
+          `Layer-${layer}`,
+          `Status-${item.status}`,
+          'GapAnalysis',
+          item.type
+        ]
+        // Priority field removed based on successful migration config
+      }
+    };
+    
+    // Add acceptance criteria if it's not an epic
+    if (issueType !== 'Epic') {
+      (issueData.fields as any).customfield_10011 = acceptanceCriteria.join('\n');
+    }
+    
+    try {
+      console.log(`Creating ${issueType}: ${item.title}...`);
+      const result = await jiraApiService.createIssue(issueData);
+      
+      if (result.key) {
+        console.log(`✅ Created ${result.key}: ${item.title}`);
+        successCount++;
+      } else {
+        console.log(`❌ Failed to create: ${item.title}`);
+        failureCount++;
+      }
+      
+      // Add a small delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+    } catch (error) {
+      console.error(`❌ Error creating ${item.title}:`, error);
+      failureCount++;
     }
   }
   
-  console.log(`\n📊 Additional JIRA Items Summary:`);
-  console.log(`✅ Successfully created: ${results.success} items`);
-  console.log(`❌ Failed: ${results.failed} items`);
-  console.log(`📊 Success rate: ${((results.success / additionalItems.length) * 100).toFixed(1)}%`);
-  
-  console.log(`\n🎉 Additional JIRA items creation complete!`);
-  console.log(`📌 Total items in JIRA: ${87 + results.success} (${87} from main export + ${results.success} additional)`);
+  console.log('\n📊 Summary:');
+  console.log(`✅ Successfully created: ${successCount} items`);
+  console.log(`❌ Failed: ${failureCount} items`);
+  console.log(`📊 Total gap items processed: ${items.length}`);
+  console.log('\n🎉 Gap analysis items migration complete!');
 }
 
-main();
+// Run the script
+createMissingItems().catch(console.error);
