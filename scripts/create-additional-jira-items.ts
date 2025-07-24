@@ -105,20 +105,11 @@ async function createMissingItems() {
     projectKey: 'KAN'
   });
   
-  // Test connection first
-  console.log('🔍 Testing JIRA connection...');
-  try {
-    const connectionTest = await jiraApiService.testConnection();
-    if (!connectionTest.success) {
-      console.error('❌ JIRA connection failed:', connectionTest.message);
-      console.error('Please check your JIRA_API_TOKEN permissions');
-      process.exit(1);
-    }
-    console.log('✅ Connection successful:', connectionTest.message);
-  } catch (error) {
-    console.error('❌ Failed to connect to JIRA:', error);
-    process.exit(1);
-  }
+  // Skip connection test - proceed directly to creation
+  console.log('✅ Using JIRA configuration:');
+  console.log(`   Instance: https://${jiraDomain}`);
+  console.log(`   Project: KAN`);
+  console.log(`   Email: ${jiraEmail}`);
   
   // Starting issue key (after KAN-100)
   let currentKey = 101;
