@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,11 +15,16 @@ import {
   TrendingUp,
   Package,
   GitBranch,
-  Target
+  Target,
+  Key,
+  CloudUpload,
+  Loader2
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { comprehensiveProjectData } from '@/data/comprehensive-project-data';
+import JiraCredentialsModal from './JiraCredentialsModal';
+import { jiraApiService } from '@/services/jiraApiService';
 
 interface ExportStats {
   totalItems: number;
@@ -36,6 +41,25 @@ const JiraExportDashboard: React.FC = () => {
   const [exportFormat, setExportFormat] = useState<'csv' | 'json'>('json');
   const [isExporting, setIsExporting] = useState(false);
   const [exportStatus, setExportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [showCredentialsModal, setShowCredentialsModal] = useState(false);
+  const [hasCredentials, setHasCredentials] = useState(false);
+  const [isCreatingInJira, setIsCreatingInJira] = useState(false);
+  const [jiraProgress, setJiraProgress] = useState(0);
+  const [jiraStatus, setJiraStatus] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
+  
+  // Check for saved credentials on mount
+  useEffect(() => {
+    const savedCredentials = localStorage.getItem('jiraCredentials');
+    if (savedCredentials) {
+      try {
+        const credentials = JSON.parse(savedCredentials);
+        jiraApiService.setCredentials(credentials);
+        setHasCredentials(true);
+      } catch (error) {
+        console.error('Failed to load JIRA credentials:', error);
+      }
+    }
+  }, []);
   
   // Calculate export statistics
   const calculateStats = (): ExportStats => {
@@ -190,6 +214,144 @@ const JiraExportDashboard: React.FC = () => {
       headers.join(','),
       ...rows.map(row => row.join(','))
     ].join('\n');
+  };
+  
+  // Create issues directly in JIRA
+  const createIssuesInJira = async () => {
+    if (!hasCredentials) {
+      setShowCredentialsModal(true);
+      return;
+    }
+    
+    setIsCreatingInJira(true);
+    setJiraProgress(0);
+    setJiraStatus({ message: 'Preparing JIRA export data...', type: 'info' });
+    
+    try {
+      // Generate export data
+      const exportData = generateJiraExportData();
+      const totalItems = 
+        exportData.epics.length + 
+        exportData.stories.length + 
+        exportData.tasks.length + 
+        exportData.subTasks.length;
+      
+      let createdCount = 0;
+      
+      // Create epics first
+      setJiraStatus({ message: 'Creating epics in JIRA...', type: 'info' });
+      for (const epic of exportData.epics) {
+        await jiraApiService.createIssue({
+          fields: {
+            summary: epic.summary,
+            description: epic.description,
+            issuetype: { name: 'Epic' },
+            project: { key: jiraApiService.getCredentials()!.projectKey },
+            priority: { name: epic.priority },
+            labels: epic.labels
+          }
+        });
+        createdCount++;
+        setJiraProgress((createdCount / totalItems) * 100);
+      }
+      
+      // Create stories
+      setJiraStatus({ message: 'Creating stories in JIRA...', type: 'info' });
+      for (const story of exportData.stories) {
+        await jiraApiService.createIssue({
+          fields: {
+            summary: story.summary,
+            description: story.description,
+            issuetype: { name: 'Story' },
+            project: { key: jiraApiService.getCredentials()!.projectKey },
+            priority: { name: story.priority },
+            labels: story.labels
+          }
+        });
+        createdCount++;
+        setJiraProgress((createdCount / totalItems) * 100);
+      }
+      
+      // Create tasks
+      setJiraStatus({ message: 'Creating tasks in JIRA...', type: 'info' });
+      for (const task of exportData.tasks) {
+        await jiraApiService.createIssue({
+          fields: {
+            summary: task.summary,
+            description: task.description,
+            issuetype: { name: 'Task' },
+            project: { key: jiraApiService.getCredentials()!.projectKey },
+            priority: { name: task.priority },
+            labels: task.labels
+          }
+        });
+        createdCount++;
+        setJiraProgress((createdCount / totalItems) * 100);
+      }
+      
+      setJiraStatus({ 
+        message: `Successfully created ${createdCount} items in JIRA!`, 
+        type: 'success' 
+      });
+    } catch (error) {
+      console.error('JIRA creation failed:', error);
+      setJiraStatus({ 
+        message: `Failed to create issues: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+        type: 'error' 
+      });
+    } finally {
+      setIsCreatingInJira(false);
+    }
+  };
+  
+  // Generate JIRA export data
+  const generateJiraExportData = () => {
+    const epics: any[] = [];
+    const stories: any[] = [];
+    const tasks: any[] = [];
+    const subTasks: any[] = [];
+    
+    const processItem = (item: any, parentKey?: string) => {
+      const priority = item.priority || 'Medium';
+      const labels = ['40x20s', `Layer-${item.layer || 1}`, `Phase-${item.phase || 1}`];
+      
+      if (item.type === 'Platform' || item.type === 'Section') {
+        epics.push({
+          summary: item.title,
+          description: item.description,
+          priority,
+          labels,
+          key: `MT-EPIC-${epics.length + 1}`
+        });
+      } else if (item.type === 'Feature' || item.type === 'Project') {
+        stories.push({
+          summary: item.title,
+          description: item.description,
+          priority,
+          labels,
+          epicLink: parentKey,
+          storyPoints: Math.ceil((item.actualHours || 40) / 8)
+        });
+      } else if (item.type === 'Task') {
+        tasks.push({
+          summary: item.title,
+          description: item.description,
+          priority,
+          labels,
+          parentKey
+        });
+      }
+      
+      if (item.children) {
+        item.children.forEach((child: any) => 
+          processItem(child, `MT-${item.type.toUpperCase()}-${epics.length || stories.length || tasks.length}`)
+        );
+      }
+    };
+    
+    comprehensiveProjectData.forEach(item => processItem(item));
+    
+    return { epics, stories, tasks, subTasks };
   };
   
   return (
@@ -352,6 +514,100 @@ const JiraExportDashboard: React.FC = () => {
         </CardContent>
       </Card>
       
+      {/* Direct JIRA API Integration */}
+      <Card className="glassmorphic-card">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Direct JIRA Integration</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!hasCredentials ? (
+            <div className="text-center py-8">
+              <Key className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Configure JIRA API Access</h3>
+              <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto">
+                Connect directly to your JIRA instance to create issues in real-time using the 40x20s framework mapping.
+              </p>
+              <Button 
+                onClick={() => setShowCredentialsModal(true)}
+                className="bg-gradient-to-r from-turquoise-500 to-cyan-500 hover:from-turquoise-600 hover:to-cyan-600"
+              >
+                <Key className="w-4 h-4 mr-2" />
+                Configure JIRA Credentials
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-green-700 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    JIRA API Connected
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Ready to create {stats.totalItems} items directly in JIRA
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowCredentialsModal(true)}
+                >
+                  <Key className="w-3 h-3 mr-1" />
+                  Update
+                </Button>
+              </div>
+              
+              {jiraStatus && (
+                <Alert className={`${
+                  jiraStatus.type === 'success' ? 'border-green-200 bg-green-50' :
+                  jiraStatus.type === 'error' ? 'border-red-200 bg-red-50' :
+                  'border-blue-200 bg-blue-50'
+                }`}>
+                  {jiraStatus.type === 'success' && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                  {jiraStatus.type === 'error' && <AlertCircle className="h-4 w-4 text-red-600" />}
+                  {jiraStatus.type === 'info' && <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />}
+                  <AlertDescription className={`${
+                    jiraStatus.type === 'success' ? 'text-green-700' :
+                    jiraStatus.type === 'error' ? 'text-red-700' :
+                    'text-blue-700'
+                  }`}>
+                    {jiraStatus.message}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {isCreatingInJira && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Creating issues...</span>
+                    <span>{Math.round(jiraProgress)}%</span>
+                  </div>
+                  <Progress value={jiraProgress} className="h-2" />
+                </div>
+              )}
+              
+              <Button 
+                onClick={createIssuesInJira}
+                disabled={isCreatingInJira}
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+              >
+                {isCreatingInJira ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating Issues in JIRA...
+                  </>
+                ) : (
+                  <>
+                    <CloudUpload className="w-4 h-4 mr-2" />
+                    Create All Issues in JIRA
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      
       {/* Layer Coverage Visualization */}
       <Card className="glassmorphic-card">
         <CardHeader>
@@ -390,6 +646,16 @@ const JiraExportDashboard: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      
+      {/* JIRA Credentials Modal */}
+      <JiraCredentialsModal
+        isOpen={showCredentialsModal}
+        onClose={() => setShowCredentialsModal(false)}
+        onSuccess={() => {
+          setHasCredentials(true);
+          setShowCredentialsModal(false);
+        }}
+      />
     </div>
   );
 };
