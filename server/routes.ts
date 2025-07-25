@@ -572,7 +572,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User Authentication Routes - exactly matching original backend
+  // User Authentication Routes - 40x20s Enhanced with Concurrent Registration Support
   app.post("/api/user", upload.any(), async (req, res) => {
     try {
       const validatedData = insertUserSchema.parse({
@@ -589,36 +589,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         facebookUrl: req.body.facebook_url,
       });
 
-      const user = await storage.createUser(validatedData);
+      // Use concurrent registration service for thread-safe user creation
+      const { concurrentRegistrationService } = await import('./services/concurrentRegistrationService');
+      const { user, token } = await concurrentRegistrationService.registerUser(validatedData);
 
-      // Generate JWT token like original backend
-      const jwt = require('jsonwebtoken');
-      const token = jwt.sign(
-        { userId: user.id },
-        process.env.JWT_SECRET || "mundo-tango-secret",
-        { expiresIn: "7d" }
-      );
-
-      await storage.updateUserApiToken(user.id, token);
-
-      // Auto-create city group if city and country provided
+      // Auto-create city group if city and country provided (non-blocking)
       if (validatedData.city && validatedData.country) {
-        try {
-          const { CityAutoCreationService } = await import('./services/cityAutoCreationService');
-          const cityResult = await CityAutoCreationService.handleUserRegistration(
-            user.id,
-            validatedData.city,
-            validatedData.country
-          );
-          console.log(`🏙️ City group auto-creation result for ${user.username}:`, {
-            city: cityResult.group.name,
-            isNew: cityResult.isNew,
-            adminAssigned: cityResult.adminAssigned
-          });
-        } catch (cityError) {
-          console.error('Failed to auto-create city group:', cityError);
-          // Don't fail registration if city creation fails
-        }
+        // Run city creation asynchronously without blocking response
+        (async () => {
+          try {
+            const { CityAutoCreationService } = await import('./services/cityAutoCreationService');
+            const cityResult = await CityAutoCreationService.handleUserRegistration(
+              user.id,
+              validatedData.city,
+              validatedData.country
+            );
+            console.log(`🏙️ City group auto-creation result for ${user.username}:`, {
+              city: cityResult.group.name,
+              isNew: cityResult.isNew,
+              adminAssigned: cityResult.adminAssigned
+            });
+          } catch (cityError) {
+            console.error('Failed to auto-create city group:', cityError);
+          }
+        })();
       }
 
       res.json({ 
@@ -648,7 +642,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } 
       });
     } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
+      // Enhanced error handling for concurrent registration issues
+      if (error.message.includes('already exists')) {
+        res.status(409).json({ success: false, message: "User with this email already exists" });
+      } else {
+        console.error('Registration error:', error);
+        res.status(400).json({ success: false, message: error.message });
+      }
     }
   });
 
@@ -824,11 +824,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         formStatus: 2
       });
 
-      // Automation 2: Assign user to professional groups based on their tango roles
+      // Automation 2: Assign user to professional groups based on their tango roles (40x20s Optimized)
       if (user.tangoRoles && user.tangoRoles.length > 0) {
-        const { ProfessionalGroupAssignmentService } = await import('./services/professionalGroupAssignmentService');
-        await ProfessionalGroupAssignmentService.handleRegistration(user.id, user.tangoRoles);
-        console.log(`✅ Professional group automation completed for user ${user.id}`);
+        const { OptimizedProfessionalGroupAssignmentService } = await import('./services/optimizedProfessionalGroupAssignmentService');
+        await OptimizedProfessionalGroupAssignmentService.handleRegistration(user.id, user.tangoRoles);
+        console.log(`✅ Professional group automation completed for user ${user.id} using optimized service`);
       }
 
       res.json({

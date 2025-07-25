@@ -16,10 +16,15 @@ console.log('🔄 Initializing database connection...');
 
 const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  // Connection pool settings for resilience
-  max: 20, // Maximum number of clients
-  idleTimeoutMillis: 30000, // 30 seconds
-  connectionTimeoutMillis: 5000, // 5 seconds timeout for new connections
+  // 40x20s Phase 3 Optimized Connection Pool Settings
+  max: 50, // Increased from 20 for high concurrency
+  min: 10, // Minimum pool size for faster response
+  idleTimeoutMillis: 10000, // Reduced to 10 seconds for faster recycling
+  connectionTimeoutMillis: 2000, // Reduced to 2 seconds for faster failures
+  statement_timeout: 5000, // 5 second query timeout
+  query_timeout: 5000, // 5 second query timeout
+  // Connection string optimizations
+  application_name: 'mundo-tango-40x20s',
   // SSL configuration for Replit database
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
