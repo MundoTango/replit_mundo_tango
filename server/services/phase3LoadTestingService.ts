@@ -1,8 +1,10 @@
 import { db } from '../db';
-import { users, groups, groupMembers, events, memories, hostHomes, recommendations, posts, comments, likes } from '../../shared/schema';
+import { users, groups, groupMembers, events, memories, hostHomes, recommendations, posts } from '../../shared/schema';
 import { sql } from 'drizzle-orm';
-import { ProfessionalGroupAssignmentService } from './professionalGroupAssignmentService';
+import { OptimizedProfessionalGroupAssignmentService } from './optimizedProfessionalGroupAssignmentService';
 import { CityAutoCreationService } from './cityAutoCreationService';
+import { concurrentRegistrationService } from './concurrentRegistrationService';
+import { enhancedCache } from './enhancedCacheService';
 
 interface LoadTestResult {
   test: string;
@@ -144,37 +146,28 @@ export class Phase3LoadTestingService {
   }
 
   /**
-   * Test 2: Concurrent User Registrations
+   * Test 2: Concurrent User Registrations (40x20s Optimized)
    */
   private async testConcurrentUserRegistrations(): Promise<void> {
     const testName = 'Concurrent User Registrations';
     const virtualUsers = 50;
     
     try {
+      // Use ConcurrentRegistrationService for optimized concurrent handling
       const registrations = Array(virtualUsers).fill(null).map(async (_, i) => {
         const start = Date.now();
         try {
-          // Simulate registration process
-          const testUser = {
+          // Use optimized concurrent registration service
+          const registration = await concurrentRegistrationService.registerUser({
+            name: `Test User ${i}`,
+            email: `testuser${i}@example.com`,
+            password: 'testpassword123',
             city: 'Test City',
             country: 'Test Country',
             tangoRoles: ['dancer', 'teacher']
-          };
+          });
           
-          // Test city group assignment
-          await CityAutoCreationService.handleRegistration(
-            i + 1000, // Mock user ID
-            testUser.city,
-            testUser.country
-          );
-          
-          // Test professional group assignment
-          await ProfessionalGroupAssignmentService.handleRegistration(
-            i + 1000,
-            testUser.tangoRoles
-          );
-          
-          return { success: true, time: Date.now() - start };
+          return { success: true, time: Date.now() - start, userId: registration.user.id };
         } catch {
           return { success: false, time: Date.now() - start };
         }
@@ -184,6 +177,9 @@ export class Phase3LoadTestingService {
       const successful = results.filter(r => r.success).length;
       const avgTime = results.reduce((a, b) => a + b.time, 0) / results.length;
       const successRate = (successful / virtualUsers) * 100;
+      
+      // Get queue status for additional metrics
+      const queueStatus = concurrentRegistrationService.getQueueStatus();
       
       this.addResult({
         test: testName,
@@ -196,12 +192,18 @@ export class Phase3LoadTestingService {
         baseline: 95, // Target: >95% success rate
         status: successRate > 95 ? 'passed' : successRate > 80 ? 'warning' : 'failed',
         timestamp: new Date(),
-        details: { virtualUsers, successful, avgTime }
+        details: { 
+          virtualUsers, 
+          successful, 
+          avgTime: avgTime.toFixed(2),
+          queueStatus
+        }
       });
       
       console.log(`✅ ${testName} - Success Rate: ${successRate.toFixed(2)}%, Avg Time: ${avgTime.toFixed(2)}ms`);
+      console.log(`   Queue Status:`, queueStatus);
     } catch (error) {
-      console.log(`❌ ${testName} - Failed`);
+      console.log(`❌ ${testName} - Failed:`, error);
     }
   }
 
@@ -316,8 +318,8 @@ export class Phase3LoadTestingService {
         try {
           // Test multiple automations running simultaneously
           await Promise.all([
-            CityAutoCreationService.handleRegistration(i + 2000, `City${i}`, 'Country'),
-            ProfessionalGroupAssignmentService.assignByRoles(i + 2000, ['dancer', 'teacher']),
+            CityAutoCreationService.ensureCityGroupExists(`City${i}`, 'Country'),
+            OptimizedProfessionalGroupAssignmentService.handleRegistration(i + 2000, ['dancer', 'teacher']),
           ]);
           return { success: true, time: Date.now() - start };
         } catch {
@@ -410,7 +412,7 @@ export class Phase3LoadTestingService {
         ][i % 5];
         
         const start = Date.now();
-        const result = await ProfessionalGroupAssignmentService.assignByRoles(i + 3000, roles);
+        const result = await OptimizedProfessionalGroupAssignmentService.handleRegistration(i + 3000, roles);
         return {
           time: Date.now() - start,
           success: result.success,
@@ -452,8 +454,7 @@ export class Phase3LoadTestingService {
     try {
       const creations = Array(cities).fill(null).map(async (_, i) => {
         const start = Date.now();
-        const result = await CityAutoCreationService.handleRegistration(
-          i + 4000,
+        const result = await CityAutoCreationService.ensureCityGroupExists(
           `LoadTestCity${i}`,
           `Country${i % 10}`
         );

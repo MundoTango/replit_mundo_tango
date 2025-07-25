@@ -3324,14 +3324,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const offset = parseInt(req.query.offset as string) || 0;
       const filterTags = req.query.tags ? (Array.isArray(req.query.tags) ? req.query.tags : [req.query.tags]) : [];
 
-      // Import Redis cache for better performance
-      const { redisCache } = await import('./services/redisCache');
+      // Import enhanced cache for better performance
+      const { enhancedCache } = await import('./services/enhancedCacheService');
       
       // Create cache key based on query parameters
       const cacheKey = `posts:feed:${user.id}:${limit}:${offset}:${filterTags.join(',')}`;
       
       // Try to get cached result first
-      const cachedPosts = await redisCache.get(cacheKey);
+      const cachedPosts = await enhancedCache.get(cacheKey);
       if (cachedPosts) {
         console.log('📊 Posts served from Redis cache');
         return res.json({ success: true, data: cachedPosts });
@@ -3394,7 +3394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       
       // Cache the results for 5 minutes (300 seconds)
-      await redisCache.set(cacheKey, posts, 300);
+      await enhancedCache.set(cacheKey, posts, 300);
       console.log('📊 Posts cached in Redis for future requests');
       
       res.json({ success: true, data: posts });
