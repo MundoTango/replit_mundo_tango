@@ -13887,6 +13887,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Validation API Routes for Life CEO 40x20s Framework
+  app.get('/api/validation/status', async (req, res) => {
+    try {
+      const { validationService } = await import('./services/validationService');
+      const status = validationService.getStatus();
+      res.json({ success: true, data: status });
+    } catch (error) {
+      console.error('Error getting validation status:', error);
+      res.status(500).json({ success: false, error: 'Failed to get status' });
+    }
+  });
+
+  app.post('/api/validation/run', async (req, res) => {
+    try {
+      const { layerRange } = req.body;
+      const { validationService } = await import('./services/validationService');
+      
+      // Run tests asynchronously
+      validationService.runValidation(layerRange).then(results => {
+        console.log(`Validation completed: ${results.length} tests run`);
+      }).catch(error => {
+        console.error('Validation error:', error);
+      });
+      
+      res.json({ success: true, message: 'Validation started' });
+    } catch (error) {
+      console.error('Error starting validation:', error);
+      res.status(500).json({ success: false, error: 'Failed to start validation' });
+    }
+  });
+
+  app.post('/api/validation/jira-update', async (req, res) => {
+    try {
+      const { results } = req.body;
+      const { validationService } = await import('./services/validationService');
+      const jiraResult = await validationService.updateJira(results);
+      res.json({ success: true, data: jiraResult });
+    } catch (error) {
+      console.error('Error updating JIRA:', error);
+      res.status(500).json({ success: false, error: 'Failed to update JIRA' });
+    }
+  });
+
   // Initialize Life CEO Performance Service for advanced optimization
   try {
     const { lifeCeoPerformance } = await import('./services/lifeCeoPerformanceService');
