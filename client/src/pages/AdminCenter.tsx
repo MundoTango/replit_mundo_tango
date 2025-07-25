@@ -17,6 +17,7 @@ import { GlobalStatisticsDashboard } from '@/components/GlobalStatisticsDashboar
 import PerformanceMonitor from '@/components/admin/PerformanceMonitor';
 import Framework35LDashboard from '@/components/admin/Framework35LDashboard';
 import { ValidationDashboard } from '@/components/admin/ValidationDashboard';
+import { Phase40x20sValidationDashboard } from '@/components/admin/Phase40x20sValidationDashboard';
 import { 
   Users, 
   Activity, 
@@ -318,7 +319,7 @@ const AdminCenter: React.FC = React.memo(() => {
     { id: 'compliance', label: 'Compliance Center', icon: <Shield className="w-4 h-4" /> },
     { id: 'rbac', label: 'RBAC/ABAC Manager', icon: <Lock className="w-4 h-4" /> },
     { id: 'system', label: 'System Health & Security', icon: <Activity className="w-4 h-4" /> },
-    { id: 'validation', label: 'Validation', icon: <CheckCircle className="w-4 h-4" />, isNew: true },
+    { id: 'validation', label: 'Phase 2/3 Validation', icon: <CheckCircle className="w-4 h-4" />, isNew: true },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
   ];
 
@@ -2525,7 +2526,7 @@ const AdminCenter: React.FC = React.memo(() => {
       case 'compliance': return renderCompliance();
       case 'rbac': return renderRbacManager();
       case 'system': return renderSystemHealth();
-      case 'validation': return <ValidationDashboard />;
+      case 'validation': return <Phase40x20sValidationDashboard />;
       case 'settings': return renderSettings();
       default: return renderOverview();
     }
