@@ -814,8 +814,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Automation 2: Assign user to professional groups based on their tango roles
       if (user.tangoRoles && user.tangoRoles.length > 0) {
-        const { assignUserToProfessionalGroups } = await import('../utils/professionalGroupAutomation');
-        await assignUserToProfessionalGroups(user.id, user.tangoRoles);
+        const { ProfessionalGroupAssignmentService } = await import('./services/professionalGroupAssignmentService');
+        await ProfessionalGroupAssignmentService.handleRegistration(user.id, user.tangoRoles);
         console.log(`✅ Professional group automation completed for user ${user.id}`);
       }
 
@@ -1966,6 +1966,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error('Failed to update city group assignment:', cityError);
             // Don't fail profile update if city group assignment fails
           }
+        }
+      }
+
+      // Handle professional group automation when tango roles change
+      if (tangoRoles && Array.isArray(tangoRoles)) {
+        try {
+          const parsedOldRoles = user.tangoRoles ? JSON.parse(user.tangoRoles) : [];
+          const rolesChanged = JSON.stringify(parsedOldRoles.sort()) !== JSON.stringify(tangoRoles.sort());
+          
+          if (rolesChanged) {
+            console.log(`🎭 User ${user.username} updated tango roles from ${parsedOldRoles} to ${tangoRoles}`);
+            
+            const { ProfessionalGroupAssignmentService } = await import('./services/professionalGroupAssignmentService');
+            await ProfessionalGroupAssignmentService.updateRoleAssignments(user.id, tangoRoles, parsedOldRoles);
+            
+            console.log(`✅ Professional group assignments updated for user ${user.id}`);
+          }
+        } catch (roleError) {
+          console.error('Failed to update professional group assignments:', roleError);
+          // Don't fail profile update if professional group assignment fails
         }
       }
 
@@ -4000,6 +4020,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Friend suggestions - NEW production-ready endpoint
   app.get('/api/friends/suggestions', setUserContext, async (req, res) => {
     try {
+      const { getUserId } = await import('./utils/authHelper');
       const userId = getUserId(req);
       if (!userId) {
         return res.status(401).json({ 
@@ -4309,14 +4330,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             // 7. AUTOMATION: Import and use professional group automation
             if (selectedRoles && selectedRoles.length > 0) {
-              const { assignUserToProfessionalGroups } = await import('../utils/professionalGroupAutomation.js');
+              const { ProfessionalGroupAssignmentService } = await import('./services/professionalGroupAssignmentService');
               
-              // Get group IDs assigned for transaction tracking
-              const professionalGroupIds = await assignUserToProfessionalGroups(user.id, selectedRoles);
+              // Assign to professional groups
+              const result = await ProfessionalGroupAssignmentService.assignByRoles(user.id, selectedRoles);
               
-              // Track professional groups for rollback
-              if (professionalGroupIds && Array.isArray(professionalGroupIds)) {
-                transaction.professionalGroupIds = professionalGroupIds;
+              // Log the results
+              if (result.success) {
+                console.log(`✅ Assigned user ${user.id} to professional groups:`, result.assignedGroups);
+              } else if (result.errors.length > 0) {
+                console.warn(`⚠️ Professional group assignment had errors:`, result.errors);
               }
             }
           });
@@ -13927,6 +13950,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating JIRA:', error);
       res.status(500).json({ success: false, error: 'Failed to update JIRA' });
+    }
+  });
+
+  // Phase 2 Validation endpoint
+  app.post('/api/validation/phase2', setUserContext, async (req, res) => {
+    try {
+      console.log('🚀 Starting Phase 2 Validation - Life CEO & 40x20s Framework');
+      
+      const { Phase2ValidationService } = await import('./services/phase2ValidationService');
+      const validationService = new Phase2ValidationService();
+      
+      const results = await validationService.runPhase2Validation();
+      
+      res.json({
+        success: true,
+        ...results
+      });
+    } catch (error) {
+      console.error('Phase 2 validation error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to run Phase 2 validation',
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
