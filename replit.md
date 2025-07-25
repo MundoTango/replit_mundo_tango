@@ -28,6 +28,10 @@
   - Complete technical specifications with 40x20s framework layer/phase organization
 - **40x20s Framework Coverage**: All issues tagged with specific layer and phase assignments for comprehensive tracking
 - **Project Board**: View enhanced plan at https://mundotango-team.atlassian.net/jira/plans/1/scenarios/1/timeline?vid=4
+- **Parent & Team Field Status**: 
+  - Parent field updates pending - need to verify issue hierarchy
+  - Team field requires pre-created teams in JIRA (customfield_10001)
+  - GitHub integration needs configuration in Project Settings → Apps → GitHub for Jira
 
 **UPDATE (January 23, 2025 - JIRA Migration System Using 40x20s Framework)**: Complete JIRA Export Infrastructure with Direct API Integration
 - **Life CEO 40x20s JIRA Export**: Created comprehensive system to export entire Mundo Tango platform to JIRA
