@@ -686,6 +686,61 @@ const EPIC_STORIES = {
   ]
 };
 
+// Helper function to convert markdown to ADF
+function markdownToADF(markdown: string): any {
+  const lines = markdown.split('\n');
+  const content: any[] = [];
+  
+  lines.forEach(line => {
+    if (line.startsWith('**') && line.endsWith('**')) {
+      // Bold text
+      content.push({
+        type: 'paragraph',
+        content: [{
+          type: 'text',
+          text: line.replace(/\*\*/g, ''),
+          marks: [{ type: 'strong' }]
+        }]
+      });
+    } else if (line.startsWith('- ')) {
+      // Bullet list
+      if (content.length === 0 || content[content.length - 1].type !== 'bulletList') {
+        content.push({
+          type: 'bulletList',
+          content: []
+        });
+      }
+      content[content.length - 1].content.push({
+        type: 'listItem',
+        content: [{
+          type: 'paragraph',
+          content: [{
+            type: 'text',
+            text: line.substring(2)
+          }]
+        }]
+      });
+    } else if (line.trim() === '') {
+      // Empty line - skip
+    } else {
+      // Regular paragraph
+      content.push({
+        type: 'paragraph',
+        content: [{
+          type: 'text',
+          text: line
+        }]
+      });
+    }
+  });
+  
+  return {
+    version: 1,
+    type: 'doc',
+    content: content
+  };
+}
+
 // Helper function to create JIRA issue
 async function createJiraIssue(issueData: any) {
   const authHeader = `Basic ${Buffer.from(`${JIRA_CONFIG.email}:${JIRA_CONFIG.apiToken}`).toString('base64')}`;
@@ -735,7 +790,7 @@ async function executeMigration() {
         fields: {
           project: { key: JIRA_CONFIG.projectKey },
           summary: epic.summary,
-          description: epic.description,
+          description: markdownToADF(epic.description),
           issuetype: { name: 'Epic' },
           labels: [...epic.labels, '40x20s-framework', 'platform-epic']
         }
@@ -753,10 +808,9 @@ async function executeMigration() {
           fields: {
             project: { key: JIRA_CONFIG.projectKey },
             summary: story.summary,
-            description: story.description,
+            description: markdownToADF(story.description),
             issuetype: { name: 'Task' }, // Using Task as Story
             labels: [...story.labels, ...epic.labels, `story-points-${story.storyPoints}`],
-            customfield_10026: story.storyPoints, // Story points field
             parent: { key: created.key } // Link to epic
           }
         };
@@ -771,7 +825,7 @@ async function executeMigration() {
             fields: {
               project: { key: JIRA_CONFIG.projectKey },
               summary: task,
-              description: `Task for: ${story.summary}\n\nPart of the ${epic.summary} implementation.`,
+              description: markdownToADF(`Task for: ${story.summary}\n\nPart of the ${epic.summary} implementation.`),
               issuetype: { name: 'Sub-task' },
               parent: { key: createdStory.key }
             }
@@ -797,7 +851,7 @@ async function executeMigration() {
         fields: {
           project: { key: JIRA_CONFIG.projectKey },
           summary: epic.summary,
-          description: epic.description,
+          description: markdownToADF(epic.description),
           issuetype: { name: 'Epic' },
           labels: [...epic.labels, '40x20s-framework', 'technical-epic']
         }
@@ -815,10 +869,9 @@ async function executeMigration() {
           fields: {
             project: { key: JIRA_CONFIG.projectKey },
             summary: story.summary,
-            description: story.description,
+            description: markdownToADF(story.description),
             issuetype: { name: 'Task' }, // Using Task as Story
             labels: [...story.labels, ...epic.labels, `story-points-${story.storyPoints}`],
-            customfield_10026: story.storyPoints,
             parent: { key: created.key }
           }
         };
@@ -833,7 +886,7 @@ async function executeMigration() {
             fields: {
               project: { key: JIRA_CONFIG.projectKey },
               summary: task,
-              description: `Task for: ${story.summary}\n\nPart of the ${epic.summary} implementation.`,
+              description: markdownToADF(`Task for: ${story.summary}\n\nPart of the ${epic.summary} implementation.`),
               issuetype: { name: 'Sub-task' },
               parent: { key: createdStory.key }
             }
