@@ -361,14 +361,15 @@ const UserSettings: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent mb-2">
-          Settings
-        </h1>
-        <p className="text-gray-600">Manage your account preferences and privacy settings</p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-turquoise-50 via-cyan-50 to-blue-50">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent mb-2">
+            Settings
+          </h1>
+          <p className="text-gray-600">Manage your account preferences and privacy settings</p>
+        </div>
 
       {/* Search and Actions Bar */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
@@ -445,24 +446,24 @@ const UserSettings: React.FC = () => {
 
       {/* Settings Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-5 w-full mb-6">
-          <TabsTrigger value="notifications" className="flex items-center gap-2" disabled={!filteredSettings('notifications')}>
+        <TabsList className="grid grid-cols-5 w-full mb-6 bg-white/80 backdrop-blur-xl border border-white/50 shadow-lg">
+          <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-50 data-[state=active]:to-cyan-50" disabled={!filteredSettings('notifications')}>
             <Bell className="w-4 h-4" />
             <span className="hidden sm:inline">Notifications</span>
           </TabsTrigger>
-          <TabsTrigger value="privacy" className="flex items-center gap-2" disabled={!filteredSettings('privacy')}>
+          <TabsTrigger value="privacy" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-50 data-[state=active]:to-cyan-50" disabled={!filteredSettings('privacy')}>
             <Shield className="w-4 h-4" />
             <span className="hidden sm:inline">Privacy</span>
           </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center gap-2" disabled={!filteredSettings('appearance')}>
+          <TabsTrigger value="appearance" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-50 data-[state=active]:to-cyan-50" disabled={!filteredSettings('appearance')}>
             <Palette className="w-4 h-4" />
             <span className="hidden sm:inline">Appearance</span>
           </TabsTrigger>
-          <TabsTrigger value="advanced" className="flex items-center gap-2" disabled={!filteredSettings('advanced')}>
+          <TabsTrigger value="advanced" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-50 data-[state=active]:to-cyan-50" disabled={!filteredSettings('advanced')}>
             <Settings2 className="w-4 h-4" />
             <span className="hidden sm:inline">Advanced</span>
           </TabsTrigger>
-          <TabsTrigger value="accessibility" className="flex items-center gap-2" disabled={!filteredSettings('accessibility')}>
+          <TabsTrigger value="accessibility" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-50 data-[state=active]:to-cyan-50" disabled={!filteredSettings('accessibility')}>
             <Accessibility className="w-4 h-4" />
             <span className="hidden sm:inline">Accessibility</span>
           </TabsTrigger>
@@ -470,10 +471,12 @@ const UserSettings: React.FC = () => {
 
         {/* Notifications Tab */}
         <TabsContent value="notifications">
-          <Card className="glassmorphic-card">
-            <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
-              <CardDescription>
+          <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-turquoise-50/50 to-cyan-50/50 rounded-t-lg">
+              <CardTitle className="text-xl font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+                Notification Preferences
+              </CardTitle>
+              <CardDescription className="text-gray-600">
                 Choose how you want to be notified about activity on Mundo Tango
               </CardDescription>
             </CardHeader>
@@ -495,6 +498,7 @@ const UserSettings: React.FC = () => {
                       id="email-all"
                       checked={notifications.emailNotifications}
                       onCheckedChange={(checked) => handleNotificationChange('emailNotifications', checked)}
+                      className="mt-switch"
                     />
                   </div>
 
@@ -506,6 +510,7 @@ const UserSettings: React.FC = () => {
                         checked={notifications.weeklyDigest}
                         onCheckedChange={(checked) => handleNotificationChange('weeklyDigest', checked)}
                         disabled={!notifications.emailNotifications}
+                        className="mt-switch"
                       />
                     </div>
                     
@@ -516,6 +521,7 @@ const UserSettings: React.FC = () => {
                         checked={notifications.marketingEmails}
                         onCheckedChange={(checked) => handleNotificationChange('marketingEmails', checked)}
                         disabled={!notifications.emailNotifications}
+                        className="mt-switch"
                       />
                     </div>
                   </div>
@@ -536,6 +542,7 @@ const UserSettings: React.FC = () => {
                       id="push-all"
                       checked={notifications.pushNotifications}
                       onCheckedChange={(checked) => handleNotificationChange('pushNotifications', checked)}
+                      className="mt-switch"
                     />
                   </div>
 
@@ -550,6 +557,7 @@ const UserSettings: React.FC = () => {
                         checked={notifications.eventReminders}
                         onCheckedChange={(checked) => handleNotificationChange('eventReminders', checked)}
                         disabled={!notifications.pushNotifications}
+                        className="mt-switch"
                       />
                     </div>
 
@@ -563,6 +571,7 @@ const UserSettings: React.FC = () => {
                         checked={notifications.newFollowerAlerts}
                         onCheckedChange={(checked) => handleNotificationChange('newFollowerAlerts', checked)}
                         disabled={!notifications.pushNotifications}
+                        className="mt-switch"
                       />
                     </div>
 
@@ -576,6 +585,7 @@ const UserSettings: React.FC = () => {
                         checked={notifications.messageAlerts}
                         onCheckedChange={(checked) => handleNotificationChange('messageAlerts', checked)}
                         disabled={!notifications.pushNotifications}
+                        className="mt-switch"
                       />
                     </div>
 
@@ -589,6 +599,7 @@ const UserSettings: React.FC = () => {
                         checked={notifications.groupInvites}
                         onCheckedChange={(checked) => handleNotificationChange('groupInvites', checked)}
                         disabled={!notifications.pushNotifications}
+                        className="mt-switch"
                       />
                     </div>
                   </div>
@@ -607,6 +618,7 @@ const UserSettings: React.FC = () => {
                     id="sms"
                     checked={notifications.smsNotifications}
                     onCheckedChange={(checked) => handleNotificationChange('smsNotifications', checked)}
+                    className="mt-switch"
                   />
                 </div>
               </div>
@@ -616,9 +628,9 @@ const UserSettings: React.FC = () => {
 
         {/* Privacy Tab */}
         <TabsContent value="privacy">
-          <Card className="glassmorphic-card">
-            <CardHeader>
-              <CardTitle>Privacy Settings</CardTitle>
+          <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-turquoise-50/50 to-cyan-50/50 rounded-t-lg">
+              <CardTitle className="text-xl font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">Privacy Settings</CardTitle>
               <CardDescription>
                 Control who can see your information and interact with you
               </CardDescription>
@@ -670,6 +682,7 @@ const UserSettings: React.FC = () => {
                       id="show-location"
                       checked={privacy.showLocation}
                       onCheckedChange={(checked) => handlePrivacyChange('showLocation', checked)}
+                      className="mt-switch"
                     />
                   </div>
 
@@ -679,6 +692,7 @@ const UserSettings: React.FC = () => {
                       id="show-email"
                       checked={privacy.showEmail}
                       onCheckedChange={(checked) => handlePrivacyChange('showEmail', checked)}
+                      className="mt-switch"
                     />
                   </div>
 
@@ -688,6 +702,7 @@ const UserSettings: React.FC = () => {
                       id="show-phone"
                       checked={privacy.showPhone}
                       onCheckedChange={(checked) => handlePrivacyChange('showPhone', checked)}
+                      className="mt-switch"
                     />
                   </div>
 
@@ -697,6 +712,7 @@ const UserSettings: React.FC = () => {
                       id="show-search"
                       checked={privacy.showInSearch}
                       onCheckedChange={(checked) => handlePrivacyChange('showInSearch', checked)}
+                      className="mt-switch"
                     />
                   </div>
                 </div>
@@ -733,6 +749,7 @@ const UserSettings: React.FC = () => {
                       id="activity-status"
                       checked={privacy.showActivityStatus}
                       onCheckedChange={(checked) => handlePrivacyChange('showActivityStatus', checked)}
+                      className="mt-switch"
                     />
                   </div>
 
@@ -742,6 +759,7 @@ const UserSettings: React.FC = () => {
                       id="allow-tagging"
                       checked={privacy.allowTagging}
                       onCheckedChange={(checked) => handlePrivacyChange('allowTagging', checked)}
+                      className="mt-switch"
                     />
                   </div>
                 </div>
@@ -752,10 +770,10 @@ const UserSettings: React.FC = () => {
 
         {/* Appearance Tab */}
         <TabsContent value="appearance">
-          <Card className="glassmorphic-card">
-            <CardHeader>
-              <CardTitle>Appearance & Display</CardTitle>
-              <CardDescription>
+          <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-turquoise-50/50 to-cyan-50/50 rounded-t-lg">
+              <CardTitle className="text-xl font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">Appearance & Display</CardTitle>
+              <CardDescription className="text-gray-600">
                 Customize how Mundo Tango looks and feels
               </CardDescription>
             </CardHeader>
@@ -899,6 +917,7 @@ const UserSettings: React.FC = () => {
                       id="reduce-motion"
                       checked={appearance.reduceMotion}
                       onCheckedChange={(checked) => handleAppearanceChange('reduceMotion', checked)}
+                      className="mt-switch"
                     />
                   </div>
                 </div>
@@ -909,10 +928,10 @@ const UserSettings: React.FC = () => {
 
         {/* Advanced Tab */}
         <TabsContent value="advanced">
-          <Card className="glassmorphic-card">
-            <CardHeader>
-              <CardTitle>Advanced Settings</CardTitle>
-              <CardDescription>
+          <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-turquoise-50/50 to-cyan-50/50 rounded-t-lg">
+              <CardTitle className="text-xl font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">Advanced Settings</CardTitle>
+              <CardDescription className="text-gray-600">
                 Configure advanced features and performance settings
               </CardDescription>
             </CardHeader>
@@ -934,6 +953,7 @@ const UserSettings: React.FC = () => {
                       id="developer-mode"
                       checked={advanced.developerMode}
                       onCheckedChange={(checked) => handleAdvancedChange('developerMode', checked)}
+                      className="mt-switch"
                     />
                   </div>
 
@@ -946,6 +966,7 @@ const UserSettings: React.FC = () => {
                       id="beta-features"
                       checked={advanced.betaFeatures}
                       onCheckedChange={(checked) => handleAdvancedChange('betaFeatures', checked)}
+                      className="mt-switch"
                     />
                   </div>
 
@@ -958,6 +979,7 @@ const UserSettings: React.FC = () => {
                       id="api-access"
                       checked={advanced.apiAccess}
                       onCheckedChange={(checked) => handleAdvancedChange('apiAccess', checked)}
+                      className="mt-switch"
                     />
                   </div>
                 </div>
@@ -1014,6 +1036,7 @@ const UserSettings: React.FC = () => {
                       id="offline-mode"
                       checked={advanced.offlineMode}
                       onCheckedChange={(checked) => handleAdvancedChange('offlineMode', checked)}
+                      className="mt-switch"
                     />
                   </div>
                 </div>
@@ -1071,6 +1094,7 @@ const UserSettings: React.FC = () => {
                       id="webhooks"
                       checked={advanced.webhooksEnabled}
                       onCheckedChange={(checked) => handleAdvancedChange('webhooksEnabled', checked)}
+                      className="mt-switch"
                     />
                   </div>
                 </div>
@@ -1081,10 +1105,10 @@ const UserSettings: React.FC = () => {
 
         {/* Accessibility Tab */}
         <TabsContent value="accessibility">
-          <Card className="glassmorphic-card">
-            <CardHeader>
-              <CardTitle>Accessibility Settings</CardTitle>
-              <CardDescription>
+          <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-turquoise-50/50 to-cyan-50/50 rounded-t-lg">
+              <CardTitle className="text-xl font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">Accessibility Settings</CardTitle>
+              <CardDescription className="text-gray-600">
                 Make Mundo Tango work better for your needs
               </CardDescription>
             </CardHeader>
@@ -1106,6 +1130,7 @@ const UserSettings: React.FC = () => {
                       id="screen-reader"
                       checked={accessibility.screenReaderOptimized}
                       onCheckedChange={(checked) => handleAccessibilityChange('screenReaderOptimized', checked)}
+                      className="mt-switch"
                     />
                   </div>
 
@@ -1118,6 +1143,7 @@ const UserSettings: React.FC = () => {
                       id="high-contrast"
                       checked={accessibility.highContrast}
                       onCheckedChange={(checked) => handleAccessibilityChange('highContrast', checked)}
+                      className="mt-switch"
                     />
                   </div>
 
@@ -1130,6 +1156,7 @@ const UserSettings: React.FC = () => {
                       id="focus-indicators"
                       checked={accessibility.focusIndicators}
                       onCheckedChange={(checked) => handleAccessibilityChange('focusIndicators', checked)}
+                      className="mt-switch"
                     />
                   </div>
 
@@ -1169,6 +1196,7 @@ const UserSettings: React.FC = () => {
                       id="keyboard-nav"
                       checked={accessibility.keyboardNavigation}
                       onCheckedChange={(checked) => handleAccessibilityChange('keyboardNavigation', checked)}
+                      className="mt-switch"
                     />
                   </div>
                 </div>
@@ -1191,6 +1219,7 @@ const UserSettings: React.FC = () => {
                       id="audio-descriptions"
                       checked={accessibility.audioDescriptions}
                       onCheckedChange={(checked) => handleAccessibilityChange('audioDescriptions', checked)}
+                      className="mt-switch"
                     />
                   </div>
 
@@ -1203,6 +1232,7 @@ const UserSettings: React.FC = () => {
                       id="captions"
                       checked={accessibility.captionsEnabled}
                       onCheckedChange={(checked) => handleAccessibilityChange('captionsEnabled', checked)}
+                      className="mt-switch"
                     />
                   </div>
                 </div>
@@ -1230,12 +1260,12 @@ const UserSettings: React.FC = () => {
 
       {/* Fixed Save Button */}
       {hasUnsavedChanges && (
-        <div className="fixed bottom-8 right-8">
+        <div className="fixed bottom-8 right-8 z-50">
           <Button
             onClick={handleSaveSettings}
             disabled={saveSettingsMutation.isPending}
             size="lg"
-            className="bg-gradient-to-r from-turquoise-600 to-cyan-600 text-white shadow-lg"
+            className="bg-gradient-to-r from-turquoise-600 to-cyan-600 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
           >
             {saveSettingsMutation.isPending ? (
               <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
@@ -1246,6 +1276,7 @@ const UserSettings: React.FC = () => {
           </Button>
         </div>
       )}
+      </div>
     </div>
   );
 };

@@ -690,6 +690,38 @@
     --black-text-color: #0F172A;
 }
 
+/* MT Ocean Theme Switch Styles */
+.mt-switch {
+  background-color: var(--color-gray-300) !important;
+}
+
+.mt-switch[data-state="checked"] {
+  background: linear-gradient(135deg, var(--color-turquoise-500) 0%, var(--color-cyan-500) 100%) !important;
+}
+
+/* Override Radix UI Switch component */
+[data-radix-collection-item][role="switch"] {
+  background-color: var(--color-gray-300);
+  transition: all 0.2s ease;
+}
+
+[data-radix-collection-item][role="switch"][data-state="checked"] {
+  background: linear-gradient(135deg, var(--color-turquoise-500) 0%, var(--color-cyan-500) 100%);
+}
+
+/* MT Ocean Theme Tab Styles */
+[role="tablist"] {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+[role="tab"][data-state="active"] {
+  background: linear-gradient(135deg, var(--color-turquoise-50) 0%, var(--color-cyan-50) 100%);
+  color: var(--color-turquoise-700);
+  border-color: var(--color-turquoise-300);
+}
+
 /* TrangoTech Font Family */
 body {
     font-family: 'Gilroy', 'Lato', ui-sans-serif, system-ui !important;
