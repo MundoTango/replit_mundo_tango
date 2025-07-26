@@ -362,18 +362,20 @@ async function generateUserFeed(userId: number) {
   return [];
 }
 
-// Queue event listeners for monitoring
-Object.values(queues).forEach((queue, index) => {
-  const queueEvents = new QueueEvents(queue.name, { connection: redisConnection });
-  
-  queueEvents.on('completed', ({ jobId, returnvalue }) => {
-    console.log(`Job ${jobId} completed in queue ${queue.name}`);
+// Queue event listeners for monitoring - only if Redis is available
+if (redisConnection) {
+  Object.values(queues).forEach((queue, index) => {
+    const queueEvents = new QueueEvents(queue.name, { connection: redisConnection });
+    
+    queueEvents.on('completed', ({ jobId, returnvalue }) => {
+      console.log(`Job ${jobId} completed in queue ${queue.name}`);
+    });
+    
+    queueEvents.on('failed', ({ jobId, failedReason }) => {
+      console.error(`Job ${jobId} failed in queue ${queue.name}:`, failedReason);
+    });
   });
-  
-  queueEvents.on('failed', ({ jobId, failedReason }) => {
-    console.error(`Job ${jobId} failed in queue ${queue.name}:`, failedReason);
-  });
-});
+}
 
 // Scheduled jobs setup
 export function setupScheduledJobs() {
