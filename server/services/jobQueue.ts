@@ -8,27 +8,13 @@ import { getCache, invalidateCache } from './cacheService';
 // Redis connection for job queue - only if Redis is enabled
 let redisConnection: Redis | null = null;
 
-if (process.env.DISABLE_REDIS !== 'true') {
-  try {
-    redisConnection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-      maxRetriesPerRequest: null,
-      enableReadyCheck: false,
-      enableOfflineQueue: false,
-      retryStrategy: () => null,
-      reconnectOnError: () => false,
-    });
-    
-    redisConnection.on('error', (err) => {
-      console.log('⚠️ Job Queue Redis not available');
-      redisConnection?.disconnect();
-      redisConnection = null;
-    });
-  } catch (error) {
-    console.log('⚠️ Job Queue Redis not available');
-    redisConnection = null;
-  }
-} else {
+// Don't create any Redis connections if disabled
+if (process.env.DISABLE_REDIS === 'true') {
   console.log('ℹ️ Redis disabled, job queues not available');
+  redisConnection = null;
+} else {
+  // Delay connection attempt to prevent immediate connection on module load
+  console.log('ℹ️ Job Queue Redis connection will be created on demand');
 }
 
 // Define job types

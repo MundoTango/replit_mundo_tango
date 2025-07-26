@@ -1,6 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
 import * as pathModule from "path";
 import compression from "compression";
+// Load environment variables first, before any other imports that might use them
+import dotenv from "dotenv";
+dotenv.config();
+
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initSentry } from "./lib/sentry";
@@ -28,7 +32,18 @@ process.on('uncaughtException', (error) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.fatal({ reason, promise }, 'Unhandled Rejection');
+  // Better error logging for unhandled rejections
+  const errorDetails = {
+    reason: reason instanceof Error ? {
+      message: reason.message,
+      stack: reason.stack,
+      name: reason.name
+    } : reason,
+    promise: String(promise)
+  };
+  logger.fatal(errorDetails, 'Unhandled Rejection');
+  // Log to console for visibility
+  console.error('Unhandled Promise Rejection:', reason);
   // Don't exit - keep the server running
 });
 

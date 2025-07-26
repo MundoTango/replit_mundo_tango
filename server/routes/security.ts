@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { db } from '../db';
 import { eq, and, gt, desc } from 'drizzle-orm';
-import { users, sessions, auditLogs } from '@shared/schema';
-import { isAuthenticated } from '../middleware/auth';
+import { users } from '@shared/schema';
+// Note: sessions and auditLogs tables not yet created in schema
+import { authMiddleware as isAuthenticated } from '../middleware/auth';
 import { validatePasswordStrength } from '../middleware/security';
 
 const router = Router();
@@ -52,14 +53,15 @@ router.get('/api/security/audit', isAuthenticated, async (req, res) => {
     };
 
     // Count active sessions
-    try {
-      const activeSessions = await db.select()
-        .from(sessions)
-        .where(gt(sessions.expire, new Date()));
-      audit.activeSessions = activeSessions.length;
-    } catch (error) {
-      console.warn('Could not count active sessions:', error);
-    }
+    // TODO: Implement when sessions table is added to schema
+    // try {
+    //   const activeSessions = await db.select()
+    //     .from(sessions)
+    //     .where(gt(sessions.expire, new Date()));
+    //   audit.activeSessions = activeSessions.length;
+    // } catch (error) {
+    //   console.warn('Could not count active sessions:', error);
+    // }
 
     // Calculate overall security score
     const scores = Object.values(audit.scores);

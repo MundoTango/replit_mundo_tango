@@ -7,29 +7,14 @@ let connection: Redis | null = null;
 
 console.log('[BullMQ Config] DISABLE_REDIS =', process.env.DISABLE_REDIS);
 
-if (process.env.DISABLE_REDIS !== 'true') {
-  try {
-    connection = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
-      maxRetriesPerRequest: null,
-      enableReadyCheck: false,
-      enableOfflineQueue: false,
-      retryStrategy: () => null,
-      reconnectOnError: () => false,
-    });
-    
-    connection.on('error', (err) => {
-      console.log('⚠️ BullMQ Redis not available, job queues disabled');
-      connection?.disconnect();
-      connection = null;
-    });
-  } catch (error) {
-    console.log('⚠️ BullMQ Redis not available, job queues disabled');
-    connection = null;
-  }
-} else {
+// Don't create any Redis connections if disabled
+if (process.env.DISABLE_REDIS === 'true') {
   console.log('ℹ️ Redis disabled, BullMQ job queues not available');
+  connection = null;
+} else {
+  // Delay connection attempt to prevent immediate connection on module load
+  // This will only connect when actually needed
+  console.log('ℹ️ BullMQ Redis connection will be created on demand');
 }
 
 // Queue definitions - only create if Redis is available

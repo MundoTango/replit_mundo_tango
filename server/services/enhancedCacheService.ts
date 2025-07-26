@@ -45,17 +45,23 @@ class EnhancedCacheService {
   }
 
   private async initializeRedis() {
-    // Check if Redis is disabled
+    // Check if Redis is disabled - exit immediately
     if (process.env.DISABLE_REDIS === 'true') {
       console.log('ℹ️ Redis disabled, using optimized in-memory cache');
       this.redis = null;
       this.connected = false;
+      this.connectionPool = [];
       return;
     }
 
     try {
       const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
       const poolSize = parseInt(process.env.REDIS_POOL_SIZE || '5');
+      
+      // Don't create any connections if Redis is disabled
+      if (process.env.DISABLE_REDIS === 'true') {
+        return;
+      }
       
       // Create connection pool for better performance
       for (let i = 0; i < poolSize; i++) {
