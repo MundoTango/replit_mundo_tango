@@ -41,6 +41,8 @@ class EnhancedCacheService {
     // Check if Redis is disabled
     if (process.env.DISABLE_REDIS === 'true') {
       console.log('ℹ️ Redis disabled, using optimized in-memory cache');
+      this.redis = null;
+      this.connected = false;
       return;
     }
 
@@ -51,14 +53,12 @@ class EnhancedCacheService {
       // Create connection pool for better performance
       for (let i = 0; i < poolSize; i++) {
         const redis = new Redis(redisUrl, {
-          maxRetriesPerRequest: 3,
-          enableReadyCheck: true,
-          enableOfflineQueue: true,
-          lazyConnect: false,
-          retryStrategy: (times) => Math.min(times * 50, 2000),
-          reconnectOnError: () => true,
-          // Performance optimizations
-          enableAutoPipelining: true,
+          maxRetriesPerRequest: 1,
+          enableReadyCheck: false,
+          enableOfflineQueue: false,
+          lazyConnect: true,
+          retryStrategy: () => null, // Don't retry
+          reconnectOnError: () => false, // Don't reconnect
         });
 
         redis.on('connect', () => {
@@ -67,11 +67,30 @@ class EnhancedCacheService {
         });
 
         redis.on('error', (err) => {
-          console.error(`Redis connection ${i} error:`, err.message);
-          this.stats.errors++;
+          if (!this.connected) {
+            console.log('⚠️ Enhanced Redis cache not available, using in-memory cache');
+            // Disconnect all connections in the pool
+            this.connectionPool.forEach(conn => conn.disconnect());
+            this.connectionPool = [];
+            this.redis = null;
+            this.connected = false;
+          }
         });
 
         this.connectionPool.push(redis);
+        
+        // Try to connect
+        try {
+          await redis.connect();
+        } catch (error) {
+          console.log('⚠️ Enhanced Redis cache not available, using in-memory cache');
+          // Disconnect all connections in the pool
+          this.connectionPool.forEach(conn => conn.disconnect());
+          this.connectionPool = [];
+          this.redis = null;
+          this.connected = false;
+          return;
+        }
       }
 
       this.redis = this.connectionPool[0];
@@ -264,7 +283,7 @@ class EnhancedCacheService {
           count: 100
         });
         
-        const pipeline = redis.pipeline();
+        let pipeline = redis.pipeline();
         let count = 0;
         
         stream.on('data', (keys) => {

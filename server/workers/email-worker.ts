@@ -5,14 +5,39 @@ import { EmailJob } from '../lib/bullmq-config.js';
 import { logError } from '../lib/sentry.js';
 import { monitorQueueJob, lifeCeoMetrics } from '../lib/prometheus-metrics.js';
 
-const connection = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  maxRetriesPerRequest: null,
-});
+let connection: Redis | null = null;
+let emailWorker: Worker<EmailJob> | null = null;
 
-// Email worker
-export const emailWorker = new Worker<EmailJob>(
+// Check if Redis is disabled
+if (process.env.DISABLE_REDIS !== 'true') {
+  try {
+    connection = new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      maxRetriesPerRequest: null,
+      enableOfflineQueue: false,
+      retryStrategy: () => null, // Don't retry
+      reconnectOnError: () => false, // Don't reconnect
+    });
+    
+    connection.on('error', (err) => {
+      console.log('⚠️ Email worker Redis not available');
+      connection?.disconnect();
+      connection = null;
+    });
+  } catch (error) {
+    console.log('⚠️ Email worker Redis not available');
+    connection = null;
+  }
+} else {
+  console.log('ℹ️ Redis disabled, email worker not available');
+}
+
+// Email worker - only if Redis is available
+export { emailWorker };
+
+if (connection) {
+  emailWorker = new Worker<EmailJob>(
   'email',
   async (job) => {
     return monitorQueueJob('email', 'send-email', async () => {
