@@ -121,6 +121,18 @@ interface AccessibilitySettings {
   captionsEnabled: boolean;
 }
 
+interface UserSettingsResponse {
+  id?: number;
+  user_id?: number;
+  notifications: NotificationSettings;
+  privacy: PrivacySettings;
+  appearance: AppearanceSettings;
+  advanced: AdvancedSettings;
+  accessibility: AccessibilitySettings;
+  created_at?: string;
+  updated_at?: string;
+}
+
 const UserSettings: React.FC = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('notifications');
@@ -128,9 +140,14 @@ const UserSettings: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch current settings
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading, error } = useQuery<UserSettingsResponse>({
     queryKey: ['/api/user/settings']
   });
+
+  // Debug logging for Life CEO 41x21s methodology
+  useEffect(() => {
+    console.log('Settings Query State:', { isLoading, error, settings });
+  }, [isLoading, error, settings]);
 
   // Initialize local state with fetched settings
   const [notifications, setNotifications] = useState<NotificationSettings>({
