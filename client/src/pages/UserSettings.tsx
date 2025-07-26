@@ -157,7 +157,10 @@ const UserSettings: React.FC = () => {
     allowMessagesFrom: 'friends',
     showActivityStatus: true,
     allowTagging: true,
-    showInSearch: true
+    showInSearch: true,
+    shareAnalytics: false,
+    dataExportEnabled: true,
+    thirdPartySharing: false
   });
 
   const [appearance, setAppearance] = useState<AppearanceSettings>({
@@ -166,7 +169,33 @@ const UserSettings: React.FC = () => {
     dateFormat: 'MM/DD/YYYY',
     timeFormat: '12h',
     fontSize: 'medium',
-    reduceMotion: false
+    reduceMotion: false,
+    colorScheme: 'ocean',
+    compactMode: false,
+    showAnimations: true,
+    customAccentColor: null
+  });
+
+  const [advanced, setAdvanced] = useState<AdvancedSettings>({
+    developerMode: false,
+    betaFeatures: false,
+    performanceMode: 'balanced',
+    cacheSize: 'medium',
+    offlineMode: false,
+    syncFrequency: 'realtime',
+    exportFormat: 'json',
+    apiAccess: false,
+    webhooksEnabled: false
+  });
+
+  const [accessibility, setAccessibility] = useState<AccessibilitySettings>({
+    screenReaderOptimized: false,
+    highContrast: false,
+    keyboardNavigation: true,
+    focusIndicators: true,
+    altTextMode: 'basic',
+    audioDescriptions: false,
+    captionsEnabled: false
   });
 
   // Update local state when settings are fetched
@@ -175,6 +204,8 @@ const UserSettings: React.FC = () => {
       if (settings.notifications) setNotifications(settings.notifications);
       if (settings.privacy) setPrivacy(settings.privacy);
       if (settings.appearance) setAppearance(settings.appearance);
+      if (settings.advanced) setAdvanced(settings.advanced);
+      if (settings.accessibility) setAccessibility(settings.accessibility);
     }
   }, [settings]);
 
@@ -204,7 +235,9 @@ const UserSettings: React.FC = () => {
     saveSettingsMutation.mutate({
       notifications,
       privacy,
-      appearance
+      appearance,
+      advanced,
+      accessibility
     });
   };
 
@@ -232,6 +265,93 @@ const UserSettings: React.FC = () => {
     }
   };
 
+  const handleAdvancedChange = (key: keyof AdvancedSettings, value: any) => {
+    setAdvanced(prev => ({ ...prev, [key]: value }));
+    setHasUnsavedChanges(true);
+  };
+
+  const handleAccessibilityChange = (key: keyof AccessibilitySettings, value: any) => {
+    setAccessibility(prev => ({ ...prev, [key]: value }));
+    setHasUnsavedChanges(true);
+  };
+
+  // Export settings functionality
+  const handleExportSettings = () => {
+    const allSettings = {
+      notifications,
+      privacy,
+      appearance,
+      advanced,
+      accessibility,
+      exportedAt: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(allSettings, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mundo-tango-settings-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: 'Settings exported',
+      description: 'Your settings have been downloaded as a JSON file.'
+    });
+  };
+
+  // Import settings functionality
+  const handleImportSettings = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedSettings = JSON.parse(e.target?.result as string);
+        
+        if (importedSettings.notifications) setNotifications(importedSettings.notifications);
+        if (importedSettings.privacy) setPrivacy(importedSettings.privacy);
+        if (importedSettings.appearance) setAppearance(importedSettings.appearance);
+        if (importedSettings.advanced) setAdvanced(importedSettings.advanced);
+        if (importedSettings.accessibility) setAccessibility(importedSettings.accessibility);
+        
+        setHasUnsavedChanges(true);
+        
+        toast({
+          title: 'Settings imported',
+          description: 'Your settings have been loaded. Remember to save them.'
+        });
+      } catch (error) {
+        toast({
+          title: 'Import failed',
+          description: 'The file could not be imported. Please check the format.',
+          variant: 'destructive'
+        });
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  // Search functionality for settings
+  const filteredSettings = (category: string) => {
+    if (!searchQuery) return true;
+    
+    const query = searchQuery.toLowerCase();
+    const categoryData = {
+      notifications,
+      privacy,
+      appearance,
+      advanced,
+      accessibility
+    }[category];
+    
+    if (!categoryData) return false;
+    
+    const categoryText = JSON.stringify(categoryData).toLowerCase();
+    return categoryText.includes(query) || category.toLowerCase().includes(query);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -248,6 +368,57 @@ const UserSettings: React.FC = () => {
           Settings
         </h1>
         <p className="text-gray-600">Manage your account preferences and privacy settings</p>
+      </div>
+
+      {/* Search and Actions Bar */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Input
+            type="text"
+            placeholder="Search settings..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 glassmorphic-input"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleExportSettings}
+            className="flex items-center gap-2 hover:bg-turquoise-50 hover:border-turquoise-300 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Export
+          </Button>
+          <label>
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 hover:bg-turquoise-50 hover:border-turquoise-300 transition-colors cursor-pointer"
+            >
+              <Upload className="w-4 h-4" />
+              Import
+            </Button>
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleImportSettings}
+              className="hidden"
+            />
+          </label>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirm('Are you sure you want to reset all settings to default?')) {
+                window.location.reload();
+              }
+            }}
+            className="flex items-center gap-2 hover:bg-red-50 hover:border-red-300 transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Reset
+          </Button>
+        </div>
       </div>
 
       {/* Unsaved Changes Banner */}
@@ -274,18 +445,26 @@ const UserSettings: React.FC = () => {
 
       {/* Settings Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 w-full mb-6">
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
+        <TabsList className="grid grid-cols-5 w-full mb-6">
+          <TabsTrigger value="notifications" className="flex items-center gap-2" disabled={!filteredSettings('notifications')}>
             <Bell className="w-4 h-4" />
-            Notifications
+            <span className="hidden sm:inline">Notifications</span>
           </TabsTrigger>
-          <TabsTrigger value="privacy" className="flex items-center gap-2">
+          <TabsTrigger value="privacy" className="flex items-center gap-2" disabled={!filteredSettings('privacy')}>
             <Shield className="w-4 h-4" />
-            Privacy
+            <span className="hidden sm:inline">Privacy</span>
           </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center gap-2">
+          <TabsTrigger value="appearance" className="flex items-center gap-2" disabled={!filteredSettings('appearance')}>
             <Palette className="w-4 h-4" />
-            Appearance
+            <span className="hidden sm:inline">Appearance</span>
+          </TabsTrigger>
+          <TabsTrigger value="advanced" className="flex items-center gap-2" disabled={!filteredSettings('advanced')}>
+            <Settings2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Advanced</span>
+          </TabsTrigger>
+          <TabsTrigger value="accessibility" className="flex items-center gap-2" disabled={!filteredSettings('accessibility')}>
+            <Accessibility className="w-4 h-4" />
+            <span className="hidden sm:inline">Accessibility</span>
           </TabsTrigger>
         </TabsList>
 
@@ -721,6 +900,326 @@ const UserSettings: React.FC = () => {
                       checked={appearance.reduceMotion}
                       onCheckedChange={(checked) => handleAppearanceChange('reduceMotion', checked)}
                     />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Advanced Tab */}
+        <TabsContent value="advanced">
+          <Card className="glassmorphic-card">
+            <CardHeader>
+              <CardTitle>Advanced Settings</CardTitle>
+              <CardDescription>
+                Configure advanced features and performance settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Developer Settings */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Terminal className="w-5 h-5 text-turquoise-600" />
+                  Developer Options
+                </h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label htmlFor="developer-mode" className="cursor-pointer">Developer Mode</Label>
+                      <p className="text-sm text-gray-500 mt-1">Enable console logs and debugging tools</p>
+                    </div>
+                    <Switch
+                      id="developer-mode"
+                      checked={advanced.developerMode}
+                      onCheckedChange={(checked) => handleAdvancedChange('developerMode', checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label htmlFor="beta-features" className="cursor-pointer">Beta Features</Label>
+                      <p className="text-sm text-gray-500 mt-1">Try experimental features before release</p>
+                    </div>
+                    <Switch
+                      id="beta-features"
+                      checked={advanced.betaFeatures}
+                      onCheckedChange={(checked) => handleAdvancedChange('betaFeatures', checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label htmlFor="api-access" className="cursor-pointer">API Access</Label>
+                      <p className="text-sm text-gray-500 mt-1">Enable programmatic access to your data</p>
+                    </div>
+                    <Switch
+                      id="api-access"
+                      checked={advanced.apiAccess}
+                      onCheckedChange={(checked) => handleAdvancedChange('apiAccess', checked)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Performance Settings */}
+              <div className="space-y-4 border-t pt-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-turquoise-600" />
+                  Performance
+                </h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="performance-mode">Performance Mode</Label>
+                    <Select
+                      value={advanced.performanceMode}
+                      onValueChange={(value) => handleAdvancedChange('performanceMode', value)}
+                    >
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="balanced">Balanced</SelectItem>
+                        <SelectItem value="power-saver">Power Saver</SelectItem>
+                        <SelectItem value="high-performance">High Performance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="cache-size">Cache Size</Label>
+                    <Select
+                      value={advanced.cacheSize}
+                      onValueChange={(value) => handleAdvancedChange('cacheSize', value)}
+                    >
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="small">Small (50MB)</SelectItem>
+                        <SelectItem value="medium">Medium (200MB)</SelectItem>
+                        <SelectItem value="large">Large (500MB)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label htmlFor="offline-mode" className="cursor-pointer">Offline Mode</Label>
+                      <p className="text-sm text-gray-500 mt-1">Cache content for offline access</p>
+                    </div>
+                    <Switch
+                      id="offline-mode"
+                      checked={advanced.offlineMode}
+                      onCheckedChange={(checked) => handleAdvancedChange('offlineMode', checked)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Data & Sync */}
+              <div className="space-y-4 border-t pt-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Cloud className="w-5 h-5 text-turquoise-600" />
+                  Data & Sync
+                </h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="sync-frequency">Sync Frequency</Label>
+                    <Select
+                      value={advanced.syncFrequency}
+                      onValueChange={(value) => handleAdvancedChange('syncFrequency', value)}
+                    >
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="realtime">Real-time</SelectItem>
+                        <SelectItem value="hourly">Hourly</SelectItem>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="manual">Manual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="export-format">Export Format</Label>
+                    <Select
+                      value={advanced.exportFormat}
+                      onValueChange={(value) => handleAdvancedChange('exportFormat', value)}
+                    >
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="json">JSON</SelectItem>
+                        <SelectItem value="csv">CSV</SelectItem>
+                        <SelectItem value="xml">XML</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label htmlFor="webhooks" className="cursor-pointer">Webhooks</Label>
+                      <p className="text-sm text-gray-500 mt-1">Send events to external services</p>
+                    </div>
+                    <Switch
+                      id="webhooks"
+                      checked={advanced.webhooksEnabled}
+                      onCheckedChange={(checked) => handleAdvancedChange('webhooksEnabled', checked)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Accessibility Tab */}
+        <TabsContent value="accessibility">
+          <Card className="glassmorphic-card">
+            <CardHeader>
+              <CardTitle>Accessibility Settings</CardTitle>
+              <CardDescription>
+                Make Mundo Tango work better for your needs
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Vision */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Eye className="w-5 h-5 text-turquoise-600" />
+                  Vision
+                </h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label htmlFor="screen-reader" className="cursor-pointer">Screen Reader Optimization</Label>
+                      <p className="text-sm text-gray-500 mt-1">Enhance compatibility with screen readers</p>
+                    </div>
+                    <Switch
+                      id="screen-reader"
+                      checked={accessibility.screenReaderOptimized}
+                      onCheckedChange={(checked) => handleAccessibilityChange('screenReaderOptimized', checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label htmlFor="high-contrast" className="cursor-pointer">High Contrast Mode</Label>
+                      <p className="text-sm text-gray-500 mt-1">Increase contrast for better visibility</p>
+                    </div>
+                    <Switch
+                      id="high-contrast"
+                      checked={accessibility.highContrast}
+                      onCheckedChange={(checked) => handleAccessibilityChange('highContrast', checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label htmlFor="focus-indicators" className="cursor-pointer">Enhanced Focus Indicators</Label>
+                      <p className="text-sm text-gray-500 mt-1">Make focused elements more visible</p>
+                    </div>
+                    <Switch
+                      id="focus-indicators"
+                      checked={accessibility.focusIndicators}
+                      onCheckedChange={(checked) => handleAccessibilityChange('focusIndicators', checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="alt-text-mode">Alt Text Detail Level</Label>
+                    <Select
+                      value={accessibility.altTextMode}
+                      onValueChange={(value) => handleAccessibilityChange('altTextMode', value)}
+                    >
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="basic">Basic</SelectItem>
+                        <SelectItem value="enhanced">Enhanced</SelectItem>
+                        <SelectItem value="detailed">Detailed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Interaction */}
+              <div className="space-y-4 border-t pt-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Smartphone className="w-5 h-5 text-turquoise-600" />
+                  Interaction
+                </h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label htmlFor="keyboard-nav" className="cursor-pointer">Keyboard Navigation</Label>
+                      <p className="text-sm text-gray-500 mt-1">Navigate the app using only keyboard</p>
+                    </div>
+                    <Switch
+                      id="keyboard-nav"
+                      checked={accessibility.keyboardNavigation}
+                      onCheckedChange={(checked) => handleAccessibilityChange('keyboardNavigation', checked)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Media */}
+              <div className="space-y-4 border-t pt-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Volume2 className="w-5 h-5 text-turquoise-600" />
+                  Media
+                </h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label htmlFor="audio-descriptions" className="cursor-pointer">Audio Descriptions</Label>
+                      <p className="text-sm text-gray-500 mt-1">Narrate visual content in videos</p>
+                    </div>
+                    <Switch
+                      id="audio-descriptions"
+                      checked={accessibility.audioDescriptions}
+                      onCheckedChange={(checked) => handleAccessibilityChange('audioDescriptions', checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label htmlFor="captions" className="cursor-pointer">Auto-Captions</Label>
+                      <p className="text-sm text-gray-500 mt-1">Show captions on all videos</p>
+                    </div>
+                    <Switch
+                      id="captions"
+                      checked={accessibility.captionsEnabled}
+                      onCheckedChange={(checked) => handleAccessibilityChange('captionsEnabled', checked)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Help & Resources */}
+              <div className="mt-6 p-4 bg-turquoise-50 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Info className="w-5 h-5 text-turquoise-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-turquoise-900 mb-1">Need Help?</h4>
+                    <p className="text-sm text-turquoise-700">
+                      Learn more about our accessibility features in the{' '}
+                      <a href="/help/accessibility" className="underline hover:text-turquoise-800">
+                        Accessibility Guide
+                      </a>
+                    </p>
                   </div>
                 </div>
               </div>
