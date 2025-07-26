@@ -139,21 +139,20 @@ export const PlatformAuditDashboard: React.FC = () => {
     },
     {
       name: 'Security',
-      score: 61,
-      status: 'needs-work',
+      score: 78,
+      status: 'good',
       icon: <Shield className="w-5 h-5" />,
-      trend: 'stable',
+      trend: 'improving',
       issues: [
         'XSS vulnerabilities in forms',
-        'Inconsistent CSRF protection',
         'No file upload virus scanning',
         'Limited data encryption'
       ],
       recommendations: [
         'Implement input sanitization',
-        'Standardize CSRF tokens',
         'Add virus scanning service',
-        'Encrypt sensitive data at rest'
+        'Encrypt sensitive data at rest',
+        'Monitor rate limit effectiveness'
       ]
     }
   ];
