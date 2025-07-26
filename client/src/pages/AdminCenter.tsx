@@ -19,6 +19,7 @@ import Framework35LDashboard from '@/components/admin/Framework35LDashboard';
 import { ValidationDashboard } from '@/components/admin/ValidationDashboard';
 import { Phase40x20sValidationDashboard } from '@/components/admin/Phase40x20sValidationDashboard';
 import { Phase4ToolsDashboard } from '@/components/life-ceo/Phase4ToolsDashboard';
+import { PlatformAuditDashboard } from '@/components/life-ceo/PlatformAuditDashboard';
 import { 
   Users, 
   Activity, 
@@ -313,6 +314,7 @@ const AdminCenter: React.FC = React.memo(() => {
     { id: 'statistics', label: 'Global Statistics', icon: <Globe className="w-4 h-4" />, isNew: true },
     { id: 'project-tracker', label: 'The Plan', icon: <GitCommit className="w-4 h-4" /> },
     { id: 'phase4-tools', label: 'Phase 4 Tools', icon: <Package className="w-4 h-4" />, isNew: true },
+    { id: 'platform-audit', label: 'Platform Audit', icon: <AlertTriangle className="w-4 h-4" />, isNew: true },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
     { id: 'content', label: 'Content Moderation', icon: <FileText className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="w-4 h-4" /> },
@@ -2521,6 +2523,7 @@ const AdminCenter: React.FC = React.memo(() => {
         </ErrorBoundary>
       );
       case 'phase4-tools': return <Phase4ToolsDashboard />;
+      case 'platform-audit': return <PlatformAuditDashboard />;
       case 'users': return renderUserManagement();
       case 'content': return renderContentModeration();
       case 'analytics': return renderAnalytics();
