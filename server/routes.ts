@@ -959,7 +959,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User Settings Routes
   app.get("/api/user/settings", setUserContext, async (req, res) => {
     try {
-      const userId = getAuthenticatedUserId(req);
+      const { getUserId } = await import('./utils/authHelper');
+      const userId = getUserId(req);
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
@@ -1011,7 +1012,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/user/settings", setUserContext, async (req, res) => {
     try {
-      const userId = getAuthenticatedUserId(req);
+      const { getUserId } = await import('./utils/authHelper');
+      const userId = getUserId(req);
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }

@@ -3491,13 +3491,21 @@ export class DatabaseStorage implements IStorage {
   // User Settings Implementation
   async getUserSettings(userId: number): Promise<any> {
     try {
-      const [settings] = await db
-        .select()
-        .from(userSettings)
-        .where(eq(userSettings.userId, userId))
-        .limit(1);
+      console.log('Getting settings for user:', userId);
       
-      return settings || null;
+      // Use raw SQL query to avoid potential Drizzle ORM issues
+      const result = await db.execute(
+        sql`SELECT * FROM user_settings WHERE user_id = ${userId} LIMIT 1`
+      );
+      
+      console.log('Raw query result:', result);
+      
+      // Check if result has rows
+      if (result && result.rows && result.rows.length > 0) {
+        return result.rows[0];
+      }
+      
+      return null;
     } catch (error) {
       console.error('Error fetching user settings:', error);
       return null;
