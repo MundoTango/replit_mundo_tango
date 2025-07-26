@@ -32,6 +32,13 @@ import { cacheMiddleware, invalidateCacheAfter } from "./middleware/cacheMiddlew
 import metricsRouter from "./routes/metrics";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Import Life CEO learnings routes
+  import('./routes/lifeCeoLearnings').then(module => {
+    app.use(module.default);
+  }).catch(err => {
+    console.error('Failed to load Life CEO learnings routes:', err);
+  });
+
   // Add compression middleware for better performance
   const compression = (await import('compression')).default;
   app.use(compression());
