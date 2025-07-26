@@ -22,37 +22,44 @@ class OnboardingRateLimiter {
       return;
     }
 
-    // Try to connect to Redis if available
+    // Only try Redis if we have a URL and Redis is not disabled
+    if (process.env.REDIS_URL) {
+      this.initRedis();
+    } else {
+      console.log('ℹ️ No Redis URL configured, using in-memory rate limiting');
+      this.redis = null;
+    }
+  }
+
+  private async initRedis() {
     try {
-      if (process.env.REDIS_URL) {
-        this.redis = new Redis(process.env.REDIS_URL, {
-          maxRetriesPerRequest: 1,
-          enableOfflineQueue: false,
-          retryStrategy: () => null, // Don't retry
-          reconnectOnError: () => false, // Don't reconnect
-        });
+      this.redis = new Redis(process.env.REDIS_URL!, {
+        maxRetriesPerRequest: 1,
+        enableOfflineQueue: false,
+        retryStrategy: () => null, // Don't retry
+        reconnectOnError: () => false, // Don't reconnect
+      });
+      
+      this.redis.on('connect', () => {
+        console.log('✅ Redis connected for rate limiting');
+      });
+      
+      this.redis.on('error', (err) => {
+        if (!this.redis) return; // Already handled
+        console.log('⚠️ Redis not available, switching to in-memory rate limiting');
+        this.redis.disconnect();
+        this.redis = null;
         
-        this.redis.on('connect', () => {
-          console.log('✅ Redis connected for rate limiting');
+        // Recreate all limiters with memory backend
+        this.limiters.forEach((limiter, name) => {
+          const options = {
+            points: limiter.points,
+            duration: limiter.duration,
+            blockDuration: limiter.blockDuration
+          };
+          this.limiters.set(name, new RateLimiterMemory(options));
         });
-        
-        this.redis.on('error', (err) => {
-          if (!this.redis) return; // Already handled
-          console.log('⚠️ Redis not available, switching to in-memory rate limiting');
-          this.redis.disconnect();
-          this.redis = null;
-          
-          // Recreate all limiters with memory backend
-          this.limiters.forEach((limiter, name) => {
-            const options = {
-              points: limiter.points,
-              duration: limiter.duration,
-              blockDuration: limiter.blockDuration
-            };
-            this.limiters.set(name, new RateLimiterMemory(options));
-          });
-        });
-      }
+      });
     } catch (error) {
       console.log('⚠️ Redis not available, using in-memory rate limiting');
       this.redis = null;

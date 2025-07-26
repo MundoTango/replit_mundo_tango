@@ -9,7 +9,14 @@ class CacheService {
   private connected = false;
 
   constructor() {
-    this.initializeRedis();
+    // Don't initialize Redis if it's disabled
+    if (process.env.DISABLE_REDIS !== 'true') {
+      this.initializeRedis();
+    } else {
+      console.log('ℹ️  Redis disabled, using in-memory fallback cache');
+      this.redis = null;
+      this.connected = false;
+    }
   }
 
   private async initializeRedis() {

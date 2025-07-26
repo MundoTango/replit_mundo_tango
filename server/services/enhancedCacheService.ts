@@ -33,8 +33,15 @@ class EnhancedCacheService {
   private currentPoolIndex = 0;
 
   constructor() {
-    this.initializeRedis();
-    this.startStatsReporting();
+    // Don't initialize Redis if it's disabled
+    if (process.env.DISABLE_REDIS !== 'true') {
+      this.initializeRedis();
+      this.startStatsReporting();
+    } else {
+      console.log('ℹ️ Redis disabled, using optimized in-memory cache');
+      this.redis = null;
+      this.connected = false;
+    }
   }
 
   private async initializeRedis() {
