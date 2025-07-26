@@ -1,165 +1,194 @@
 import { Request, Response, NextFunction } from 'express';
-import { pool } from '../db';
+import helmet from 'helmet';
+import { randomBytes } from 'crypto';
+import DOMPurify from 'isomorphic-dompurify';
 
-// Security middleware to set current user context for RLS policies
-export const setUserContext = async (req: any, res: Response, next: NextFunction) => {
-  try {
-    let userId = null;
+// Content Security Policy configuration
+export const contentSecurityPolicy = helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: [
+      "'self'",
+      "'unsafe-inline'",
+      "'unsafe-eval'",
+      "https://maps.googleapis.com",
+      "https://cdn.plausible.io",
+      "https://unpkg.com",
+      "https://cdnjs.cloudflare.com"
+    ],
+    styleSrc: [
+      "'self'",
+      "'unsafe-inline'",
+      "https://fonts.googleapis.com",
+      "https://cdnjs.cloudflare.com"
+    ],
+    fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+    imgSrc: ["'self'", "data:", "https:", "blob:"],
+    connectSrc: [
+      "'self'",
+      "https://api.pexels.com",
+      "https://nominatim.openstreetmap.org",
+      "https://plausible.io",
+      "wss://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev"
+    ],
+    mediaSrc: ["'self'", "https:", "blob:"],
+    objectSrc: ["'none'"],
+    childSrc: ["'self'", "blob:"],
+    workerSrc: ["'self'", "blob:"],
+    manifestSrc: ["'self'"],
+    upgradeInsecureRequests: []
+  }
+});
 
-    // Extract user ID from different authentication methods
-    if (req.user?.id) {
-      // Direct user object (Replit Auth)
-      userId = req.user.id;
-    } else if (req.user?.claims?.sub) {
-      // JWT claims format
-      const { storage } = await import('../storage');
-      const user = await storage.getUserByReplitId(req.user.claims.sub);
-      userId = user?.id;
+// CSRF Protection middleware
+export const csrfProtection = (req: Request, res: Response, next: NextFunction) => {
+  // Skip CSRF for API routes that use authentication headers
+  if (req.path.startsWith('/api/') && req.headers.authorization) {
+    return next();
+  }
+
+  // Skip for GET requests
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+    return next();
+  }
+
+  // Type assertion to handle session types
+  const session = req.session as any;
+
+  // Generate CSRF token if not exists
+  if (!session.csrfToken) {
+    session.csrfToken = randomBytes(32).toString('hex');
+  }
+
+  // Verify CSRF token for state-changing requests
+  const token = req.headers['x-csrf-token'] || req.body._csrf;
+  if (token !== session.csrfToken) {
+    return res.status(403).json({ error: 'Invalid CSRF token' });
+  }
+
+  next();
+};
+
+// Input sanitization middleware
+export const sanitizeInput = (req: Request, res: Response, next: NextFunction) => {
+  // Sanitize request body
+  if (req.body && typeof req.body === 'object') {
+    sanitizeObject(req.body);
+  }
+
+  // Sanitize query parameters
+  if (req.query && typeof req.query === 'object') {
+    sanitizeObject(req.query);
+  }
+
+  // Sanitize params
+  if (req.params && typeof req.params === 'object') {
+    sanitizeObject(req.params);
+  }
+
+  next();
+};
+
+function sanitizeObject(obj: any): void {
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      if (typeof obj[key] === 'string') {
+        // Sanitize HTML content
+        obj[key] = DOMPurify.sanitize(obj[key], {
+          ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'br', 'p', 'ul', 'ol', 'li'],
+          ALLOWED_ATTR: ['href', 'target', 'rel']
+        });
+        
+        // Additional SQL injection prevention
+        obj[key] = obj[key].replace(/['";\\]/g, '');
+      } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+        sanitizeObject(obj[key]);
+      }
     }
+  }
+}
 
-    if (userId) {
-      // Set the current user context for RLS policies
-      await pool.query('SELECT set_config($1, $2, true)', ['app.current_user_id', userId.toString()]);
-      console.log('🔒 Security context set for user:', userId);
-    } else {
-      // Clear any existing context
-      await pool.query('SELECT set_config($1, $2, true)', ['app.current_user_id', '0']);
-    }
+// Security headers middleware
+export const securityHeaders = (req: Request, res: Response, next: NextFunction) => {
+  // Set security headers
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'geolocation=(self), microphone=(), camera=()');
+  
+  // HSTS for production
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
 
-    next();
-  } catch (error) {
-    console.error('Security context error:', error);
-    // Don't fail the request, just proceed without context
-    next();
+  next();
+};
+
+// Rate limiting configuration for critical endpoints
+export const criticalEndpointRateLimits = {
+  login: {
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 attempts
+    message: 'Too many login attempts, please try again later'
+  },
+  register: {
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3, // 3 registrations per hour
+    message: 'Too many registration attempts, please try again later'
+  },
+  passwordReset: {
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3, // 3 reset attempts
+    message: 'Too many password reset attempts, please try again later'
+  },
+  apiWrite: {
+    windowMs: 60 * 1000, // 1 minute
+    max: 30, // 30 write operations per minute
+    message: 'Too many requests, please slow down'
   }
 };
 
-// Security audit middleware
-export const auditSecurityEvent = (eventType: string) => {
-  return async (req: any, res: Response, next: NextFunction) => {
-    try {
-      const userId = req.user?.id || (req.user?.claims?.sub ? 
-        (await import('../storage')).storage.getUserByReplitId(req.user.claims.sub).then(u => u?.id) : null);
-      
-      if (userId) {
-        const eventData = {
-          method: req.method,
-          path: req.path,
-          userAgent: req.get('User-Agent'),
-          ip: req.ip,
-          timestamp: new Date().toISOString()
-        };
-
-        // Log security event asynchronously
-        setTimeout(async () => {
-          try {
-            await pool.query(
-              'SELECT log_security_event($1, $2, $3, $4)',
-              [eventType, req.path.split('/')[2] || 'unknown', userId, JSON.stringify(eventData)]
-            );
-          } catch (err) {
-            console.error('Security audit error:', err);
-          }
-        }, 0);
-      }
-
-      next();
-    } catch (error) {
-      console.error('Security audit middleware error:', error);
-      next();
-    }
-  };
-};
-
-// Middleware to check user permissions for specific resources
-export const checkResourcePermission = (resourceType: 'post' | 'event' | 'chat' | 'story') => {
-  return async (req: any, res: Response, next: NextFunction) => {
-    try {
-      const userId = req.user?.id || (req.user?.claims?.sub ? 
-        (await (await import('../storage')).storage.getUserByReplitId(req.user.claims.sub))?.id : null);
-
-      if (!userId) {
-        return res.status(401).json({ success: false, message: 'Authentication required' });
-      }
-
-      const resourceId = req.params.id || req.params.eventId || req.params.postId;
-      
-      if (resourceId && req.method !== 'POST') {
-        let query = '';
-        let params = [resourceId, userId];
-
-        switch (resourceType) {
-          case 'post':
-            query = 'SELECT user_id FROM posts WHERE id = $1 AND (user_id = $2 OR is_public = true)';
-            break;
-          case 'event':
-            query = 'SELECT user_id FROM events WHERE id = $1 AND (user_id = $2 OR is_public = true)';
-            break;
-          case 'chat':
-            query = `SELECT 1 FROM chat_room_users 
-                     WHERE room_slug = $1 AND user_id = $2`;
-            params = [req.params.roomSlug, userId];
-            break;
-          case 'story':
-            query = `SELECT user_id FROM stories WHERE id = $1 AND 
-                     (user_id = $2 OR EXISTS (
-                       SELECT 1 FROM follows 
-                       WHERE follower_id = $2 AND following_id = stories.user_id
-                     ))`;
-            break;
-        }
-
-        if (query) {
-          const result = await pool.query(query, params);
-          if (result.rows.length === 0) {
-            return res.status(403).json({ 
-              success: false, 
-              message: 'Access denied to this resource' 
-            });
-          }
-        }
-      }
-
-      next();
-    } catch (error) {
-      console.error('Resource permission check error:', error);
-      res.status(500).json({ success: false, message: 'Permission check failed' });
-    }
-  };
-};
-
-// Rate limiting middleware for sensitive operations
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-
-export const rateLimit = (maxRequests: number, windowMs: number) => {
-  return (req: any, res: Response, next: NextFunction) => {
-    const key = `${req.ip}:${req.user?.id || 'anonymous'}`;
-    const now = Date.now();
-    
-    const current = rateLimitStore.get(key);
-    
-    if (!current || now > current.resetTime) {
-      rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
-      next();
-    } else if (current.count < maxRequests) {
-      current.count++;
-      next();
-    } else {
-      console.log('🚫 Rate limit exceeded for:', key);
-      res.status(429).json({ 
-        success: false, 
-        message: 'Too many requests, please try again later' 
-      });
-    }
-  };
-};
-
-// Clean up old rate limit entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, data] of rateLimitStore.entries()) {
-    if (now > data.resetTime) {
-      rateLimitStore.delete(key);
-    }
+// Password strength validation
+export const validatePasswordStrength = (password: string): { valid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+  
+  if (password.length < 8) {
+    errors.push('Password must be at least 8 characters long');
   }
-}, 60000); // Clean up every minute
+  
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter');
+  }
+  
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter');
+  }
+  
+  if (!/[0-9]/.test(password)) {
+    errors.push('Password must contain at least one number');
+  }
+  
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    errors.push('Password must contain at least one special character');
+  }
+  
+  return {
+    valid: errors.length === 0,
+    errors
+  };
+};
+
+// Session security configuration
+export const sessionSecurityConfig = {
+  secret: process.env.SESSION_SECRET || randomBytes(64).toString('hex'),
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'strict' as const
+  },
+  name: 'mundotango.sid' // Custom session name
+};

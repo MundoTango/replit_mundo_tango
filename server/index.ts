@@ -10,6 +10,13 @@ import { initializeElasticsearch } from "./lib/elasticsearch-config";
 import { initializeFeatureFlags } from "./lib/feature-flags";
 import { logger, phase1Logger, phase4Logger, logLearning } from "./lib/logger";
 import { setupSwagger } from "./lib/swagger-config";
+import { 
+  contentSecurityPolicy, 
+  securityHeaders, 
+  sanitizeInput,
+  csrfProtection,
+  sessionSecurityConfig 
+} from "./middleware/security";
 
 const app = express();
 

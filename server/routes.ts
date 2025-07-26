@@ -15,7 +15,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { db } from "./db";
 import { eq, sql, desc, and, isNotNull, count, inArray, gt, gte, lte } from "drizzle-orm";
 import { uploadMedia, uploadMediaWithMetadata, deleteMedia, deleteMediaWithMetadata, getSignedUrl, initializeStorageBucket } from "./services/uploadService";
-import { setUserContext, auditSecurityEvent, checkResourcePermission, rateLimit } from "./middleware/security";
+import { setUserContext } from "./middleware/tenantMiddleware";
 import { authService, UserRole } from "./services/authService";
 import { enhancedRoleService, AllRoles } from "./services/enhancedRoleService";
 import { requireRole, requireAdmin, ensureUserProfile, auditRoleAction } from "./middleware/roleAuth";
@@ -35,8 +35,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add compression middleware for better performance
   const compression = (await import('compression')).default;
   app.use(compression());
+  
+  // Import security middleware
+  const { 
+    contentSecurityPolicy, 
+    securityHeaders, 
+    sanitizeInput,
+    csrfProtection 
+  } = await import('./middleware/security');
+  
+  // Import rate limiting middleware
+  const {
+    authEndpointsLimiter,
+    registrationLimiter,
+    passwordResetLimiter,
+    criticalEndpointsLimiter,
+    apiGeneralLimiter,
+    fileUploadLimiter,
+    reportContentLimiter,
+    friendRequestLimiter,
+    eventCreationLimiter,
+    contentCreationLimiter
+  } = await import('./middleware/rateLimiting');
+  
+  // Apply security middleware
+  app.use(securityHeaders);
+  app.use(contentSecurityPolicy);
+  app.use(sanitizeInput);
+  
   // Set up Replit Auth middleware
   await setupAuth(app);
+  
+  // Apply CSRF protection after session is initialized
+  app.use(csrfProtection);
 
   // Allow public access to non-API routes (for Vite dev server)
   app.use((req, res, next) => {
@@ -573,7 +604,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User Authentication Routes - 40x20s Enhanced with Concurrent Registration Support
-  app.post("/api/user", upload.any(), async (req, res) => {
+  app.post("/api/user", registrationLimiter, upload.any(), async (req, res) => {
     try {
       const validatedData = insertUserSchema.parse({
         name: req.body.name,
@@ -652,7 +683,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/user/login", async (req, res) => {
+  app.post("/api/user/login", authEndpointsLimiter, async (req, res) => {
     try {
       const { email, password } = req.body;
 
@@ -1881,7 +1912,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Profile Image Upload Endpoints
   
   // Upload cover image
-  app.put('/api/user/cover-image', setUserContext, upload.single('image'), async (req: any, res) => {
+  app.put('/api/user/cover-image', fileUploadLimiter, setUserContext, upload.single('image'), async (req: any, res) => {
     try {
       let user: any;
       
@@ -1930,7 +1961,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload profile image
-  app.put('/api/user/profile-image', setUserContext, upload.single('image'), async (req: any, res) => {
+  app.put('/api/user/profile-image', fileUploadLimiter, setUserContext, upload.single('image'), async (req: any, res) => {
     try {
       let user: any;
       
@@ -2633,7 +2664,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Main post creation endpoint for BeautifulPostCreator
-  app.post('/api/posts', async (req: any, res) => {
+  app.post('/api/posts', contentCreationLimiter, async (req: any, res) => {
     console.log('🚀 POST /api/posts - Request received');
     console.log('🔐 Session exists:', !!req.session);
     console.log('🔐 Session passport:', req.session?.passport);
@@ -2917,7 +2948,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Enhanced post creation endpoint with rich text, mentions, hashtags, and multimedia
-  app.post('/api/posts/enhanced', isAuthenticated, upload.array('media', 10), async (req: any, res) => {
+  app.post('/api/posts/enhanced', contentCreationLimiter, isAuthenticated, upload.array('media', 10), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserByReplitId(userId);
@@ -3571,7 +3602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/post", authMiddleware, upload.any(), async (req, res) => {
+  app.post("/api/post", contentCreationLimiter, authMiddleware, upload.any(), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
       const imageFile = files?.find(file => file.fieldname === 'attachments' || file.fieldname === 'image');
@@ -11674,6 +11705,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Statistics Routes
   // ========================================================================
   registerStatisticsRoutes(app);
+  
+  // ========================================================================
+  // Security Routes
+  // ========================================================================
+  const securityRouter = (await import('./routes/security')).default;
+  app.use(securityRouter);
   
   // ========================================================================
   // Metrics Routes (Prometheus, Health checks)
