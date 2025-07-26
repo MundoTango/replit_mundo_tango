@@ -35,6 +35,7 @@ import {
   guestBookings,
   guestProfiles,
   travelDetails,
+  userSettings,
   type User,
   type InsertUser,
   type UpsertUser,

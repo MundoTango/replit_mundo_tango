@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Settings,
   Bell,
@@ -33,7 +35,25 @@ import {
   RefreshCw,
   ChevronRight,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Settings2,
+  Accessibility,
+  Download,
+  Upload,
+  Search,
+  Info,
+  Zap,
+  Wifi,
+  HardDrive,
+  Terminal,
+  Webhook,
+  FileText,
+  Tag,
+  Database,
+  Cloud,
+  AlertTriangle,
+  RotateCcw,
+  CheckCircle2
 } from 'lucide-react';
 
 interface NotificationSettings {
@@ -46,6 +66,10 @@ interface NotificationSettings {
   groupInvites: boolean;
   weeklyDigest: boolean;
   marketingEmails: boolean;
+  mentionAlerts: boolean;
+  replyNotifications: boolean;
+  systemUpdates: boolean;
+  securityAlerts: boolean;
 }
 
 interface PrivacySettings {
@@ -57,6 +81,9 @@ interface PrivacySettings {
   showActivityStatus: boolean;
   allowTagging: boolean;
   showInSearch: boolean;
+  shareAnalytics: boolean;
+  dataExportEnabled: boolean;
+  thirdPartySharing: boolean;
 }
 
 interface AppearanceSettings {
@@ -66,12 +93,39 @@ interface AppearanceSettings {
   timeFormat: '12h' | '24h';
   fontSize: 'small' | 'medium' | 'large';
   reduceMotion: boolean;
+  colorScheme: string;
+  compactMode: boolean;
+  showAnimations: boolean;
+  customAccentColor: string | null;
+}
+
+interface AdvancedSettings {
+  developerMode: boolean;
+  betaFeatures: boolean;
+  performanceMode: 'balanced' | 'power-saver' | 'high-performance';
+  cacheSize: 'small' | 'medium' | 'large';
+  offlineMode: boolean;
+  syncFrequency: 'realtime' | 'hourly' | 'daily' | 'manual';
+  exportFormat: 'json' | 'csv' | 'xml';
+  apiAccess: boolean;
+  webhooksEnabled: boolean;
+}
+
+interface AccessibilitySettings {
+  screenReaderOptimized: boolean;
+  highContrast: boolean;
+  keyboardNavigation: boolean;
+  focusIndicators: boolean;
+  altTextMode: 'basic' | 'enhanced' | 'detailed';
+  audioDescriptions: boolean;
+  captionsEnabled: boolean;
 }
 
 const UserSettings: React.FC = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('notifications');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch current settings
   const { data: settings, isLoading } = useQuery({
@@ -88,7 +142,11 @@ const UserSettings: React.FC = () => {
     messageAlerts: true,
     groupInvites: true,
     weeklyDigest: false,
-    marketingEmails: false
+    marketingEmails: false,
+    mentionAlerts: true,
+    replyNotifications: true,
+    systemUpdates: true,
+    securityAlerts: true
   });
 
   const [privacy, setPrivacy] = useState<PrivacySettings>({
