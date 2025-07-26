@@ -1614,6 +1614,36 @@ export type InsertHostReview = z.infer<typeof insertHostReviewSchema>;
 export type GuestProfile = typeof guestProfiles.$inferSelect;
 export type InsertGuestProfile = z.infer<typeof insertGuestProfileSchema>;
 
+// Performance metrics table for intelligent monitoring
+export const performanceMetrics = pgTable("performance_metrics", {
+  id: serial("id").primaryKey(),
+  timestamp: timestamp("timestamp", { mode: "date" }).notNull().defaultNow(),
+  metricType: text("metric_type").notNull(), // api_response, cache_hit, db_query, etc.
+  endpoint: text("endpoint"),
+  responseTime: numeric("response_time", { precision: 10, scale: 2 }),
+  cacheHitRate: numeric("cache_hit_rate", { precision: 5, scale: 2 }),
+  memoryUsage: numeric("memory_usage", { precision: 10, scale: 2 }),
+  activeConnections: integer("active_connections"),
+  errorCount: integer("error_count").default(0),
+  metadata: jsonb("metadata"), // Additional metric-specific data
+  anomalyDetected: boolean("anomaly_detected").default(false),
+  autoFixed: boolean("auto_fixed").default(false),
+  severity: text("severity"), // low, medium, high, critical
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow()
+}, (table) => [
+  index("idx_performance_metrics_timestamp").on(table.timestamp),
+  index("idx_performance_metrics_type").on(table.metricType),
+  index("idx_performance_metrics_anomaly").on(table.anomalyDetected)
+]);
+
+export const insertPerformanceMetricsSchema = createInsertSchema(performanceMetrics).omit({
+  id: true,
+  timestamp: true,
+  createdAt: true
+});
+export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
+export type InsertPerformanceMetric = z.infer<typeof insertPerformanceMetricsSchema>;
+
 // Export from hostHomes module
 export { homeAmenities, homePhotos } from './schema/hostHomes';
 
