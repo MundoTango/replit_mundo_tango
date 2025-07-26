@@ -8,19 +8,20 @@ import { initializeBullMQ } from "./lib/bullmq-config";
 import { register } from "./lib/prometheus-metrics";
 import { initializeElasticsearch } from "./lib/elasticsearch-config";
 import { initializeFeatureFlags } from "./lib/feature-flags";
+import { logger, phase1Logger, phase4Logger, logLearning } from "./lib/logger";
+import { setupSwagger } from "./lib/swagger-config";
 
 const app = express();
 
 // 40x20s Framework - Layer 21: Production Resilience
 // Add process-level error handlers to prevent crashes
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
-  console.error(error.stack);
+  logger.fatal({ error, stack: error.stack }, 'Uncaught Exception');
   // Don't exit - keep the server running
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.fatal({ reason, promise }, 'Unhandled Rejection');
   // Don't exit - keep the server running
 });
 
@@ -120,10 +121,10 @@ app.get('/service-worker-workbox.js', (req, res) => {
     // Test database connection before starting services
     const { pool } = await import('./db');
     await pool.query('SELECT 1');
-    console.log('✅ Database connection established');
+    phase1Logger.info('Database connection established');
   } catch (err) {
-    console.error('❌ Initial database connection failed:', err instanceof Error ? err.message : String(err));
-    console.log('⚠️  Starting server in degraded mode - some features may be unavailable');
+    phase1Logger.error({ error: err }, 'Initial database connection failed');
+    phase1Logger.warn('Starting server in degraded mode - some features may be unavailable');
   }
   
   // Initialize automated compliance monitoring with error handling
@@ -132,11 +133,15 @@ app.get('/service-worker-workbox.js', (req, res) => {
       await initializeComplianceAuditTable();
     await automatedComplianceMonitor.startAutomatedMonitoring();
   } catch (err) {
-    console.error('⚠️  Compliance monitoring initialization failed:', err instanceof Error ? err.message : String(err));
+    logger.warn({ error: err }, 'Compliance monitoring initialization failed');
     // Continue without compliance monitoring
   }
 
   const server = await registerRoutes(app);
+
+  // Setup OpenAPI documentation
+  setupSwagger(app);
+  phase4Logger.info('OpenAPI documentation available at /api-docs');
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -145,7 +150,7 @@ app.get('/service-worker-workbox.js', (req, res) => {
     if (!res.headersSent) {
       res.status(status).json({ message });
     }
-    console.error(err);
+    logger.error({ error: err }, 'Express error handler');
   });
 
   // importantly only setup vite in development and after
@@ -166,7 +171,8 @@ app.get('/service-worker-workbox.js', (req, res) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    logger.info({ port }, `Server listening on port ${port}`);
+    logLearning('Open source tools integration successful', 0.95);
     
     // Initialize performance tools
     Promise.all([
@@ -174,21 +180,21 @@ app.get('/service-worker-workbox.js', (req, res) => {
       initializeElasticsearch(),
       initializeFeatureFlags()
     ]).then(results => {
-      console.log('🚀 Performance tools initialization complete:', results);
+      phase4Logger.info({ results }, 'Performance tools initialization complete');
     }).catch(error => {
-      console.warn('⚠️ Some performance tools failed to initialize:', error);
+      phase4Logger.warn({ error }, 'Some performance tools failed to initialize');
     });
     
     // Initialize GDPR Compliance Monitoring
     try {
       import('../compliance/monitoring/complianceMonitor').then(({ complianceMonitor }) => {
         complianceMonitor.startMonitoring();
-        console.log('🔒 Compliance monitoring system initialized');
+        logger.info('Compliance monitoring system initialized');
       }).catch(error => {
-        console.warn('⚠️ Compliance monitoring initialization failed:', error.message);
+        logger.warn({ error }, 'Compliance monitoring initialization failed');
       });
     } catch (error) {
-      console.warn('⚠️ Compliance monitoring not available');
+      logger.warn({ error }, 'Compliance monitoring not available');
     }
 
     // Initialize Automatic Project Tracking

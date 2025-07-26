@@ -18,6 +18,7 @@ import PerformanceMonitor from '@/components/admin/PerformanceMonitor';
 import Framework35LDashboard from '@/components/admin/Framework35LDashboard';
 import { ValidationDashboard } from '@/components/admin/ValidationDashboard';
 import { Phase40x20sValidationDashboard } from '@/components/admin/Phase40x20sValidationDashboard';
+import { Phase4ToolsDashboard } from '@/components/life-ceo/Phase4ToolsDashboard';
 import { 
   Users, 
   Activity, 
@@ -49,7 +50,8 @@ import {
   Brain,
   RefreshCw,
   Code,
-  Lightbulb
+  Lightbulb,
+  Package
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -310,6 +312,7 @@ const AdminCenter: React.FC = React.memo(() => {
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'statistics', label: 'Global Statistics', icon: <Globe className="w-4 h-4" />, isNew: true },
     { id: 'project-tracker', label: 'The Plan', icon: <GitCommit className="w-4 h-4" /> },
+    { id: 'phase4-tools', label: 'Phase 4 Tools', icon: <Package className="w-4 h-4" />, isNew: true },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
     { id: 'content', label: 'Content Moderation', icon: <FileText className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="w-4 h-4" /> },
@@ -2517,6 +2520,7 @@ const AdminCenter: React.FC = React.memo(() => {
           <Comprehensive11LProjectTracker />
         </ErrorBoundary>
       );
+      case 'phase4-tools': return <Phase4ToolsDashboard />;
       case 'users': return renderUserManagement();
       case 'content': return renderContentModeration();
       case 'analytics': return renderAnalytics();
