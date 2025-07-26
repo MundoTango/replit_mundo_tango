@@ -309,7 +309,7 @@ export default function GroupDetailPageMT() {
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-pink-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-turquoise-500 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading group details...</p>
           </div>
         </div>
@@ -377,10 +377,10 @@ export default function GroupDetailPageMT() {
             <div className="mt-info-card-content space-y-3">
               {group.activities.map((activity: any, index: number) => (
                 <div key={index} className="flex items-start gap-3">
-                  {activity.icon === 'music' && <Music className="h-5 w-5 text-pink-500 mt-0.5" />}
+                  {activity.icon === 'music' && <Music className="h-5 w-5 text-turquoise-500 mt-0.5" />}
                   {activity.icon === 'book' && <BookOpen className="h-5 w-5 text-blue-500 mt-0.5" />}
-                  {activity.icon === 'trophy' && <Trophy className="h-5 w-5 text-purple-500 mt-0.5" />}
-                  {!activity.icon && <Zap className="h-5 w-5 text-purple-500 mt-0.5" />}
+                  {activity.icon === 'trophy' && <Trophy className="h-5 w-5 text-cyan-500 mt-0.5" />}
+                  {!activity.icon && <Zap className="h-5 w-5 text-cyan-500 mt-0.5" />}
                   <div>
                     <h4 className="font-semibold">{activity.title}</h4>
                     <p className="text-sm">{activity.description}</p>
@@ -401,7 +401,7 @@ export default function GroupDetailPageMT() {
             <div className="mt-info-card-content">
               <div className="flex flex-wrap gap-2">
                 {group.tags.map((tag: string, index: number) => (
-                  <span key={index} className="px-3 py-1 bg-gradient-to-r from-pink-100 to-purple-100 text-sm rounded-full text-gray-700">
+                  <span key={index} className="px-3 py-1 bg-gradient-to-r from-turquoise-100 to-cyan-100 text-sm rounded-full text-gray-700">
                     {tag}
                   </span>
                 ))}
