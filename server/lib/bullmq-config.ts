@@ -5,6 +5,8 @@ import Redis from 'ioredis';
 // Redis connection for BullMQ - only if Redis is enabled
 let connection: Redis | null = null;
 
+console.log('[BullMQ Config] DISABLE_REDIS =', process.env.DISABLE_REDIS);
+
 if (process.env.DISABLE_REDIS !== 'true') {
   try {
     connection = new Redis({
@@ -31,27 +33,33 @@ if (process.env.DISABLE_REDIS !== 'true') {
 }
 
 // Queue definitions - only create if Redis is available
-export const queues = connection ? {
-  email: new Queue('email', { connection }),
-  imageProcessing: new Queue('image-processing', { connection }),
-  analytics: new Queue('analytics', { connection }),
-  notifications: new Queue('notifications', { connection }),
-  dataSync: new Queue('data-sync', { connection }),
-  performanceMetrics: new Queue('performance-metrics', { connection }),
-} : {} as any;
+export const queues = {} as any;
+export const queueEvents = {} as any;
+
+// Initialize queues and events only if Redis connection succeeded
+if (connection && process.env.DISABLE_REDIS !== 'true') {
+  try {
+    queues.email = new Queue('email', { connection });
+    queues.imageProcessing = new Queue('image-processing', { connection });
+    queues.analytics = new Queue('analytics', { connection });
+    queues.notifications = new Queue('notifications', { connection });
+    queues.dataSync = new Queue('data-sync', { connection });
+    queues.performanceMetrics = new Queue('performance-metrics', { connection });
+
+    // Queue events for monitoring
+    queueEvents.email = new QueueEvents('email', { connection });
+    queueEvents.imageProcessing = new QueueEvents('image-processing', { connection });
+    queueEvents.analytics = new QueueEvents('analytics', { connection });
+    queueEvents.notifications = new QueueEvents('notifications', { connection });
+    queueEvents.dataSync = new QueueEvents('data-sync', { connection });
+    queueEvents.performanceMetrics = new QueueEvents('performance-metrics', { connection });
+  } catch (err) {
+    console.log('⚠️ Failed to initialize BullMQ queues:', err.message);
+  }
+}
 
 // Note: QueueScheduler is deprecated in BullMQ v3+
 // Delayed and repeated jobs are now handled automatically by the Queue
-
-// Queue events for monitoring - only create if Redis is available
-export const queueEvents = connection ? {
-  email: new QueueEvents('email', { connection }),
-  imageProcessing: new QueueEvents('image-processing', { connection }),
-  analytics: new QueueEvents('analytics', { connection }),
-  notifications: new QueueEvents('notifications', { connection }),
-  dataSync: new QueueEvents('data-sync', { connection }),
-  performanceMetrics: new QueueEvents('performance-metrics', { connection }),
-} : {} as any;
 
 // Job types
 export interface EmailJob {

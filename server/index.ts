@@ -4,7 +4,7 @@ import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initSentry } from "./lib/sentry";
-import { initializeBullMQ } from "./lib/bullmq-config";
+// Removed static import of initializeBullMQ to prevent Redis connections on startup
 import { register } from "./lib/prometheus-metrics";
 import { initializeElasticsearch } from "./lib/elasticsearch-config";
 import { initializeFeatureFlags } from "./lib/feature-flags";
@@ -182,11 +182,21 @@ app.get('/service-worker-workbox.js', (req, res) => {
     logLearning('Open source tools integration successful', 0.95);
     
     // Initialize performance tools
-    Promise.all([
-      initializeBullMQ(),
-      initializeElasticsearch(),
-      initializeFeatureFlags()
-    ]).then(results => {
+    const performanceInitPromises = [];
+    
+    // Only initialize BullMQ if Redis is enabled
+    if (process.env.DISABLE_REDIS !== 'true') {
+      performanceInitPromises.push(
+        import('./lib/bullmq-config').then(({ initializeBullMQ }) => initializeBullMQ())
+      );
+    } else {
+      console.log('⚠️ BullMQ skipped - Redis is disabled');
+    }
+    
+    performanceInitPromises.push(initializeElasticsearch());
+    performanceInitPromises.push(initializeFeatureFlags());
+    
+    Promise.all(performanceInitPromises).then(results => {
       phase4Logger.info({ results }, 'Performance tools initialization complete');
     }).catch(error => {
       phase4Logger.warn({ error }, 'Some performance tools failed to initialize');
