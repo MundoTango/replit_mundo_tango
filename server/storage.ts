@@ -3489,15 +3489,55 @@ export class DatabaseStorage implements IStorage {
   
   // User Settings Implementation
   async getUserSettings(userId: number): Promise<any> {
-    // For now, return null to indicate no saved settings
-    // In a real implementation, this would query a user_settings table
-    return null;
+    try {
+      const [settings] = await db
+        .select()
+        .from(userSettings)
+        .where(eq(userSettings.userId, userId))
+        .limit(1);
+      
+      return settings || null;
+    } catch (error) {
+      console.error('Error fetching user settings:', error);
+      return null;
+    }
   }
   
   async updateUserSettings(userId: number, settings: any): Promise<void> {
-    // For now, this is a no-op
-    // In a real implementation, this would save to a user_settings table
-    console.log(`Updating settings for user ${userId}:`, settings);
+    try {
+      // Check if settings exist
+      const existingSettings = await this.getUserSettings(userId);
+      
+      if (existingSettings) {
+        // Update existing settings
+        await db
+          .update(userSettings)
+          .set({
+            notifications: settings.notifications || existingSettings.notifications,
+            privacy: settings.privacy || existingSettings.privacy,
+            appearance: settings.appearance || existingSettings.appearance,
+            advanced: settings.advanced || existingSettings.advanced,
+            accessibility: settings.accessibility || existingSettings.accessibility,
+            updatedAt: new Date()
+          })
+          .where(eq(userSettings.userId, userId));
+      } else {
+        // Create new settings
+        await db
+          .insert(userSettings)
+          .values({
+            userId,
+            notifications: settings.notifications,
+            privacy: settings.privacy,
+            appearance: settings.appearance,
+            advanced: settings.advanced,
+            accessibility: settings.accessibility
+          });
+      }
+    } catch (error) {
+      console.error('Error updating user settings:', error);
+      throw error;
+    }
   }
 }
 

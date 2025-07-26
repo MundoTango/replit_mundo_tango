@@ -290,6 +290,90 @@ export const userFollowedCities = pgTable("user_followed_cities", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// User Settings table for comprehensive user preferences
+export const userSettings = pgTable("user_settings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull().unique(),
+  
+  // Notification settings
+  notifications: jsonb("notifications").default({
+    emailNotifications: true,
+    pushNotifications: true,
+    smsNotifications: false,
+    eventReminders: true,
+    newFollowerAlerts: true,
+    messageAlerts: true,
+    groupInvites: true,
+    weeklyDigest: false,
+    marketingEmails: false,
+    // TTFiles-inspired additions
+    mentionAlerts: true,
+    replyNotifications: true,
+    systemUpdates: true,
+    securityAlerts: true
+  }).notNull(),
+  
+  // Privacy settings
+  privacy: jsonb("privacy").default({
+    profileVisibility: 'public',
+    showLocation: true,
+    showEmail: false,
+    showPhone: false,
+    allowMessagesFrom: 'friends',
+    showActivityStatus: true,
+    allowTagging: true,
+    showInSearch: true,
+    // TTFiles-inspired additions
+    shareAnalytics: false,
+    dataExportEnabled: true,
+    thirdPartySharing: false
+  }).notNull(),
+  
+  // Appearance settings
+  appearance: jsonb("appearance").default({
+    theme: 'light',
+    language: 'en',
+    dateFormat: 'MM/DD/YYYY',
+    timeFormat: '12h',
+    fontSize: 'medium',
+    reduceMotion: false,
+    // TTFiles-inspired additions
+    colorScheme: 'ocean',
+    compactMode: false,
+    showAnimations: true,
+    customAccentColor: null
+  }).notNull(),
+  
+  // Advanced settings (TTFiles-inspired)
+  advanced: jsonb("advanced").default({
+    developerMode: false,
+    betaFeatures: false,
+    performanceMode: 'balanced',
+    cacheSize: 'medium',
+    offlineMode: false,
+    syncFrequency: 'realtime',
+    exportFormat: 'json',
+    apiAccess: false,
+    webhooksEnabled: false
+  }).notNull(),
+  
+  // Accessibility settings
+  accessibility: jsonb("accessibility").default({
+    screenReaderOptimized: false,
+    highContrast: false,
+    keyboardNavigation: true,
+    focusIndicators: true,
+    altTextMode: 'enhanced',
+    audioDescriptions: false,
+    captionsEnabled: true
+  }).notNull(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_user_settings_user_id").on(table.userId),
+]);
+
 // Event series table for recurring events
 export const eventSeries = pgTable("event_series", {
   id: serial("id").primaryKey(),
@@ -1613,6 +1697,16 @@ export type HostReview = typeof hostReviews.$inferSelect;
 export type InsertHostReview = z.infer<typeof insertHostReviewSchema>;
 export type GuestProfile = typeof guestProfiles.$inferSelect;
 export type InsertGuestProfile = z.infer<typeof insertGuestProfileSchema>;
+
+// User Settings schema
+export const insertUserSettingsSchema = createInsertSchema(userSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type UserSettings = typeof userSettings.$inferSelect;
+export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
 
 // Performance metrics table for intelligent monitoring
 export const performanceMetrics = pgTable("performance_metrics", {
