@@ -42,6 +42,7 @@ const GroupDetailPage = lazy(() => import("@/pages/GroupDetailPageMT"));
 const CommunityWorldMap = lazy(() => import("@/pages/community-world-map"));
 const TestGroupedRoleSelector = lazy(() => import("@/components/test/TestGroupedRoleSelector"));
 const LifeCeoPerformance = lazy(() => import("@/pages/LifeCeoPerformance"));
+const UserSettings = lazy(() => import("@/pages/UserSettings"));
 
 // Loading component for Suspense boundaries
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
@@ -226,6 +227,12 @@ function Router() {
           <Route path="/profile">
             <Suspense fallback={<LoadingFallback message="Loading profile..." />}>
               <Profile />
+            </Suspense>
+          </Route>
+          
+          <Route path="/settings">
+            <Suspense fallback={<LoadingFallback message="Loading settings..." />}>
+              <UserSettings />
             </Suspense>
           </Route>
           

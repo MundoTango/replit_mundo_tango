@@ -396,6 +396,10 @@ export interface IStorage {
   
   // Life CEO Performance Service
   getRecentUserActivity(limit: number): Promise<{ route: string; userId?: number; timestamp: Date }[]>;
+  
+  // User settings methods
+  getUserSettings(userId: number): Promise<any>;
+  updateUserSettings(userId: number, settings: any): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3481,6 +3485,19 @@ export class DatabaseStorage implements IStorage {
     ];
     
     return mockActivities.slice(0, limit);
+  }
+  
+  // User Settings Implementation
+  async getUserSettings(userId: number): Promise<any> {
+    // For now, return null to indicate no saved settings
+    // In a real implementation, this would query a user_settings table
+    return null;
+  }
+  
+  async updateUserSettings(userId: number, settings: any): Promise<void> {
+    // For now, this is a no-op
+    // In a real implementation, this would save to a user_settings table
+    console.log(`Updating settings for user ${userId}:`, settings);
   }
 }
 

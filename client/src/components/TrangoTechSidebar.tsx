@@ -16,7 +16,8 @@ import {
   Sparkles,
   MapPin,
   Shield,
-  Crown
+  Crown,
+  Settings
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -54,6 +55,11 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       icon: <Calendar className="w-5 h-5" />,
       title: "Events",
       link: "/events",
+    },
+    {
+      icon: <Settings className="w-5 h-5" />,
+      title: "Settings",
+      link: "/settings",
     },
     {
       icon: <BookOpen className="w-5 h-5" />,

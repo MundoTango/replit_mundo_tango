@@ -918,6 +918,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User Settings Routes
+  app.get("/api/user/settings", setUserContext, async (req, res) => {
+    try {
+      const userId = getAuthenticatedUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      // Get user settings from database
+      const settings = await storage.getUserSettings(userId);
+      
+      // Return default settings if none exist
+      if (!settings) {
+        return res.json({
+          notifications: {
+            emailNotifications: true,
+            pushNotifications: true,
+            smsNotifications: false,
+            eventReminders: true,
+            newFollowerAlerts: true,
+            messageAlerts: true,
+            groupInvites: true,
+            weeklyDigest: false,
+            marketingEmails: false
+          },
+          privacy: {
+            profileVisibility: 'public',
+            showLocation: true,
+            showEmail: false,
+            showPhone: false,
+            allowMessagesFrom: 'friends',
+            showActivityStatus: true,
+            allowTagging: true,
+            showInSearch: true
+          },
+          appearance: {
+            theme: 'light',
+            language: 'en',
+            dateFormat: 'MM/DD/YYYY',
+            timeFormat: '12h',
+            fontSize: 'medium',
+            reduceMotion: false
+          }
+        });
+      }
+
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching user settings:", error);
+      res.status(500).json({ error: "Failed to fetch settings" });
+    }
+  });
+
+  app.put("/api/user/settings", setUserContext, async (req, res) => {
+    try {
+      const userId = getAuthenticatedUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { notifications, privacy, appearance } = req.body;
+
+      // Validate and save settings
+      await storage.updateUserSettings(userId, {
+        notifications,
+        privacy,
+        appearance
+      });
+
+      res.json({ success: true, message: "Settings updated successfully" });
+    } catch (error) {
+      console.error("Error updating user settings:", error);
+      res.status(500).json({ error: "Failed to update settings" });
+    }
+  });
+
   app.patch('/api/user/notification', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
