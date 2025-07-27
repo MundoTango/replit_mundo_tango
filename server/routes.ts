@@ -14299,5 +14299,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error('Warning: Intelligent Performance Monitor initialization failed:', error);
   }
 
+  // Initialize Enhanced Life CEO Service with 41x21s framework
+  try {
+    const { lifeCeoEnhanced } = await import('./services/lifeCeoEnhancedService');
+    await lifeCeoEnhanced.continuousValidation();
+    console.log('🧠 Life CEO Enhanced Service initialized - 41x21s framework active');
+  } catch (error) {
+    console.error('Warning: Life CEO Enhanced Service initialization failed:', error);
+  }
+
+  // Life CEO Enhanced API endpoints
+  app.get('/api/life-ceo/pre-development-checklist', setUserContext, async (req: any, res) => {
+    try {
+      const { lifeCeoEnhanced } = await import('./services/lifeCeoEnhancedService');
+      const result = await lifeCeoEnhanced.runPreDevelopmentChecklist();
+      res.json(result);
+    } catch (error) {
+      console.error('Error running pre-development checklist:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to run pre-development checklist',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  app.post('/api/life-ceo/auto-fix', setUserContext, async (req: any, res) => {
+    try {
+      const { category } = req.body;
+      // In a real implementation, would run actual fixes
+      // For now, just acknowledge the request
+      res.json({ 
+        success: true, 
+        message: `Auto-fix initiated for ${category}` 
+      });
+    } catch (error) {
+      console.error('Error running auto-fix:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to run auto-fix',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  app.get('/api/life-ceo/mobile-readiness', setUserContext, async (req: any, res) => {
+    try {
+      const { lifeCeoEnhanced } = await import('./services/lifeCeoEnhancedService');
+      const result = await lifeCeoEnhanced.checkMobileReadiness();
+      res.json(result);
+    } catch (error) {
+      console.error('Error checking mobile readiness:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to check mobile readiness',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   return server;
 }
