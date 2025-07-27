@@ -48,6 +48,8 @@ const LifeCeoPerformance = lazy(() => import("@/pages/LifeCeoPerformance"));
 const UserSettings = lazy(() => import("@/pages/UserSettings"));
 const CreateCommunity = lazy(() => import("@/pages/CreateCommunity"));
 const TangoStories = lazy(() => import("@/pages/TangoStories"));
+const RoleInvitations = lazy(() => import("@/pages/RoleInvitations"));
+const ErrorBoundaryPage = lazy(() => import("@/pages/ErrorBoundaryPage"));
 
 // Loading component for Suspense boundaries
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
@@ -238,6 +240,18 @@ function Router() {
           <Route path="/tango-stories">
             <Suspense fallback={<LoadingFallback message="Loading stories..." />}>
               <TangoStories />
+            </Suspense>
+          </Route>
+          
+          <Route path="/invitations">
+            <Suspense fallback={<LoadingFallback message="Loading invitations..." />}>
+              <RoleInvitations />
+            </Suspense>
+          </Route>
+          
+          <Route path="/error">
+            <Suspense fallback={<LoadingFallback message="Loading..." />}>
+              <ErrorBoundaryPage />
             </Suspense>
           </Route>
           

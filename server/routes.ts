@@ -2558,6 +2558,299 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Tango Stories API endpoints
+  
+  // Create a new story
+  app.post('/api/stories', isAuthenticated, apiGeneralLimiter, contentCreationLimiter, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const { title, content, tags, location } = req.body;
+      
+      if (!title || !content) {
+        return res.status(400).json({
+          success: false,
+          message: 'Title and content are required'
+        });
+      }
+      
+      // Create a post entry for the story
+      const storyPost = await storage.createPost({
+        userId: user.id,
+        content: JSON.stringify({
+          type: 'story',
+          title,
+          content,
+          tags: tags || []
+        }),
+        location: location || '',
+        visibility: 'public',
+        postType: 'story'
+      });
+      
+      res.json({
+        success: true,
+        message: 'Story created successfully',
+        data: {
+          id: storyPost.id,
+          title,
+          content,
+          tags: tags || [],
+          location,
+          author: {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            profileImage: user.profileImage
+          },
+          createdAt: storyPost.createdAt,
+          likes: 0,
+          comments: 0,
+          shares: 0
+        }
+      });
+    } catch (error: any) {
+      console.error('Error creating story:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to create story'
+      });
+    }
+  });
+  
+  // Get stories with filtering
+  app.get('/api/stories', setUserContext, async (req: any, res) => {
+    try {
+      const { topic, search, page = 1, limit = 20 } = req.query;
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+      
+      // Get story posts
+      let query = db.select({
+        id: posts.id,
+        content: posts.content,
+        location: posts.location,
+        createdAt: posts.createdAt,
+        userId: posts.userId,
+        likes: posts.likes,
+        comments: posts.comments,
+        shares: posts.shares,
+        user: {
+          id: users.id,
+          name: users.name,
+          username: users.username,
+          profileImage: users.profileImage
+        }
+      })
+      .from(posts)
+      .leftJoin(users, eq(posts.userId, users.id))
+      .where(eq(posts.postType, 'story'))
+      .orderBy(desc(posts.createdAt))
+      .limit(parseInt(limit))
+      .offset(offset);
+      
+      const stories = await query;
+      
+      // Parse story content and filter
+      const formattedStories = stories
+        .map((story: any) => {
+          try {
+            const content = typeof story.content === 'string' ? JSON.parse(story.content) : story.content;
+            if (content.type !== 'story') return null;
+            
+            // Apply filters
+            if (topic && (!content.tags || !content.tags.includes(topic))) return null;
+            if (search) {
+              const searchLower = search.toLowerCase();
+              if (!content.title?.toLowerCase().includes(searchLower) && 
+                  !content.content?.toLowerCase().includes(searchLower)) return null;
+            }
+            
+            return {
+              id: story.id,
+              title: content.title,
+              content: content.content,
+              tags: content.tags || [],
+              location: story.location,
+              author: story.user,
+              createdAt: story.createdAt,
+              likes: story.likes || 0,
+              comments: story.comments || 0,
+              shares: story.shares || 0
+            };
+          } catch (e) {
+            return null;
+          }
+        })
+        .filter(Boolean);
+      
+      res.json({
+        success: true,
+        data: formattedStories,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          hasMore: formattedStories.length === parseInt(limit)
+        }
+      });
+    } catch (error: any) {
+      console.error('Error fetching stories:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to fetch stories'
+      });
+    }
+  });
+  
+  // Get popular story topics
+  app.get('/api/stories/popular-topics', async (req: any, res) => {
+    try {
+      // Get all story posts
+      const storyPosts = await db.select({
+        content: posts.content
+      })
+      .from(posts)
+      .where(eq(posts.postType, 'story'));
+      
+      // Extract and count tags
+      const tagCounts = new Map<string, number>();
+      
+      storyPosts.forEach(post => {
+        try {
+          const content = typeof post.content === 'string' ? JSON.parse(post.content) : post.content;
+          if (content.type === 'story' && content.tags) {
+            content.tags.forEach((tag: string) => {
+              tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+            });
+          }
+        } catch (e) {
+          // Skip invalid entries
+        }
+      });
+      
+      // Sort by count and return top topics
+      const popularTopics = Array.from(tagCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([tag, count]) => ({ tag, count }));
+      
+      res.json({
+        success: true,
+        data: popularTopics
+      });
+    } catch (error: any) {
+      console.error('Error fetching popular topics:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to fetch popular topics'
+      });
+    }
+  });
+  
+  // Get single story
+  app.get('/api/stories/:id', setUserContext, async (req: any, res) => {
+    try {
+      const storyId = req.params.id;
+      
+      const story = await db.select({
+        id: posts.id,
+        content: posts.content,
+        location: posts.location,
+        createdAt: posts.createdAt,
+        userId: posts.userId,
+        likes: posts.likes,
+        comments: posts.comments,
+        shares: posts.shares,
+        user: {
+          id: users.id,
+          name: users.name,
+          username: users.username,
+          profileImage: users.profileImage
+        }
+      })
+      .from(posts)
+      .leftJoin(users, eq(posts.userId, users.id))
+      .where(and(
+        eq(posts.id, storyId),
+        eq(posts.postType, 'story')
+      ))
+      .limit(1);
+      
+      if (!story[0]) {
+        return res.status(404).json({
+          success: false,
+          message: 'Story not found'
+        });
+      }
+      
+      // Parse story content
+      const content = typeof story[0].content === 'string' ? JSON.parse(story[0].content) : story[0].content;
+      
+      res.json({
+        success: true,
+        data: {
+          id: story[0].id,
+          title: content.title,
+          content: content.content,
+          tags: content.tags || [],
+          location: story[0].location,
+          author: story[0].user,
+          createdAt: story[0].createdAt,
+          likes: story[0].likes || 0,
+          comments: story[0].comments || 0,
+          shares: story[0].shares || 0
+        }
+      });
+    } catch (error: any) {
+      console.error('Error fetching story:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to fetch story'
+      });
+    }
+  });
+  
+  // Like/Unlike story endpoints can use existing post like functionality
+  app.put('/api/stories/:id/like', isAuthenticated, async (req: any, res) => {
+    try {
+      const storyId = req.params.id;
+      const user = req.user;
+      
+      // Reuse existing post like functionality
+      await storage.likePost(storyId, user.id);
+      
+      res.json({
+        success: true,
+        message: 'Story liked successfully'
+      });
+    } catch (error: any) {
+      console.error('Error liking story:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to like story'
+      });
+    }
+  });
+  
+  app.delete('/api/stories/:id/like', isAuthenticated, async (req: any, res) => {
+    try {
+      const storyId = req.params.id;
+      const user = req.user;
+      
+      // Reuse existing post unlike functionality
+      await storage.unlikePost(storyId, user.id);
+      
+      res.json({
+        success: true,
+        message: 'Story unliked successfully'
+      });
+    } catch (error: any) {
+      console.error('Error unliking story:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to unlike story'
+      });
+    }
+  });
+
   // Location context endpoint
   app.get('/api/users/:userId/location-context', isAuthenticated, async (req: any, res) => {
     try {
