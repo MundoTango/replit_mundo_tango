@@ -540,7 +540,12 @@ export default function EnhancedTimelineV2() {
             <div className="mb-6">
               <BeautifulPostCreator 
                 context={{ type: 'memory' }}
-                user={user || undefined}
+                user={user ? {
+                  id: user.id,
+                  name: user.name,
+                  username: user.username,
+                  profileImage: user.profileImage || undefined
+                } : undefined}
                 onPostCreated={() => {
                   queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
                 }}

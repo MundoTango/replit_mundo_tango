@@ -138,6 +138,8 @@ const UserSettings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('notifications');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [show2FADialog, setShow2FADialog] = useState(false);
 
   // Fetch current settings
   const { data: settings, isLoading, error } = useQuery<UserSettingsResponse>({
@@ -463,7 +465,7 @@ const UserSettings: React.FC = () => {
 
       {/* Settings Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-5 w-full mb-6 bg-white/80 backdrop-blur-xl border border-white/50 shadow-lg">
+        <TabsList className="grid grid-cols-6 w-full mb-6 bg-white/80 backdrop-blur-xl border border-white/50 shadow-lg">
           <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-50 data-[state=active]:to-cyan-50" disabled={!filteredSettings('notifications')}>
             <Bell className="w-4 h-4" />
             <span className="hidden sm:inline">Notifications</span>
@@ -471,6 +473,10 @@ const UserSettings: React.FC = () => {
           <TabsTrigger value="privacy" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-50 data-[state=active]:to-cyan-50" disabled={!filteredSettings('privacy')}>
             <Shield className="w-4 h-4" />
             <span className="hidden sm:inline">Privacy</span>
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-50 data-[state=active]:to-cyan-50">
+            <Lock className="w-4 h-4" />
+            <span className="hidden sm:inline">Security</span>
           </TabsTrigger>
           <TabsTrigger value="appearance" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-50 data-[state=active]:to-cyan-50" disabled={!filteredSettings('appearance')}>
             <Palette className="w-4 h-4" />
@@ -1268,6 +1274,157 @@ const UserSettings: React.FC = () => {
                       </a>
                     </p>
                   </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Security Tab */}
+        <TabsContent value="security">
+          <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-turquoise-50/50 to-cyan-50/50 rounded-t-lg">
+              <CardTitle className="text-xl font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+                Security Settings
+              </CardTitle>
+              <CardDescription>
+                Manage your password, two-factor authentication, and active sessions
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Password Change Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-turquoise-600" />
+                  Password
+                </h3>
+                
+                <div className="space-y-3">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <Label className="text-base font-medium">Password</Label>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Last changed: Never
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowPasswordDialog(true)}
+                        className="hover:bg-turquoise-50 hover:border-turquoise-300"
+                      >
+                        Change Password
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Two-Factor Authentication */}
+              <div className="space-y-4 border-t pt-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-turquoise-600" />
+                  Two-Factor Authentication
+                </h3>
+                
+                <div className="space-y-3">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <Label className="text-base font-medium">2FA Status</Label>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Two-factor authentication is not enabled
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShow2FADialog(true)}
+                        className="hover:bg-turquoise-50 hover:border-turquoise-300"
+                      >
+                        Enable 2FA
+                      </Button>
+                    </div>
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Two-factor authentication adds an extra layer of security to your account
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                </div>
+              </div>
+
+              {/* Active Sessions */}
+              <div className="space-y-4 border-t pt-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Monitor className="w-5 h-5 text-turquoise-600" />
+                  Active Sessions
+                </h3>
+                
+                <div className="space-y-3">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Monitor className="w-5 h-5 text-gray-600" />
+                        <div>
+                          <p className="font-medium">Current Session</p>
+                          <p className="text-sm text-gray-600">
+                            Browser · Last active: Just now
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="bg-green-100 text-green-700">
+                        Current
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full hover:bg-red-50 hover:border-red-300"
+                  >
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    Sign Out All Other Sessions
+                  </Button>
+                </div>
+              </div>
+
+              {/* Security Events */}
+              <div className="space-y-4 border-t pt-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-turquoise-600" />
+                  Recent Security Events
+                </h3>
+                
+                <div className="space-y-2">
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                        <div>
+                          <p className="text-sm font-medium">Successful login</p>
+                          <p className="text-xs text-gray-600">Today at 11:34 AM</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Account Actions */}
+              <div className="space-y-4 border-t pt-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-red-600">
+                  <AlertTriangle className="w-5 h-5" />
+                  Danger Zone
+                </h3>
+                
+                <div className="space-y-3">
+                  <Button
+                    variant="outline"
+                    className="w-full border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                  >
+                    Delete Account
+                  </Button>
                 </div>
               </div>
             </CardContent>
