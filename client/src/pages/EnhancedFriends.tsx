@@ -49,8 +49,15 @@ import {
   List,
   ArrowUpDown,
   Zap,
-  TrendingUp
+  TrendingUp,
+  RefreshCw
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 
 interface Friend {
   id: string;
@@ -165,6 +172,47 @@ export default function EnhancedFriendsPage() {
   const friends = friendsData?.data || [];
   const requests = requestsData?.data || [];
   const suggestions = suggestionsData?.data || [];
+
+  // Send friend request mutation
+  const sendFriendRequestMutation = useMutation({
+    mutationFn: async (user: Friend) => {
+      const response = await fetch('/api/friends/requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          friend_identifier: user.username,
+          sender_notes: requestNote
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to send friend request');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Friend request sent successfully!",
+      });
+      setShowSendRequestModal(false);
+      setSelectedUser(null);
+      setRequestNote('');
+      queryClient.invalidateQueries({ queryKey: ['/api/friends/requests'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send friend request",
+        variant: "destructive",
+      });
+    }
+  });
 
   // Fuzzy search setup
   const fuse = useMemo(() => {
@@ -703,6 +751,81 @@ export default function EnhancedFriendsPage() {
             <kbd className="px-2 py-1 bg-gray-100 rounded ml-2">Cmd+A</kbd> to add friends
           </p>
         </div>
+
+        {/* Add Friends Modal */}
+        <Dialog open={showSendRequestModal} onOpenChange={setShowSendRequestModal}>
+          <DialogContent className="sm:max-w-[500px] glassmorphic-card">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+                Send Friend Request
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Username or Email
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Enter username or email"
+                  className="w-full"
+                  onChange={(e) => setSelectedUser({ id: e.target.value, name: e.target.value, username: e.target.value } as Friend)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Add a personal note (optional)
+                </label>
+                <Textarea
+                  placeholder="Hi! I'd love to connect..."
+                  value={requestNote}
+                  onChange={(e) => setRequestNote(e.target.value)}
+                  rows={3}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowSendRequestModal(false);
+                    setSelectedUser(null);
+                    setRequestNote('');
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (selectedUser?.username) {
+                      sendFriendRequestMutation.mutate(selectedUser);
+                    } else {
+                      toast({
+                        title: "Error",
+                        description: "Please enter a username or email",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                  disabled={!selectedUser?.username || sendFriendRequestMutation.isPending}
+                  className="bg-gradient-to-r from-turquoise-400 to-cyan-500 hover:from-turquoise-500 hover:to-cyan-600 text-white"
+                >
+                  {sendFriendRequestMutation.isPending ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Send Request
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </animated.div>
     </DashboardLayout>
   );

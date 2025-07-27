@@ -28,6 +28,7 @@ import LifeCeoTest from "@/pages/LifeCeoTest";
 const Home = lazy(() => import("@/pages/home"));
 const Profile = lazy(() => import("@/pages/profile"));
 const Events = lazy(() => import("@/pages/events"));
+const EnhancedEvents = lazy(() => import("@/pages/EnhancedEvents"));
 const EventDetail = lazy(() => import("@/pages/event-detail"));
 const Messages = lazy(() => import("@/pages/messages"));
 const Moments = lazy(() => import("@/pages/moments"));
@@ -240,7 +241,7 @@ function Router() {
           
           <Route path="/events">
             <Suspense fallback={<LoadingFallback message="Loading events..." />}>
-              <Events />
+              <EnhancedEvents />
             </Suspense>
           </Route>
           
