@@ -415,7 +415,7 @@ export const EnhancedPostCreator: React.FC<{
               <Button
                 onClick={handlePost}
                 disabled={isPosting || (!content.trim() && media.length === 0)}
-                className="bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white hover:from-turquoise-500 hover:to-cyan-600 shadow-lg"
+                className="bg-turquoise-500 text-white hover:bg-turquoise-600 px-6 py-2 rounded-md font-medium transition-colors duration-200"
               >
                 {isPosting ? (
                   <>
@@ -542,7 +542,7 @@ export const EnhancedMemoryCard: React.FC<{
       whileHover={{ y: -2 }}
       className="w-full"
     >
-      <Card className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
+      <Card className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden border border-gray-100">
         {/* Header */}
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -706,7 +706,7 @@ export const EnhancedMemoryCard: React.FC<{
                       }
                     }}
                   />
-                  <Button size="sm" className="bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white">
+                  <Button size="sm" className="bg-turquoise-500 hover:bg-turquoise-600 text-white">
                     <Send className="w-4 h-4" />
                   </Button>
                 </div>

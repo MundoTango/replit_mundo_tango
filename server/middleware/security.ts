@@ -29,7 +29,11 @@ export const contentSecurityPolicy = helmet.contentSecurityPolicy({
       "https://api.pexels.com",
       "https://nominatim.openstreetmap.org",
       "https://plausible.io",
-      "wss://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev"
+      "https://replit.com",
+      "ws:",
+      "wss:",
+      "http://localhost:*",
+      "ws://localhost:*"
     ],
     mediaSrc: ["'self'", "https:", "blob:"],
     objectSrc: ["'none'"],
