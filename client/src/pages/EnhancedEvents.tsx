@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '../lib/queryClient';
 import DashboardLayout from '@/layouts/DashboardLayout';
@@ -83,6 +83,9 @@ import {
   TwitterIcon,
   WhatsappIcon
 } from 'react-share';
+
+// Lazy load the map component for better performance
+const LeafletMap = lazy(() => import('@/components/LeafletMap'));
 
 interface Event {
   id: number;
