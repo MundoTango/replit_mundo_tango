@@ -38,7 +38,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import ReactImageGallery from 'react-image-gallery';
 import 'react-image-gallery/styles/css/image-gallery.css';
 import { Tooltip } from 'react-tooltip';
-import { ExportToCsv } from 'export-to-csv';
+import { mkConfig, generateCsv, download } from 'export-to-csv';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import LazyLoad from 'react-lazyload';
@@ -248,7 +248,7 @@ export default function EnhancedEventsPage() {
 
   // Export to CSV
   const exportEventsToCSV = () => {
-    const options = {
+    const csvConfig = mkConfig({
       fieldSeparator: ',',
       quoteStrings: '"',
       decimalSeparator: '.',
@@ -257,20 +257,29 @@ export default function EnhancedEventsPage() {
       title: 'Mundo Tango Events',
       useTextFile: false,
       useBom: true,
-      headers: ['Title', 'Date', 'Location', 'Category', 'Price', 'Attendees']
-    };
+      useKeysAsHeaders: true,
+      columnHeaders: [
+        { key: 'title', displayLabel: 'Title' },
+        { key: 'date', displayLabel: 'Date' },
+        { key: 'location', displayLabel: 'Location' },
+        { key: 'category', displayLabel: 'Category' },
+        { key: 'price', displayLabel: 'Price' },
+        { key: 'attendees', displayLabel: 'Attendees' }
+      ]
+    });
 
-    const csvExporter = new ExportToCsv(options);
     const csvData = events.map(event => ({
-      Title: event.title,
-      Date: moment(event.startDate).format('YYYY-MM-DD HH:mm'),
-      Location: event.location || 'TBD',
-      Category: event.category || event.eventType || 'Event',
-      Price: event.price ? `${event.currency || '$'}${event.price}` : 'Free',
-      Attendees: `${event.currentAttendees || 0}/${event.maxAttendees || '∞'}`
+      title: event.title,
+      date: moment(event.startDate).format('YYYY-MM-DD HH:mm'),
+      location: event.location || 'TBD',
+      category: event.category || event.eventType || 'Event',
+      price: event.price ? `${event.currency || '$'}${event.price}` : 'Free',
+      attendees: `${event.currentAttendees || 0}/${event.maxAttendees || '∞'}`
     }));
 
-    csvExporter.generateCsv(csvData);
+    const csv = generateCsv(csvConfig)(csvData);
+    download(csvConfig)(csv);
+    
     toast({
       title: "Exported!",
       description: `Successfully exported ${events.length} events`,
@@ -280,12 +289,15 @@ export default function EnhancedEventsPage() {
   // Calendar events formatting
   const calendarEvents = useMemo(() => {
     return events.map(event => ({
-      id: event.id,
+      id: event.id.toString(), // Convert to string for FullCalendar
       title: event.title,
       start: new Date(event.startDate),
       end: event.endDate ? new Date(event.endDate) : new Date(event.startDate),
-      resource: event,
-      color: categoryColors[event.category || 'social']
+      extendedProps: {
+        resource: event
+      },
+      backgroundColor: categoryColors[event.category || 'social'],
+      borderColor: categoryColors[event.category || 'social']
     }));
   }, [events]);
 
