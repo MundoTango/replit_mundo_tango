@@ -42,6 +42,8 @@ import { apiRequest } from '@/lib/queryClient';
 import UploadMedia from '@/components/UploadMedia';
 import GoogleMapsAutocomplete from '@/components/maps/GoogleMapsAutocomplete';
 import CreateEventDialog from '@/components/events/CreateEventDialog';
+import EventsCalendar from '@/components/events/EventsCalendar';
+import EventListWithInfiniteScroll from '@/components/events/EventListWithInfiniteScroll';
 
 interface Event {
   id: number;
@@ -84,6 +86,7 @@ export default function EventsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'my' | 'attending' | 'nearby'>('all');
   const [activeTab, setActiveTab] = useState('upcoming');
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   
   // Advanced filters
   const [eventTypeFilter, setEventTypeFilter] = useState('all');
@@ -840,6 +843,33 @@ export default function EventsPage() {
           </CardContent>
         </Card>
 
+        {/* View Mode Toggle */}
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+            {activeTab === 'upcoming' ? 'Upcoming Events' : activeTab === 'this-week' ? 'This Week' : 'Past Events'}
+          </h2>
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className={viewMode === 'list' ? 'bg-gradient-to-r from-turquoise-500 to-cyan-600' : ''}
+            >
+              <List className="h-4 w-4 mr-2" />
+              List View
+            </Button>
+            <Button
+              variant={viewMode === 'calendar' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('calendar')}
+              className={viewMode === 'calendar' ? 'bg-gradient-to-r from-turquoise-500 to-cyan-600' : ''}
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Calendar View
+            </Button>
+          </div>
+        </div>
+
         {/* Event Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3">
@@ -849,61 +879,31 @@ export default function EventsPage() {
           </TabsList>
           
           <TabsContent value={activeTab} className="mt-6">
-            {/* Events Grid */}
-            <div className="space-y-6">
-              {isLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <Card key={i}>
-                      <CardContent className="p-4">
-                        <div className="animate-pulse space-y-4">
-                          <div className="h-48 bg-gray-200 rounded"></div>
-                          <div className="space-y-2">
-                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : events?.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {events.map((event: Event) => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      onEdit={handleEditEvent}
-                      onShare={handleShareEvent}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="p-12 text-center">
-                    <div className="space-y-4">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                        <Calendar className="h-8 w-8 text-gray-400" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">No events found</h3>
-                      <p className="text-gray-600 max-w-md mx-auto">
-                        {filterBy === 'my' 
-                          ? "You haven't created any events yet. Create your first tango event to get started!"
-                          : "No events match your current filters. Try adjusting your search or create a new event."
-                        }
-                      </p>
-                      <Button 
-                        onClick={() => setShowCreateForm(true)}
-                        className="bg-gradient-to-r from-turquoise-500 to-cyan-600"
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Event
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+            {viewMode === 'calendar' ? (
+              <EventsCalendar 
+                events={events || []}
+                onEventClick={(event) => window.location.href = `/events/${event.id}`}
+                onDateClick={(date) => {
+                  setShowCreateForm(true);
+                  setNewEvent(prev => ({
+                    ...prev,
+                    startDate: format(date, "yyyy-MM-dd'T'HH:mm")
+                  }));
+                }}
+              />
+            ) : (
+              <EventListWithInfiniteScroll
+                filters={{
+                  eventType: eventTypeFilter === 'all' ? undefined : eventTypeFilter,
+                  level: levelFilter === 'all' ? undefined : levelFilter,
+                  priceRange: priceFilter === 'all' ? undefined : priceFilter,
+                  virtual: showVirtualOnly || undefined,
+                  recurring: showRecurringOnly || undefined,
+                  search: searchQuery || undefined,
+                }}
+                onEventClick={(event) => window.location.href = `/events/${event.id}`}
+              />
+            )}
           </TabsContent>
         </Tabs>
 

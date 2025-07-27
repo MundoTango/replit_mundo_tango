@@ -33,12 +33,27 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { apiRequest } from '@/lib/queryClient';
+import ImageGallery from 'react-image-gallery';
+import 'react-image-gallery/styles/css/image-gallery.css';
+import {
+  FacebookShareButton,
+  TwitterShareButton,
+  WhatsappShareButton,
+  LinkedinShareButton,
+  FacebookIcon,
+  TwitterIcon,
+  WhatsappIcon,
+  LinkedinIcon,
+} from 'react-share';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 
 interface EventDetail {
   id: number;
   title: string;
   description?: string;
   imageUrl?: string;
+  images?: string[];
   location?: string;
   startDate: string;
   endDate?: string;
@@ -198,10 +213,14 @@ export default function EventDetailPage() {
       {/* Event Header */}
       <Card className="mb-8 overflow-hidden">
         {event.imageUrl && (
-          <div 
-            className="h-64 lg:h-96 bg-cover bg-center relative"
-            style={{ backgroundImage: `url(${event.imageUrl})` }}
-          >
+          <div className="h-64 lg:h-96 relative overflow-hidden">
+            <LazyLoadImage
+              src={event.imageUrl}
+              alt={event.title}
+              effect="blur"
+              className="absolute inset-0 w-full h-full object-cover"
+              wrapperClassName="absolute inset-0"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
             
             {/* Event Badges */}
@@ -345,6 +364,34 @@ export default function EventDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Event Gallery */}
+          {event.images && event.images.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Event Photos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ImageGallery
+                  items={event.images.map((image, index) => ({
+                    original: image,
+                    thumbnail: image,
+                    description: `Event photo ${index + 1}`,
+                    originalClass: 'rounded-lg',
+                    thumbnailClass: 'rounded',
+                  }))}
+                  showPlayButton={false}
+                  showFullscreenButton={true}
+                  showNav={true}
+                  showThumbnails={event.images.length > 1}
+                  lazyLoad={true}
+                  slideInterval={3000}
+                  slideDuration={450}
+                  additionalClass="glassmorphic-gallery"
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Event Tabs */}
           <Card>
@@ -522,6 +569,68 @@ export default function EventDetailPage() {
                   </Button>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Social Sharing */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Share this event</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-4 gap-2">
+                <FacebookShareButton
+                  url={window.location.href}
+                  title={event.title}
+                  className="hover:opacity-80 transition-opacity"
+                >
+                  <FacebookIcon size={40} round />
+                </FacebookShareButton>
+                
+                <TwitterShareButton
+                  url={window.location.href}
+                  title={event.title}
+                  hashtags={['MundoTango', event.eventType || 'tango']}
+                  className="hover:opacity-80 transition-opacity"
+                >
+                  <TwitterIcon size={40} round />
+                </TwitterShareButton>
+                
+                <WhatsappShareButton
+                  url={window.location.href}
+                  title={event.title}
+                  separator=" - "
+                  className="hover:opacity-80 transition-opacity"
+                >
+                  <WhatsappIcon size={40} round />
+                </WhatsappShareButton>
+                
+                <LinkedinShareButton
+                  url={window.location.href}
+                  title={event.title}
+                  summary={event.description}
+                  source="Mundo Tango"
+                  className="hover:opacity-80 transition-opacity"
+                >
+                  <LinkedinIcon size={40} round />
+                </LinkedinShareButton>
+              </div>
+              
+              <div className="mt-4">
+                <Input
+                  value={window.location.href}
+                  readOnly
+                  className="text-sm"
+                  onClick={(e) => {
+                    e.currentTarget.select();
+                    navigator.clipboard.writeText(window.location.href);
+                    toast({
+                      title: "Link copied!",
+                      description: "Event link has been copied to clipboard.",
+                    });
+                  }}
+                />
+              </div>
             </CardContent>
           </Card>
 
