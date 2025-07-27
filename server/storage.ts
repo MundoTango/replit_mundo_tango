@@ -16,6 +16,9 @@ import {
   mediaTags,
   mediaUsage,
   friends,
+  friendRequests,
+  friendshipActivities,
+  friendshipMedia,
   memoryMedia,
   roles,
   userRoles,
@@ -60,6 +63,12 @@ import {
   type InsertMediaUsage,
   type Friend,
   type InsertFriend,
+  type FriendRequest,
+  type InsertFriendRequest,
+  type FriendshipActivity,
+  type InsertFriendshipActivity,
+  type FriendshipMedia,
+  type InsertFriendshipMedia,
   type MemoryMedia,
   type InsertMemoryMedia,
   type Story,
@@ -213,6 +222,27 @@ export interface IStorage {
   markMessageAsRead(messageId: number, userId: number): Promise<void>;
   createOrGetChatRoom(userId1: number, userId2: number): Promise<ChatRoom>;
   createFriendship(friendship: InsertFriend): Promise<Friend>;
+  
+  // Friend Request methods
+  createFriendRequest(request: InsertFriendRequest): Promise<FriendRequest>;
+  getFriendRequest(senderId: number, receiverId: number): Promise<FriendRequest | undefined>;
+  getFriendRequestById(id: number): Promise<FriendRequest | undefined>;
+  getSentFriendRequests(userId: number): Promise<FriendRequest[]>;
+  getReceivedFriendRequests(userId: number): Promise<FriendRequest[]>;
+  updateFriendRequest(id: number, updates: Partial<FriendRequest>): Promise<FriendRequest>;
+  acceptFriendRequest(requestId: number, receiverPrivateNote?: string, receiverMessage?: string): Promise<Friend>;
+  rejectFriendRequest(requestId: number): Promise<void>;
+  snoozeFriendRequest(requestId: number, snoozedUntil: Date): Promise<void>;
+  createFriendshipMedia(media: InsertFriendshipMedia): Promise<FriendshipMedia>;
+  getFriendshipMedia(friendRequestId?: number, friendshipId?: number): Promise<FriendshipMedia[]>;
+  createFriendshipActivity(activity: InsertFriendshipActivity): Promise<FriendshipActivity>;
+  getFriendshipActivities(friendshipId: number): Promise<FriendshipActivity[]>;
+  updateFriendshipCloseness(friendshipId: number): Promise<void>;
+  getFriendship(userId1: number, userId2: number): Promise<Friend | undefined>;
+  getFriendshipWithDetails(userId1: number, userId2: number): Promise<any>;
+  getConnectionDegree(userId1: number, userId2: number): Promise<number>;
+  getMutualFriends(userId1: number, userId2: number): Promise<User[]>;
+  getCommonEvents(userId1: number, userId2: number): Promise<Event[]>;
   getUserMedia(userId: number): Promise<MediaAsset[]>;
   createMemoryMedia(memoryMedia: InsertMemoryMedia): Promise<MemoryMedia>;
   getMemoryMedia(memoryId: number): Promise<any[]>;
@@ -1300,6 +1330,276 @@ export class DatabaseStorage implements IStorage {
   async createFriendship(friendship: InsertFriend): Promise<Friend> {
     const [newFriendship] = await db.insert(friends).values(friendship).returning();
     return newFriendship;
+  }
+
+  // Friend Request implementations
+  async createFriendRequest(request: InsertFriendRequest): Promise<FriendRequest> {
+    const [newRequest] = await db.insert(friendRequests).values(request).returning();
+    return newRequest;
+  }
+
+  async getFriendRequest(senderId: number, receiverId: number): Promise<FriendRequest | undefined> {
+    const result = await db
+      .select()
+      .from(friendRequests)
+      .where(
+        or(
+          and(
+            eq(friendRequests.senderId, senderId),
+            eq(friendRequests.receiverId, receiverId)
+          ),
+          and(
+            eq(friendRequests.senderId, receiverId),
+            eq(friendRequests.receiverId, senderId)
+          )
+        )
+      )
+      .limit(1);
+    return result[0];
+  }
+
+  async getFriendRequestById(id: number): Promise<FriendRequest | undefined> {
+    const result = await db
+      .select()
+      .from(friendRequests)
+      .where(eq(friendRequests.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getSentFriendRequests(userId: number): Promise<FriendRequest[]> {
+    return await db
+      .select()
+      .from(friendRequests)
+      .where(eq(friendRequests.senderId, userId))
+      .orderBy(desc(friendRequests.createdAt));
+  }
+
+  async getReceivedFriendRequests(userId: number): Promise<FriendRequest[]> {
+    return await db
+      .select()
+      .from(friendRequests)
+      .where(eq(friendRequests.receiverId, userId))
+      .orderBy(desc(friendRequests.createdAt));
+  }
+
+  async updateFriendRequest(id: number, updates: Partial<FriendRequest>): Promise<FriendRequest> {
+    const [updated] = await db
+      .update(friendRequests)
+      .set(updates)
+      .where(eq(friendRequests.id, id))
+      .returning();
+    return updated;
+  }
+
+  async acceptFriendRequest(requestId: number, receiverPrivateNote?: string, receiverMessage?: string): Promise<Friend> {
+    // Get the friend request
+    const request = await this.getFriendRequestById(requestId);
+    if (!request) {
+      throw new Error('Friend request not found');
+    }
+
+    // Update the friend request status
+    await this.updateFriendRequest(requestId, {
+      status: 'accepted',
+      receiverPrivateNote,
+      receiverMessage,
+      respondedAt: new Date()
+    });
+
+    // Create the friendship
+    const friendship = await this.createFriendship({
+      userId1: request.senderId,
+      userId2: request.receiverId,
+      friendRequestId: requestId,
+      connectionStrength: 1.0
+    });
+
+    // Create initial friendship activity
+    await this.createFriendshipActivity({
+      friendshipId: friendship.id,
+      activityType: 'became_friends',
+      userId: request.senderId,
+      targetUserId: request.receiverId,
+      metadata: { friendRequestId: requestId }
+    });
+
+    return friendship;
+  }
+
+  async rejectFriendRequest(requestId: number): Promise<void> {
+    await this.updateFriendRequest(requestId, {
+      status: 'rejected'
+    });
+  }
+
+  async snoozeFriendRequest(requestId: number, snoozedUntil: Date): Promise<void> {
+    await this.updateFriendRequest(requestId, {
+      status: 'snoozed',
+      snoozedUntil
+    });
+  }
+
+  async createFriendshipMedia(media: InsertFriendshipMedia): Promise<FriendshipMedia> {
+    const [newMedia] = await db.insert(friendshipMedia).values(media).returning();
+    return newMedia;
+  }
+
+  async getFriendshipMedia(friendRequestId?: number, friendshipId?: number): Promise<FriendshipMedia[]> {
+    let query = db.select().from(friendshipMedia);
+    
+    if (friendRequestId) {
+      query = query.where(eq(friendshipMedia.friendRequestId, friendRequestId));
+    }
+    
+    if (friendshipId) {
+      query = query.where(eq(friendshipMedia.friendshipId, friendshipId));
+    }
+    
+    return await query;
+  }
+
+  async createFriendshipActivity(activity: InsertFriendshipActivity): Promise<FriendshipActivity> {
+    const [newActivity] = await db.insert(friendshipActivities).values(activity).returning();
+    return newActivity;
+  }
+
+  async getFriendshipActivities(friendshipId: number): Promise<FriendshipActivity[]> {
+    return await db
+      .select()
+      .from(friendshipActivities)
+      .where(eq(friendshipActivities.friendshipId, friendshipId))
+      .orderBy(desc(friendshipActivities.createdAt));
+  }
+
+  async updateFriendshipCloseness(friendshipId: number): Promise<void> {
+    // Calculate closeness based on activities
+    const activities = await this.getFriendshipActivities(friendshipId);
+    
+    // Simple algorithm: each activity adds to closeness
+    const activityWeights: Record<string, number> = {
+      became_friends: 1.0,
+      danced_together: 2.0,
+      attended_event: 1.5,
+      messaged: 0.5,
+      shared_memory: 2.5,
+      recommended: 1.5
+    };
+    
+    let totalScore = 1.0; // Base score for being friends
+    activities.forEach(activity => {
+      totalScore += activityWeights[activity.activityType] || 0.5;
+    });
+    
+    // Normalize to 0-10 range
+    const closeness = Math.min(10, totalScore);
+    
+    await db
+      .update(friends)
+      .set({ connectionStrength: closeness })
+      .where(eq(friends.id, friendshipId));
+  }
+
+  async getFriendship(userId1: number, userId2: number): Promise<Friend | undefined> {
+    const result = await db
+      .select()
+      .from(friends)
+      .where(
+        or(
+          and(
+            eq(friends.userId1, userId1),
+            eq(friends.userId2, userId2)
+          ),
+          and(
+            eq(friends.userId1, userId2),
+            eq(friends.userId2, userId1)
+          )
+        )
+      )
+      .limit(1);
+    return result[0];
+  }
+
+  async getFriendshipWithDetails(userId1: number, userId2: number): Promise<any> {
+    const friendship = await this.getFriendship(userId1, userId2);
+    if (!friendship) return null;
+
+    const activities = await this.getFriendshipActivities(friendship.id);
+    const media = await this.getFriendshipMedia(undefined, friendship.id);
+    
+    return {
+      ...friendship,
+      activities,
+      media,
+      mutualFriends: await this.getMutualFriends(userId1, userId2),
+      commonEvents: await this.getCommonEvents(userId1, userId2)
+    };
+  }
+
+  async getConnectionDegree(userId1: number, userId2: number): Promise<number> {
+    // Direct friends = 1st degree
+    const directFriend = await this.getFriendship(userId1, userId2);
+    if (directFriend) return 1;
+
+    // Check for 2nd degree (friends of friends)
+    const user1Friends = await this.getUserFriends(userId1);
+    const user2Friends = await this.getUserFriends(userId2);
+    
+    const user1FriendIds = user1Friends.map(f => f.id);
+    const user2FriendIds = user2Friends.map(f => f.id);
+    
+    const commonFriends = user1FriendIds.filter(id => user2FriendIds.includes(id));
+    if (commonFriends.length > 0) return 2;
+
+    // Check for 3rd degree
+    for (const friendId of user1FriendIds) {
+      const friendsOfFriend = await this.getUserFriends(friendId);
+      if (friendsOfFriend.some(f => f.id === userId2)) return 3;
+    }
+
+    // Not connected within 3 degrees
+    return -1;
+  }
+
+  async getMutualFriends(userId1: number, userId2: number): Promise<User[]> {
+    const user1Friends = await this.getUserFriends(userId1);
+    const user2Friends = await this.getUserFriends(userId2);
+    
+    const user1FriendIds = user1Friends.map(f => f.id);
+    const user2FriendIds = user2Friends.map(f => f.id);
+    
+    const mutualIds = user1FriendIds.filter(id => user2FriendIds.includes(id));
+    
+    if (mutualIds.length === 0) return [];
+    
+    return await db
+      .select()
+      .from(users)
+      .where(inArray(users.id, mutualIds));
+  }
+
+  async getCommonEvents(userId1: number, userId2: number): Promise<Event[]> {
+    const user1Events = await db
+      .select({ eventId: eventParticipants.eventId })
+      .from(eventParticipants)
+      .where(eq(eventParticipants.userId, userId1));
+    
+    const user2Events = await db
+      .select({ eventId: eventParticipants.eventId })
+      .from(eventParticipants)
+      .where(eq(eventParticipants.userId, userId2));
+    
+    const user1EventIds = user1Events.map(e => e.eventId);
+    const user2EventIds = user2Events.map(e => e.eventId);
+    
+    const commonEventIds = user1EventIds.filter(id => user2EventIds.includes(id));
+    
+    if (commonEventIds.length === 0) return [];
+    
+    return await db
+      .select()
+      .from(events)
+      .where(inArray(events.id, commonEventIds));
   }
 
   async getUserMedia(userId: number): Promise<MediaAsset[]> {

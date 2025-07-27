@@ -30,6 +30,7 @@ import searchRouter from "./routes/searchRoutes";
 import { CityAutoCreationService } from './services/cityAutoCreationService';
 import { cacheMiddleware, invalidateCacheAfter } from "./middleware/cacheMiddleware";
 import metricsRouter from "./routes/metrics";
+import { getUserId } from "./utils/authHelper";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Import Life CEO learnings routes
@@ -4747,6 +4748,270 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error marking message as read:", error);
       res.status(500).json({ error: "Failed to mark message as read" });
+    }
+  });
+
+  // Friend Request endpoints
+  app.post("/api/friend-requests/send", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { 
+        receiverId, 
+        didWeDance, 
+        danceLocation, 
+        danceEventId,
+        danceStory,
+        senderPrivateNote,
+        senderMessage,
+        mediaUrls
+      } = req.body;
+
+      if (!receiverId) {
+        return res.status(400).json({ error: "Receiver ID is required" });
+      }
+
+      // Check if already friends
+      const existingFriendship = await storage.getFriendship(userId, receiverId);
+      if (existingFriendship) {
+        return res.status(400).json({ error: "Already friends with this user" });
+      }
+
+      // Check if request already exists
+      const existingRequest = await storage.getFriendRequest(userId, receiverId);
+      if (existingRequest && existingRequest.status === 'pending') {
+        return res.status(400).json({ error: "Friend request already sent" });
+      }
+
+      // Create friend request
+      const friendRequest = await storage.createFriendRequest({
+        senderId: userId,
+        receiverId,
+        didWeDance,
+        danceLocation,
+        danceEventId,
+        danceStory,
+        senderPrivateNote,
+        senderMessage,
+        mediaUrls: mediaUrls || [],
+        status: 'pending'
+      });
+
+      // Attach media URLs if provided
+      if (mediaUrls && mediaUrls.length > 0) {
+        // Store media URLs directly in the friend request
+        // The mediaUrls field is already part of the friendRequests table
+      }
+
+      // Send WebSocket notification
+      const { getWebSocketService } = await import('./services/websocketService');
+      const wsService = getWebSocketService();
+      if (wsService) {
+        wsService.sendNotification(receiverId, {
+          type: 'friend_request',
+          title: 'New Friend Request',
+          message: senderMessage || 'You have a new friend request!'
+        });
+      }
+
+      res.json({ success: true, data: friendRequest });
+    } catch (error) {
+      console.error("Error sending friend request:", error);
+      res.status(500).json({ error: "Failed to send friend request" });
+    }
+  });
+
+  app.get("/api/friend-requests/sent", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const sentRequests = await storage.getSentFriendRequests(userId);
+      res.json({ success: true, data: sentRequests });
+    } catch (error) {
+      console.error("Error getting sent friend requests:", error);
+      res.status(500).json({ error: "Failed to get sent friend requests" });
+    }
+  });
+
+  app.get("/api/friend-requests/received", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const receivedRequests = await storage.getReceivedFriendRequests(userId);
+      
+      // Enrich with sender info and media
+      const enrichedRequests = await Promise.all(
+        receivedRequests.map(async (request) => {
+          const sender = await storage.getUser(request.senderId);
+          const media = await storage.getFriendshipMedia(request.id);
+          return {
+            ...request,
+            sender,
+            media
+          };
+        })
+      );
+
+      res.json({ success: true, data: enrichedRequests });
+    } catch (error) {
+      console.error("Error getting received friend requests:", error);
+      res.status(500).json({ error: "Failed to get received friend requests" });
+    }
+  });
+
+  app.post("/api/friend-requests/:requestId/accept", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { requestId } = req.params;
+      const { receiverPrivateNote, receiverMessage } = req.body;
+
+      // Verify the request is for this user
+      const request = await storage.getFriendRequestById(Number(requestId));
+      if (!request || request.receiverId !== userId) {
+        return res.status(404).json({ error: "Friend request not found" });
+      }
+
+      const friendship = await storage.acceptFriendRequest(
+        Number(requestId),
+        receiverPrivateNote,
+        receiverMessage
+      );
+
+      // Send WebSocket notification to sender
+      const { getWebSocketService } = await import('./services/websocketService');
+      const wsService = getWebSocketService();
+      if (wsService) {
+        wsService.sendNotification(request.senderId, {
+          type: 'friend_request_accepted',
+          title: 'Friend Request Accepted',
+          message: 'Your friend request has been accepted!'
+        });
+      }
+
+      res.json({ success: true, data: friendship });
+    } catch (error) {
+      console.error("Error accepting friend request:", error);
+      res.status(500).json({ error: "Failed to accept friend request" });
+    }
+  });
+
+  app.post("/api/friend-requests/:requestId/reject", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { requestId } = req.params;
+
+      // Verify the request is for this user
+      const request = await storage.getFriendRequestById(Number(requestId));
+      if (!request || request.receiverId !== userId) {
+        return res.status(404).json({ error: "Friend request not found" });
+      }
+
+      await storage.rejectFriendRequest(Number(requestId));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error rejecting friend request:", error);
+      res.status(500).json({ error: "Failed to reject friend request" });
+    }
+  });
+
+  app.post("/api/friend-requests/:requestId/snooze", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { requestId } = req.params;
+      const { snoozedUntil } = req.body;
+
+      if (!snoozedUntil) {
+        return res.status(400).json({ error: "Snoozed until date is required" });
+      }
+
+      // Verify the request is for this user
+      const request = await storage.getFriendRequestById(Number(requestId));
+      if (!request || request.receiverId !== userId) {
+        return res.status(404).json({ error: "Friend request not found" });
+      }
+
+      await storage.snoozeFriendRequest(Number(requestId), new Date(snoozedUntil));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error snoozing friend request:", error);
+      res.status(500).json({ error: "Failed to snooze friend request" });
+    }
+  });
+
+  app.get("/api/friendships/:userId/details", setUserContext, async (req, res) => {
+    try {
+      const currentUserId = getUserId(req);
+      if (!currentUserId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { userId } = req.params;
+      const friendshipDetails = await storage.getFriendshipWithDetails(
+        currentUserId,
+        Number(userId)
+      );
+
+      res.json({ success: true, data: friendshipDetails });
+    } catch (error) {
+      console.error("Error getting friendship details:", error);
+      res.status(500).json({ error: "Failed to get friendship details" });
+    }
+  });
+
+  app.get("/api/users/:userId/connection-degree", setUserContext, async (req, res) => {
+    try {
+      const currentUserId = getUserId(req);
+      if (!currentUserId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { userId } = req.params;
+      const degree = await storage.getConnectionDegree(currentUserId, Number(userId));
+
+      res.json({ success: true, data: { degree } });
+    } catch (error) {
+      console.error("Error getting connection degree:", error);
+      res.status(500).json({ error: "Failed to get connection degree" });
+    }
+  });
+
+  app.get("/api/users/:userId/mutual-friends", setUserContext, async (req, res) => {
+    try {
+      const currentUserId = getUserId(req);
+      if (!currentUserId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { userId } = req.params;
+      const mutualFriends = await storage.getMutualFriends(currentUserId, Number(userId));
+
+      res.json({ success: true, data: mutualFriends });
+    } catch (error) {
+      console.error("Error getting mutual friends:", error);
+      res.status(500).json({ error: "Failed to get mutual friends" });
     }
   });
 

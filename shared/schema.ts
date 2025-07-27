@@ -669,10 +669,77 @@ export const friends = pgTable("friends", {
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   friendId: integer("friend_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'blocked'
+  connectionDegree: integer("connection_degree").default(1), // 1st, 2nd, 3rd degree
+  closenessScore: real("closeness_score").default(0), // 0-100 based on interactions
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
   uniqueFriendship: unique().on(table.userId, table.friendId),
+}));
+
+// Friend Requests table with detailed information
+export const friendRequests = pgTable("friend_requests", {
+  id: serial("id").primaryKey(),
+  senderId: integer("sender_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  receiverId: integer("receiver_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'rejected', 'snoozed'
+  // Dance information
+  didWeDance: boolean("did_we_dance"),
+  danceLocation: text("dance_location"), // Event or city name
+  danceEventId: integer("dance_event_id").references(() => events.id),
+  danceStory: text("dance_story"),
+  // Media attachments
+  mediaUrls: text("media_urls").array().default([]),
+  // Private notes (not visible to other party)
+  senderPrivateNote: text("sender_private_note"),
+  receiverPrivateNote: text("receiver_private_note"),
+  // Messages
+  senderMessage: text("sender_message"),
+  receiverMessage: text("receiver_message"),
+  // Snooze functionality
+  snoozedUntil: timestamp("snoozed_until"),
+  snoozeReminderSent: boolean("snooze_reminder_sent").default(false),
+  // Timestamps
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+  respondedAt: timestamp("responded_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueRequest: unique().on(table.senderId, table.receiverId),
+  idxSender: index("idx_friend_requests_sender").on(table.senderId),
+  idxReceiver: index("idx_friend_requests_receiver").on(table.receiverId),
+  idxStatus: index("idx_friend_requests_status").on(table.status),
+  idxSnoozed: index("idx_friend_requests_snoozed").on(table.snoozedUntil),
+}));
+
+// Friendship Activities table to track all interactions
+export const friendshipActivities = pgTable("friendship_activities", {
+  id: serial("id").primaryKey(),
+  friendshipId: integer("friendship_id").notNull().references(() => friends.id, { onDelete: "cascade" }),
+  activityType: text("activity_type").notNull(), // 'post_tag', 'comment', 'like', 'event_together', 'message'
+  activityData: jsonb("activity_data").default({}), // Store relevant data for each activity type
+  points: integer("points").default(1), // Weight for closeness calculation
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  idxFriendship: index("idx_friendship_activities_friendship").on(table.friendshipId),
+  idxType: index("idx_friendship_activities_type").on(table.activityType),
+  idxCreatedAt: index("idx_friendship_activities_created").on(table.createdAt),
+}));
+
+// Friendship Media table for photos/videos shared in friend requests
+export const friendshipMedia = pgTable("friendship_media", {
+  id: serial("id").primaryKey(),
+  friendRequestId: integer("friend_request_id").references(() => friendRequests.id, { onDelete: "cascade" }),
+  friendshipId: integer("friendship_id").references(() => friends.id, { onDelete: "cascade" }),
+  uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
+  mediaUrl: text("media_url").notNull(),
+  mediaType: text("media_type").notNull(), // 'photo', 'video'
+  caption: text("caption"),
+  phase: text("phase").notNull().default("request"), // 'request', 'acceptance', 'friendship'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  idxRequest: index("idx_friendship_media_request").on(table.friendRequestId),
+  idxFriendship: index("idx_friendship_media_friendship").on(table.friendshipId),
 }));
 
 // Memories table
@@ -831,6 +898,23 @@ export const insertFriendSchema = createInsertSchema(friends).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertFriendRequestSchema = createInsertSchema(friendRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  sentAt: true,
+});
+
+export const insertFriendshipActivitySchema = createInsertSchema(friendshipActivities).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertFriendshipMediaSchema = createInsertSchema(friendshipMedia).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertMemoryMediaSchema = createInsertSchema(memoryMedia).omit({
@@ -1201,6 +1285,12 @@ export type MediaUsage = typeof mediaUsage.$inferSelect;
 export type InsertMediaUsage = z.infer<typeof insertMediaUsageSchema>;
 export type Friend = typeof friends.$inferSelect;
 export type InsertFriend = z.infer<typeof insertFriendSchema>;
+export type FriendRequest = typeof friendRequests.$inferSelect;
+export type InsertFriendRequest = z.infer<typeof insertFriendRequestSchema>;
+export type FriendshipActivity = typeof friendshipActivities.$inferSelect;
+export type InsertFriendshipActivity = z.infer<typeof insertFriendshipActivitySchema>;
+export type FriendshipMedia = typeof friendshipMedia.$inferSelect;
+export type InsertFriendshipMedia = z.infer<typeof insertFriendshipMediaSchema>;
 export type MemoryMedia = typeof memoryMedia.$inferSelect;
 export type InsertMemoryMedia = z.infer<typeof insertMemoryMediaSchema>;
 export type UserProfile = typeof userProfiles.$inferSelect;
