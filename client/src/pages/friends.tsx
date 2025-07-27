@@ -57,74 +57,27 @@ export default function FriendsPage() {
   const [searchResults, setSearchResults] = useState<Friend[]>([]);
   const { toast } = useToast();
 
-  // Mock data for demonstration
-  const mockFriends: Friend[] = [
-    {
-      id: '1',
-      name: 'Maria Rodriguez',
-      username: 'maria_tango',
-      profileImage: undefined,
-      location: 'Buenos Aires, Argentina',
-      tangoRoles: ['dancer', 'teacher'],
-      isOnline: true,
-      mutualFriends: 12
-    },
-    {
-      id: '2',
-      name: 'Carlos Mendez',
-      username: 'carlos_milonga',
-      profileImage: undefined,
-      location: 'Madrid, Spain',
-      tangoRoles: ['organizer', 'dancer'],
-      isOnline: false,
-      lastSeen: '2 hours ago',
-      mutualFriends: 8
-    },
-    {
-      id: '3',
-      name: 'Ana Silva',
-      username: 'ana_tango_dj',
-      profileImage: undefined,
-      location: 'São Paulo, Brazil',
-      tangoRoles: ['dj', 'dancer'],
-      isOnline: false,
-      lastSeen: '1 day ago',
-      mutualFriends: 5
-    }
-  ];
+  // Fetch friends data
+  const { data: friendsData, isLoading: friendsLoading } = useQuery({
+    queryKey: ['/api/friends'],
+    enabled: true
+  });
 
-  const mockRequests: FriendRequest[] = [
-    {
-      id: '1',
-      user_id: 4,
-      friend_id: 1,
-      sender_notes: "Hi! I loved dancing with you at last night's milonga. Would love to connect!",
-      status: 'pending',
-      created_at: '2025-01-08T10:00:00Z',
-      friend_user: {
-        id: '4',
-        name: 'Sofia Fernandez',
-        username: 'sofia_tango',
-        location: 'Buenos Aires, Argentina',
-        tangoRoles: ['dancer', 'performer']
-      }
-    },
-    {
-      id: '2',
-      user_id: 5,
-      friend_id: 1,
-      sender_notes: "Hey! I'm organizing a new practica and would love to have you join our community.",
-      status: 'pending',
-      created_at: '2025-01-07T15:00:00Z',
-      friend_user: {
-        id: '5',
-        name: 'Diego Martinez',
-        username: 'diego_organizer',
-        location: 'Rosario, Argentina',
-        tangoRoles: ['organizer']
-      }
-    }
-  ];
+  // Fetch friend requests
+  const { data: requestsData, isLoading: requestsLoading } = useQuery({
+    queryKey: ['/api/friends/requests'],
+    enabled: true
+  });
+
+  // Fetch friend suggestions
+  const { data: suggestionsData } = useQuery({
+    queryKey: ['/api/friends/suggestions'],
+    enabled: activeTab === 'suggestions'
+  });
+
+  const friends = friendsData?.data || [];
+  const requests = requestsData?.data || [];
+  const suggestions = suggestionsData?.data || [];
 
   // Search for users to send friend requests
   const searchUsers = async (query: string) => {
@@ -243,15 +196,33 @@ export default function FriendsPage() {
   const getTabContent = () => {
     switch (activeTab) {
       case 'all':
-        return mockFriends;
+        return friends;
       case 'online':
-        return mockFriends.filter(f => f.isOnline);
+        return friends.filter(f => f.isOnline);
       case 'requests':
-        return mockRequests.filter(r => r.status === 'pending');
+        return requests.filter(r => r.status === 'pending');
+      case 'suggestions':
+        return suggestions;
       default:
         return [];
     }
   };
+
+  // Show loading state
+  if (friendsLoading || requestsLoading) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-6xl mx-auto p-6">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-turquoise-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading friends...</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -264,7 +235,7 @@ export default function FriendsPage() {
           </div>
           <Button
             onClick={() => setShowSendRequestModal(true)}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+            className="bg-gradient-to-r from-turquoise-400 to-cyan-500 hover:from-turquoise-500 hover:to-cyan-600 text-white"
           >
             <UserPlus className="w-4 h-4 mr-2" />
             Add Friends
@@ -273,43 +244,43 @@ export default function FriendsPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <Card className="p-4 bg-gradient-to-r from-turquoise-50 to-cyan-50 glassmorphic-card">
             <div className="flex items-center gap-3">
-              <Users className="w-8 h-8 text-indigo-600" />
+              <Users className="w-8 h-8 text-turquoise-600" />
               <div>
-                <p className="text-2xl font-bold text-gray-900">{mockFriends.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{friends.length}</p>
                 <p className="text-sm text-gray-600">Total Friends</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-gradient-to-r from-green-50 to-emerald-50">
+          <Card className="p-4 bg-gradient-to-r from-turquoise-50 to-blue-50 glassmorphic-card">
             <div className="flex items-center gap-3">
-              <Globe className="w-8 h-8 text-emerald-600" />
+              <Globe className="w-8 h-8 text-cyan-600" />
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {mockFriends.filter(f => f.isOnline).length}
+                  {friends.filter(f => f.isOnline).length}
                 </p>
                 <p className="text-sm text-gray-600">Online Now</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-gradient-to-r from-pink-50 to-rose-50">
+          <Card className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 glassmorphic-card">
             <div className="flex items-center gap-3">
-              <Clock className="w-8 h-8 text-rose-600" />
+              <Clock className="w-8 h-8 text-blue-600" />
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {mockRequests.filter(r => r.status === 'pending').length}
+                  {requests.filter(r => r.status === 'pending').length}
                 </p>
                 <p className="text-sm text-gray-600">Pending Requests</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-gradient-to-r from-purple-50 to-violet-50">
+          <Card className="p-4 bg-gradient-to-r from-blue-50 to-turquoise-50 glassmorphic-card">
             <div className="flex items-center gap-3">
-              <Heart className="w-8 h-8 text-violet-600" />
+              <Heart className="w-8 h-8 text-cyan-600" />
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {mockFriends.reduce((sum, f) => sum + (f.mutualFriends || 0), 0)}
+                  {friends.reduce((sum, f) => sum + (f.mutualFriends || 0), 0)}
                 </p>
                 <p className="text-sm text-gray-600">Mutual Friends</p>
               </div>
@@ -337,7 +308,8 @@ export default function FriendsPage() {
             {[
               { id: 'all', label: 'All Friends', icon: Users },
               { id: 'online', label: 'Online', icon: Globe },
-              { id: 'requests', label: 'Requests', icon: Clock }
+              { id: 'requests', label: 'Requests', icon: Clock },
+              { id: 'suggestions', label: 'Suggestions', icon: UserPlus }
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -346,15 +318,15 @@ export default function FriendsPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 px-6 py-3 font-medium transition-colors ${
                     activeTab === tab.id
-                      ? 'text-indigo-600 border-b-2 border-indigo-600'
+                      ? 'text-turquoise-600 border-b-2 border-turquoise-600'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
                   {tab.label}
-                  {tab.id === 'requests' && mockRequests.filter(r => r.status === 'pending').length > 0 && (
+                  {tab.id === 'requests' && requests.filter(r => r.status === 'pending').length > 0 && (
                     <Badge className="ml-2 bg-rose-500 text-white">
-                      {mockRequests.filter(r => r.status === 'pending').length}
+                      {requests.filter(r => r.status === 'pending').length}
                     </Badge>
                   )}
                 </button>
@@ -367,11 +339,11 @@ export default function FriendsPage() {
             {activeTab === 'requests' ? (
               // Friend Requests Tab
               <div className="space-y-4">
-                {mockRequests.filter(r => r.status === 'pending').map((request) => (
+                {requests.filter(r => r.status === 'pending').map((request) => (
                   <Card key={request.id} className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="w-12 h-12 bg-gradient-to-r from-turquoise-400 to-cyan-400 rounded-full flex items-center justify-center text-white font-bold">
                           {request.friend_user?.name?.charAt(0) || 'U'}
                         </div>
                         <div>
@@ -436,7 +408,7 @@ export default function FriendsPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex gap-4">
                         <div className="relative">
-                          <div className="w-12 h-12 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold">
+                          <div className="w-12 h-12 bg-gradient-to-r from-turquoise-400 to-cyan-400 rounded-full flex items-center justify-center text-white font-bold">
                             {friend.name?.charAt(0) || 'U'}
                           </div>
                           {friend.isOnline && (
@@ -560,7 +532,7 @@ export default function FriendsPage() {
                 <Button
                   onClick={handleSendRequest}
                   disabled={!selectedUser || sendRequestMutation.isPending}
-                  className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                  className="flex-1 bg-gradient-to-r from-turquoise-500 to-cyan-600 hover:from-turquoise-600 hover:to-cyan-700 text-white"
                 >
                   <Send className="w-4 h-4 mr-2" />
                   Send Request
