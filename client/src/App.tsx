@@ -35,6 +35,7 @@ const Moments = lazy(() => import("@/pages/moments"));
 const Community = lazy(() => import("@/pages/community"));
 const Friends = lazy(() => import("@/pages/friends"));
 const EnhancedFriends = lazy(() => import("@/pages/EnhancedFriends"));
+const FriendshipPage = lazy(() => import("@/pages/FriendshipPage"));
 const Groups = lazy(() => import("@/pages/groups"));
 const Onboarding = lazy(() => import("@/pages/onboarding"));
 const CodeOfConduct = lazy(() => import("@/pages/code-of-conduct"));
@@ -219,6 +220,12 @@ function Router() {
           <Route path="/friends">
             <Suspense fallback={<LoadingFallback message="Loading friends..." />}>
               <EnhancedFriends />
+            </Suspense>
+          </Route>
+          
+          <Route path="/friendship/:friendId">
+            <Suspense fallback={<LoadingFallback message="Loading friendship details..." />}>
+              <FriendshipPage />
             </Suspense>
           </Route>
           

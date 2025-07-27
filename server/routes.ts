@@ -4751,6 +4751,186 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Friendship Understanding API Routes
+  app.get('/api/friendship/details/:friendId', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const friendId = parseInt(req.params.friendId);
+      const details = await storage.getFriendshipDetails(userId, friendId);
+      res.json(details);
+    } catch (error) {
+      console.error('Failed to get friendship details:', error);
+      res.status(500).json({ error: 'Failed to get friendship details' });
+    }
+  });
+
+  app.get('/api/friendship/timeline/:friendId', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const friendId = parseInt(req.params.friendId);
+      const timeline = await storage.getFriendshipTimeline(userId, friendId);
+      res.json(timeline);
+    } catch (error) {
+      console.error('Failed to get friendship timeline:', error);
+      res.status(500).json({ error: 'Failed to get friendship timeline' });
+    }
+  });
+
+  app.get('/api/friendship/stats/:friendId', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const friendId = parseInt(req.params.friendId);
+      const stats = await storage.getFriendshipStats(userId, friendId);
+      res.json(stats);
+    } catch (error) {
+      console.error('Failed to get friendship stats:', error);
+      res.status(500).json({ error: 'Failed to get friendship stats' });
+    }
+  });
+
+  app.get('/api/friendship/analytics/:userId', setUserContext, async (req, res) => {
+    try {
+      const requestingUserId = getUserId(req);
+      if (!requestingUserId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const userId = parseInt(req.params.userId);
+      
+      // Only allow users to see their own analytics or friends' analytics
+      const isFriend = await storage.checkIfFriends(requestingUserId, userId);
+      if (requestingUserId !== userId && !isFriend) {
+        return res.status(403).json({ error: 'Not authorized to view these analytics' });
+      }
+      
+      const analytics = await storage.getFriendshipAnalytics(userId);
+      res.json(analytics);
+    } catch (error) {
+      console.error('Failed to get friendship analytics:', error);
+      res.status(500).json({ error: 'Failed to get friendship analytics' });
+    }
+  });
+
+  app.get('/api/friendship/mutual/:friendId', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const friendId = parseInt(req.params.friendId);
+      const mutualFriends = await storage.getMutualFriends(userId, friendId);
+      res.json(mutualFriends);
+    } catch (error) {
+      console.error('Failed to get mutual friends:', error);
+      res.status(500).json({ error: 'Failed to get mutual friends' });
+    }
+  });
+
+  app.get('/api/friendship/shared-memories/:friendId', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const friendId = parseInt(req.params.friendId);
+      const memories = await storage.getSharedMemories(userId, friendId);
+      res.json(memories);
+    } catch (error) {
+      console.error('Failed to get shared memories:', error);
+      res.status(500).json({ error: 'Failed to get shared memories' });
+    }
+  });
+
+  app.post('/api/friendship/dance-history', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const danceHistory = await storage.createDanceHistory({
+        ...req.body,
+        userId
+      });
+      res.json(danceHistory);
+    } catch (error) {
+      console.error('Failed to create dance history:', error);
+      res.status(500).json({ error: 'Failed to create dance history' });
+    }
+  });
+
+  app.get('/api/friendship/mutual-count/:userId1/:userId2', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const userId1 = parseInt(req.params.userId1);
+      const userId2 = parseInt(req.params.userId2);
+      const count = await storage.getMutualFriendsCount(userId1, userId2);
+      res.json({ count });
+    } catch (error) {
+      console.error('Failed to get mutual friends count:', error);
+      res.status(500).json({ error: 'Failed to get mutual friends count' });
+    }
+  });
+
+  app.get('/api/friendship/shared-events-count/:userId1/:userId2', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const userId1 = parseInt(req.params.userId1);
+      const userId2 = parseInt(req.params.userId2);
+      const count = await storage.getSharedEventsCount(userId1, userId2);
+      res.json({ count });
+    } catch (error) {
+      console.error('Failed to get shared events count:', error);
+      res.status(500).json({ error: 'Failed to get shared events count' });
+    }
+  });
+
+  app.get('/api/friendship/shared-groups-count/:userId1/:userId2', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const userId1 = parseInt(req.params.userId1);
+      const userId2 = parseInt(req.params.userId2);
+      const count = await storage.getSharedGroupsCount(userId1, userId2);
+      res.json({ count });
+    } catch (error) {
+      console.error('Failed to get shared groups count:', error);
+      res.status(500).json({ error: 'Failed to get shared groups count' });
+    }
+  });
+
+  app.post('/api/upload/dance-photos', setUserContext, upload.array('photos', 5), async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const files = req.files as Express.Multer.File[];
+      const urls = await Promise.all(
+        files.map(file => storage.uploadFile(file.buffer, file.originalname))
+      );
+      res.json({ urls });
+    } catch (error) {
+      console.error('Failed to upload dance photos:', error);
+      res.status(500).json({ error: 'Failed to upload dance photos' });
+    }
+  });
+
   // Friend Request endpoints
   app.post("/api/friend-requests/send", setUserContext, async (req, res) => {
     try {

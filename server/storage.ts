@@ -247,6 +247,18 @@ export interface IStorage {
   createMemoryMedia(memoryMedia: InsertMemoryMedia): Promise<MemoryMedia>;
   getMemoryMedia(memoryId: number): Promise<any[]>;
   deleteMemoryMedia(id: number): Promise<void>;
+  
+  // Friendship understanding methods
+  getFriendshipDetails(userId: number, friendId: number): Promise<any>;
+  getFriendshipTimeline(userId: number, friendId: number): Promise<any>;
+  getFriendshipStats(userId: number, friendId: number): Promise<any>;
+  getFriendshipAnalytics(userId: number): Promise<any>;
+  getSharedMemories(userId1: number, userId2: number): Promise<any[]>;
+  createDanceHistory(data: any): Promise<any>;
+  getMutualFriendsCount(userId1: number, userId2: number): Promise<number>;
+  getSharedEventsCount(userId1: number, userId2: number): Promise<number>;
+  getSharedGroupsCount(userId1: number, userId2: number): Promise<number>;
+  checkIfFriends(userId1: number, userId2: number): Promise<boolean>;
   getEventRoleInvitation(eventId: number, userId: number): Promise<EventParticipant | undefined>;
   getEventParticipants(eventId: number): Promise<EventParticipant[]>;
   getUserEventInvitations(userId: number): Promise<EventParticipant[]>;
@@ -4024,6 +4036,264 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error getting all notifications:', error);
       return [];
+    }
+  }
+  
+  // Friendship understanding methods
+  async getFriendshipDetails(userId: number, friendId: number): Promise<any> {
+    try {
+      const friendship = await this.getFriendshipWithDetails(userId, friendId);
+      if (!friendship) {
+        throw new Error('Friendship not found');
+      }
+      
+      const [stats, connectionDegree, mutualFriends] = await Promise.all([
+        this.getFriendshipStats(userId, friendId),
+        this.getConnectionDegree(userId, friendId),
+        this.getMutualFriends(userId, friendId)
+      ]);
+      
+      const user = await this.getUserById(friendId);
+      
+      return {
+        user,
+        friendship,
+        stats,
+        connectionDegree,
+        mutualFriends: mutualFriends.length,
+        friendsSince: friendship.createdAt
+      };
+    } catch (error) {
+      console.error('Error getting friendship details:', error);
+      throw error;
+    }
+  }
+  
+  async getFriendshipTimeline(userId: number, friendId: number): Promise<any> {
+    try {
+      const activities = await db
+        .select({
+          id: friendshipActivities.id,
+          type: friendshipActivities.type,
+          description: friendshipActivities.description,
+          metadata: friendshipActivities.metadata,
+          createdAt: friendshipActivities.createdAt
+        })
+        .from(friendshipActivities)
+        .innerJoin(friends, eq(friendshipActivities.friendshipId, friends.id))
+        .where(and(
+          or(
+            and(eq(friends.userId, userId), eq(friends.friendId, friendId)),
+            and(eq(friends.userId, friendId), eq(friends.friendId, userId))
+          ),
+          eq(friends.status, 'accepted')
+        ))
+        .orderBy(desc(friendshipActivities.createdAt))
+        .limit(50);
+      
+      return activities;
+    } catch (error) {
+      console.error('Error getting friendship timeline:', error);
+      return [];
+    }
+  }
+  
+  async getFriendshipStats(userId: number, friendId: number): Promise<any> {
+    try {
+      const [totalDances, sharedEvents, sharedGroups] = await Promise.all([
+        // Count dance activities
+        db.select({ count: count() })
+          .from(friendshipActivities)
+          .innerJoin(friends, eq(friendshipActivities.friendshipId, friends.id))
+          .where(and(
+            or(
+              and(eq(friends.userId, userId), eq(friends.friendId, friendId)),
+              and(eq(friends.userId, friendId), eq(friends.friendId, userId))
+            ),
+            eq(friendshipActivities.type, 'dance')
+          )),
+        
+        // Count shared events
+        this.getSharedEventsCount(userId, friendId),
+        
+        // Count shared groups
+        this.getSharedGroupsCount(userId, friendId)
+      ]);
+      
+      const friendship = await this.getFriendship(userId, friendId);
+      const closenessScore = friendship?.closenessScore || 0;
+      
+      return {
+        totalDances: totalDances[0]?.count || 0,
+        sharedEvents,
+        sharedGroups,
+        closenessScore
+      };
+    } catch (error) {
+      console.error('Error getting friendship stats:', error);
+      return {
+        totalDances: 0,
+        sharedEvents: 0,
+        sharedGroups: 0,
+        closenessScore: 0
+      };
+    }
+  }
+  
+  async getFriendshipAnalytics(userId: number): Promise<any> {
+    try {
+      const [totalFriends, recentActivities, topInteractions] = await Promise.all([
+        // Count total friends
+        db.select({ count: count() })
+          .from(friends)
+          .where(and(
+            or(eq(friends.userId, userId), eq(friends.friendId, userId)),
+            eq(friends.status, 'accepted')
+          )),
+        
+        // Get recent activities
+        db.select()
+          .from(friendshipActivities)
+          .innerJoin(friends, eq(friendshipActivities.friendshipId, friends.id))
+          .where(or(eq(friends.userId, userId), eq(friends.friendId, userId)))
+          .orderBy(desc(friendshipActivities.createdAt))
+          .limit(10),
+        
+        // Get top interactions
+        db.select({
+          friendId: sql`CASE WHEN ${friends.userId} = ${userId} THEN ${friends.friendId} ELSE ${friends.userId} END`,
+          count: count()
+        })
+          .from(friendshipActivities)
+          .innerJoin(friends, eq(friendshipActivities.friendshipId, friends.id))
+          .where(or(eq(friends.userId, userId), eq(friends.friendId, userId)))
+          .groupBy(sql`CASE WHEN ${friends.userId} = ${userId} THEN ${friends.friendId} ELSE ${friends.userId} END`)
+          .orderBy(desc(count()))
+          .limit(5)
+      ]);
+      
+      return {
+        totalFriends: totalFriends[0]?.count || 0,
+        recentActivities,
+        topInteractions,
+        friendshipGrowth: [], // Would calculate growth over time
+        interactionTypes: {} // Would categorize interaction types
+      };
+    } catch (error) {
+      console.error('Error getting friendship analytics:', error);
+      return {
+        totalFriends: 0,
+        recentActivities: [],
+        topInteractions: [],
+        friendshipGrowth: [],
+        interactionTypes: {}
+      };
+    }
+  }
+  
+  async getSharedMemories(userId1: number, userId2: number): Promise<any[]> {
+    try {
+      // Get shared memories (posts tagged with both users)
+      const sharedPosts = await db
+        .select({
+          id: posts.id,
+          description: posts.content,
+          photoUrl: posts.imageUrl,
+          date: posts.createdAt
+        })
+        .from(posts)
+        .where(and(
+          or(
+            and(eq(posts.userId, userId1), sql`${posts.mentions} @> ARRAY[${userId2}]::text[]`),
+            and(eq(posts.userId, userId2), sql`${posts.mentions} @> ARRAY[${userId1}]::text[]`)
+          ),
+          eq(posts.isPublic, true)
+        ))
+        .orderBy(desc(posts.createdAt))
+        .limit(20);
+      
+      return sharedPosts;
+    } catch (error) {
+      console.error('Error getting shared memories:', error);
+      return [];
+    }
+  }
+  
+  async createDanceHistory(data: any): Promise<any> {
+    try {
+      const friendship = await this.getFriendship(data.userId, data.partnerId);
+      if (!friendship) {
+        throw new Error('Friendship not found');
+      }
+      
+      const activity = await this.createFriendshipActivity({
+        friendshipId: friendship.id,
+        type: 'dance',
+        description: data.song || 'Danced together',
+        metadata: {
+          venue: data.venue,
+          eventName: data.eventName,
+          danceStyle: data.danceStyle,
+          rating: data.rating,
+          notes: data.notes,
+          danceRating: data.rating
+        }
+      });
+      
+      // Update closeness score
+      await this.updateFriendshipCloseness(friendship.id);
+      
+      return activity;
+    } catch (error) {
+      console.error('Error creating dance history:', error);
+      throw error;
+    }
+  }
+  
+  async getMutualFriendsCount(userId1: number, userId2: number): Promise<number> {
+    try {
+      const mutualFriends = await this.getMutualFriends(userId1, userId2);
+      return mutualFriends.length;
+    } catch (error) {
+      console.error('Error getting mutual friends count:', error);
+      return 0;
+    }
+  }
+  
+  async getSharedEventsCount(userId1: number, userId2: number): Promise<number> {
+    try {
+      const sharedEvents = await this.getCommonEvents(userId1, userId2);
+      return sharedEvents.length;
+    } catch (error) {
+      console.error('Error getting shared events count:', error);
+      return 0;
+    }
+  }
+  
+  async getSharedGroupsCount(userId1: number, userId2: number): Promise<number> {
+    try {
+      const [user1Groups, user2Groups] = await Promise.all([
+        this.getUserGroups(userId1),
+        this.getUserGroups(userId2)
+      ]);
+      
+      const user1GroupIds = new Set(user1Groups.map(g => g.id));
+      const sharedGroups = user2Groups.filter(g => user1GroupIds.has(g.id));
+      
+      return sharedGroups.length;
+    } catch (error) {
+      console.error('Error getting shared groups count:', error);
+      return 0;
+    }
+  }
+  
+  async checkIfFriends(userId1: number, userId2: number): Promise<boolean> {
+    try {
+      const friendship = await this.getFriendship(userId1, userId2);
+      return friendship?.status === 'accepted';
+    } catch (error) {
+      console.error('Error checking if friends:', error);
+      return false;
     }
   }
 }
