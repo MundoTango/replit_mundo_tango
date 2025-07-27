@@ -588,8 +588,12 @@ export default function EnhancedTimelineV2() {
                 </div>
               </div>
 
-            {/* Enhanced Memory Post Creator */}
-            <div className="mb-6">
+            {/* Life CEO 44x21s Enhanced Memory Post Creator */}
+            <div className="mb-6 relative">
+              {/* 44x21s Visual Indicator */}
+              <div className="absolute -top-4 -right-4 z-10 bg-gradient-to-r from-turquoise-500 to-cyan-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
+                ✨ Life CEO 44x21s Enhanced UI
+              </div>
               <EnhancedPostCreator 
                 user={user ? {
                   id: user.id,
