@@ -183,38 +183,9 @@ export const EnhancedPostCreator: React.FC<{
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full relative"
+      className="w-full"
     >
-      {/* Life CEO 44x21s Prominent Badge */}
-      <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 z-20">
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.1, 1],
-            rotate: [0, 5, -5, 0]
-          }}
-          transition={{ 
-            duration: 2,
-            repeat: Infinity,
-            repeatType: "reverse"
-          }}
-          className="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white px-8 py-4 rounded-full font-bold text-xl shadow-2xl"
-          style={{
-            boxShadow: '0 0 40px rgba(236, 72, 153, 0.6), 0 0 80px rgba(168, 85, 247, 0.4)'
-          }}
-        >
-          🚀 LIFE CEO 44x21s ENHANCED POST CREATOR 🚀
-        </motion.div>
-      </div>
-      
-      <Card 
-        className="enhanced-glassmorphic memory-card-enhanced p-8 border-4"
-        style={{
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(56, 178, 172, 0.05) 100%)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderImage: 'linear-gradient(45deg, #ec4899, #a855f7, #3b82f6, #06b6d4) 1',
-          boxShadow: '0 25px 50px -12px rgba(236, 72, 153, 0.4), 0 0 100px rgba(56, 178, 172, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.5)'
-        }}>
+      <Card className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 p-4">
         {/* User Avatar & Input Area */}
         <div className="flex gap-4">
           <div className="flex-shrink-0">
@@ -234,15 +205,11 @@ export const EnhancedPostCreator: React.FC<{
                 ref={textareaRef}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="✨ Share your tango moment..."
-                className="w-full min-h-[100px] p-4 bg-white/80 backdrop-blur-sm border border-turquoise-200/50 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-turquoise-400/50 transition-all duration-300"
+                placeholder="What's on your mind?"
+                className="w-full min-h-[80px] p-3 bg-gray-50 border-0 rounded-lg resize-none focus:outline-none focus:bg-white focus:ring-1 focus:ring-gray-200 transition-all duration-200 text-base"
                 style={{ height: 'auto' }}
+                onFocus={() => setIsExpanded(true)}
               />
-              
-              {/* Character Count */}
-              <div className="absolute bottom-2 right-2 text-sm text-gray-400">
-                {content.length}/500
-              </div>
             </div>
 
             {/* Selected Emotions */}
@@ -572,25 +539,10 @@ export const EnhancedMemoryCard: React.FC<{
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, scale: 1.02 }}
-      className="w-full relative"
+      whileHover={{ y: -2 }}
+      className="w-full"
     >
-      {/* Life CEO 44x21s Memory Card Indicator */}
-      <div className="absolute -top-3 -right-3 z-10">
-        <div className="bg-gradient-to-r from-turquoise-500 to-cyan-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
-          44x21s Enhanced
-        </div>
-      </div>
-      
-      <Card 
-        className="enhanced-glassmorphic memory-card-enhanced overflow-hidden transition-all duration-300 border-2"
-        style={{
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(6, 182, 212, 0.05) 100%)',
-          backdropFilter: 'blur(15px)',
-          WebkitBackdropFilter: 'blur(15px)',
-          borderColor: 'rgba(56, 178, 172, 0.3)',
-          boxShadow: '0 20px 40px -10px rgba(56, 178, 172, 0.3), 0 0 60px rgba(6, 182, 212, 0.2)'
-        }}>
+      <Card className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
         {/* Header */}
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
