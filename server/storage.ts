@@ -161,6 +161,15 @@ export interface IStorage {
     followingCount: number;
     eventsCount: number;
   }>;
+  
+  // Friend request operations
+  getPendingFriendRequests(userId: number): Promise<Friend[]>;
+  getFriendRequests(userId: number): Promise<Friend[]>;
+  updateFriendshipStatus(id: number, status: string): Promise<Friend>;
+  
+  // Notification operations
+  getUnreadNotificationsCount(userId: number): Promise<number>;
+  getAllNotifications(userId: number, limit?: number): Promise<any[]>;
 
   // Replit Auth operations (simplified)
   getUserByReplitId(id: string): Promise<User | undefined>;
@@ -197,6 +206,12 @@ export interface IStorage {
   getMediaTags(mediaId: string): Promise<any[]>;
   searchMediaByTag(tag: string): Promise<MediaAsset[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  
+  // Messaging methods
+  getConversations(userId: number): Promise<any[]>;
+  getMessagesBetweenUsers(userId1: number, userId2: number, limit?: number, offset?: number): Promise<ChatMessage[]>;
+  markMessageAsRead(messageId: number, userId: number): Promise<void>;
+  createOrGetChatRoom(userId1: number, userId2: number): Promise<ChatRoom>;
   createFriendship(friendship: InsertFriend): Promise<Friend>;
   getUserMedia(userId: number): Promise<MediaAsset[]>;
   createMemoryMedia(memoryMedia: InsertMemoryMedia): Promise<MemoryMedia>;
@@ -1192,6 +1207,94 @@ export class DatabaseStorage implements IStorage {
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
     const [newMessage] = await db.insert(chatMessages).values(message).returning();
     return newMessage;
+  }
+
+  // Messaging methods implementation
+  async getConversations(userId: number): Promise<any[]> {
+    // Get all unique conversation partners
+    const result = await db.execute(sql`
+      SELECT DISTINCT ON (other_user_id) 
+        cm.id as last_message_id,
+        cm.content as last_message,
+        cm.created_at as last_message_at,
+        cm.is_read,
+        CASE 
+          WHEN cm.sender_id = ${userId} THEN cm.receiver_id
+          ELSE cm.sender_id
+        END as other_user_id,
+        u.id as user_id,
+        u.name as user_name,
+        u.username,
+        u.profile_image
+      FROM chat_messages cm
+      JOIN users u ON u.id = CASE 
+        WHEN cm.sender_id = ${userId} THEN cm.receiver_id
+        ELSE cm.sender_id
+      END
+      WHERE cm.sender_id = ${userId} OR cm.receiver_id = ${userId}
+      ORDER BY other_user_id, cm.created_at DESC
+    `);
+    
+    return result.rows.map((row: any) => ({
+      id: row.other_user_id,
+      lastMessage: row.last_message,
+      lastMessageAt: row.last_message_at,
+      isRead: row.is_read,
+      user: {
+        id: row.user_id,
+        name: row.user_name,
+        username: row.username,
+        profileImage: row.profile_image
+      }
+    }));
+  }
+
+  async getMessagesBetweenUsers(userId1: number, userId2: number, limit = 50, offset = 0): Promise<ChatMessage[]> {
+    return await db
+      .select()
+      .from(chatMessages)
+      .where(
+        or(
+          and(
+            eq(chatMessages.senderId, userId1),
+            eq(chatMessages.receiverId, userId2)
+          ),
+          and(
+            eq(chatMessages.senderId, userId2),
+            eq(chatMessages.receiverId, userId1)
+          )
+        )
+      )
+      .orderBy(desc(chatMessages.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async markMessageAsRead(messageId: number, userId: number): Promise<void> {
+    await db
+      .update(chatMessages)
+      .set({ isRead: true })
+      .where(
+        and(
+          eq(chatMessages.id, messageId),
+          eq(chatMessages.receiverId, userId)
+        )
+      );
+  }
+
+  async createOrGetChatRoom(userId1: number, userId2: number): Promise<ChatRoom> {
+    // For direct messages, we don't need chat rooms
+    // This is a placeholder that returns a dummy room
+    return {
+      id: 1,
+      slug: `${userId1}-${userId2}`,
+      userId: userId1,
+      name: `Direct Message`,
+      description: null,
+      isPrivate: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
   }
 
   async createFriendship(friendship: InsertFriend): Promise<Friend> {
@@ -3546,6 +3649,81 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error updating user settings:', error);
       throw error;
+    }
+  }
+  
+  // Friend request operations
+  async getPendingFriendRequests(userId: number): Promise<Friend[]> {
+    try {
+      const result = await db
+        .select()
+        .from(friends)
+        .where(and(
+          eq(friends.friendId, userId),
+          eq(friends.status, 'pending')
+        ))
+        .orderBy(desc(friends.createdAt));
+      return result;
+    } catch (error) {
+      console.error('Error getting pending friend requests:', error);
+      return [];
+    }
+  }
+  
+  async getFriendRequests(userId: number): Promise<Friend[]> {
+    try {
+      const result = await db
+        .select()
+        .from(friends)
+        .where(or(
+          and(eq(friends.userId, userId), eq(friends.status, 'pending')),
+          and(eq(friends.friendId, userId), eq(friends.status, 'pending'))
+        ))
+        .orderBy(desc(friends.createdAt));
+      return result;
+    } catch (error) {
+      console.error('Error getting friend requests:', error);
+      return [];
+    }
+  }
+  
+  async updateFriendshipStatus(id: number, status: string): Promise<Friend> {
+    const [friendship] = await db
+      .update(friends)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(friends.id, id))
+      .returning();
+    return friendship;
+  }
+  
+  // Notification operations
+  async getUnreadNotificationsCount(userId: number): Promise<number> {
+    try {
+      const [result] = await db
+        .select({ count: count() })
+        .from(notifications)
+        .where(and(
+          eq(notifications.userId, userId),
+          eq(notifications.isRead, false)
+        ));
+      return result?.count || 0;
+    } catch (error) {
+      console.error('Error getting unread notifications count:', error);
+      return 0;
+    }
+  }
+  
+  async getAllNotifications(userId: number, limit = 50): Promise<any[]> {
+    try {
+      return await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.userId, userId))
+        .orderBy(desc(notifications.createdAt))
+        .limit(limit);
+    } catch (error) {
+      console.error('Error getting all notifications:', error);
+      return [];
     }
   }
 }

@@ -1,6 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import * as pathModule from "path";
 import compression from "compression";
+import { Server as SocketServer } from 'socket.io';
+import { createServer as createHttpServer } from 'http';
 // Load environment variables first, before any other imports that might use them
 import dotenv from "dotenv";
 dotenv.config();
@@ -160,6 +162,11 @@ app.get('/service-worker-workbox.js', (req, res) => {
   }
 
   const server = await registerRoutes(app);
+
+  // Initialize WebSocket service
+  const { initializeWebSocket } = await import('./services/websocketService');
+  const websocketService = initializeWebSocket(server);
+  logger.info('WebSocket service initialized');
 
   // Setup OpenAPI documentation
   setupSwagger(app);

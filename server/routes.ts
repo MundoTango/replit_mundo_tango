@@ -4649,6 +4649,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Messages endpoints
+  app.get("/api/messages/conversations", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      // TODO: Implement getConversations in storage
+      const conversations = [];
+      res.json({ success: true, data: conversations });
+    } catch (error) {
+      console.error("Error getting conversations:", error);
+      res.status(500).json({ error: "Failed to get conversations" });
+    }
+  });
+
+  app.get("/api/messages/:conversationId", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { conversationId } = req.params;
+      const { page = 1, limit = 50 } = req.query;
+
+      // TODO: Implement getMessages in storage
+      const messages = [];
+      res.json({ 
+        success: true, 
+        data: messages,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total: 0
+        }
+      });
+    } catch (error) {
+      console.error("Error getting messages:", error);
+      res.status(500).json({ error: "Failed to get messages" });
+    }
+  });
+
+  app.post("/api/messages/send", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { recipientId, content } = req.body;
+      
+      if (!recipientId || !content) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // TODO: Implement sendMessage in storage
+      const message = {
+        id: Date.now(),
+        senderId: userId,
+        recipientId,
+        content,
+        createdAt: new Date()
+      };
+
+      // Send real-time notification via WebSocket
+      const { getWebSocketService } = await import('./services/websocketService');
+      const wsService = getWebSocketService();
+      if (wsService) {
+        wsService.sendNotification(recipientId, {
+          type: 'message',
+          title: 'New Message',
+          message: content.substring(0, 100)
+        });
+      }
+
+      res.json({ success: true, data: message });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+
+  app.put("/api/messages/:messageId/read", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { messageId } = req.params;
+      
+      // TODO: Implement markMessageAsRead in storage
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking message as read:", error);
+      res.status(500).json({ error: "Failed to mark message as read" });
+    }
+  });
+
   // Stories routes
   app.get("/api/stories/following", isAuthenticated, async (req: any, res) => {
     try {

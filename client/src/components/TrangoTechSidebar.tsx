@@ -17,7 +17,8 @@ import {
   MapPin,
   Shield,
   Crown,
-  Settings
+  Settings,
+  MessageCircle
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -45,6 +46,11 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       icon: <UserCheck className="w-5 h-5" />,
       title: "Friends",
       link: "/friends",
+    },
+    {
+      icon: <MessageCircle className="w-5 h-5" />,
+      title: "Messages",
+      link: "/messages",
     },
     {
       icon: <Network className="w-5 h-5" />,
