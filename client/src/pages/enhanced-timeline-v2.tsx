@@ -376,8 +376,28 @@ const MemoryCard = React.memo(function MemoryCard({ memory }: MemoryCardProps) {
         <PostContextMenu
           postId={Number(memory.id)}
           isOwner={isOwner}
-          onEdit={() => toast({ title: "Edit feature coming soon" })}
-          onDelete={() => toast({ title: "Delete feature coming soon" })}
+          onEdit={() => {
+            // TODO: Implement edit functionality
+            console.log('Edit post:', memory.id);
+          }}
+          onDelete={async () => {
+            if (confirm('Are you sure you want to delete this memory?')) {
+              try {
+                const response = await fetch(`${apiBasePath}/${memory.id}`, {
+                  method: 'DELETE',
+                  credentials: 'include'
+                });
+                if (response.ok) {
+                  toast({ title: "Memory deleted successfully" });
+                  queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
+                } else {
+                  toast({ title: "Failed to delete memory", variant: "destructive" });
+                }
+              } catch (error) {
+                toast({ title: "Error deleting memory", variant: "destructive" });
+              }
+            }
+          }}
           onReport={() => setIsReportModalOpen(true)}
           onShare={() => setShowShareDialog(true)}
         />

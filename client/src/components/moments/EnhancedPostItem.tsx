@@ -272,11 +272,7 @@ function EnhancedPostItem({ post, onLike, onShare }: PostItemProps) {
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this post?')) {
-      // TODO: Implement delete mutation
-      toast({ 
-        title: "Delete feature coming soon",
-        description: "This feature is being implemented."
-      });
+      deleteMutation.mutate(post.id);
     }
   };
 

@@ -54,6 +54,7 @@ import GoogleMapsAutocomplete from '@/components/maps/GoogleMapsAutocomplete';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import EventMap from '@/components/EventMap';
 
 // Event types from requirements
 const EVENT_TYPES = [
@@ -803,17 +804,17 @@ export default function EnhancedEventsPage() {
               )}
             </div>
           ) : (
-            <Card className="h-[600px]">
+            <Card className="h-[600px] glassmorphic-card">
               <CardContent className="p-0 h-full">
-                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                  <div className="text-center">
-                    <MapIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 font-medium">Map View Coming Soon</p>
-                    <p className="text-gray-500 text-sm mt-2">
-                      Events will be displayed on an interactive map with pins for each location
-                    </p>
-                  </div>
-                </div>
+                <EventMap 
+                  events={events?.filter(event => event.locationCoordinates) || []}
+                  onEventClick={(event) => {
+                    toast({
+                      title: event.title,
+                      description: `${event.location} - ${format(new Date(event.startDate), 'MMM d, h:mm a')}`
+                    });
+                  }}
+                />
               </CardContent>
             </Card>
           )}
