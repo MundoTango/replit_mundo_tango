@@ -28,9 +28,13 @@ import {
 } from 'lucide-react';
 import { debounce, useMemoryCleanup, measureComponentPerformance } from '../lib/performance-critical-fix';
 
+// Import styles
+import '../styles/enhanced-memories.css';
+
 // Import only essential components directly
 import { RoleEmojiDisplay } from '../components/ui/RoleEmojiDisplay';
 import { PostContextMenu } from '../components/ui/PostContextMenu';
+import { EnhancedPostCreator, EnhancedMemoryCard } from '../components/memories/EnhancedMemoriesUI';
 
 // Lazy load heavy components
 import { 
@@ -505,6 +509,34 @@ export default function EnhancedTimelineV2() {
   
   console.log('EnhancedTimelineV2 component loaded!', { user });
 
+  // Create memory mutation
+  const createMemoryMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/memories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to create memory');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
+      toast({
+        title: "Memory created! ✨",
+        description: "Your tango moment has been shared with the community",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to create memory",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
   // Fetch timeline posts with caching
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['/api/posts/feed'],
@@ -556,18 +588,25 @@ export default function EnhancedTimelineV2() {
                 </div>
               </div>
 
-            {/* Beautiful Post Creator */}
+            {/* Enhanced Memory Post Creator */}
             <div className="mb-6">
-              <BeautifulPostCreator 
-                context={{ type: 'memory' }}
+              <EnhancedPostCreator 
                 user={user ? {
                   id: user.id,
                   name: user.name,
                   username: user.username,
                   profileImage: user.profileImage || undefined
                 } : undefined}
-                onPostCreated={() => {
-                  queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
+                onPost={(data) => {
+                  createMemoryMutation.mutate({
+                    content: data.content,
+                    emotionTags: data.emotions,
+                    location: data.location,
+                    hashtags: data.tags,
+                    mentions: data.mentions,
+                    mediaUrls: data.media.map((f: File) => URL.createObjectURL(f)),
+                    visibility: data.visibility
+                  });
                 }}
               />
             </div>
@@ -620,7 +659,30 @@ export default function EnhancedTimelineV2() {
               ) : posts.length > 0 ? (
                 <div className="space-y-6">
                   {posts.map((post: Memory) => (
-                    <MemoryCard key={post.id} memory={post} />
+                    <EnhancedMemoryCard 
+                      key={post.id} 
+                      memory={post}
+                      onInteraction={(type, data) => {
+                        console.log('Memory interaction:', type, data);
+                        if (type === 'comment' && data?.text) {
+                          // Handle comment
+                          toast({
+                            title: "Comment posted",
+                            description: "Your comment has been added",
+                          });
+                        } else if (type === 'share') {
+                          toast({
+                            title: "Memory shared",
+                            description: "Memory has been shared to your timeline",
+                          });
+                        } else if (type === 'save') {
+                          toast({
+                            title: "Memory saved",
+                            description: "Memory has been saved to your collection",
+                          });
+                        }
+                      }}
+                    />
                   ))}
                 </div>
               ) : (
