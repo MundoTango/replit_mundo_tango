@@ -46,6 +46,8 @@ const CommunityWorldMap = lazy(() => import("@/pages/community-world-map"));
 const TestGroupedRoleSelector = lazy(() => import("@/components/test/TestGroupedRoleSelector"));
 const LifeCeoPerformance = lazy(() => import("@/pages/LifeCeoPerformance"));
 const UserSettings = lazy(() => import("@/pages/UserSettings"));
+const CreateCommunity = lazy(() => import("@/pages/CreateCommunity"));
+const TangoStories = lazy(() => import("@/pages/TangoStories"));
 
 // Loading component for Suspense boundaries
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
@@ -224,6 +226,18 @@ function Router() {
           <Route path="/groups/:slug">
             <Suspense fallback={<LoadingFallback message="Loading group..." />}>
               <GroupDetailPage />
+            </Suspense>
+          </Route>
+          
+          <Route path="/create-community">
+            <Suspense fallback={<LoadingFallback message="Loading community creator..." />}>
+              <CreateCommunity />
+            </Suspense>
+          </Route>
+          
+          <Route path="/tango-stories">
+            <Suspense fallback={<LoadingFallback message="Loading stories..." />}>
+              <TangoStories />
             </Suspense>
           </Route>
           

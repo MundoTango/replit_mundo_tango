@@ -202,11 +202,7 @@ export default function GroupsPage() {
             <button 
               className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#8E142E] to-[#0D448A] text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
               onClick={() => {
-                toast({
-                  title: "Coming Soon",
-                  description: "Community creation feature will be available soon!",
-                  variant: "default",
-                });
+                setLocation('/create-community');
               }}
             >
               <Plus className="h-5 w-5" />

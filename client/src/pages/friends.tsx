@@ -75,9 +75,9 @@ export default function FriendsPage() {
     enabled: activeTab === 'suggestions'
   });
 
-  const friends = friendsData?.data || [];
-  const requests = requestsData?.data || [];
-  const suggestions = suggestionsData?.data || [];
+  const friends = (friendsData as any)?.data || [];
+  const requests = (requestsData as any)?.data || [];
+  const suggestions = (suggestionsData as any)?.data || [];
 
   // Search for users to send friend requests
   const searchUsers = async (query: string) => {
@@ -198,9 +198,9 @@ export default function FriendsPage() {
       case 'all':
         return friends;
       case 'online':
-        return friends.filter(f => f.isOnline);
+        return friends.filter((f: Friend) => f.isOnline);
       case 'requests':
-        return requests.filter(r => r.status === 'pending');
+        return requests.filter((r: FriendRequest) => r.status === 'pending');
       case 'suggestions':
         return suggestions;
       default:
@@ -258,7 +258,7 @@ export default function FriendsPage() {
               <Globe className="w-8 h-8 text-cyan-600" />
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {friends.filter(f => f.isOnline).length}
+                  {friends.filter((f: Friend) => f.isOnline).length}
                 </p>
                 <p className="text-sm text-gray-600">Online Now</p>
               </div>
@@ -269,7 +269,7 @@ export default function FriendsPage() {
               <Clock className="w-8 h-8 text-blue-600" />
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {requests.filter(r => r.status === 'pending').length}
+                  {requests.filter((r: FriendRequest) => r.status === 'pending').length}
                 </p>
                 <p className="text-sm text-gray-600">Pending Requests</p>
               </div>
@@ -280,7 +280,7 @@ export default function FriendsPage() {
               <Heart className="w-8 h-8 text-cyan-600" />
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {friends.reduce((sum, f) => sum + (f.mutualFriends || 0), 0)}
+                  {friends.reduce((sum: number, f: Friend) => sum + (f.mutualFriends || 0), 0)}
                 </p>
                 <p className="text-sm text-gray-600">Mutual Friends</p>
               </div>
@@ -324,9 +324,9 @@ export default function FriendsPage() {
                 >
                   <Icon className="w-4 h-4" />
                   {tab.label}
-                  {tab.id === 'requests' && requests.filter(r => r.status === 'pending').length > 0 && (
+                  {tab.id === 'requests' && requests.filter((r: FriendRequest) => r.status === 'pending').length > 0 && (
                     <Badge className="ml-2 bg-rose-500 text-white">
-                      {requests.filter(r => r.status === 'pending').length}
+                      {requests.filter((r: FriendRequest) => r.status === 'pending').length}
                     </Badge>
                   )}
                 </button>
@@ -339,7 +339,7 @@ export default function FriendsPage() {
             {activeTab === 'requests' ? (
               // Friend Requests Tab
               <div className="space-y-4">
-                {requests.filter(r => r.status === 'pending').map((request) => (
+                {requests.filter((r: FriendRequest) => r.status === 'pending').map((request: FriendRequest) => (
                   <Card key={request.id} className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex gap-4">
@@ -361,7 +361,7 @@ export default function FriendsPage() {
                             </div>
                           )}
                           <div className="flex gap-2 mt-3">
-                            {request.friend_user?.tangoRoles?.map(role => (
+                            {request.friend_user?.tangoRoles?.map((role: string) => (
                               <Badge key={role} variant="outline" className="text-xs">
                                 {role}
                               </Badge>
@@ -390,7 +390,7 @@ export default function FriendsPage() {
                     </div>
                   </Card>
                 ))}
-                {mockRequests.filter(r => r.status === 'pending').length === 0 && (
+                {requests.filter((r: FriendRequest) => r.status === 'pending').length === 0 && (
                   <div className="text-center py-12">
                     <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600">No pending friend requests</p>
