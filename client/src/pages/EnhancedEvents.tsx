@@ -551,19 +551,19 @@ export default function EnhancedEventsPage() {
           </Card>
         </div>
 
-        {/* Search and Filters */}
-        <Card className="mb-6 p-4">
+        {/* Search and Filters with MT ocean theme */}
+        <Card className="mb-6 p-4 glassmorphic-card bg-gradient-to-r from-white/90 via-turquoise-50/30 to-cyan-50/30 border-turquoise-200/50">
           <div className="flex flex-col gap-4">
             <div className="flex gap-4">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-turquoise-500 w-5 h-5" />
                 <Input
                   id="event-search"
                   type="text"
                   placeholder="Search events... (Cmd+/)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 glassmorphic-input border-turquoise-200 focus:border-turquoise-400 focus:ring-turquoise-400/20"
                 />
               </div>
               <div className="flex gap-2">
@@ -575,6 +575,10 @@ export default function EnhancedEventsPage() {
                     onClick={() => setViewMode(option.value as any)}
                     data-tooltip-id="view-tooltip"
                     data-tooltip-content={option.label}
+                    className={viewMode === option.value 
+                      ? 'bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white hover:from-turquoise-500 hover:to-cyan-600' 
+                      : 'border-turquoise-200 hover:bg-turquoise-50'
+                    }
                   >
                     <option.icon className="w-4 h-4" />
                   </Button>
@@ -584,7 +588,7 @@ export default function EnhancedEventsPage() {
             
             <div className="flex flex-wrap gap-2">
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-40 border-turquoise-200 focus:border-turquoise-400">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -600,7 +604,7 @@ export default function EnhancedEventsPage() {
               </Select>
 
               <Select value={levelFilter} onValueChange={setLevelFilter}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-40 border-turquoise-200 focus:border-turquoise-400">
                   <SelectValue placeholder="Level" />
                 </SelectTrigger>
                 <SelectContent>
@@ -613,7 +617,7 @@ export default function EnhancedEventsPage() {
               </Select>
 
               <Select value={priceFilter} onValueChange={setPriceFilter}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-40 border-turquoise-200 focus:border-turquoise-400">
                   <SelectValue placeholder="Price" />
                 </SelectTrigger>
                 <SelectContent>
@@ -627,6 +631,10 @@ export default function EnhancedEventsPage() {
                 variant={showVirtualOnly ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setShowVirtualOnly(!showVirtualOnly)}
+                className={showVirtualOnly 
+                  ? 'bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white hover:from-turquoise-500 hover:to-cyan-600' 
+                  : 'border-turquoise-200 hover:bg-turquoise-50'
+                }
               >
                 <Video className="w-4 h-4 mr-1" />
                 Virtual Only
@@ -636,6 +644,7 @@ export default function EnhancedEventsPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => refetch()}
+                className="border-turquoise-200 hover:bg-turquoise-50"
               >
                 <RefreshCw className="w-4 h-4 mr-1" />
                 Refresh
@@ -644,13 +653,21 @@ export default function EnhancedEventsPage() {
           </div>
         </Card>
 
-        {/* Event Tabs */}
+        {/* Event Tabs with MT styling */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-            <TabsTrigger value="today">Today</TabsTrigger>
-            <TabsTrigger value="thisWeek">This Week</TabsTrigger>
-            <TabsTrigger value="myEvents">My Events</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 bg-gradient-to-r from-turquoise-50 to-cyan-50 border border-turquoise-200/50">
+            <TabsTrigger value="upcoming" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-400 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+              Upcoming
+            </TabsTrigger>
+            <TabsTrigger value="today" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-400 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+              Today
+            </TabsTrigger>
+            <TabsTrigger value="thisWeek" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-400 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+              This Week
+            </TabsTrigger>
+            <TabsTrigger value="myEvents" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-400 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+              My Events
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -737,15 +754,40 @@ export default function EnhancedEventsPage() {
         )}
 
         {viewMode === 'map' && (
-          <Card className="p-6">
-            <div className="h-[600px] bg-gray-100 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <Map className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">Map view coming soon!</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  See all events on an interactive map
-                </p>
-              </div>
+          <Card className="p-6 glassmorphic-card bg-gradient-to-br from-white/90 via-turquoise-50/20 to-cyan-50/20">
+            <div className="h-[600px] rounded-lg overflow-hidden border border-turquoise-200/50">
+              <Suspense fallback={
+                <div className="h-full bg-gradient-to-br from-turquoise-50/50 to-cyan-50/50 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-turquoise-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading map...</p>
+                  </div>
+                </div>
+              }>
+                <LeafletMap
+                  markers={events.filter(event => event.coordinates).map(event => ({
+                    id: event.id,
+                    position: [event.coordinates!.lat, event.coordinates!.lng],
+                    popupContent: `
+                      <div class="p-2">
+                        <h3 class="font-bold text-sm">${event.title}</h3>
+                        <p class="text-xs text-gray-600 mt-1">${moment(event.startDate).format('MMM D, h:mm A')}</p>
+                        ${event.location ? `<p class="text-xs text-gray-500">${event.location}</p>` : ''}
+                        <div class="mt-2">
+                          <span class="inline-block px-2 py-1 text-xs rounded-full" style="background-color: ${categoryColors[event.category || 'social']}20; color: ${categoryColors[event.category || 'social']}">
+                            ${event.category || 'Event'}
+                          </span>
+                        </div>
+                      </div>
+                    `,
+                    icon: 'calendar'
+                  }))}
+                  centerLat={-34.6037}
+                  centerLng={-58.3816}
+                  zoom={3}
+                  height="600px"
+                />
+              </Suspense>
             </div>
           </Card>
         )}

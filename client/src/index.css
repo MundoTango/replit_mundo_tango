@@ -421,6 +421,34 @@
   transform: translateY(0);
 }
 
+/* Glassmorphic styles for MT ocean theme */
+.glassmorphic-card {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background-color: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  transition: all 0.3s ease;
+}
+
+.glassmorphic-card:hover {
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25);
+  transform: translateY(-2px);
+}
+
+.glassmorphic-input {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(38, 178, 172, 0.3);
+  transition: all 0.3s ease;
+}
+
+.glassmorphic-input:focus {
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 4px rgba(38, 178, 172, 0.15);
+}
+
 /* Glow effect for icons */
 .icon-glow {
   transition: all 0.3s ease;
