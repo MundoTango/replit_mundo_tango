@@ -287,6 +287,42 @@ This document provides a comprehensive mapping of the entire Mundo Tango platfor
    - Phase: 12
    - Tasks: API consistency, shared components
 
+### Epic 11: Phase 2 Advanced Pages (NEW) (Layers 9, 17, 25, 27)
+**Key**: MT-PHASE2
+**Summary**: Advanced platform features for mobile, travel, and analytics
+**Phases**: 1-20 (60% complete)
+
+#### Stories:
+1. **Mobile App Dashboard** (MT-PHASE2-001) ✅ COMPLETE
+   - Layers: 9 (PWA), 25 (Performance), 28 (Monitoring)
+   - Phase: 20 (Complete)
+   - Tasks: PWA management, offline capabilities, push notifications, performance monitoring
+   - Open Source: Workbox, React PWA libraries, service worker tools
+
+2. **Travel Planner** (MT-PHASE2-002) ✅ COMPLETE  
+   - Layers: 7 (Frontend), 4 (API), 13 (Search)
+   - Phase: 20 (Complete)
+   - Tasks: Multi-city planning, event integration, budget calculator, user profile integration
+   - Open Source: date-fns, react-calendar, Google Maps API
+
+3. **Analytics Dashboard** (MT-PHASE2-003) ✅ COMPLETE
+   - Layers: 17 (Analytics), 27 (Dashboard), 18 (Reporting)
+   - Phase: 20 (Complete)
+   - Tasks: Real-time metrics, user behavior tracking, content engagement, AI insights
+   - Open Source: Recharts, react-chartjs-2, data visualization libraries
+
+4. **Finance Dashboard** (MT-PHASE2-004) ⏳ TECH DEBT
+   - Layers: 3 (Business Logic), 18 (Reporting)
+   - Phase: 1 (Planning)
+   - Tasks: Event economics, monetization features
+   - Status: Moved to future development backlog
+
+5. **Content Studio** (MT-PHASE2-005) ⏳ TECH DEBT
+   - Layers: 14 (Content), 7 (Frontend)
+   - Phase: 1 (Planning)
+   - Tasks: Rich media creation, advanced editing
+   - Status: Moved to future development backlog
+
 ## JIRA Import Instructions
 
 ### 1. CSV Import Process
@@ -326,11 +362,11 @@ This document provides a comprehensive mapping of the entire Mundo Tango platfor
 ## Metrics & Tracking
 
 ### Coverage Statistics
-- **Total Items**: 437 (across all levels)
-- **Epics**: 10 major platform areas
-- **Stories**: 42 feature implementations
-- **Tasks**: 156 specific work items
-- **Sub-tasks**: 229 detailed implementations
+- **Total Items**: 447 (across all levels)
+- **Epics**: 11 major platform areas (including Phase 2)
+- **Stories**: 47 feature implementations
+- **Tasks**: 168 specific work items  
+- **Sub-tasks**: 232 detailed implementations
 
 ### Layer Coverage
 - **Most Active Layers**: 7 (Frontend), 14 (Content), 25 (Performance)

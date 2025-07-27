@@ -51,6 +51,8 @@ const TangoStories = lazy(() => import("@/pages/TangoStories"));
 const RoleInvitations = lazy(() => import("@/pages/RoleInvitations"));
 const ErrorBoundaryPage = lazy(() => import("@/pages/ErrorBoundaryPage"));
 const MobileAppDashboard = lazy(() => import("@/pages/MobileAppDashboard"));
+const TravelPlanner = lazy(() => import("@/pages/TravelPlanner"));
+const AnalyticsDashboard = lazy(() => import("@/pages/AnalyticsDashboard"));
 
 // Loading component for Suspense boundaries
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
@@ -259,6 +261,18 @@ function Router() {
           <Route path="/mobile-dashboard">
             <Suspense fallback={<LoadingFallback message="Loading mobile dashboard..." />}>
               <MobileAppDashboard />
+            </Suspense>
+          </Route>
+          
+          <Route path="/travel-planner">
+            <Suspense fallback={<LoadingFallback message="Loading travel planner..." />}>
+              <TravelPlanner />
+            </Suspense>
+          </Route>
+          
+          <Route path="/analytics">
+            <Suspense fallback={<LoadingFallback message="Loading analytics..." />}>
+              <AnalyticsDashboard />
             </Suspense>
           </Route>
           
