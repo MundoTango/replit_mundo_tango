@@ -4617,6 +4617,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Friend requests count endpoint
+  app.get('/api/friends/requests/count', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.json({ count: 0 });
+      }
+
+      const pendingRequests = await storage.getPendingFriendRequests(userId);
+      res.json({ count: pendingRequests?.length || 0 });
+    } catch (error) {
+      console.error('Error getting friend requests count:', error);
+      res.json({ count: 0 });
+    }
+  });
+
+  // Notifications count endpoint  
+  app.get('/api/notifications/count', setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.json({ count: 0 });
+      }
+
+      const unreadNotifications = await storage.getUnreadNotificationsCount(userId);
+      res.json({ count: unreadNotifications || 0 });
+    } catch (error) {
+      console.error('Error getting notifications count:', error);
+      res.json({ count: 0 });
+    }
+  });
+
   // Stories routes
   app.get("/api/stories/following", isAuthenticated, async (req: any, res) => {
     try {
