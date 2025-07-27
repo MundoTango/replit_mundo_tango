@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import CommunityMapWithLayers from '@/components/CommunityMapWithLayers';
+import EnhancedCommunityMap from '@/components/EnhancedCommunityMap';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +30,9 @@ import {
   TrendingUp,
   Activity,
   User,
-  Building
+  Building,
+  Info,
+  Sparkles
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -260,7 +262,13 @@ export default function CommunityWorldMap() {
                       </div>
                     </div>
                   ) : (
-                    <CommunityMapWithLayers />
+                    <EnhancedCommunityMap 
+                      layers={{
+                        events: true,
+                        housing: true,
+                        recommendations: true
+                      }}
+                    />
                   )}
                 </div>
                 
