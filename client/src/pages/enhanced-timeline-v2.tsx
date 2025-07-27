@@ -497,7 +497,7 @@ export default function EnhancedTimelineV2() {
       return result.data || [];
     },
     staleTime: 60000, // Consider data fresh for 1 minute
-    cacheTime: 300000, // Keep in cache for 5 minutes
+    gcTime: 300000, // Keep in cache for 5 minutes
     refetchOnWindowFocus: false // Don't refetch on window focus
   });
   
@@ -540,7 +540,7 @@ export default function EnhancedTimelineV2() {
             <div className="mb-6">
               <BeautifulPostCreator 
                 context={{ type: 'memory' }}
-                user={user}
+                user={user || undefined}
                 onPostCreated={() => {
                   queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
                 }}
