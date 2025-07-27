@@ -39,6 +39,17 @@ interface Event {
   isPublic: boolean;
   maxAttendees?: number;
   currentAttendees?: number;
+  // New fields for enhanced events
+  price?: string;
+  currency?: string;
+  ticketUrl?: string;
+  isRecurring?: boolean;
+  recurringPattern?: string;
+  isVirtual?: boolean;
+  virtualPlatform?: string;
+  virtualUrl?: string;
+  eventType?: string;
+  level?: string;
   user?: {
     id: number;
     name: string;
@@ -116,7 +127,8 @@ export default function EventCard({ event, onEdit, onShare }: EventCardProps) {
     }
   };
 
-  const handleViewEvent = () => {
+  const handleViewEvent = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setLocation(`/events/${event.id}`);
   };
 
@@ -186,12 +198,32 @@ export default function EventCard({ event, onEdit, onShare }: EventCardProps) {
           )}
         </div>
 
-        {/* Event Date Badge */}
-        <div className="absolute top-4 left-4">
+        {/* Event Date Badge and Indicators */}
+        <div className="absolute top-4 left-4 flex flex-col gap-2">
           <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30">
             <Calendar className="mr-1 h-3 w-3" />
             {format(new Date(event.startDate), 'MMM dd')}
           </Badge>
+          
+          {/* Virtual Event Indicator */}
+          {event.isVirtual && (
+            <Badge className="bg-cyan-500/80 backdrop-blur-sm text-white border-cyan-400/30">
+              <svg className="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Virtual
+            </Badge>
+          )}
+          
+          {/* Recurring Event Indicator */}
+          {event.isRecurring && (
+            <Badge className="bg-turquoise-500/80 backdrop-blur-sm text-white border-turquoise-400/30">
+              <svg className="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {event.recurringPattern === 'weekly' ? 'Weekly' : event.recurringPattern === 'monthly' ? 'Monthly' : 'Recurring'}
+            </Badge>
+          )}
         </div>
 
         {/* Event Title & Location */}
@@ -215,9 +247,34 @@ export default function EventCard({ event, onEdit, onShare }: EventCardProps) {
       <CardContent className="p-4 space-y-4">
         {/* Event Details */}
         <div className="space-y-2">
-          <div className="flex items-center text-sm text-gray-600">
-            <Clock className="mr-2 h-4 w-4" />
-            {formatEventDate(event.startDate)}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center text-sm text-gray-600">
+              <Clock className="mr-2 h-4 w-4" />
+              {formatEventDate(event.startDate)}
+            </div>
+            
+            {/* Price Display */}
+            {event.price && (
+              <div className="flex items-center">
+                <Badge variant="secondary" className="bg-turquoise-50 text-turquoise-700 border-turquoise-200">
+                  {event.currency || 'USD'} {event.price}
+                </Badge>
+              </div>
+            )}
+          </div>
+          
+          {/* Event Type and Level */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {event.eventType && (
+              <Badge variant="outline" className="text-xs">
+                {event.eventType.charAt(0).toUpperCase() + event.eventType.slice(1)}
+              </Badge>
+            )}
+            {event.level && (
+              <Badge variant="outline" className="text-xs">
+                {event.level.replace('_', ' ').charAt(0).toUpperCase() + event.level.replace('_', ' ').slice(1)}
+              </Badge>
+            )}
           </div>
           
           {event.description && (
