@@ -43,12 +43,7 @@ export default function Messages() {
   const queryClient = useQueryClient();
 
   // Get current user
-  const { data: user } = useQuery<{
-    id: number;
-    name: string;
-    email: string;
-    profileImage?: string;
-  }>({
+  const { data: user } = useQuery({
     queryKey: ['/api/auth/user']
   });
 
@@ -96,13 +91,13 @@ export default function Messages() {
   }, [user, selectedConversation, queryClient, toast]);
 
   // Get conversations
-  const { data: conversationsData } = useQuery<{ data: Conversation[] }>({
+  const { data: conversationsData } = useQuery({
     queryKey: ['/api/messages/conversations'],
     enabled: !!user
   });
 
   // Get messages for selected conversation
-  const { data: messagesData } = useQuery<{ data: Message[] }>({
+  const { data: messagesData } = useQuery({
     queryKey: ['/api/messages', selectedConversation],
     enabled: !!selectedConversation,
     refetchInterval: 5000 // Refetch every 5 seconds
@@ -111,8 +106,10 @@ export default function Messages() {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { recipientId: number; content: string }) => {
-      const response = await apiRequest('POST', '/api/messages/send', data);
-      return response.json();
+      return apiRequest('/api/messages/send', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
     },
     onSuccess: () => {
       setMessage('');
@@ -174,54 +171,41 @@ export default function Messages() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Beautiful Ocean-Themed Header */}
-      <div className="mb-8 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-turquoise-200 to-cyan-300 rounded-3xl blur-2xl opacity-30" />
-        <div className="relative p-8 rounded-3xl bg-gradient-to-r from-turquoise-50 via-cyan-50 to-blue-50 shadow-xl border-2 border-turquoise-200/50 backdrop-blur-sm">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 bg-gradient-to-r from-turquoise-400 to-cyan-500 rounded-xl animate-float shadow-lg">
-              <MessageCircle className="h-6 w-6 text-white" />
-            </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-turquoise-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
-              Messages
-            </h1>
-          </div>
-          <p className="text-gray-700 ml-[60px] font-medium">Connect and chat with your tango community</p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+          Messages
+        </h1>
+        <p className="text-gray-600 mt-2">Connect with your tango community</p>
       </div>
 
-      <Card className="glassmorphic-card h-[600px] overflow-hidden shadow-2xl border-2 border-turquoise-200/50 bg-white/90 backdrop-blur-xl">
+      <Card className="glassmorphic-card h-[600px] overflow-hidden">
         <div className="flex h-full">
           {/* Conversations list */}
-          <div className={`w-full md:w-1/3 border-r border-turquoise-200/30 ${selectedConversation ? 'hidden md:block' : ''}`}>
-            <div className="p-4 border-b border-turquoise-200/30 bg-gradient-to-r from-turquoise-50/50 to-cyan-50/50">
+          <div className={`w-full md:w-1/3 border-r border-gray-200 ${selectedConversation ? 'hidden md:block' : ''}`}>
+            <div className="p-4 border-b border-gray-200">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-turquoise-500 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   placeholder="Search conversations..."
-                  className="pl-10 glassmorphic-input border-turquoise-200/50 focus:border-turquoise-400 focus:ring-turquoise-400/30"
+                  className="pl-10 glassmorphic-input"
                 />
               </div>
             </div>
             
             <ScrollArea className="h-[calc(100%-73px)]">
               {conversations.length === 0 ? (
-                <div className="p-8 text-center">
-                  <div className="p-4 bg-gradient-to-r from-turquoise-400 to-cyan-500 rounded-2xl inline-block mb-4">
-                    <MessageCircle className="w-12 h-12 text-white" />
-                  </div>
-                  <p className="text-gray-700 font-medium">No conversations yet</p>
-                  <p className="text-sm mt-2 text-gray-600">Start a conversation from a user's profile</p>
+                <div className="p-8 text-center text-gray-500">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p>No conversations yet</p>
+                  <p className="text-sm mt-2">Start a conversation from a user's profile</p>
                 </div>
               ) : (
                 conversations.map((conversation: Conversation) => (
                   <div
                     key={conversation.id}
                     onClick={() => setSelectedConversation(conversation.id)}
-                    className={`p-4 hover:bg-gradient-to-r hover:from-turquoise-50/50 hover:to-cyan-50/50 cursor-pointer transition-all duration-200 border-b border-turquoise-100/30 ${
-                      selectedConversation === conversation.id 
-                        ? 'bg-gradient-to-r from-turquoise-50 to-cyan-50 border-l-4 border-l-turquoise-400' 
-                        : ''
+                    className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+                      selectedConversation === conversation.id ? 'bg-turquoise-50' : ''
                     }`}
                   >
                     <div className="flex items-center space-x-3">
@@ -250,7 +234,7 @@ export default function Messages() {
                         )}
                       </div>
                       {conversation.unreadCount > 0 && (
-                        <div className="bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-lg">
+                        <div className="bg-turquoise-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                           {conversation.unreadCount}
                         </div>
                       )}

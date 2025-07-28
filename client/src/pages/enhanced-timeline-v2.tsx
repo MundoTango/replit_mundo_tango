@@ -9,7 +9,7 @@ import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Card } from '../components/ui/card';
 import { useToast } from '../hooks/use-toast';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/auth-context';
 import { formatDistanceToNow } from 'date-fns';
 import {
   ImageIcon,
@@ -34,7 +34,7 @@ import '../styles/enhanced-memories.css';
 // Import only essential components directly
 import { RoleEmojiDisplay } from '../components/ui/RoleEmojiDisplay';
 import { PostContextMenu } from '../components/ui/PostContextMenu';
-import { EnhancedPostCreator } from '../components/memories/EnhancedMemoriesUI';
+import { EnhancedPostCreator, EnhancedMemoryCard } from '../components/memories/EnhancedMemoriesUI';
 
 // Lazy load heavy components
 import { 
@@ -588,7 +588,7 @@ export default function EnhancedTimelineV2() {
                 </div>
               </div>
 
-            {/* Facebook-inspired Memory Post Creator */}
+            {/* Enhanced Memory Post Creator */}
             <div className="mb-6">
               <EnhancedPostCreator 
                 user={user ? {
@@ -659,9 +659,29 @@ export default function EnhancedTimelineV2() {
               ) : posts.length > 0 ? (
                 <div className="space-y-6">
                   {posts.map((post: Memory) => (
-                    <MemoryCard 
+                    <EnhancedMemoryCard 
                       key={post.id} 
                       memory={post}
+                      onInteraction={(type, data) => {
+                        console.log('Memory interaction:', type, data);
+                        if (type === 'comment' && data?.text) {
+                          // Handle comment
+                          toast({
+                            title: "Comment posted",
+                            description: "Your comment has been added",
+                          });
+                        } else if (type === 'share') {
+                          toast({
+                            title: "Memory shared",
+                            description: "Memory has been shared to your timeline",
+                          });
+                        } else if (type === 'save') {
+                          toast({
+                            title: "Memory saved",
+                            description: "Memory has been saved to your collection",
+                          });
+                        }
+                      }}
                     />
                   ))}
                 </div>

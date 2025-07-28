@@ -26,8 +26,7 @@ import {
   Send,
   X,
   Check,
-  ChevronDown,
-  UserCheck
+  ChevronDown
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,7 +41,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { TangoRoleEmojis } from './TangoRoleEmojis';
 
 // Enhanced Post Creator with Life CEO 44x21s Methodology
 export const EnhancedPostCreator: React.FC<{
@@ -62,15 +60,6 @@ export const EnhancedPostCreator: React.FC<{
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
   const [currentMentionPosition, setCurrentMentionPosition] = useState(0);
-  const [isExpanded, setIsExpanded] = useState(false);
-  
-  // Recommendation-specific state
-  const [isRecommendation, setIsRecommendation] = useState(false);
-  const [recommendationType, setRecommendationType] = useState<string>('restaurant');
-  const [rating, setRating] = useState<number>(0);
-  const [priceLevel, setPriceLevel] = useState<number>(0);
-  const [locationData, setLocationData] = useState<any>(null);
-  const [searchingLocation, setSearchingLocation] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
@@ -147,36 +136,6 @@ export const EnhancedPostCreator: React.FC<{
     });
   };
 
-  // Handle location search
-  const searchLocation = async (query: string) => {
-    if (!query || query.length < 3) return;
-    
-    setSearchingLocation(true);
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
-      );
-      const results = await response.json();
-      
-      if (results.length > 0) {
-        const result = results[0];
-        setLocationData({
-          name: result.display_name.split(',')[0],
-          address: result.display_name,
-          latitude: parseFloat(result.lat),
-          longitude: parseFloat(result.lon),
-          city: result.address?.city || result.address?.town || 'Buenos Aires',
-          state: result.address?.state,
-          country: result.address?.country || 'Argentina'
-        });
-      }
-    } catch (error) {
-      console.error('Location search error:', error);
-    } finally {
-      setSearchingLocation(false);
-    }
-  };
-
   // Handle post submission
   const handlePost = async () => {
     if (!content.trim() && media.length === 0) {
@@ -190,46 +149,34 @@ export const EnhancedPostCreator: React.FC<{
 
     setIsPosting(true);
     
-    // Prepare post data
-    const postData = {
-      content,
-      emotions: selectedEmotions,
-      location,
-      tags,
-      mentions,
-      media,
-      visibility,
-      timestamp: new Date(),
-      // Recommendation-specific fields
-      isRecommendation,
-      recommendationType: isRecommendation ? recommendationType : undefined,
-      rating: isRecommendation ? rating : undefined,
-      priceLevel: isRecommendation ? priceLevel : undefined,
-      locationData: isRecommendation ? locationData : undefined
-    };
-    
-    onPost(postData);
-    
-    // Reset form
-    setContent('');
-    setSelectedEmotions([]);
-    setLocation('');
-    setLocationData(null);
-    setTags([]);
-    setMentions([]);
-    setMedia([]);
-    setShowAdvancedOptions(false);
-    setIsPosting(false);
-    setIsRecommendation(false);
-    setRating(0);
-    setPriceLevel(0);
-    
-    toast({
-      title: isRecommendation ? "Recommendation shared! 🌟" : "Memory shared! ✨",
-      description: isRecommendation 
-        ? "Your recommendation has been added to the community map"
-        : "Your tango moment is now part of the community",
-    });
+    // Simulate posting
+    setTimeout(() => {
+      onPost({
+        content,
+        emotions: selectedEmotions,
+        location,
+        tags,
+        mentions,
+        media,
+        visibility,
+        timestamp: new Date()
+      });
+      
+      // Reset form
+      setContent('');
+      setSelectedEmotions([]);
+      setLocation('');
+      setTags([]);
+      setMentions([]);
+      setMedia([]);
+      setShowAdvancedOptions(false);
+      setIsPosting(false);
+      
+      toast({
+        title: "Memory shared! ✨",
+        description: "Your tango moment is now part of the community",
+      });
+    }, 1000);
   };
 
   return (
@@ -238,7 +185,7 @@ export const EnhancedPostCreator: React.FC<{
       animate={{ opacity: 1, y: 0 }}
       className="w-full"
     >
-      <Card className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 p-4">
+      <Card className="glassmorphic-card p-6 border-turquoise-200/30">
         {/* User Avatar & Input Area */}
         <div className="flex gap-4">
           <div className="flex-shrink-0">
@@ -258,11 +205,15 @@ export const EnhancedPostCreator: React.FC<{
                 ref={textareaRef}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="What's on your mind?"
-                className="w-full min-h-[80px] p-3 bg-gray-50 border-0 rounded-lg resize-none focus:outline-none focus:bg-white focus:ring-1 focus:ring-gray-200 transition-all duration-200 text-base"
+                placeholder="✨ Share your tango moment..."
+                className="w-full min-h-[100px] p-4 bg-white/80 backdrop-blur-sm border border-turquoise-200/50 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-turquoise-400/50 transition-all duration-300"
                 style={{ height: 'auto' }}
-                onFocus={() => setIsExpanded(true)}
               />
+              
+              {/* Character Count */}
+              <div className="absolute bottom-2 right-2 text-sm text-gray-400">
+                {content.length}/500
+              </div>
             </div>
 
             {/* Selected Emotions */}
@@ -328,124 +279,9 @@ export const EnhancedPostCreator: React.FC<{
               </motion.div>
             )}
 
-            {/* Recommendation Fields */}
-            {isRecommendation && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="space-y-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg"
-              >
-                {/* Recommendation Type */}
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Type of Recommendation</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {['restaurant', 'bar', 'cafe', 'attraction', 'shopping', 'other'].map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => setRecommendationType(type)}
-                        className={cn(
-                          "px-3 py-2 rounded-lg text-sm font-medium transition-all",
-                          recommendationType === type
-                            ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
-                            : "bg-white text-gray-700 hover:bg-gray-100"
-                        )}
-                      >
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Location Search */}
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Location</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={location}
-                      onChange={(e) => {
-                        setLocation(e.target.value);
-                        if (e.target.value.length > 2) {
-                          searchLocation(e.target.value);
-                        }
-                      }}
-                      placeholder="Search for location..."
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-                    />
-                    {searchingLocation && (
-                      <div className="absolute right-3 top-3">
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-yellow-400 border-t-transparent" />
-                      </div>
-                    )}
-                  </div>
-                  {locationData && (
-                    <div className="mt-2 p-2 bg-white rounded-lg text-sm text-gray-600">
-                      📍 {locationData.address}
-                    </div>
-                  )}
-                </div>
-
-                {/* Rating */}
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Rating</label>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        onClick={() => setRating(star)}
-                        className={cn(
-                          "text-2xl transition-all",
-                          star <= rating ? "text-yellow-400" : "text-gray-300"
-                        )}
-                      >
-                        ⭐
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Price Level */}
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Price Level</label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4].map((price) => (
-                      <button
-                        key={price}
-                        onClick={() => setPriceLevel(price)}
-                        className={cn(
-                          "px-3 py-1 rounded-lg font-medium transition-all",
-                          price <= priceLevel
-                            ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
-                            : "bg-gray-200 text-gray-500"
-                        )}
-                      >
-                        {'$'.repeat(price)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
             {/* Action Buttons */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {/* Recommendation Toggle */}
-                <Button
-                  variant={isRecommendation ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setIsRecommendation(!isRecommendation)}
-                  className={cn(
-                    "transition-all duration-200",
-                    isRecommendation
-                      ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600"
-                      : "text-gray-600 hover:text-turquoise-600 hover:bg-turquoise-50"
-                  )}
-                >
-                  ⭐ Recommendation
-                </Button>
-                
                 {/* Emoji Picker */}
                 <div className="relative">
                   <Button
@@ -583,7 +419,7 @@ export const EnhancedPostCreator: React.FC<{
               <Button
                 onClick={handlePost}
                 disabled={isPosting || (!content.trim() && media.length === 0)}
-                className="bg-turquoise-500 text-white hover:bg-turquoise-600 px-6 py-2 rounded-md font-medium transition-colors duration-200"
+                className="bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white hover:from-turquoise-500 hover:to-cyan-600 shadow-lg"
               >
                 {isPosting ? (
                   <>
@@ -679,14 +515,11 @@ export const EnhancedPostCreator: React.FC<{
 export const EnhancedMemoryCard: React.FC<{
   memory: any;
   onInteraction: (type: string, data?: any) => void;
-  currentUser?: any;
-  isFriend?: boolean;
-}> = ({ memory, onInteraction, currentUser, isFriend }) => {
+}> = ({ memory, onInteraction }) => {
   const [showComments, setShowComments] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(memory.reactions?.love || 0);
   const [showReactions, setShowReactions] = useState(false);
-  const [currentReaction, setCurrentReaction] = useState<string | null>(null);
   
   const reactionOptions = [
     { emoji: '❤️', label: 'Love' },
@@ -699,11 +532,11 @@ export const EnhancedMemoryCard: React.FC<{
 
   const handleReaction = (emoji: string) => {
     onInteraction('reaction', { emoji });
-    setCurrentReaction(emoji);
     setShowReactions(false);
-    
-    // Update like count for any reaction
-    setLikeCount((prev: number) => currentReaction ? prev : prev + 1);
+    if (emoji === '❤️') {
+      setIsLiked(true);
+      setLikeCount(prev => prev + 1);
+    }
   };
 
   return (
@@ -713,7 +546,7 @@ export const EnhancedMemoryCard: React.FC<{
       whileHover={{ y: -2 }}
       className="w-full"
     >
-      <Card className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden border border-gray-100">
+      <Card className="glassmorphic-card overflow-hidden hover:shadow-xl transition-all duration-300">
         {/* Header */}
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -724,29 +557,8 @@ export const EnhancedMemoryCard: React.FC<{
                 memory.user?.name?.charAt(0) || 'U'
               )}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h4 className="font-semibold text-gray-800">{memory.user?.name || 'Anonymous'}</h4>
-                {memory.user?.tangoRoles && (
-                  <TangoRoleEmojis 
-                    roles={memory.user.tangoRoles} 
-                    className="ml-1"
-                    showLimit={2}
-                  />
-                )}
-                {/* Show "See Friendship" button if they are friends */}
-                {isFriend && currentUser && currentUser.id !== memory.user?.id && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onInteraction('seeFriendship', { userId: memory.user?.id })}
-                    className="ml-2 text-xs text-turquoise-600 hover:text-turquoise-700 hover:bg-turquoise-50 h-6 px-2"
-                  >
-                    <UserCheck className="w-3 h-3 mr-1" />
-                    Friends
-                  </Button>
-                )}
-              </div>
+            <div>
+              <h4 className="font-semibold text-gray-800">{memory.user?.name || 'Anonymous'}</h4>
               <p className="text-sm text-gray-500">
                 {memory.location && <span className="mr-2">📍 {memory.location}</span>}
                 {new Date(memory.createdAt).toLocaleDateString()}
@@ -811,56 +623,40 @@ export const EnhancedMemoryCard: React.FC<{
               <div className="relative">
                 <motion.button
                   whileTap={{ scale: 0.9 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowReactions(!showReactions);
-                  }}
+                  onClick={() => handleReaction('❤️')}
+                  onMouseEnter={() => setShowReactions(true)}
+                  onMouseLeave={() => setShowReactions(false)}
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5 rounded-full transition-all",
-                    currentReaction 
-                      ? "bg-turquoise-100 text-turquoise-700" 
+                    isLiked 
+                      ? "bg-red-100 text-red-600" 
                       : "hover:bg-gray-100 text-gray-600"
                   )}
                 >
-                  {currentReaction ? (
-                    <span className="text-lg">{currentReaction}</span>
-                  ) : (
-                    <Heart className="w-4 h-4" />
-                  )}
+                  <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
                   <span className="text-sm font-medium">{likeCount}</span>
                 </motion.button>
                 
                 <AnimatePresence>
                   {showReactions && (
-                    <>
-                      {/* Overlay to close on outside click */}
-                      <div 
-                        className="fixed inset-0 z-40" 
-                        onClick={() => setShowReactions(false)}
-                      />
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="absolute bottom-full left-0 mb-2 bg-white rounded-full shadow-lg p-2 flex gap-1 z-50"
-                      >
-                        {reactionOptions.map((reaction) => (
-                          <motion.button
-                            key={reaction.emoji}
-                            whileHover={{ scale: 1.2 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleReaction(reaction.emoji);
-                              setShowReactions(false);
-                            }}
-                            className="p-1.5 hover:bg-gray-100 rounded-full"
-                          >
-                            <span className="text-xl">{reaction.emoji}</span>
-                          </motion.button>
-                        ))}
-                      </motion.div>
-                    </>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute bottom-full left-0 mb-2 bg-white rounded-full shadow-lg p-2 flex gap-1"
+                    >
+                      {reactionOptions.map((reaction) => (
+                        <motion.button
+                          key={reaction.emoji}
+                          whileHover={{ scale: 1.2 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => handleReaction(reaction.emoji)}
+                          className="p-1.5 hover:bg-gray-100 rounded-full"
+                        >
+                          <span className="text-xl">{reaction.emoji}</span>
+                        </motion.button>
+                      ))}
+                    </motion.div>
                   )}
                 </AnimatePresence>
               </div>
@@ -914,7 +710,7 @@ export const EnhancedMemoryCard: React.FC<{
                       }
                     }}
                   />
-                  <Button size="sm" className="bg-turquoise-500 hover:bg-turquoise-600 text-white">
+                  <Button size="sm" className="bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white">
                     <Send className="w-4 h-4" />
                   </Button>
                 </div>
