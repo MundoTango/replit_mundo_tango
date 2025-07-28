@@ -1,5 +1,4 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { 
   Smile, 
@@ -204,11 +203,7 @@ const OriginalEnhancedPostCreator: React.FC<{
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="w-full"
-    >
+    <div className="w-full animate-fadeInUp">
       <Card className="glassmorphic-card p-6 border-turquoise-200/30">
         {/* User Avatar & Input Area */}
         <div className="flex gap-4">
@@ -242,11 +237,7 @@ const OriginalEnhancedPostCreator: React.FC<{
 
             {/* Selected Emotions */}
             {selectedEmotions.length > 0 && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="flex flex-wrap gap-2"
-              >
+              <div className="flex flex-wrap gap-2 animate-fadeIn">
                 {selectedEmotions.map((emotion) => {
                   const emotionData = emotionOptions.find(e => e.emoji === emotion);
                   return (
@@ -267,16 +258,12 @@ const OriginalEnhancedPostCreator: React.FC<{
                     </Badge>
                   );
                 })}
-              </motion.div>
+              </div>
             )}
 
             {/* Media Preview */}
             {media.length > 0 && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="grid grid-cols-3 gap-2"
-              >
+              <div className="grid grid-cols-3 gap-2 animate-fadeIn">
                 {media.map((file, index) => (
                   <div key={index} className="relative group">
                     <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
@@ -300,7 +287,7 @@ const OriginalEnhancedPostCreator: React.FC<{
                     </button>
                   </div>
                 ))}
-              </motion.div>
+              </div>
             )}
 
             {/* Action Buttons */}
@@ -317,29 +304,24 @@ const OriginalEnhancedPostCreator: React.FC<{
                     <Smile className="w-5 h-5" />
                   </Button>
                   
-                  <AnimatePresence>
-                    {showEmojiPicker && (
-                      <motion.div
-                        ref={emojiPickerRef}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="absolute bottom-full left-0 mb-2 z-50"
-                      >
-                        <EmojiPicker
-                          onEmojiClick={onEmojiClick}
-                          theme={Theme.LIGHT}
-                          searchDisabled
-                          skinTonesDisabled
-                          width={350}
-                          height={400}
-                          previewConfig={{
-                            showPreview: false
-                          }}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {showEmojiPicker && (
+                    <div
+                      ref={emojiPickerRef}
+                      className="absolute bottom-full left-0 mb-2 z-50 animate-fadeIn"
+                    >
+                      <EmojiPicker
+                        onEmojiClick={onEmojiClick}
+                        theme={Theme.LIGHT}
+                        searchDisabled
+                        skinTonesDisabled
+                        width={350}
+                        height={400}
+                        previewConfig={{
+                          showPreview: false
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Media Upload */}
@@ -460,14 +442,8 @@ const OriginalEnhancedPostCreator: React.FC<{
             </div>
 
             {/* Advanced Options */}
-            <AnimatePresence>
-              {showAdvancedOptions && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="space-y-3 pt-4 border-t border-gray-100"
-                >
+            {showAdvancedOptions && (
+              <div className="space-y-3 pt-4 border-t border-gray-100 animate-fadeIn">
                   {/* Tags Input */}
                   <div>
                     <label className="text-sm text-gray-600 mb-1 block">Tags</label>
@@ -525,13 +501,12 @@ const OriginalEnhancedPostCreator: React.FC<{
                       ))}
                     </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+              </div>
+            )}
           </div>
         </div>
       </Card>
-    </motion.div>
+    </div>
   );
 };
 
@@ -564,12 +539,7 @@ export const EnhancedMemoryCard: React.FC<{
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -2 }}
-      className="w-full"
-    >
+    <div className="w-full animate-fadeInUp hover:-translate-y-0.5 transition-transform">
       <Card className="glassmorphic-card overflow-hidden hover:shadow-xl transition-all duration-300">
         {/* Header */}
         <div className="p-4 flex items-center justify-between">
@@ -645,13 +615,12 @@ export const EnhancedMemoryCard: React.FC<{
             <div className="flex items-center gap-4">
               {/* Like/Reactions */}
               <div className="relative">
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
+                <button
                   onClick={() => handleReaction('❤️')}
                   onMouseEnter={() => setShowReactions(true)}
                   onMouseLeave={() => setShowReactions(false)}
                   className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 rounded-full transition-all",
+                    "flex items-center gap-2 px-3 py-1.5 rounded-full transition-all active:scale-90",
                     isLiked 
                       ? "bg-red-100 text-red-600" 
                       : "hover:bg-gray-100 text-gray-600"
@@ -659,30 +628,23 @@ export const EnhancedMemoryCard: React.FC<{
                 >
                   <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
                   <span className="text-sm font-medium">{likeCount}</span>
-                </motion.button>
+                </button>
                 
-                <AnimatePresence>
-                  {showReactions && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      className="absolute bottom-full left-0 mb-2 bg-white rounded-full shadow-lg p-2 flex gap-1"
-                    >
-                      {reactionOptions.map((reaction) => (
-                        <motion.button
-                          key={reaction.emoji}
-                          whileHover={{ scale: 1.2 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => handleReaction(reaction.emoji)}
-                          className="p-1.5 hover:bg-gray-100 rounded-full"
-                        >
-                          <span className="text-xl">{reaction.emoji}</span>
-                        </motion.button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {showReactions && (
+                  <div
+                    className="absolute bottom-full left-0 mb-2 bg-white rounded-full shadow-lg p-2 flex gap-1 animate-fadeIn"
+                  >
+                    {reactionOptions.map((reaction) => (
+                      <button
+                        key={reaction.emoji}
+                        onClick={() => handleReaction(reaction.emoji)}
+                        className="p-1.5 hover:bg-gray-100 rounded-full hover:scale-110 active:scale-90 transition-transform"
+                      >
+                        <span className="text-xl">{reaction.emoji}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Comments */}
@@ -713,14 +675,10 @@ export const EnhancedMemoryCard: React.FC<{
           </div>
 
           {/* Comments Section */}
-          <AnimatePresence>
-            {showComments && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mt-4 space-y-3"
-              >
+          {showComments && (
+            <div
+              className="mt-4 space-y-3 animate-slideDown"
+            >
                 {/* Comment Input */}
                 <div className="flex gap-2">
                   <Input
@@ -754,12 +712,11 @@ export const EnhancedMemoryCard: React.FC<{
                     </div>
                   </div>
                 ))}
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
         </div>
       </Card>
-    </motion.div>
+    </div>
   );
 };
 
