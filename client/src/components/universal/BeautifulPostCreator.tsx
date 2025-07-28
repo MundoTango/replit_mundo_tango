@@ -22,13 +22,14 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import EmojiPicker from 'emoji-picker-react';
-import { 
-  createTypingParticle, 
-  createRipple, 
-  createConfetti,
-  magneticButton,
-  resetMagneticButton 
-} from '@/utils/microInteractions';
+// Temporarily disabled microInteractions to fix performance issue
+// import { 
+//   createTypingParticle, 
+//   createRipple, 
+//   createConfetti,
+//   magneticButton,
+//   resetMagneticButton 
+// } from '@/utils/microInteractions';
 
 interface PostCreatorProps {
   context?: {
@@ -231,7 +232,7 @@ export default function BeautifulPostCreator({
       });
 
       // Trigger confetti celebration
-      createConfetti();
+      // createConfetti(); // Temporarily disabled for performance
 
       // Reset form
       setContent('');
@@ -295,7 +296,7 @@ export default function BeautifulPostCreator({
       });
       
       // Trigger confetti
-      createConfetti();
+      // createConfetti(); // Temporarily disabled for performance
       
       onPostCreated?.();
       return;
@@ -319,7 +320,7 @@ export default function BeautifulPostCreator({
 
   // Handle typing with particle effects
   const handleTyping = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    createTypingParticle(e);
+    // createTypingParticle(e); // Temporarily disabled for performance
   };
 
   return (
@@ -668,11 +669,11 @@ export default function BeautifulPostCreator({
 
               <button
                 onClick={(e) => {
-                  createRipple(e);
+                  // createRipple(e); // Temporarily disabled for performance
                   handleSubmit();
                 }}
-                onMouseMove={magneticButton}
-                onMouseLeave={resetMagneticButton}
+                // onMouseMove={magneticButton} // Temporarily disabled for performance
+                // onMouseLeave={resetMagneticButton} // Temporarily disabled for performance
                 disabled={createPostMutation.isPending || (!content.trim() && mediaFiles.length === 0)}
                 className="group relative px-10 py-4 overflow-hidden rounded-full font-bold text-lg shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 magnetic-button ripple-container"
                 style={{
@@ -725,7 +726,6 @@ export default function BeautifulPostCreator({
                     setContent(prev => prev + emojiData.emoji);
                     setShowEmojiPicker(false);
                   }}
-                  theme="light"
                   lazyLoadEmojis
                 />
               </div>
