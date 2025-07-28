@@ -34,7 +34,7 @@ import '../styles/enhanced-memories.css';
 // Import only essential components directly
 import { RoleEmojiDisplay } from '../components/ui/RoleEmojiDisplay';
 import { PostContextMenu } from '../components/ui/PostContextMenu';
-import { EnhancedPostCreator, EnhancedMemoryCard } from '../components/memories/EnhancedMemoriesUI';
+import { EnhancedPostCreator } from '../components/memories/EnhancedMemoriesUI';
 
 // Lazy load heavy components
 import { 
@@ -659,122 +659,9 @@ export default function EnhancedTimelineV2() {
               ) : posts.length > 0 ? (
                 <div className="space-y-6">
                   {posts.map((post: Memory) => (
-                    <EnhancedMemoryCard 
+                    <MemoryCard 
                       key={post.id} 
                       memory={post}
-                      currentUser={user}
-                      isFriend={(post as any).isFriend || false}
-                      onInteraction={async (type, data) => {
-                        console.log('Memory interaction:', type, data);
-                        
-                        if (type === 'comment' && data?.text) {
-                          // Post comment to API
-                          try {
-                            const response = await fetch(`/api/posts/${post.id}/comments`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              credentials: 'include',
-                              body: JSON.stringify({ 
-                                content: data.text,
-                                mentions: data.mentions || []
-                              })
-                            });
-                            
-                            if (response.ok) {
-                              queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
-                              toast({
-                                title: "Comment posted",
-                                description: "Your comment has been added",
-                              });
-                            } else {
-                              throw new Error('Failed to post comment');
-                            }
-                          } catch (error) {
-                            toast({
-                              title: "Error",
-                              description: "Failed to post comment. Please try again.",
-                              variant: "destructive"
-                            });
-                          }
-                        } else if (type === 'share') {
-                          // Share post
-                          try {
-                            const response = await fetch(`/api/posts/${post.id}/share`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              credentials: 'include',
-                              body: JSON.stringify({ comment: '' })
-                            });
-                            
-                            if (response.ok) {
-                              queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
-                              toast({
-                                title: "Memory shared",
-                                description: "Memory has been shared to your timeline",
-                              });
-                            } else {
-                              throw new Error('Failed to share');
-                            }
-                          } catch (error) {
-                            toast({
-                              title: "Error",
-                              description: "Failed to share memory. Please try again.",
-                              variant: "destructive"
-                            });
-                          }
-                        } else if (type === 'save') {
-                          // Save post
-                          try {
-                            const response = await fetch(`/api/posts/${post.id}/save`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              credentials: 'include'
-                            });
-                            
-                            if (response.ok) {
-                              toast({
-                                title: "Memory saved",
-                                description: "Memory has been saved to your collection",
-                              });
-                            } else {
-                              throw new Error('Failed to save');
-                            }
-                          } catch (error) {
-                            toast({
-                              title: "Error",
-                              description: "Failed to save memory. Please try again.",
-                              variant: "destructive"
-                            });
-                          }
-                        } else if (type === 'seeFriendship' && data?.userId) {
-                          // Navigate to friendship view
-                          window.location.href = `/profile/${data.userId}`;
-                        } else if (type === 'reaction' && data?.emoji) {
-                          // Handle emoji reaction
-                          try {
-                            const response = await fetch(`/api/posts/${post.id}/reactions`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              credentials: 'include',
-                              body: JSON.stringify({ reaction: data.emoji })
-                            });
-                            
-                            if (response.ok) {
-                              queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
-                              toast({
-                                title: "Reaction added",
-                                description: `You reacted with ${data.emoji}`,
-                              });
-                            }
-                          } catch (error) {
-                            toast({
-                              title: "Error",
-                              description: "Failed to add reaction. Please try again.",
-                              variant: "destructive"
-                            });
-                          }
-                        }
-                      }}
                     />
                   ))}
                 </div>
