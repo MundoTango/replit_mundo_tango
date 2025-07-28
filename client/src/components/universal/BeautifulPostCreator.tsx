@@ -43,12 +43,26 @@ interface PostCreatorProps {
     profileImage?: string;
   };
   onPostCreated?: () => void;
+  // Custom submit handler for memories feed integration
+  onSubmit?: (data: {
+    content: string;
+    emotions?: string[];
+    location?: string;
+    tags: string[];
+    mentions?: string[];
+    media: File[];
+    visibility: string;
+    isRecommendation: boolean;
+    recommendationType?: string;
+    priceRange?: string;
+  }) => void;
 }
 
 export default function BeautifulPostCreator({ 
   context = { type: 'feed' }, 
   user,
-  onPostCreated 
+  onPostCreated,
+  onSubmit 
 }: PostCreatorProps) {
   const [content, setContent] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -249,6 +263,45 @@ export default function BeautifulPostCreator({
       return;
     }
 
+    // If custom submit handler is provided (for memories feed), use it
+    if (onSubmit) {
+      onSubmit({
+        content,
+        emotions: [], // BeautifulPostCreator doesn't have emotions
+        location: location || undefined,
+        tags: selectedTags,
+        mentions: [], // TODO: extract mentions from content
+        media: mediaFiles,
+        visibility,
+        isRecommendation,
+        recommendationType,
+        priceRange
+      });
+
+      // Reset form after submission
+      setContent('');
+      setLocation('');
+      setSelectedTags([]);
+      setMediaFiles([]);
+      setMediaPreviews([]);
+      setIsRecommendation(false);
+      setRecommendationType('');
+      setPriceRange('');
+      
+      // Show success notification
+      toast({
+        title: "Memory created! 🎉",
+        description: "Your moment has been shared",
+      });
+      
+      // Trigger confetti
+      createConfetti();
+      
+      onPostCreated?.();
+      return;
+    }
+
+    // Default behavior: use internal mutation
     createPostMutation.mutate({
       content,
       visibility,
