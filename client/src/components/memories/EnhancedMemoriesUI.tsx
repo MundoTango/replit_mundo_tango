@@ -26,7 +26,8 @@ import {
   Send,
   X,
   Check,
-  ChevronDown
+  ChevronDown,
+  UserCheck
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { TangoRoleEmojis } from './TangoRoleEmojis';
 
 // Enhanced Post Creator with Life CEO 44x21s Methodology
 export const EnhancedPostCreator: React.FC<{
@@ -60,6 +62,7 @@ export const EnhancedPostCreator: React.FC<{
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
   const [currentMentionPosition, setCurrentMentionPosition] = useState(0);
+  const [isExpanded, setIsExpanded] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
@@ -511,11 +514,14 @@ export const EnhancedPostCreator: React.FC<{
 export const EnhancedMemoryCard: React.FC<{
   memory: any;
   onInteraction: (type: string, data?: any) => void;
-}> = ({ memory, onInteraction }) => {
+  currentUser?: any;
+  isFriend?: boolean;
+}> = ({ memory, onInteraction, currentUser, isFriend }) => {
   const [showComments, setShowComments] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(memory.reactions?.love || 0);
   const [showReactions, setShowReactions] = useState(false);
+  const [currentReaction, setCurrentReaction] = useState<string | null>(null);
   
   const reactionOptions = [
     { emoji: '❤️', label: 'Love' },
@@ -528,11 +534,11 @@ export const EnhancedMemoryCard: React.FC<{
 
   const handleReaction = (emoji: string) => {
     onInteraction('reaction', { emoji });
+    setCurrentReaction(emoji);
     setShowReactions(false);
-    if (emoji === '❤️') {
-      setIsLiked(true);
-      setLikeCount((prev: number) => prev + 1);
-    }
+    
+    // Update like count for any reaction
+    setLikeCount((prev: number) => currentReaction ? prev : prev + 1);
   };
 
   return (
@@ -553,8 +559,29 @@ export const EnhancedMemoryCard: React.FC<{
                 memory.user?.name?.charAt(0) || 'U'
               )}
             </div>
-            <div>
-              <h4 className="font-semibold text-gray-800">{memory.user?.name || 'Anonymous'}</h4>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h4 className="font-semibold text-gray-800">{memory.user?.name || 'Anonymous'}</h4>
+                {memory.user?.tangoRoles && (
+                  <TangoRoleEmojis 
+                    roles={memory.user.tangoRoles} 
+                    className="ml-1"
+                    showLimit={2}
+                  />
+                )}
+                {/* Show "See Friendship" button if they are friends */}
+                {isFriend && currentUser && currentUser.id !== memory.user?.id && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onInteraction('seeFriendship', { userId: memory.user?.id })}
+                    className="ml-2 text-xs text-turquoise-600 hover:text-turquoise-700 hover:bg-turquoise-50 h-6 px-2"
+                  >
+                    <UserCheck className="w-3 h-3 mr-1" />
+                    Friends
+                  </Button>
+                )}
+              </div>
               <p className="text-sm text-gray-500">
                 {memory.location && <span className="mr-2">📍 {memory.location}</span>}
                 {new Date(memory.createdAt).toLocaleDateString()}
@@ -619,40 +646,56 @@ export const EnhancedMemoryCard: React.FC<{
               <div className="relative">
                 <motion.button
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => handleReaction('❤️')}
-                  onMouseEnter={() => setShowReactions(true)}
-                  onMouseLeave={() => setShowReactions(false)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowReactions(!showReactions);
+                  }}
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5 rounded-full transition-all",
-                    isLiked 
-                      ? "bg-red-100 text-red-600" 
+                    currentReaction 
+                      ? "bg-turquoise-100 text-turquoise-700" 
                       : "hover:bg-gray-100 text-gray-600"
                   )}
                 >
-                  <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
+                  {currentReaction ? (
+                    <span className="text-lg">{currentReaction}</span>
+                  ) : (
+                    <Heart className="w-4 h-4" />
+                  )}
                   <span className="text-sm font-medium">{likeCount}</span>
                 </motion.button>
                 
                 <AnimatePresence>
                   {showReactions && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      className="absolute bottom-full left-0 mb-2 bg-white rounded-full shadow-lg p-2 flex gap-1"
-                    >
-                      {reactionOptions.map((reaction) => (
-                        <motion.button
-                          key={reaction.emoji}
-                          whileHover={{ scale: 1.2 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => handleReaction(reaction.emoji)}
-                          className="p-1.5 hover:bg-gray-100 rounded-full"
-                        >
-                          <span className="text-xl">{reaction.emoji}</span>
-                        </motion.button>
-                      ))}
-                    </motion.div>
+                    <>
+                      {/* Overlay to close on outside click */}
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setShowReactions(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute bottom-full left-0 mb-2 bg-white rounded-full shadow-lg p-2 flex gap-1 z-50"
+                      >
+                        {reactionOptions.map((reaction) => (
+                          <motion.button
+                            key={reaction.emoji}
+                            whileHover={{ scale: 1.2 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReaction(reaction.emoji);
+                              setShowReactions(false);
+                            }}
+                            className="p-1.5 hover:bg-gray-100 rounded-full"
+                          >
+                            <span className="text-xl">{reaction.emoji}</span>
+                          </motion.button>
+                        ))}
+                      </motion.div>
+                    </>
                   )}
                 </AnimatePresence>
               </div>

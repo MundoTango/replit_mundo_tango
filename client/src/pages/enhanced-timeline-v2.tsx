@@ -662,6 +662,8 @@ export default function EnhancedTimelineV2() {
                     <EnhancedMemoryCard 
                       key={post.id} 
                       memory={post}
+                      currentUser={user}
+                      isFriend={post.isFriend || false}
                       onInteraction={(type, data) => {
                         console.log('Memory interaction:', type, data);
                         if (type === 'comment' && data?.text) {
@@ -680,6 +682,9 @@ export default function EnhancedTimelineV2() {
                             title: "Memory saved",
                             description: "Memory has been saved to your collection",
                           });
+                        } else if (type === 'seeFriendship' && data?.userId) {
+                          // Navigate to friendship view
+                          window.location.href = `/profile/${data.userId}`;
                         }
                       }}
                     />
