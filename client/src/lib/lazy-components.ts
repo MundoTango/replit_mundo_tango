@@ -28,7 +28,7 @@ export const LazyLoadingFallback = () =>
     })
   );
 
-// Wrap components with Suspense
+// HOC to wrap lazy components with Suspense
 export function withSuspense<T extends React.ComponentType<any>>(Component: T) {
   return function SuspenseWrapper(props: React.ComponentProps<T>) {
     return React.createElement(React.Suspense, {
