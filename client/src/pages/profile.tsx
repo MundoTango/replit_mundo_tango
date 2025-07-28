@@ -12,13 +12,14 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { GuestProfileDisplay } from '@/components/GuestProfile/GuestProfileDisplay';
 import { Camera, Video, Users, Calendar, Star, UserCheck, Globe, PenLine, UserCircle } from 'lucide-react';
-import { TravelDetailsComponent } from '@/components/profile/TravelDetailsComponent';
-import { ProfileMemoryPostModal } from '@/components/profile/ProfileMemoryPostModal';
-import { UserPhotosGallery } from '@/components/profile/UserPhotosGallery';
-import { UserVideosGallery } from '@/components/profile/UserVideosGallery';
-import { UserFriendsList } from '@/components/profile/UserFriendsList';
-import { UserEventsList } from '@/components/profile/UserEventsList';
-import { ProfileAboutSection } from '@/components/profile/ProfileAboutSection';
+// Lazy load heavy profile components for better performance
+const TravelDetailsComponent = React.lazy(() => import('@/components/profile/TravelDetailsComponent').then(m => ({ default: m.TravelDetailsComponent })));
+const ProfileMemoryPostModal = React.lazy(() => import('@/components/profile/ProfileMemoryPostModal').then(m => ({ default: m.ProfileMemoryPostModal })));
+const UserPhotosGallery = React.lazy(() => import('@/components/profile/UserPhotosGallery').then(m => ({ default: m.UserPhotosGallery })));
+const UserVideosGallery = React.lazy(() => import('@/components/profile/UserVideosGallery').then(m => ({ default: m.UserVideosGallery })));
+const UserFriendsList = React.lazy(() => import('@/components/profile/UserFriendsList').then(m => ({ default: m.UserFriendsList })));
+const UserEventsList = React.lazy(() => import('@/components/profile/UserEventsList').then(m => ({ default: m.UserEventsList })));
+const ProfileAboutSection = React.lazy(() => import('@/components/profile/ProfileAboutSection').then(m => ({ default: m.ProfileAboutSection })));
 
 // Phase 5: Production Hardening imports
 import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
@@ -273,18 +274,23 @@ export default function Profile() {
             </TabsList>
             <div className="p-6">
               <TabsContent value="about" className="space-y-4">
-                {console.log('🔍 Life CEO Debug: Passing user to ProfileAboutSection', {
-                  user,
-                  userTangoRoles: user?.tangoRoles,
-                  tangoRolesType: typeof user?.tangoRoles,
-                  isOwnProfile: true
-                })}
-                <ProfileAboutSection 
-                  user={user} 
-                  isOwnProfile={true}
-                  currentUserId={user?.id}
-                  isFriend={false}
-                />
+                <React.Suspense fallback={
+                  <Card className="glassmorphic-card">
+                    <CardContent className="p-6">
+                      <div className="animate-pulse space-y-4">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                }>
+                  <ProfileAboutSection 
+                    user={user} 
+                    isOwnProfile={true}
+                    currentUserId={user?.id}
+                    isFriend={false}
+                  />
+                </React.Suspense>
               </TabsContent>
               
               <TabsContent value="posts" className="space-y-4">
@@ -345,26 +351,36 @@ export default function Profile() {
               </TabsContent>
 
               <TabsContent value="travel" className="space-y-4">
-                <TravelDetailsComponent 
-                  userId={user?.id || 0} 
-                  isOwnProfile={true} 
-                />
+                <React.Suspense fallback={<TravelDetailsFallback />}>
+                  <TravelDetailsComponent 
+                    userId={user?.id || 0} 
+                    isOwnProfile={true} 
+                  />
+                </React.Suspense>
               </TabsContent>
 
               <TabsContent value="photos" className="space-y-4">
-                <UserPhotosGallery userId={user?.id || 0} isOwnProfile={true} />
+                <React.Suspense fallback={<PhotosFallback />}>
+                  <UserPhotosGallery userId={user?.id || 0} isOwnProfile={true} />
+                </React.Suspense>
               </TabsContent>
 
               <TabsContent value="videos" className="space-y-4">
-                <UserVideosGallery userId={user?.id || 0} isOwnProfile={true} />
+                <React.Suspense fallback={<VideosFallback />}>
+                  <UserVideosGallery userId={user?.id || 0} isOwnProfile={true} />
+                </React.Suspense>
               </TabsContent>
 
               <TabsContent value="friends" className="space-y-4">
-                <UserFriendsList userId={user?.id || 0} isOwnProfile={true} />
+                <React.Suspense fallback={<FriendsFallback />}>
+                  <UserFriendsList userId={user?.id || 0} isOwnProfile={true} />
+                </React.Suspense>
               </TabsContent>
 
               <TabsContent value="experience" className="space-y-4">
-                <UserEventsList userId={user?.id || 0} isOwnProfile={true} />
+                <React.Suspense fallback={<ExperienceFallback />}>
+                  <UserEventsList userId={user?.id || 0} isOwnProfile={true} />
+                </React.Suspense>
               </TabsContent>
 
               <TabsContent value="guest-profile" className="space-y-4">

@@ -64,6 +64,14 @@ export const EnhancedPostCreator: React.FC<{
   const [currentMentionPosition, setCurrentMentionPosition] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   
+  // Recommendation-specific state
+  const [isRecommendation, setIsRecommendation] = useState(false);
+  const [recommendationType, setRecommendationType] = useState<string>('restaurant');
+  const [rating, setRating] = useState<number>(0);
+  const [priceLevel, setPriceLevel] = useState<number>(0);
+  const [locationData, setLocationData] = useState<any>(null);
+  const [searchingLocation, setSearchingLocation] = useState(false);
+  
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -139,6 +147,36 @@ export const EnhancedPostCreator: React.FC<{
     });
   };
 
+  // Handle location search
+  const searchLocation = async (query: string) => {
+    if (!query || query.length < 3) return;
+    
+    setSearchingLocation(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
+      );
+      const results = await response.json();
+      
+      if (results.length > 0) {
+        const result = results[0];
+        setLocationData({
+          name: result.display_name.split(',')[0],
+          address: result.display_name,
+          latitude: parseFloat(result.lat),
+          longitude: parseFloat(result.lon),
+          city: result.address?.city || result.address?.town || 'Buenos Aires',
+          state: result.address?.state,
+          country: result.address?.country || 'Argentina'
+        });
+      }
+    } catch (error) {
+      console.error('Location search error:', error);
+    } finally {
+      setSearchingLocation(false);
+    }
+  };
+
   // Handle post submission
   const handlePost = async () => {
     if (!content.trim() && media.length === 0) {
@@ -152,34 +190,46 @@ export const EnhancedPostCreator: React.FC<{
 
     setIsPosting(true);
     
-    // Simulate posting
-    setTimeout(() => {
-      onPost({
-        content,
-        emotions: selectedEmotions,
-        location,
-        tags,
-        mentions,
-        media,
-        visibility,
-        timestamp: new Date()
-      });
-      
-      // Reset form
-      setContent('');
-      setSelectedEmotions([]);
-      setLocation('');
-      setTags([]);
-      setMentions([]);
-      setMedia([]);
-      setShowAdvancedOptions(false);
-      setIsPosting(false);
-      
-      toast({
-        title: "Memory shared! ✨",
-        description: "Your tango moment is now part of the community",
-      });
-    }, 1000);
+    // Prepare post data
+    const postData = {
+      content,
+      emotions: selectedEmotions,
+      location,
+      tags,
+      mentions,
+      media,
+      visibility,
+      timestamp: new Date(),
+      // Recommendation-specific fields
+      isRecommendation,
+      recommendationType: isRecommendation ? recommendationType : undefined,
+      rating: isRecommendation ? rating : undefined,
+      priceLevel: isRecommendation ? priceLevel : undefined,
+      locationData: isRecommendation ? locationData : undefined
+    };
+    
+    onPost(postData);
+    
+    // Reset form
+    setContent('');
+    setSelectedEmotions([]);
+    setLocation('');
+    setLocationData(null);
+    setTags([]);
+    setMentions([]);
+    setMedia([]);
+    setShowAdvancedOptions(false);
+    setIsPosting(false);
+    setIsRecommendation(false);
+    setRating(0);
+    setPriceLevel(0);
+    
+    toast({
+      title: isRecommendation ? "Recommendation shared! 🌟" : "Memory shared! ✨",
+      description: isRecommendation 
+        ? "Your recommendation has been added to the community map"
+        : "Your tango moment is now part of the community",
+    });
   };
 
   return (
@@ -278,9 +328,124 @@ export const EnhancedPostCreator: React.FC<{
               </motion.div>
             )}
 
+            {/* Recommendation Fields */}
+            {isRecommendation && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg"
+              >
+                {/* Recommendation Type */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Type of Recommendation</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {['restaurant', 'bar', 'cafe', 'attraction', 'shopping', 'other'].map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setRecommendationType(type)}
+                        className={cn(
+                          "px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                          recommendationType === type
+                            ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
+                            : "bg-white text-gray-700 hover:bg-gray-100"
+                        )}
+                      >
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Location Search */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Location</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={location}
+                      onChange={(e) => {
+                        setLocation(e.target.value);
+                        if (e.target.value.length > 2) {
+                          searchLocation(e.target.value);
+                        }
+                      }}
+                      placeholder="Search for location..."
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+                    />
+                    {searchingLocation && (
+                      <div className="absolute right-3 top-3">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-yellow-400 border-t-transparent" />
+                      </div>
+                    )}
+                  </div>
+                  {locationData && (
+                    <div className="mt-2 p-2 bg-white rounded-lg text-sm text-gray-600">
+                      📍 {locationData.address}
+                    </div>
+                  )}
+                </div>
+
+                {/* Rating */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Rating</label>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => setRating(star)}
+                        className={cn(
+                          "text-2xl transition-all",
+                          star <= rating ? "text-yellow-400" : "text-gray-300"
+                        )}
+                      >
+                        ⭐
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price Level */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Price Level</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4].map((price) => (
+                      <button
+                        key={price}
+                        onClick={() => setPriceLevel(price)}
+                        className={cn(
+                          "px-3 py-1 rounded-lg font-medium transition-all",
+                          price <= priceLevel
+                            ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
+                            : "bg-gray-200 text-gray-500"
+                        )}
+                      >
+                        {'$'.repeat(price)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
+                {/* Recommendation Toggle */}
+                <Button
+                  variant={isRecommendation ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setIsRecommendation(!isRecommendation)}
+                  className={cn(
+                    "transition-all duration-200",
+                    isRecommendation
+                      ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600"
+                      : "text-gray-600 hover:text-turquoise-600 hover:bg-turquoise-50"
+                  )}
+                >
+                  ⭐ Recommendation
+                </Button>
+                
                 {/* Emoji Picker */}
                 <div className="relative">
                   <Button
