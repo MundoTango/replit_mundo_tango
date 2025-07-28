@@ -9,7 +9,7 @@ import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Card } from '../components/ui/card';
 import { useToast } from '../hooks/use-toast';
-import { useAuth } from '../contexts/auth-context';
+import { useAuth } from '../hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 import {
   ImageIcon,
