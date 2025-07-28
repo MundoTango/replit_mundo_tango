@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { queryClient } from '../lib/queryClient';
+import { queryClient, apiRequest } from '../lib/queryClient';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { Avatar, AvatarImage, AvatarFallback } from '../components/ui/avatar';
 import { Button } from '../components/ui/button';
@@ -499,6 +499,243 @@ const MemoryCard = React.memo(function MemoryCard({ memory }: MemoryCardProps) {
          prevProps.memory.comments?.length === nextProps.memory.comments?.length;
 });
 
+// Life CEO 44x21s: Memory Card with Backend Interactions
+const MemoryCardWithInteractions: React.FC<{
+  memory: Memory;
+  user: any;
+}> = ({ memory, user }) => {
+  const { toast } = useToast();
+  const [showCommentBox, setShowCommentBox] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  
+  // Reaction mutation
+  const reactionMutation = useMutation({
+    mutationFn: async ({ emoji }: { emoji: string }) => {
+      return apiRequest('/api/posts/' + memory.id + '/reactions', {
+        method: 'POST',
+        body: JSON.stringify({ reaction: emoji })
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
+      toast({
+        title: "Reaction added! 💃",
+        description: "Your reaction has been added to the memory",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to add reaction",
+        description: error.message || "Please try again",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Comment mutation
+  const commentMutation = useMutation({
+    mutationFn: async ({ content }: { content: string }) => {
+      return apiRequest('/api/posts/' + memory.id + '/comments', {
+        method: 'POST',
+        body: JSON.stringify({ content })
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
+      toast({
+        title: "Comment posted! 💬",
+        description: "Your comment has been added",
+      });
+      setCommentText('');
+      setShowCommentBox(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to post comment",
+        description: error.message || "Please try again",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Share mutation
+  const shareMutation = useMutation({
+    mutationFn: async ({ comment }: { comment?: string }) => {
+      return apiRequest('/api/posts/' + memory.id + '/share', {
+        method: 'POST',
+        body: JSON.stringify({ comment })
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
+      toast({
+        title: "Memory shared! 🎉",
+        description: "Memory has been shared to your timeline",
+      });
+      setShowShareDialog(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to share",
+        description: error.message || "Please try again",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Save mutation (using bookmark/save endpoint)
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/posts/' + memory.id + '/save', {
+        method: 'POST'
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Memory saved! 📌",
+        description: "Memory has been saved to your collection",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to save",
+        description: error.message || "Please try again",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleInteraction = (type: string, data?: any) => {
+    console.log('Memory interaction:', type, data);
+    
+    switch (type) {
+      case 'reaction':
+        if (data?.emoji) {
+          reactionMutation.mutate({ emoji: data.emoji });
+        }
+        break;
+      case 'comment':
+        setShowCommentBox(true);
+        break;
+      case 'share':
+        setShowShareDialog(true);
+        break;
+      case 'save':
+        saveMutation.mutate();
+        break;
+    }
+  };
+
+  return (
+    <>
+      <EnhancedMemoryCard 
+        memory={memory}
+        onInteraction={handleInteraction}
+      />
+      
+      {/* Comment Box */}
+      {showCommentBox && (
+        <div className="mt-2 p-4 glassmorphic-card rounded-xl animate-fadeIn">
+          <div className="flex gap-2">
+            <Textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Write a comment..."
+              className="flex-1 min-h-[60px] glassmorphic-input"
+              disabled={commentMutation.isPending}
+            />
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={() => {
+                  if (commentText.trim()) {
+                    commentMutation.mutate({ content: commentText });
+                  }
+                }}
+                disabled={!commentText.trim() || commentMutation.isPending}
+                className="bg-gradient-to-r from-turquoise-500 to-cyan-600 text-white hover:from-turquoise-600 hover:to-cyan-700"
+              >
+                {commentMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Post'}
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowCommentBox(false);
+                  setCommentText('');
+                }}
+                variant="ghost"
+                size="sm"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Dialog */}
+      {showShareDialog && (
+        <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+          <DialogContent className="glassmorphic-card">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-turquoise-600 to-cyan-700">
+                Share Memory
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 mt-4">
+              <Button
+                onClick={() => shareMutation.mutate({})}
+                disabled={shareMutation.isPending}
+                className="w-full justify-start hover:bg-turquoise-50 transition-colors"
+                variant="ghost"
+              >
+                <Share2 className="w-4 h-4 mr-2 text-turquoise-600" />
+                <div className="text-left">
+                  <p className="font-medium">Share to Timeline</p>
+                  <p className="text-sm text-gray-600">Share this memory on your timeline</p>
+                </div>
+              </Button>
+              
+              <Button
+                onClick={() => {
+                  const comment = prompt("Add a comment to your share:");
+                  if (comment !== null) {
+                    shareMutation.mutate({ comment });
+                  }
+                }}
+                disabled={shareMutation.isPending}
+                className="w-full justify-start hover:bg-turquoise-50 transition-colors"
+                variant="ghost"
+              >
+                <MessageCircle className="w-4 h-4 mr-2 text-turquoise-600" />
+                <div className="text-left">
+                  <p className="font-medium">Share with Comment</p>
+                  <p className="text-sm text-gray-600">Add your thoughts when sharing</p>
+                </div>
+              </Button>
+              
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/memories/${memory.id}`);
+                  toast({ title: "Link copied! 📋" });
+                  setShowShareDialog(false);
+                }}
+                className="w-full justify-start hover:bg-turquoise-50 transition-colors"
+                variant="ghost"
+              >
+                <X className="w-4 h-4 mr-2 text-turquoise-600" />
+                <div className="text-left">
+                  <p className="font-medium">Copy Link</p>
+                  <p className="text-sm text-gray-600">Copy memory link to clipboard</p>
+                </div>
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
+  );
+};
+
 export default function EnhancedTimelineV2() {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -659,29 +896,10 @@ export default function EnhancedTimelineV2() {
               ) : posts.length > 0 ? (
                 <div className="space-y-6">
                   {posts.map((post: Memory) => (
-                    <EnhancedMemoryCard 
+                    <MemoryCardWithInteractions 
                       key={post.id} 
                       memory={post}
-                      onInteraction={(type, data) => {
-                        console.log('Memory interaction:', type, data);
-                        if (type === 'comment' && data?.text) {
-                          // Handle comment
-                          toast({
-                            title: "Comment posted",
-                            description: "Your comment has been added",
-                          });
-                        } else if (type === 'share') {
-                          toast({
-                            title: "Memory shared",
-                            description: "Memory has been shared to your timeline",
-                          });
-                        } else if (type === 'save') {
-                          toast({
-                            title: "Memory saved",
-                            description: "Memory has been saved to your collection",
-                          });
-                        }
-                      }}
+                      user={user}
                     />
                   ))}
                 </div>

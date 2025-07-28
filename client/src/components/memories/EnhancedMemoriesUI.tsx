@@ -534,7 +534,7 @@ export const EnhancedMemoryCard: React.FC<{
     setShowReactions(false);
     if (emoji === '❤️') {
       setIsLiked(true);
-      setLikeCount(prev => prev + 1);
+      setLikeCount((prev: number) => prev + 1);
     }
   };
 
