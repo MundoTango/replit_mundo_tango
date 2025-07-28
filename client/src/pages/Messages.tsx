@@ -43,7 +43,12 @@ export default function Messages() {
   const queryClient = useQueryClient();
 
   // Get current user
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<{
+    id: number;
+    name: string;
+    email: string;
+    profileImage?: string;
+  }>({
     queryKey: ['/api/auth/user']
   });
 
@@ -91,13 +96,13 @@ export default function Messages() {
   }, [user, selectedConversation, queryClient, toast]);
 
   // Get conversations
-  const { data: conversationsData } = useQuery({
+  const { data: conversationsData } = useQuery<{ data: Conversation[] }>({
     queryKey: ['/api/messages/conversations'],
     enabled: !!user
   });
 
   // Get messages for selected conversation
-  const { data: messagesData } = useQuery({
+  const { data: messagesData } = useQuery<{ data: Message[] }>({
     queryKey: ['/api/messages', selectedConversation],
     enabled: !!selectedConversation,
     refetchInterval: 5000 // Refetch every 5 seconds
@@ -106,10 +111,8 @@ export default function Messages() {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { recipientId: number; content: string }) => {
-      return apiRequest('/api/messages/send', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
+      const response = await apiRequest('POST', '/api/messages/send', data);
+      return response.json();
     },
     onSuccess: () => {
       setMessage('');
