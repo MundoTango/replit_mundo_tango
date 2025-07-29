@@ -239,7 +239,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             <div className="text-xs uppercase font-semibold text-gray-500 tracking-wide mb-3">Menu</div>
             <div className="space-y-1">
               {allRoutes.map(({ icon, title, link }, index) => (
-                <a
+                <Link
                   key={index}
                   href={link}
                   onClick={(e) => {
@@ -259,7 +259,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   <div className={`text-sm font-semibold ${isActive(link) ? "text-white" : "group-hover:text-gray-900"} tracking-wide`}>
                     {title}
                   </div>
-                </a>
+                </Link>
               ))}
             </div>
           </div>

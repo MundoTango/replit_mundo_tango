@@ -481,4 +481,37 @@ export class CityAutoCreationService {
       return null;
     }
   }
+
+  /**
+   * Handle post city creation
+   */
+  static async handlePost(
+    postId: number,
+    city: string,
+    country: string,
+    userId: number
+  ): Promise<{ group: any; isNew: boolean } | null> {
+    try {
+      const result = await this.createOrGetCityGroup(city, 'post', userId);
+      
+      if (!result) {
+        return null;
+      }
+      
+      // Get the full group data
+      const [group] = await db
+        .select()
+        .from(groups)
+        .where(eq(groups.id, result.groupId))
+        .limit(1);
+      
+      return {
+        group,
+        isNew: result.created
+      };
+    } catch (error) {
+      console.error('Error handling post city:', error);
+      return null;
+    }
+  }
 }
