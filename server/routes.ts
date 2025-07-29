@@ -3322,6 +3322,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await sendMentionNotifications(mentions, post, user);
       }
 
+      // Auto-create city group if location includes city and country
+      if (location) {
+        try {
+          // Parse location if it's a string with city, country format
+          const locationParts = location.split(',').map(part => part.trim());
+          if (locationParts.length >= 2) {
+            const city = locationParts[0];
+            const country = locationParts[locationParts.length - 1];
+            
+            if (city && country) {
+              const { CityAutoCreationService } = await import('./services/cityAutoCreationService');
+              const cityResult = await CityAutoCreationService.handlePost(
+                post.id,
+                city,
+                country,
+                user.id
+              );
+              console.log(`🏙️ City group auto-creation from post:`, {
+                city: cityResult.group.name,
+                isNew: cityResult.isNew,
+                postId: post.id
+              });
+            }
+          }
+        } catch (cityError) {
+          console.error('Failed to auto-create city group from post:', cityError);
+          // Don't fail the post creation if city creation fails
+        }
+      }
+
       res.json({
         success: true,
         message: 'Post created successfully',
