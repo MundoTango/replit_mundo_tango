@@ -92,7 +92,7 @@ export default function EnhancedProfileHeader({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('image', file);
-      return apiRequest('PUT', '/api/user/cover-image', formData);
+      return apiRequest('/api/user/cover-image', { method: 'PUT', body: formData });
     },
     onSuccess: () => {
       toast({
@@ -115,7 +115,7 @@ export default function EnhancedProfileHeader({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('image', file);
-      return apiRequest('PUT', '/api/user/profile-image', formData);
+      return apiRequest('/api/user/profile-image', { method: 'PUT', body: formData });
     },
     onSuccess: () => {
       toast({
@@ -159,8 +159,8 @@ export default function EnhancedProfileHeader({
   const handleFollow = () => {
     setIsFollowing(!isFollowing);
     toast({
-      title: isFollowing ? "Unfollowed" : "Following",
-      description: isFollowing ? `You unfollowed ${user.name}` : `You are now following ${user.name}`
+      title: isFollowing ? "Dance partnership ended" : "New dance partner added!",
+      description: isFollowing ? `You are no longer dance partners with ${user.name}` : `${user.name} is now in your dance circle`
     });
   };
 
@@ -217,9 +217,9 @@ export default function EnhancedProfileHeader({
 
       {/* Profile Content */}
       <div className="bg-white rounded-b-xl shadow-sm">
-        <div className="px-4 md:px-8 pb-6">
+        <div className="px-6 md:px-10 pb-8">
           {/* Avatar and Actions Row */}
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between -mt-20">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between -mt-20 gap-6">
             {/* Avatar Section */}
             <div className="flex items-end gap-4 mb-4 md:mb-0">
               <div className="relative">
@@ -252,23 +252,28 @@ export default function EnhancedProfileHeader({
                 )}
                 
                 {user.isVerified && (
-                  <div className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md">
+                  <div className="group absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md cursor-help">
                     <CheckCircle className="h-6 w-6 text-blue-500 fill-current" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                      Verified Tango Professional
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                    </div>
                   </div>
                 )}
               </div>
 
               {/* Name and Details */}
-              <div className="mb-2">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              <div className="mb-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
                     {user.name || user.username || 'Tango Dancer'}
                   </h1>
                   {user.isVerified && (
                     <div className="group relative">
-                      <Shield className="h-5 w-5 text-blue-500" />
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      <Shield className="h-6 w-6 text-blue-500" />
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                         Verified Tango Professional
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                       </div>
                     </div>
                   )}
@@ -330,12 +335,12 @@ export default function EnhancedProfileHeader({
                     {isFollowing ? (
                       <>
                         <Users className="mr-2 h-4 w-4" />
-                        Following
+                        Dance Partner
                       </>
                     ) : (
                       <>
                         <Heart className="mr-2 h-4 w-4" />
-                        Follow
+                        Add Partner
                       </>
                     )}
                   </Button>
@@ -384,9 +389,9 @@ export default function EnhancedProfileHeader({
             <div className="space-y-2">
               {user.yearsOfDancing && (
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-600">Dancing for</span>
+                  <span className="text-gray-600">Dancing since</span>
                   <Badge variant="secondary" className="bg-turquoise-100 text-turquoise-700">
-                    {user.yearsOfDancing} years
+                    {new Date().getFullYear() - user.yearsOfDancing}
                   </Badge>
                 </div>
               )}
@@ -450,15 +455,15 @@ export default function EnhancedProfileHeader({
           </div>
 
           {/* Stats Bar */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <div className="flex flex-wrap gap-6">
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="flex flex-wrap gap-8 justify-center md:justify-start">
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{stats?.posts || 0}</p>
-                <p className="text-sm text-gray-600">Posts</p>
+                <p className="text-sm text-gray-600">Memories</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{stats?.followers || 0}</p>
-                <p className="text-sm text-gray-600">Followers</p>
+                <p className="text-sm text-gray-600">Dance Partners</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{stats?.following || 0}</p>
@@ -466,14 +471,14 @@ export default function EnhancedProfileHeader({
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{stats?.events || 0}</p>
-                <p className="text-sm text-gray-600">Events</p>
+                <p className="text-sm text-gray-600">Milongas</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{stats?.photos || 0}</p>
                 <p className="text-sm text-gray-600">Photos</p>
               </div>
               {user.profileViews !== undefined && (
-                <div className="text-center ml-auto">
+                <div className="text-center">
                   <p className="text-2xl font-bold text-gray-900">{user.profileViews}</p>
                   <p className="text-sm text-gray-600">Profile Views</p>
                 </div>
