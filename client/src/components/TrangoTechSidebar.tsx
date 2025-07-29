@@ -189,7 +189,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         <nav className="mt-4">
           {/* Mini Profile Section */}
           <div className="px-4 mb-6">
-            <a
+            <Link
               href="/profile"
               onClick={(e) => {
                 if (window.innerWidth < 1024) {
@@ -231,7 +231,7 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   className="mt-1"
                 />
               )}
-            </a>
+            </Link>
           </div>
 
           {/* Community Selection */}
