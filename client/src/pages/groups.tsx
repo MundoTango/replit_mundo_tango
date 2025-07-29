@@ -148,7 +148,7 @@ export default function GroupsPage() {
           <p className="text-gray-600 mb-3">Connect with tango dancers around the world</p>
           <button
             onClick={() => setLocation('/community-world-map')}
-            className="text-purple-600 hover:text-purple-700 font-medium text-sm"
+            className="text-turquoise-600 hover:text-turquoise-700 font-medium text-sm"
           >
             View Community World Map →
           </button>
@@ -156,29 +156,29 @@ export default function GroupsPage() {
 
         {/* Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-6 text-center shadow-sm border border-gray-100">
+          <div className="glassmorphic-card rounded-xl p-6 text-center shadow-lg backdrop-blur-xl bg-white/70 border border-white/50">
             <div className="flex items-center justify-center w-12 h-12 bg-blue-100 text-blue-600 rounded-full mx-auto mb-3">
               <Users className="h-6 w-6" />
             </div>
             <div className="text-2xl font-bold text-gray-900">{stats.totalCommunities}</div>
             <div className="text-sm text-gray-600">Total Communities</div>
           </div>
-          <div className="bg-white rounded-xl p-6 text-center shadow-sm border border-gray-100">
+          <div className="glassmorphic-card rounded-xl p-6 text-center shadow-lg backdrop-blur-xl bg-white/70 border border-white/50">
             <div className="flex items-center justify-center w-12 h-12 bg-pink-100 text-pink-600 rounded-full mx-auto mb-3">
               <Heart className="h-6 w-6" />
             </div>
             <div className="text-2xl font-bold text-gray-900">{stats.joinedCommunities}</div>
             <div className="text-sm text-gray-600">Joined Communities</div>
           </div>
-          <div className="bg-white rounded-xl p-6 text-center shadow-sm border border-gray-100">
+          <div className="glassmorphic-card rounded-xl p-6 text-center shadow-lg backdrop-blur-xl bg-white/70 border border-white/50">
             <div className="flex items-center justify-center w-12 h-12 bg-green-100 text-green-600 rounded-full mx-auto mb-3">
               <Calendar className="h-6 w-6" />
             </div>
             <div className="text-2xl font-bold text-gray-900">{stats.totalEvents}</div>
             <div className="text-sm text-gray-600">Total Events</div>
           </div>
-          <div className="bg-white rounded-xl p-6 text-center shadow-sm border border-gray-100">
-            <div className="flex items-center justify-center w-12 h-12 bg-purple-100 text-purple-600 rounded-full mx-auto mb-3">
+          <div className="glassmorphic-card rounded-xl p-6 text-center shadow-lg backdrop-blur-xl bg-white/70 border border-white/50">
+            <div className="flex items-center justify-center w-12 h-12 bg-turquoise-100 text-turquoise-600 rounded-full mx-auto mb-3">
               <MapPin className="h-6 w-6" />
             </div>
             <div className="text-2xl font-bold text-gray-900">{stats.cities}</div>
@@ -187,7 +187,7 @@ export default function GroupsPage() {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+        <div className="glassmorphic-card rounded-xl shadow-lg backdrop-blur-xl bg-white/70 border border-white/50 p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -196,7 +196,7 @@ export default function GroupsPage() {
                 placeholder="Search communities..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-turquoise-500 focus:border-transparent"
               />
             </div>
             <button 
@@ -220,7 +220,7 @@ export default function GroupsPage() {
                   onClick={() => setActiveFilter(filter.key)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all ${
                     activeFilter === filter.key
-                      ? 'bg-purple-600 text-white'
+                      ? 'bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -235,7 +235,7 @@ export default function GroupsPage() {
         {/* Communities Grid */}
         {isLoading ? (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-turquoise-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading communities...</p>
           </div>
         ) : filteredGroups.length > 0 ? (

@@ -71,7 +71,10 @@ export default function CreateCommunity() {
 
   const createCommunityMutation = useMutation({
     mutationFn: async (data: CommunityFormData) => {
-      const response = await apiRequest('POST', '/api/groups', data);
+      const response = await apiRequest('/api/groups', {
+        method: 'POST',
+        body: data
+      });
       if (!response.ok) throw new Error('Failed to create community');
       return response.json();
     },

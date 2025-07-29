@@ -71,7 +71,10 @@ export default function TangoStories() {
   // Create story mutation
   const createStoryMutation = useMutation({
     mutationFn: async (storyData: typeof newStory) => {
-      const response = await apiRequest('POST', '/api/stories', storyData);
+      const response = await apiRequest('/api/stories', {
+        method: 'POST',
+        body: storyData
+      });
       if (!response.ok) throw new Error('Failed to create story');
       return response.json();
     },
@@ -89,7 +92,9 @@ export default function TangoStories() {
   // Like story mutation
   const likeStoryMutation = useMutation({
     mutationFn: async (storyId: number) => {
-      const response = await apiRequest('POST', `/api/stories/${storyId}/like`);
+      const response = await apiRequest(`/api/stories/${storyId}/like`, {
+        method: 'POST'
+      });
       if (!response.ok) throw new Error('Failed to like story');
       return response.json();
     },
