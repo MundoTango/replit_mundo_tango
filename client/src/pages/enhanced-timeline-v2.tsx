@@ -508,6 +508,9 @@ const MemoryCardWithInteractions: React.FC<{
   const [showCommentBox, setShowCommentBox] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDescription, setReportDescription] = useState('');
   
   // Reaction mutation
   const reactionMutation = useMutation({
@@ -606,6 +609,33 @@ const MemoryCardWithInteractions: React.FC<{
     }
   });
 
+  // Report mutation - Life CEO 44x21s methodology
+  const reportMutation = useMutation({
+    mutationFn: async ({ reason, description }: { reason: string; description?: string }) => {
+      return apiRequest('/api/posts/' + memory.id + '/report', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          reportType: reason,
+          description: description || '',
+          memoryId: memory.id
+        })
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Report submitted 🔍",
+        description: "Thank you for helping keep our community safe. An admin will review this shortly.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to submit report",
+        description: error.message || "Please try again",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleInteraction = (type: string, data?: any) => {
     console.log('Memory interaction:', type, data);
     
@@ -623,6 +653,22 @@ const MemoryCardWithInteractions: React.FC<{
         break;
       case 'save':
         saveMutation.mutate();
+        break;
+      case 'report':
+        // Show report dialog
+        setShowReportDialog(true);
+        break;
+      case 'edit':
+        // Handle edit if user owns the post
+        if (memory.userId === user?.id) {
+          toast({ title: "Edit feature coming soon!" });
+        }
+        break;
+      case 'delete':
+        // Handle delete if user owns the post
+        if (memory.userId === user?.id) {
+          toast({ title: "Delete feature coming soon!" });
+        }
         break;
     }
   };
@@ -670,6 +716,78 @@ const MemoryCardWithInteractions: React.FC<{
             </div>
           </div>
         </div>
+      )}
+
+      {/* Report Dialog */}
+      {showReportDialog && (
+        <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+          <DialogContent className="glassmorphic-card">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-turquoise-600 to-cyan-700">
+                Report Memory
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Reason for reporting</label>
+                <select 
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="w-full mt-1 p-2 glassmorphic-input rounded-lg"
+                >
+                  <option value="">Select a reason</option>
+                  <option value="inappropriate">Inappropriate Content</option>
+                  <option value="spam">Spam</option>
+                  <option value="harassment">Harassment</option>
+                  <option value="misinformation">Misinformation</option>
+                  <option value="copyright">Copyright Violation</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium text-gray-700">Additional details (optional)</label>
+                <Textarea
+                  value={reportDescription}
+                  onChange={(e) => setReportDescription(e.target.value)}
+                  placeholder="Please provide more context..."
+                  className="w-full mt-1 glassmorphic-input"
+                  rows={3}
+                />
+              </div>
+              
+              <div className="flex gap-2 justify-end">
+                <Button
+                  onClick={() => {
+                    setShowReportDialog(false);
+                    setReportReason('');
+                    setReportDescription('');
+                  }}
+                  variant="ghost"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (reportReason) {
+                      reportMutation.mutate({ 
+                        reason: reportReason, 
+                        description: reportDescription 
+                      });
+                      setShowReportDialog(false);
+                      setReportReason('');
+                      setReportDescription('');
+                    }
+                  }}
+                  disabled={!reportReason || reportMutation.isPending}
+                  className="bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700"
+                >
+                  {reportMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Submit Report'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Share Dialog */}
@@ -746,17 +864,15 @@ export default function EnhancedTimelineV2() {
   
   console.log('EnhancedTimelineV2 component loaded!', { user });
 
-  // Create memory mutation
+  // Create memory mutation - using Life CEO 44x21s methodology
   const createMemoryMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch('/api/memories', {
+      // Use the enhanced posts endpoint that exists
+      const response = await apiRequest('/api/posts/enhanced', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error('Failed to create memory');
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/posts/feed'] });
@@ -809,19 +925,19 @@ export default function EnhancedTimelineV2() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Main Feed */}
             <div className="lg:col-span-8">
-              {/* Beautiful Ocean-Themed Header */}
-              <div className="mb-8 relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-turquoise-200 to-cyan-300 rounded-3xl blur-2xl opacity-30" />
-                <div className="relative p-8 rounded-3xl bg-gradient-to-r from-turquoise-50 via-cyan-50 to-blue-50 shadow-xl border-2 border-turquoise-200/50 backdrop-blur-sm">
-                  <div className="flex items-center gap-4 mb-2">
-                    <div className="p-3 bg-gradient-to-r from-turquoise-400 to-cyan-500 rounded-xl animate-float shadow-lg">
-                      <Sparkles className="h-6 w-6 text-white" />
+              {/* Beautiful Ocean-Themed Header - Mobile Optimized */}
+              <div className="mb-6 lg:mb-8 relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-turquoise-200 to-cyan-300 rounded-2xl lg:rounded-3xl blur-2xl opacity-30" />
+                <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl bg-gradient-to-r from-turquoise-50 via-cyan-50 to-blue-50 shadow-xl border-2 border-turquoise-200/50 backdrop-blur-sm">
+                  <div className="flex items-center gap-3 lg:gap-4 mb-2">
+                    <div className="p-2.5 lg:p-3 bg-gradient-to-r from-turquoise-400 to-cyan-500 rounded-xl animate-float shadow-lg">
+                      <Sparkles className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
                     </div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-turquoise-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-turquoise-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
                       Memories
                     </h1>
                   </div>
-                  <p className="text-gray-700 ml-[60px] font-medium">Share your precious moments with the Tango community</p>
+                  <p className="text-sm sm:text-base text-gray-700 ml-0 sm:ml-[50px] lg:ml-[60px] font-medium">Share your precious moments with the Tango community</p>
                 </div>
               </div>
 

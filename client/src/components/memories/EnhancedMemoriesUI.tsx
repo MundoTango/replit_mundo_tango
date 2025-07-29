@@ -25,7 +25,8 @@ import {
   Send,
   X,
   Check,
-  ChevronDown
+  ChevronDown,
+  Flag
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator 
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -574,6 +576,14 @@ export const EnhancedMemoryCard: React.FC<{
               <DropdownMenuItem onClick={() => onInteraction('share')}>
                 <Share2 className="w-4 h-4 mr-2" />
                 Share
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => onInteraction('report')}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Flag className="w-4 h-4 mr-2" />
+                Report Memory
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
