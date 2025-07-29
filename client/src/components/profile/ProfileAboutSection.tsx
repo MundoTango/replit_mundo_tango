@@ -206,7 +206,7 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
   // Update profile mutation matching registration form
   const updateProfileMutation = useMutation({
     mutationFn: async (data: AboutData) => {
-      return apiRequest('/api/user/profile', 'PUT', {
+      return apiRequest('PUT', '/api/user/profile', {
         name: data.nickname,
         city: data.location.city,
         state: data.location.state,

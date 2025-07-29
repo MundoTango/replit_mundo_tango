@@ -26,7 +26,8 @@ import {
   CheckCircle,
   Globe,
   Mail,
-  Phone
+  Phone,
+  Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -257,11 +258,11 @@ export default function EnhancedProfileHeader({
                 )}
               </div>
 
-              {/* Name and Username */}
+              {/* Name and Details */}
               <div className="mb-2">
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                    {user.name}
+                    {user.name || user.username || 'Tango Dancer'}
                   </h1>
                   {user.isVerified && (
                     <div className="group relative">
@@ -272,7 +273,34 @@ export default function EnhancedProfileHeader({
                     </div>
                   )}
                 </div>
-                <p className="text-gray-600">@{user.username}</p>
+                <div className="space-y-1">
+                  <p className="text-gray-600">@{user.username || 'username'}</p>
+                  {(user.city || user.country) && (
+                    <p className="text-gray-600 flex items-center">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      {user.city}{user.city && user.country ? ', ' : ''}{user.country}
+                    </p>
+                  )}
+                  {user.bio && (
+                    <p className="text-gray-700 max-w-md line-clamp-2">
+                      {user.bio}
+                    </p>
+                  )}
+                  {user.tangoRoles && user.tangoRoles.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {(typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles).slice(0, 3).map((role: string) => (
+                        <Badge key={role} variant="secondary" className="bg-turquoise-100 text-turquoise-700 hover:bg-turquoise-200">
+                          {role.replace('_', ' ')}
+                        </Badge>
+                      ))}
+                      {(typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles).length > 3 && (
+                        <Badge variant="outline" className="border-turquoise-200 text-turquoise-600">
+                          +{(typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles).length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
