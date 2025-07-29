@@ -14,7 +14,8 @@ import {
   Calendar,
   TrendingUp,
   Award,
-  Sparkles
+  Sparkles,
+  Eye
 } from 'lucide-react';
 
 interface ProfileEngagementFeaturesProps {
