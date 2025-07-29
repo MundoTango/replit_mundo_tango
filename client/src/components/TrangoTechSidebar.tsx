@@ -18,7 +18,8 @@ import {
   Shield,
   Crown,
   Settings,
-  MessageCircle
+  MessageCircle,
+  Brain
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -51,6 +52,11 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       icon: <MessageCircle className="w-5 h-5" />,
       title: "Messages",
       link: "/messages",
+    },
+    {
+      icon: <Brain className="w-5 h-5" />,
+      title: "AI Chat",
+      link: "/ai-chat-test",
     },
     {
       icon: <Network className="w-5 h-5" />,
