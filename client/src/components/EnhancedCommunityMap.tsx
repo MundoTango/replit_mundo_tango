@@ -192,7 +192,7 @@ export default function EnhancedCommunityMap({
   });
   
   // Fetch city groups
-  const { data: cityGroups = [], isLoading: loadingCities } = useQuery({
+  const { data: cityGroups = [], isLoading: loadingCities } = useQuery<any[]>({
     queryKey: ['/api/community/city-groups', { city }],
     enabled: mapInView,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -200,7 +200,7 @@ export default function EnhancedCommunityMap({
   });
   
   // Fetch events
-  const { data: events = [], isLoading: loadingEvents } = useQuery({
+  const { data: events = [], isLoading: loadingEvents } = useQuery<any[]>({
     queryKey: ['/api/community/events-map', { city, groupSlug, dateFilter, eventFilters }],
     enabled: mapInView && layerVisibility.event,
     staleTime: 5 * 60 * 1000,
@@ -208,7 +208,7 @@ export default function EnhancedCommunityMap({
   });
   
   // Fetch host homes
-  const { data: homes = [], isLoading: loadingHomes } = useQuery({
+  const { data: homes = [], isLoading: loadingHomes } = useQuery<any[]>({
     queryKey: ['/api/community/homes-map', { city, groupSlug, friendFilter }],
     enabled: mapInView && layerVisibility.home,
     staleTime: 5 * 60 * 1000,
@@ -216,7 +216,7 @@ export default function EnhancedCommunityMap({
   });
   
   // Fetch recommendations
-  const { data: recommendations = [], isLoading: loadingRecs } = useQuery({
+  const { data: recommendations = [], isLoading: loadingRecs } = useQuery<any[]>({
     queryKey: ['/api/community/recommendations-map', { city, groupSlug, friendFilter, recommendationType }],
     enabled: mapInView && layerVisibility.recommendation,
     staleTime: 5 * 60 * 1000,
@@ -325,16 +325,18 @@ export default function EnhancedCommunityMap({
         )
       : allItems;
     
-    // Update stats
-    const clusterCount = filtered.filter(item => item.isCluster).length;
-    setMapStats({
-      totalMarkers: allItems.length,
-      visibleMarkers: filtered.length,
-      clusters: clusterCount,
-    });
-    
     return filtered;
   }, [cityGroups, events, homes, recommendations, layerVisibility, showClusters, searchQuery]);
+  
+  // Update stats in useEffect to avoid re-render loop
+  useEffect(() => {
+    const clusterCount = processedMapItems.filter(item => item.isCluster).length;
+    setMapStats({
+      totalMarkers: processedMapItems.length,
+      visibleMarkers: processedMapItems.length,
+      clusters: clusterCount,
+    });
+  }, [processedMapItems]);
   
   // CSV export data
   const csvData = useMemo(() => {
@@ -667,7 +669,7 @@ export default function EnhancedCommunityMap({
         </Card>
       </div>
       
-      <style jsx global>{`
+      <style>{`
         .map-marker-enhanced {
           width: 36px;
           height: 36px;
