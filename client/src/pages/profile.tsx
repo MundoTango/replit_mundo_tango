@@ -45,7 +45,7 @@ export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('memories');
+  const [activeTab, setActiveTab] = useState('posts');
   const [showMemoryPostModal, setShowMemoryPostModal] = useState(false);
 
   // Track component performance
