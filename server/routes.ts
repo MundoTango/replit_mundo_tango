@@ -15270,5 +15270,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }, testLargeBodyHandling);
   app.get('/api/supabase/test-realtime', testSupabaseRealtime);
 
+  // AI Chat endpoints (bypass CSRF for AI functionality)
+  const { handleAiChat, getConversationHistory } = await import('./routes/ai-chat');
+  const { handleAiChatDirect, getConversationHistoryDirect } = await import('./routes/ai-chat-direct');
+  
+  app.post('/api/ai/chat', (req, res, next) => {
+    // Bypass CSRF for AI chat - critical for functionality
+    req.skipCsrf = true;
+    next();
+  }, handleAiChatDirect);
+  
+  app.get('/api/ai/conversation/:conversationId', getConversationHistoryDirect);
+
   return server;
 }

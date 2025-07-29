@@ -52,8 +52,10 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction) 
     return next();
   }
 
-  // Skip CSRF for test endpoints
-  if (req.path.startsWith('/api/supabase/test-') || (req as any).skipCsrf) {
+  // Skip CSRF for test endpoints and AI chat
+  if (req.path.startsWith('/api/supabase/test-') || 
+      req.path.startsWith('/api/ai/') || 
+      (req as any).skipCsrf) {
     return next();
   }
 

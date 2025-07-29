@@ -55,6 +55,7 @@ const MobileAppDashboard = lazy(() => import("@/pages/MobileAppDashboard"));
 const TravelPlanner = lazy(() => import("@/pages/TravelPlanner"));
 const AnalyticsDashboard = lazy(() => import("@/pages/AnalyticsDashboard"));
 const SupabaseTest = lazy(() => import("@/pages/SupabaseTest"));
+const AiChatTest = lazy(() => import("@/pages/AiChatTest"));
 
 // Loading component for Suspense boundaries
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
@@ -287,6 +288,12 @@ function Router() {
           <Route path="/supabase-test">
             <Suspense fallback={<LoadingFallback message="Loading Supabase test..." />}>
               <SupabaseTest />
+            </Suspense>
+          </Route>
+          
+          <Route path="/ai-chat-test">
+            <Suspense fallback={<LoadingFallback message="Loading AI chat test..." />}>
+              <AiChatTest />
             </Suspense>
           </Route>
           
