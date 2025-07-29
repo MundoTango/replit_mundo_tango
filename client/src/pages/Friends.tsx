@@ -52,7 +52,7 @@ export function Friends() {
   const { data: friends = [], isLoading: friendsLoading } = useQuery({
     queryKey: ['/api/friends'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/friends');
+      const response = await apiRequest('/api/friends', { method: 'GET' });
       const data = await response.json();
       return data.data || [];
     },
@@ -62,7 +62,7 @@ export function Friends() {
   const { data: suggestions = [], isLoading: suggestionsLoading } = useQuery({
     queryKey: ['/api/friends/suggestions'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/friends/suggestions');
+      const response = await apiRequest('/api/friends/suggestions', { method: 'GET' });
       const data = await response.json();
       return data.data || [];
     },
@@ -72,7 +72,7 @@ export function Friends() {
   const { data: requestsData } = useQuery({
     queryKey: ['/api/friend-requests/received'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/friend-requests/received');
+      const response = await apiRequest('/api/friend-requests/received', { method: 'GET' });
       const data = await response.json();
       return data.data || [];
     },

@@ -93,11 +93,11 @@
 
 /* Glassmorphic card styling */
 .glassmorphic-card {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.85) !important;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1) !important;
 }
 
 /* Beautiful hover effect */
@@ -112,15 +112,15 @@
 
 /* Glassmorphic input */
 .glassmorphic-input {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.9) !important;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
 }
 
 .glassmorphic-input:focus {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(56, 178, 172, 0.4);
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(56, 178, 172, 0.4) !important;
 }
 
 /* Enhanced glassmorphic input */

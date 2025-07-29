@@ -43,7 +43,12 @@ export default function Messages() {
   const queryClient = useQueryClient();
 
   // Get current user
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<{
+    id: number;
+    name: string;
+    username: string;
+    profileImage?: string;
+  }>({
     queryKey: ['/api/auth/user']
   });
 
@@ -91,13 +96,19 @@ export default function Messages() {
   }, [user, selectedConversation, queryClient, toast]);
 
   // Get conversations
-  const { data: conversationsData } = useQuery({
+  const { data: conversationsData } = useQuery<{
+    success: boolean;
+    data: Conversation[];
+  }>({
     queryKey: ['/api/messages/conversations'],
     enabled: !!user
   });
 
   // Get messages for selected conversation
-  const { data: messagesData } = useQuery({
+  const { data: messagesData } = useQuery<{
+    success: boolean;
+    data: Message[];
+  }>({
     queryKey: ['/api/messages', selectedConversation],
     enabled: !!selectedConversation,
     refetchInterval: 5000 // Refetch every 5 seconds
@@ -258,14 +269,14 @@ export default function Messages() {
                     <ArrowLeft className="w-5 h-5" />
                   </button>
                   <Avatar>
-                    <AvatarImage src={conversations.find(c => c.id === selectedConversation)?.user.profileImage} />
+                    <AvatarImage src={conversations.find((c: Conversation) => c.id === selectedConversation)?.user.profileImage} />
                     <AvatarFallback>
-                      {conversations.find(c => c.id === selectedConversation)?.user.name[0]}
+                      {conversations.find((c: Conversation) => c.id === selectedConversation)?.user.name[0]}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <h2 className="font-semibold">
-                      {conversations.find(c => c.id === selectedConversation)?.user.name}
+                      {conversations.find((c: Conversation) => c.id === selectedConversation)?.user.name}
                     </h2>
                     {isTyping && (
                       <p className="text-sm text-gray-600">typing...</p>
