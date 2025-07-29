@@ -4329,14 +4329,16 @@ export class DatabaseStorage implements IStorage {
         return existing[0];
       }
       
-      // Create new room if it doesn't exist
+      // Create new room if it doesn't exist - fixed all required fields
       const [newRoom] = await db.insert(chatRooms).values({
         slug,
-        name,
-        type,
-        userId: 7, // Default to user 7 for AI chat rooms
-        isGroup: false,
-        isActive: true
+        userId: 7, // Required field - default to user 7 for AI chat rooms
+        title: name || `AI Chat ${slug}`, // Required field
+        type: type || 'direct', // Required field
+        status: 'active',
+        canMemberEditGroup: true,
+        canMemberSendMessage: true,
+        canMemberAddMember: true
       }).returning();
       
       return newRoom;

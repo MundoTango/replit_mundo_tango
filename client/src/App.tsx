@@ -57,12 +57,26 @@ const AnalyticsDashboard = lazy(() => import("@/pages/AnalyticsDashboard"));
 const SupabaseTest = lazy(() => import("@/pages/SupabaseTest"));
 const AiChatTest = lazy(() => import("@/pages/AiChatTest"));
 
-// Loading component for Suspense boundaries
+// Life CEO 44x21s Layer 44 - Minimal loading component to prevent browser freeze
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-turquoise-50 to-cyan-50">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-turquoise-500 mx-auto mb-4"></div>
-      <p className="text-gray-600">{message}</p>
+  <div style={{ 
+    minHeight: '100vh', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    background: 'linear-gradient(to bottom right, #f0fdfa, #ecfeff)'
+  }}>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ 
+        width: '48px', 
+        height: '48px', 
+        border: '2px solid #14b8a6', 
+        borderTop: '2px solid transparent',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite',
+        margin: '0 auto 16px'
+      }}></div>
+      <p style={{ color: '#6b7280' }}>{message}</p>
     </div>
   </div>
 );
