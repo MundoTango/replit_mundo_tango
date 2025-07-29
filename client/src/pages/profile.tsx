@@ -182,17 +182,13 @@ export default function Profile() {
         {!isOnline && <OfflineIndicator />}
         
         <div className="max-w-6xl mx-auto">
-          {/* Enhanced Profile Header with Fallback */}
-          {statsError ? (
-            <ProfileHeaderFallback />
-          ) : (
-            <EnhancedProfileHeader
-              user={user}
-              stats={statsData}
-              isOwnProfile={true}
-              onEditProfile={handleEditProfile}
-            />
-          )}
+          {/* Enhanced Profile Header - Always Display */}
+          <EnhancedProfileHeader
+            user={user}
+            stats={statsData || {}}
+            isOwnProfile={true}
+            onEditProfile={handleEditProfile}
+          />
 
         {/* Story Highlights - REMOVED per user request */}
 
@@ -234,13 +230,7 @@ export default function Profile() {
                 <Camera className="mr-2 h-4 w-4" />
                 <span className="font-medium">Photos</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="videos" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-turquoise-500 rounded-none px-6 py-4"
-              >
-                <Video className="mr-2 h-4 w-4" />
-                <span className="font-medium">Videos</span>
-              </TabsTrigger>
+
               <TabsTrigger 
                 value="friends" 
                 className="data-[state=active]:border-b-2 data-[state=active]:border-turquoise-500 rounded-none px-6 py-4"
