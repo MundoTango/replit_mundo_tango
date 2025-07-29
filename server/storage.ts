@@ -39,6 +39,7 @@ import {
   guestProfiles,
   travelDetails,
   userSettings,
+  notifications,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -3965,16 +3966,16 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Friend request operations
-  async getPendingFriendRequests(userId: number): Promise<Friend[]> {
+  async getPendingFriendRequests(userId: number): Promise<FriendRequest[]> {
     try {
       const result = await db
         .select()
-        .from(friends)
+        .from(friendRequests)
         .where(and(
-          eq(friends.friendId, userId),
-          eq(friends.status, 'pending')
+          eq(friendRequests.receiverId, userId),
+          eq(friendRequests.status, 'pending')
         ))
-        .orderBy(desc(friends.createdAt));
+        .orderBy(desc(friendRequests.createdAt));
       return result;
     } catch (error) {
       console.error('Error getting pending friend requests:', error);

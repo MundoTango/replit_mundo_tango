@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import EnhancedCommunityMap from '@/components/EnhancedCommunityMap';
@@ -61,7 +61,7 @@ interface CountryStats {
   growthRate: number;
 }
 
-export default function CommunityWorldMap() {
+const CommunityWorldMap = memo(function CommunityWorldMap() {
   const { toast } = useToast();
   const [selectedCity, setSelectedCity] = useState<CityData | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -534,4 +534,6 @@ export default function CommunityWorldMap() {
       </div>
     </DashboardLayout>
   );
-}
+});
+
+export default CommunityWorldMap;

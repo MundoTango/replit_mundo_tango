@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap, ZoomControl, ScaleControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -16,6 +16,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useDebounce } from '@/hooks/useDebounce';
 
 // Fix for missing marker icons in production
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -47,9 +48,21 @@ const LAYER_CONFIG = {
   recommendation: { color: '#EF4444', icon: '⭐', name: 'Recommendations' },
 };
 
-// Map navigation controller with enhanced features
-const MapNavigationController = ({ onZoomIn, onZoomOut, onReset }: any) => {
+// Map navigation controller with enhanced features and zoom tracking
+const MapNavigationController = ({ onZoomIn, onZoomOut, onReset, onZoomChange }: any) => {
   const map = useMap();
+  
+  useEffect(() => {
+    const handleZoomEnd = () => {
+      onZoomChange?.(map.getZoom());
+    };
+    
+    map.on('zoomend', handleZoomEnd);
+    
+    return () => {
+      map.off('zoomend', handleZoomEnd);
+    };
+  }, [map, onZoomChange]);
   
   useHotkeys('cmd+plus,ctrl+plus', () => {
     map.zoomIn();
@@ -149,7 +162,7 @@ interface EnhancedCommunityMapProps {
   recommendationType?: 'all' | 'local' | 'visitor';
 }
 
-export default function EnhancedCommunityMap({
+const EnhancedCommunityMap = memo(function EnhancedCommunityMap({
   city,
   groupSlug,
   centerLat,
@@ -164,8 +177,10 @@ export default function EnhancedCommunityMap({
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300); // Debounce search
   const [showClusters, setShowClusters] = useState(true);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [currentZoom, setCurrentZoom] = useState(3); // Track zoom level
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -317,16 +332,23 @@ export default function EnhancedCommunityMap({
       }
     }
     
-    // Filter by search
-    const filtered = searchQuery 
+    // Filter by search using debounced value for better performance
+    const filtered = debouncedSearchQuery 
       ? allItems.filter(item => 
-          item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.city.toLowerCase().includes(searchQuery.toLowerCase())
+          item.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          item.city.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
         )
       : allItems;
     
-    return filtered;
-  }, [cityGroups, events, homes, recommendations, layerVisibility, showClusters, searchQuery]);
+    // Limit markers based on zoom level for performance
+    const maxMarkersPerZoom = currentZoom < 5 ? 50 : 
+                              currentZoom < 8 ? 100 : 
+                              currentZoom < 10 ? 200 : 
+                              filtered.length;
+    
+    // Return limited markers when zoomed out
+    return filtered.slice(0, maxMarkersPerZoom);
+  }, [cityGroups, events, homes, recommendations, layerVisibility, showClusters, debouncedSearchQuery, currentZoom]);
   
   // Update stats in useEffect to avoid re-render loop
   useEffect(() => {
@@ -618,6 +640,12 @@ export default function EnhancedCommunityMap({
             zoom={mapZoom}
             className="h-full w-full"
             zoomControl={false}
+            preferCanvas={true}
+            maxZoom={18}
+            minZoom={2}
+            updateWhenZooming={false}
+            updateWhenIdle={true}
+            keepBuffer={4}
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -631,6 +659,7 @@ export default function EnhancedCommunityMap({
               onZoomIn={() => toast({ title: 'Zoomed in', duration: 1000 })}
               onZoomOut={() => toast({ title: 'Zoomed out', duration: 1000 })}
               onReset={() => toast({ title: 'Map reset', duration: 1000 })}
+              onZoomChange={(zoom: number) => setCurrentZoom(zoom)}
             />
             
             {/* Render markers */}
@@ -729,4 +758,6 @@ export default function EnhancedCommunityMap({
       `}</style>
     </div>
   );
-}
+});
+
+export default EnhancedCommunityMap;

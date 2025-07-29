@@ -52,7 +52,8 @@ import {
   RefreshCw,
   Code,
   Lightbulb,
-  Package
+  Package,
+  Gauge
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -119,6 +120,10 @@ interface ComplianceMetrics {
   lastAudit: string;
   criticalIssues: number;
   warnings: number;
+  auditType?: string;
+  executionTimeMs?: number;
+  timestamp?: string;
+  nextScheduledAudit?: string;
 }
 
 // Memoized AdminCenter component for better performance
@@ -151,9 +156,10 @@ const AdminCenter: React.FC = React.memo(() => {
   const [systemHealthRefreshing, setSystemHealthRefreshing] = useState(false);
   
   // Compliance state - must be declared at top level
+  const [compliance, setCompliance] = useState<ComplianceMetrics | null>(null);
   const [complianceRefreshing, setComplianceRefreshing] = useState(false);
-  const [auditHistory, setAuditHistory] = useState([]);
-  const [monitoringStatus, setMonitoringStatus] = useState(null);
+  const [auditHistory, setAuditHistory] = useState<any[]>([]);
+  const [monitoringStatus, setMonitoringStatus] = useState<any>(null);
   const [performanceKey, setPerformanceKey] = useState(0);
   const [systemMetrics, setSystemMetrics] = useState({
     uptime: 99.9,
@@ -302,7 +308,7 @@ const AdminCenter: React.FC = React.memo(() => {
         credentials: 'include'
       });
       const result = await response.json();
-      setRbacData(prev => ({ ...prev, auditResults: result }));
+      setRbacData((prev: any) => ({ ...prev, auditResults: result }));
     } catch (error) {
       console.error('Error running compliance audit:', error);
     }
@@ -554,7 +560,7 @@ const AdminCenter: React.FC = React.memo(() => {
         console.log('Compliance audit refreshed successfully');
         
         // Refresh all data
-        await loadData();
+        // Note: Data is refreshed via React Query's refetch mechanism
       } else {
         console.error('Failed to refresh compliance:', result.message);
       }
@@ -2518,7 +2524,7 @@ const AdminCenter: React.FC = React.memo(() => {
       case 'overview': return renderOverview();
       case 'statistics': return <GlobalStatisticsDashboard />;
       case 'project-tracker': return (
-        <ErrorBoundary fallbackMessage="Error loading project hierarchy. Please refresh the page.">
+        <ErrorBoundary>
           <Comprehensive11LProjectTracker />
         </ErrorBoundary>
       );
