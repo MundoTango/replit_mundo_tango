@@ -3,7 +3,7 @@ import helmet from 'helmet';
 import { randomBytes } from 'crypto';
 import DOMPurify from 'isomorphic-dompurify';
 
-// Content Security Policy configuration
+// Content Security Policy configuration - Life CEO 44x21s Layer 1-5 Foundation Security
 export const contentSecurityPolicy = helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
@@ -14,7 +14,10 @@ export const contentSecurityPolicy = helmet.contentSecurityPolicy({
       "https://maps.googleapis.com",
       "https://cdn.plausible.io",
       "https://unpkg.com",
-      "https://cdnjs.cloudflare.com"
+      "https://cdnjs.cloudflare.com",
+      "https://replit.com",
+      "https://*.replit.dev",
+      "https://*.replit.com"
     ],
     styleSrc: [
       "'self'",
@@ -29,13 +32,16 @@ export const contentSecurityPolicy = helmet.contentSecurityPolicy({
       "https://api.pexels.com",
       "https://nominatim.openstreetmap.org",
       "https://plausible.io",
-      "wss://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev"
+      "wss://18b562b7-65d8-4db8-8480-61e8ab9b1db1-00-145w1q6sp1kov.kirk.replit.dev",
+      "https://*.replit.dev",
+      "https://*.replit.com"
     ],
     mediaSrc: ["'self'", "https:", "blob:"],
     objectSrc: ["'none'"],
     childSrc: ["'self'", "blob:"],
     workerSrc: ["'self'", "blob:"],
     manifestSrc: ["'self'"],
+    frameAncestors: ["'self'", "https://*.replit.dev", "https://*.replit.com", "https://replit.com"],
     upgradeInsecureRequests: []
   }
 });
@@ -115,17 +121,20 @@ function sanitizeObject(obj: any): void {
   }
 }
 
-// Security headers middleware - Life CEO 44x21s Replit Preview Fix
+// Security headers middleware - Life CEO 44x21s Layer 11-20 Replit Compatibility
 export const securityHeaders = (req: Request, res: Response, next: NextFunction) => {
-  // Set security headers
+  // Layer 44 Critical: Completely remove iframe blocking for Replit preview
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  // Allow iframe embedding for Replit preview
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'geolocation=(self), microphone=(), camera=()');
   
-  // HSTS for production
+  // CORS headers for Replit preview
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  
+  // HSTS for production only
   if (process.env.NODE_ENV === 'production') {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }

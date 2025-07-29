@@ -44,9 +44,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const compression = (await import('compression')).default;
   app.use(compression());
   
-  // Import security middleware
+  // Import security middleware - Life CEO 44x21s Layer 31-40 Replit Fix
   const { 
-    contentSecurityPolicy, 
     securityHeaders, 
     sanitizeInput,
     csrfProtection 
@@ -66,9 +65,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     contentCreationLimiter
   } = await import('./middleware/rateLimiting');
   
-  // Apply security middleware
+  // Apply security middleware - Life CEO 44x21s CSP disabled for Replit preview
   app.use(securityHeaders);
-  app.use(contentSecurityPolicy);
+  // CSP disabled for Replit iframe compatibility
   app.use(sanitizeInput);
   
   // Set up Replit Auth middleware
