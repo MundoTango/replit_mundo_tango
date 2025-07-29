@@ -198,27 +198,11 @@ function Router() {
     <ErrorBoundary>
       <Suspense fallback={<LoadingFallback />}>
         <Switch>
-          {/* Life CEO 44x21s Layer 1 - Ultra-minimal foundation route */}
+          {/* Life CEO 44x21s Layer 7 - Memory Feed as Home Route */}
           <Route path="/">
-            <div>
-              <h1>Life CEO Platform - Diagnostic Mode</h1>
-              <p>The platform is operational and ready for use.</p>
-              <div>
-                <button onClick={() => window.location.href = '/enhanced-timeline'}>
-                  Enhanced Timeline
-                </button>
-                <button onClick={() => window.location.href = '/ai-chat-test'}>
-                  AI Chat Test
-                </button>
-                <button onClick={() => window.location.href = '/life-ceo'}>
-                  Life CEO Interface
-                </button>
-              </div>
-              <div>
-                <h3>System Status</h3>
-                <p>Server: Healthy | Database: Connected | AI Chat: Operational</p>
-              </div>
-            </div>
+            <Suspense fallback={<LoadingFallback message="Loading memories..." />}>
+              <EnhancedTimelineV2 />
+            </Suspense>
           </Route>
           <Route path="/life-ceo">
             <Suspense fallback={<LoadingFallback message="Loading Life CEO..." />}>
@@ -327,11 +311,7 @@ function Router() {
             </Suspense>
           </Route>
           
-          <Route path="/enhanced-timeline">
-            <Suspense fallback={<LoadingFallback message="Loading enhanced timeline..." />}>
-              <EnhancedTimelineV2 />
-            </Suspense>
-          </Route>
+
           
           <Route path="/profile">
             <Suspense fallback={<LoadingFallback message="Loading profile..." />}>
