@@ -1,0 +1,57 @@
+# Global code owners for Life CEO Mundo Tango
+# These users will be automatically requested for review when someone opens a pull request
+
+# Global owners (will be requested for review on every PR)
+* @admin @life-ceo-team
+
+# Life CEO Framework and Core Architecture
+/life-ceo/ @life-ceo-team @framework-architects
+/44X21S_*.md @life-ceo-team
+/20L_*.md @life-ceo-team
+/23L_*.md @life-ceo-team
+
+# Frontend Components and UI
+/client/src/components/ @frontend-team @ui-designers
+/client/src/pages/ @frontend-team
+/client/src/styles/ @ui-designers
+
+# Backend APIs and Services
+/server/ @backend-team @api-architects
+/shared/schema.ts @backend-team @database-team
+
+# Admin Components and Integration
+/client/src/components/admin/ @admin-team @life-ceo-team
+/client/src/pages/AdminCenter.tsx @admin-team
+
+# Authentication and Security
+/auth/ @security-team @backend-team
+/compliance/ @security-team @compliance-team
+/server/middleware/security.ts @security-team
+
+# Database and Storage
+/database/ @database-team @backend-team
+/server/storage.ts @database-team
+
+# Performance and Optimization
+/client/src/lib/performance-*.ts @performance-team @life-ceo-team
+/server/services/performance*.ts @performance-team
+
+# Mobile and Responsive
+/android/ @mobile-team
+/ios/ @mobile-team
+/client/src/styles/mobile.css @mobile-team @ui-designers
+
+# Documentation and Deployment
+/docs/ @documentation-team
+/.github/ @devops-team
+/scripts/ @devops-team
+
+# Configuration Files
+package.json @tech-leads
+tsconfig.json @tech-leads
+vite.config.ts @frontend-team @tech-leads
+drizzle.config.ts @database-team @backend-team
+
+# JIRA Integration and Project Management
+/client/src/services/jiraApiService.ts @project-management @life-ceo-team
+/client/src/data/enhanced-project-data-44x21s.ts @project-management @life-ceo-team

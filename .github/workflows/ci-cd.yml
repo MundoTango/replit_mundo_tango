@@ -1,0 +1,178 @@
+name: Life CEO 44x21s CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # Layer 1-10: Foundation Validation
+  foundation-check:
+    runs-on: ubuntu-latest
+    name: Foundation & Type Safety
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: TypeScript compilation check
+      run: npx tsc --noEmit
+    
+    - name: ESLint check
+      run: npm run lint
+    
+    - name: Prettier format check
+      run: npm run format:check
+
+  # Layer 11-20: Testing & Integration
+  testing-validation:
+    runs-on: ubuntu-latest
+    name: Testing & Integration
+    needs: foundation-check
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run unit tests
+      run: npm run test:unit
+    
+    - name: Run integration tests
+      run: npm run test:integration
+    
+    - name: Generate test coverage
+      run: npm run test:coverage
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+
+  # Layer 21-30: Security & Performance
+  security-performance:
+    runs-on: ubuntu-latest
+    name: Security & Performance
+    needs: foundation-check
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Security audit
+      run: npm audit --audit-level=moderate
+    
+    - name: Build application
+      run: npm run build
+      env:
+        NODE_OPTIONS: "--max_old_space_size=8192"
+    
+    - name: Bundle size analysis
+      run: npx bundlesize
+    
+    - name: Lighthouse CI
+      run: npx lhci autorun
+      env:
+        LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+  # Layer 31-40: Advanced Features & Admin Integration
+  admin-integration:
+    runs-on: ubuntu-latest
+    name: Admin Integration Test
+    needs: [foundation-check, testing-validation]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Start test database
+      run: docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=test postgres:15
+    
+    - name: Run admin integration tests
+      run: npm run test:admin-integration
+      env:
+        DATABASE_URL: postgresql://postgres:test@localhost:5432/test
+    
+    - name: Test JIRA export functionality
+      run: npm run test:jira-export
+
+  # Layer 41-44: Enhanced 44x21s Features
+  enhanced-validation:
+    runs-on: ubuntu-latest
+    name: 44x21s Enhanced Validation
+    needs: [security-performance, admin-integration]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Life CEO continuous validation
+      run: npm run validate:44x21s
+    
+    - name: Mobile responsiveness test
+      run: npm run test:mobile
+    
+    - name: Performance regression test
+      run: npm run test:performance
+    
+    - name: UI to Admin integration test
+      run: npm run test:ui-admin-integration
+
+  # Deployment (only on main branch)
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Production
+    needs: [enhanced-validation]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to Replit
+      run: echo "Deployment to Replit handled automatically"
+    
+    - name: Update JIRA with deployment
+      run: npm run update-jira-deployment
+      env:
+        JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
+    
+    - name: Notify Life CEO of successful deployment
+      run: npm run notify-life-ceo-deployment
