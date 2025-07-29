@@ -115,11 +115,12 @@ function sanitizeObject(obj: any): void {
   }
 }
 
-// Security headers middleware
+// Security headers middleware - Life CEO 44x21s Replit Preview Fix
 export const securityHeaders = (req: Request, res: Response, next: NextFunction) => {
   // Set security headers
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
+  // Allow iframe embedding for Replit preview
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'geolocation=(self), microphone=(), camera=()');
