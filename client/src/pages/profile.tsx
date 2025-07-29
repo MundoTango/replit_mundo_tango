@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { GuestProfileDisplay } from '@/components/GuestProfile/GuestProfileDisplay';
-import { Camera, Video, Users, Calendar, Star, UserCheck, Globe, PenLine, UserCircle } from 'lucide-react';
+import { Camera, Video, Users, Calendar, Star, UserCheck, Globe, PenLine, UserCircle, Sparkles } from 'lucide-react';
 import { TravelDetailsComponent } from '@/components/profile/TravelDetailsComponent';
 import { ProfileMemoryPostModal } from '@/components/profile/ProfileMemoryPostModal';
 import { UserPhotosGallery } from '@/components/profile/UserPhotosGallery';
@@ -21,6 +21,7 @@ import { UserVideosGallery } from '@/components/profile/UserVideosGallery';
 import { UserFriendsList } from '@/components/profile/UserFriendsList';
 import { UserEventsList } from '@/components/profile/UserEventsList';
 import { ProfileAboutSection } from '@/components/profile/ProfileAboutSection';
+import { ProfileEngagementFeatures } from '@/components/profile/ProfileEngagementFeatures';
 
 // Phase 5: Production Hardening imports
 import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
@@ -261,87 +262,184 @@ export default function Profile() {
                 <UserCheck className="mr-2 h-4 w-4" />
                 <span className="font-medium">Guest Profile</span>
               </TabsTrigger>
+              <TabsTrigger 
+                value="engagement" 
+                className="data-[state=active]:border-b-2 data-[state=active]:border-turquoise-500 rounded-none px-6 py-4"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                <span className="font-medium">Engagement</span>
+              </TabsTrigger>
             </TabsList>
             <div className="p-6">
               <TabsContent value="about" className="space-y-4">
-                <ProfileAboutSection 
-                  user={user} 
-                  isOwnProfile={true}
-                  currentUserId={user?.id}
-                  isFriend={false}
-                />
+                {/* About Section with Guest Profile Tab */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                  <div className="lg:col-span-3">
+                    <ProfileAboutSection 
+                      user={user} 
+                      isOwnProfile={true}
+                      currentUserId={user?.id}
+                      isFriend={false}
+                    />
+                  </div>
+                  
+                  {/* Guest Profile in Side Panel */}
+                  <div className="lg:col-span-1">
+                    <Card className="glassmorphic-card">
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent mb-4">
+                          Guest Profile
+                        </h3>
+                        {guestProfileError ? (
+                          <div className="text-center p-4">
+                            <p className="text-sm text-red-600">Error loading guest profile</p>
+                          </div>
+                        ) : guestProfileLoading ? (
+                          <div className="animate-pulse space-y-2">
+                            <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                          </div>
+                        ) : guestProfile ? (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <UserCheck className="w-4 h-4 text-green-500" />
+                              <span className="text-sm text-green-600">Verified Guest</span>
+                            </div>
+                            <p className="text-xs text-gray-600">Ready to request stays with hosts</p>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="w-full text-xs border-turquoise-200 text-turquoise-700 hover:bg-turquoise-50"
+                            >
+                              View Full Profile
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="text-center space-y-3">
+                            <UserCheck className="w-8 h-8 text-gray-300 mx-auto" />
+                            <p className="text-xs text-gray-600">Create your guest profile to request stays</p>
+                            <Button 
+                              size="sm"
+                              className="w-full text-xs bg-gradient-to-r from-turquoise-500 to-cyan-600 hover:from-turquoise-600 hover:to-cyan-700 text-white"
+                            >
+                              Create Profile
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
               </TabsContent>
               
               <TabsContent value="posts" className="space-y-4">
-                {/* Brief About Section */}
-                <Card className="glassmorphic-card mb-6">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">About</h3>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setActiveTab('about')}
-                        className="text-turquoise-600 hover:text-turquoise-700"
-                      >
-                        See more
-                      </Button>
-                    </div>
-                    <p className="text-gray-600 line-clamp-3">
-                      {user?.bio || "Welcome to my Mundo Tango profile! I'm passionate about tango and connecting with dancers worldwide."}
-                    </p>
-                  </CardContent>
-                </Card>
+                {/* New Layout: Side Panel + Main Feed */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                  {/* Side Panel - About/Travel/Friends */}
+                  <div className="lg:col-span-1 space-y-4">
+                    {/* About Section */}
+                    <Card className="glassmorphic-card">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-semibold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">About</h3>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setActiveTab('about')}
+                            className="text-xs text-turquoise-600 hover:text-turquoise-700"
+                          >
+                            Edit
+                          </Button>
+                        </div>
+                        <p className="text-sm text-gray-600 line-clamp-3 mb-3">
+                          {(user as any)?.bio || "Share your tango story..."}
+                        </p>
+                        {(user as any)?.tangoRoles && (user as any).tangoRoles.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {(typeof (user as any).tangoRoles === 'string' ? JSON.parse((user as any).tangoRoles) : (user as any).tangoRoles).slice(0, 2).map((role: string) => (
+                              <Badge key={role} variant="secondary" className="text-xs bg-turquoise-100 text-turquoise-700">
+                                {role.replace('_', ' ')}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
 
-                {/* Brief Travel Section */}
-                <Card className="glassmorphic-card mb-6">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">Travel</h3>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setActiveTab('travel')}
-                        className="text-turquoise-600 hover:text-turquoise-700"
-                      >
-                        See more
-                      </Button>
-                    </div>
-                    <p className="text-gray-600">
-                      {user?.city ? `Currently in ${user.city}${user.country ? `, ${user.country}` : ''}` : "Location not specified"}
-                    </p>
-                  </CardContent>
-                </Card>
+                    {/* Travel Section */}
+                    <Card className="glassmorphic-card">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-semibold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">Travel</h3>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setActiveTab('travel')}
+                            className="text-xs text-turquoise-600 hover:text-turquoise-700"
+                          >
+                            View
+                          </Button>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-3 h-3 text-turquoise-500" />
+                            <span className="text-sm text-gray-600">
+                              {(user as any)?.city ? `${(user as any).city}${(user as any).country ? `, ${(user as any).country}` : ''}` : "Add location"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Globe className="w-3 h-3 text-cyan-500" />
+                            <span className="text-sm text-gray-600">
+                              {(user as any)?.languages ? `${(user as any).languages.length} languages` : "Add languages"}
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                {/* Brief Friends Section */}
-                <Card className="glassmorphic-card mb-6">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">Friends</h3>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setActiveTab('friends')}
-                        className="text-turquoise-600 hover:text-turquoise-700"
+                    {/* Friends Section */}
+                    <Card className="glassmorphic-card">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-semibold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">Friends</h3>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setActiveTab('friends')}
+                            className="text-xs text-turquoise-600 hover:text-turquoise-700"
+                          >
+                            View All
+                          </Button>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600">
+                            {statsData?.friendsCount ? `${statsData.friendsCount} friends` : "No friends yet"}
+                          </p>
+                          {/* Friend Avatars Preview */}
+                          <div className="flex -space-x-2">
+                            {[1,2,3].map((i) => (
+                              <div key={i} className="w-6 h-6 bg-gradient-to-br from-turquoise-100 to-cyan-100 rounded-full border-2 border-white flex items-center justify-center">
+                                <Users className="w-3 h-3 text-turquoise-600" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Main Feed Area */}
+                  <div className="lg:col-span-3 space-y-4">
+                    {/* Memory Post Button */}
+                    <div className="flex justify-end mb-4">
+                      <button 
+                        onClick={() => setShowMemoryPostModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white rounded-lg hover:shadow-lg transform transition-all hover:-translate-y-0.5"
                       >
-                        See more
-                      </Button>
+                        <PenLine className="w-4 h-4" />
+                        Post a Memory
+                      </button>
                     </div>
-                    <p className="text-gray-600">
-                      {statsData?.friendsCount ? `${statsData.friendsCount} friends in the tango community` : "Building connections in the tango community"}
-                    </p>
-                  </CardContent>
-                </Card>
-                {/* Memory Post Button */}
-                <div className="flex justify-end mb-4">
-                  <button 
-                    onClick={() => setShowMemoryPostModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white rounded-lg hover:shadow-lg transform transition-all hover:-translate-y-0.5"
-                  >
-                    <PenLine className="w-4 h-4" />
-                    Post a Memory
-                  </button>
-                </div>
                 {postsError ? (
                   <NetworkErrorRetry onRetry={() => queryClient.invalidateQueries({ queryKey: ['/api/user/posts'] })} />
                 ) : postsLoading ? (
@@ -372,16 +470,18 @@ export default function Profile() {
                       <PostCard key={post.id} post={post} />
                     ))}
                   </div>
-                ) : (
-                  <Card className="glassmorphic-card">
-                    <CardContent className="p-12 text-center">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No posts yet</h3>
-                      <p className="text-gray-600">
-                        Start sharing your tango journey by creating your first post.
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
+                    ) : (
+                      <Card className="glassmorphic-card">
+                        <CardContent className="p-12 text-center">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">No memories yet</h3>
+                          <p className="text-gray-600">
+                            Start sharing your tango journey by creating your first memory.
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value="events" className="space-y-4">
@@ -456,11 +556,135 @@ export default function Profile() {
               </TabsContent>
 
               <TabsContent value="photos" className="space-y-4">
-                <UserPhotosGallery userId={user?.id || 0} isOwnProfile={true} />
+                {/* Combined Media Tab with Filters */}
+                <Card className="glassmorphic-card">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-2xl font-bold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
+                        Media Gallery
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" className="border-turquoise-200 text-turquoise-700 hover:bg-turquoise-50">
+                          <Camera className="w-4 h-4 mr-2" />
+                          Upload Photo
+                        </Button>
+                        <Button variant="outline" size="sm" className="border-cyan-200 text-cyan-700 hover:bg-cyan-50">
+                          <Video className="w-4 h-4 mr-2" />
+                          Upload Video
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Media Filter Tabs */}
+                    <div className="flex items-center gap-2 mb-6">
+                      <Button 
+                        variant="default" 
+                        size="sm"
+                        className="bg-gradient-to-r from-turquoise-500 to-cyan-600 text-white"
+                      >
+                        All Media
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="border-turquoise-200 text-turquoise-700 hover:bg-turquoise-50"
+                      >
+                        📸 Photos Only
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="border-cyan-200 text-cyan-700 hover:bg-cyan-50"
+                      >
+                        🎥 Videos Only
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                      >
+                        🎵 Dance Videos
+                      </Button>
+                    </div>
+
+                    {/* Media Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {/* Sample Media Items */}
+                      {[1, 2, 3, 4, 5, 6].map((item) => (
+                        <div key={item} className="relative group aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-turquoise-100 to-cyan-100 hover:shadow-lg transition-all cursor-pointer">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            {item % 3 === 0 ? (
+                              <Video className="w-8 h-8 text-turquoise-600" />
+                            ) : (
+                              <Camera className="w-8 h-8 text-cyan-600" />
+                            )}
+                          </div>
+                          <div className="absolute bottom-2 left-2 right-2">
+                            <Badge 
+                              variant="secondary" 
+                              className="text-xs bg-white/80 text-gray-700"
+                            >
+                              {item % 3 === 0 ? "Video" : "Photo"}
+                            </Badge>
+                          </div>
+                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 bg-white/80 hover:bg-white">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Empty State */}
+                    <div className="text-center p-8 bg-gradient-to-br from-turquoise-50/50 to-cyan-50/50 rounded-lg border-2 border-dashed border-turquoise-200 mt-6">
+                      <div className="flex items-center justify-center gap-2 mb-4">
+                        <Camera className="w-8 h-8 text-turquoise-400" />
+                        <Video className="w-8 h-8 text-cyan-400" />
+                      </div>
+                      <h5 className="text-lg font-medium text-turquoise-700 mb-2">Share Your Tango Journey</h5>
+                      <p className="text-turquoise-600 text-sm mb-4">
+                        Upload photos and videos of your tango experiences, performances, and memories.
+                      </p>
+                      <div className="flex items-center justify-center gap-2">
+                        <Button 
+                          size="sm"
+                          className="bg-gradient-to-r from-turquoise-500 to-cyan-600 hover:from-turquoise-600 hover:to-cyan-700 text-white"
+                        >
+                          <Camera className="w-4 h-4 mr-2" />
+                          Upload Photos
+                        </Button>
+                        <Button 
+                          size="sm"
+                          variant="outline"
+                          className="border-turquoise-200 text-turquoise-700 hover:bg-turquoise-50"
+                        >
+                          <Video className="w-4 h-4 mr-2" />
+                          Upload Videos
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               <TabsContent value="videos" className="space-y-4">
-                <UserVideosGallery userId={user?.id || 0} isOwnProfile={true} />
+                {/* Redirect to Photos tab with video filter */}
+                <Card className="glassmorphic-card">
+                  <CardContent className="p-12 text-center">
+                    <Video className="w-16 h-16 mx-auto text-cyan-400 mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Videos are now in Media Gallery</h3>
+                    <p className="text-gray-600 mb-4">
+                      We've combined photos and videos into one place with smart filtering.
+                    </p>
+                    <Button 
+                      className="bg-gradient-to-r from-turquoise-500 to-cyan-600 hover:from-turquoise-600 hover:to-cyan-700 text-white"
+                      onClick={() => setActiveTab('photos')}
+                    >
+                      View Media Gallery
+                    </Button>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               <TabsContent value="friends" className="space-y-4">
@@ -468,101 +692,97 @@ export default function Profile() {
               </TabsContent>
 
               <TabsContent value="experience" className="space-y-4">
-                {/* Enhanced Experience Section */}
+                {/* Tango Resume - Event-Tied Experience */}
                 <Card className="glassmorphic-card">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-2xl font-bold bg-gradient-to-r from-turquoise-400 to-cyan-500 bg-clip-text text-transparent">
-                        Tango Experience
+                        🌟 Tango Resume
                       </h3>
+                      <Badge variant="outline" className="border-turquoise-200 text-turquoise-700">
+                        Event-Based Experience
+                      </Badge>
                     </div>
                     
-                    {/* Experience Overview */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    {/* Resume Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                       <Card className="bg-gradient-to-br from-turquoise-50 to-cyan-50 border-turquoise-200">
-                        <CardContent className="p-4">
-                          <h4 className="font-semibold text-turquoise-800 mb-3">Dance Levels</h4>
-                          <div className="space-y-3">
-                            <div>
-                              <div className="flex justify-between items-center mb-1">
-                                <span className="text-sm text-turquoise-700">Leader</span>
-                                <span className="text-sm font-medium text-turquoise-800">{user.leaderLevel || 5}/10</span>
-                              </div>
-                              <div className="w-full bg-turquoise-100 rounded-full h-2">
-                                <div 
-                                  className="bg-gradient-to-r from-turquoise-400 to-cyan-500 h-2 rounded-full transition-all duration-1000"
-                                  style={{ width: `${(user.leaderLevel || 5) * 10}%` }}
-                                />
-                              </div>
-                            </div>
-                            <div>
-                              <div className="flex justify-between items-center mb-1">
-                                <span className="text-sm text-cyan-700">Follower</span>
-                                <span className="text-sm font-medium text-cyan-800">{user.followerLevel || 5}/10</span>
-                              </div>
-                              <div className="w-full bg-cyan-100 rounded-full h-2">
-                                <div 
-                                  className="bg-gradient-to-r from-cyan-400 to-blue-500 h-2 rounded-full transition-all duration-1000"
-                                  style={{ width: `${(user.followerLevel || 5) * 10}%` }}
-                                />
-                              </div>
-                            </div>
-                          </div>
+                        <CardContent className="p-4 text-center">
+                          <div className="text-2xl font-bold text-turquoise-600">{statsData?.eventsAttended || 0}</div>
+                          <div className="text-sm text-turquoise-700">Events Attended</div>
                         </CardContent>
                       </Card>
-                      
                       <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200">
-                        <CardContent className="p-4">
-                          <h4 className="font-semibold text-cyan-800 mb-3">Journey</h4>
-                          <div className="space-y-2">
-                            {user.yearsOfDancing && (
-                              <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-cyan-600" />
-                                <span className="text-cyan-700">{user.yearsOfDancing} years dancing</span>
-                              </div>
-                            )}
-                            {user.startedDancingYear && (
-                              <div className="flex items-center gap-2">
-                                <Star className="w-4 h-4 text-cyan-600" />
-                                <span className="text-cyan-700">Started in {user.startedDancingYear}</span>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-2">
-                              <Users className="w-4 h-4 text-cyan-600" />
-                              <span className="text-cyan-700">{statsData?.eventsAttended || 0} events attended</span>
-                            </div>
-                          </div>
+                        <CardContent className="p-4 text-center">
+                          <div className="text-2xl font-bold text-cyan-600">{statsData?.rolesAccepted || 0}</div>
+                          <div className="text-sm text-cyan-700">Roles Accepted</div>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-gradient-to-br from-blue-50 to-turquoise-50 border-blue-200">
+                        <CardContent className="p-4 text-center">
+                          <div className="text-2xl font-bold text-blue-600">{(user as any)?.yearsOfDancing || 0}</div>
+                          <div className="text-sm text-blue-700">Years Dancing</div>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                        <CardContent className="p-4 text-center">
+                          <div className="text-2xl font-bold text-purple-600">★ 4.8</div>
+                          <div className="text-sm text-purple-700">Avg Rating</div>
                         </CardContent>
                       </Card>
                     </div>
 
-                    {/* Roles and Skills */}
-                    {user.tangoRoles && user.tangoRoles.length > 0 && (
-                      <div className="mb-6">
-                        <h4 className="font-semibold text-gray-800 mb-3">Tango Roles</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {(typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles).map((role: string) => (
-                            <Badge key={role} className="bg-gradient-to-r from-turquoise-100 to-cyan-100 text-turquoise-700 border-turquoise-200">
-                              {role.replace('_', ' ')}
-                            </Badge>
-                          ))}
+                    {/* Event-Based Experience Entries */}
+                    <div className="space-y-6">
+                      <h4 className="font-semibold text-gray-800 text-lg">Professional Experience</h4>
+                      
+                      {/* Sample Experience Entry - This would be populated from accepted event roles */}
+                      <div className="border-l-4 border-turquoise-400 pl-6 py-4 bg-gradient-to-r from-turquoise-50/30 to-transparent">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h5 className="font-semibold text-gray-900">Lead Instructor</h5>
+                            <p className="text-turquoise-600 font-medium">Buenos Aires Tango Festival 2024</p>
+                            <p className="text-gray-600 text-sm">Taught intermediate tango technique to 50+ students</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                              <span>📅 March 2024</span>
+                              <span>📍 Buenos Aires, Argentina</span>
+                              <span>⭐ 4.9/5 rating from organizer</span>
+                            </div>
+                          </div>
+                          <Badge className="bg-green-100 text-green-700">Completed</Badge>
                         </div>
                       </div>
-                    )}
 
-                    {/* Call to Action */}
-                    <div className="text-center p-6 bg-gradient-to-br from-turquoise-50/50 to-cyan-50/50 rounded-lg border-2 border-dashed border-turquoise-200">
-                      <Star className="w-10 h-10 mx-auto text-turquoise-400 mb-3" />
-                      <h5 className="text-lg font-medium text-turquoise-700 mb-2">Share Your Tango Story</h5>
-                      <p className="text-turquoise-600 text-sm mb-4">
-                        Add more details about your tango journey and connect with the community.
-                      </p>
-                      <Button 
-                        className="bg-gradient-to-r from-turquoise-500 to-cyan-600 hover:from-turquoise-600 hover:to-cyan-700 text-white"
-                        onClick={() => setActiveTab('about')}
-                      >
-                        Edit Experience
-                      </Button>
+                      <div className="border-l-4 border-cyan-400 pl-6 py-4 bg-gradient-to-r from-cyan-50/30 to-transparent">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h5 className="font-semibold text-gray-900">DJ & Music Curator</h5>
+                            <p className="text-cyan-600 font-medium">Milonga Luna - Weekly Series</p>
+                            <p className="text-gray-600 text-sm">Curated and performed music for weekly milonga events</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                              <span>📅 Jan-Dec 2024</span>
+                              <span>📍 Local Community</span>
+                              <span>⭐ 4.7/5 dancer feedback</span>
+                            </div>
+                          </div>
+                          <Badge className="bg-green-100 text-green-700">Ongoing</Badge>
+                        </div>
+                      </div>
+
+                      {/* Empty State */}
+                      <div className="text-center p-8 bg-gradient-to-br from-turquoise-50/50 to-cyan-50/50 rounded-lg border-2 border-dashed border-turquoise-200">
+                        <Star className="w-12 h-12 mx-auto text-turquoise-400 mb-4" />
+                        <h5 className="text-lg font-medium text-turquoise-700 mb-2">Build Your Tango Resume</h5>
+                        <p className="text-turquoise-600 text-sm mb-4">
+                          When event organizers select you for roles and you accept, they'll automatically appear here as professional experience.
+                        </p>
+                        <Button 
+                          className="bg-gradient-to-r from-turquoise-500 to-cyan-600 hover:from-turquoise-600 hover:to-cyan-700 text-white"
+                          onClick={() => setActiveTab('events')}
+                        >
+                          Browse Events
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -600,6 +820,11 @@ export default function Profile() {
                     </CardContent>
                   </Card>
                 )}
+              </TabsContent>
+
+              {/* NEW: Engagement Features Tab */}
+              <TabsContent value="engagement" className="space-y-4">
+                <ProfileEngagementFeatures user={user} statsData={statsData} />
               </TabsContent>
             </div>
           </Tabs>
