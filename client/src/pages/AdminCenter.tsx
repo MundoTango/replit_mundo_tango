@@ -156,7 +156,7 @@ const AdminCenter: React.FC = React.memo(() => {
   const [systemHealthRefreshing, setSystemHealthRefreshing] = useState(false);
   
   // Compliance state - must be declared at top level
-  const [compliance, setCompliance] = useState<ComplianceMetrics | null>(null);
+  const [complianceState, setComplianceState] = useState<ComplianceMetrics | null>(null);
   const [complianceRefreshing, setComplianceRefreshing] = useState(false);
   const [auditHistory, setAuditHistory] = useState<any[]>([]);
   const [monitoringStatus, setMonitoringStatus] = useState<any>(null);
@@ -554,7 +554,7 @@ const AdminCenter: React.FC = React.memo(() => {
       
       if (result.success) {
         // Update compliance data
-        setCompliance(result.data);
+        setComplianceState(result.data);
         
         // Show success message
         console.log('Compliance audit refreshed successfully');
@@ -714,25 +714,25 @@ const AdminCenter: React.FC = React.memo(() => {
           title="GDPR Compliance"
           score={compliance?.gdprScore || 90}
           description="Data subject rights, consent management, and privacy controls"
-          status={compliance?.gdprScore >= 85 ? 'excellent' : 'good'}
+          status={(compliance?.gdprScore ?? 0) >= 85 ? 'excellent' : 'good'}
         />
         <ComplianceCard
           title="SOC 2 Type II"
           score={compliance?.soc2Score || 75}
           description="Security controls, availability, and confidentiality standards"
-          status={compliance?.soc2Score >= 80 ? 'good' : 'warning'}
+          status={(compliance?.soc2Score ?? 0) >= 80 ? 'good' : 'warning'}
         />
         <ComplianceCard
           title="Enterprise Data"
           score={compliance?.enterpriseScore || 70}
           description="Data governance, retention policies, and access controls"
-          status={compliance?.enterpriseScore >= 75 ? 'good' : 'warning'}
+          status={(compliance?.enterpriseScore ?? 0) >= 75 ? 'good' : 'warning'}
         />
         <ComplianceCard
           title="Multi-tenant Security"
-          score={compliance?.multiTenantScore || 78}
+          score={compliance?.multiTenantScore ?? 78}
           description="Tenant isolation, resource allocation, and security boundaries"
-          status={compliance?.multiTenantScore >= 80 ? 'good' : 'warning'}
+          status={(compliance?.multiTenantScore ?? 0) >= 80 ? 'good' : 'warning'}
         />
       </div>
 
