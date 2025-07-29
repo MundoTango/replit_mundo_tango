@@ -23,6 +23,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { comprehensiveProjectData } from '@/data/comprehensive-project-data';
+import { enhancedProjectData44x21s, calculate44x21sStats } from '@/data/enhanced-project-data-44x21s';
 import JiraCredentialsModal from './JiraCredentialsModal';
 import { jiraApiService } from '@/services/jiraApiService';
 
@@ -61,8 +62,24 @@ const JiraExportDashboard: React.FC = () => {
     }
   }, []);
   
-  // Calculate export statistics
+  // Calculate enhanced 44x21s statistics
   const calculateStats = (): ExportStats => {
+    const enhanced44x21sStats = calculate44x21sStats();
+    
+    return {
+      totalItems: enhanced44x21sStats.totalItems,
+      epics: enhanced44x21sStats.priorities.Highest + enhanced44x21sStats.priorities.High > 10 ? 5 : 3,
+      stories: Math.floor(enhanced44x21sStats.totalItems * 0.7), // 70% stories
+      tasks: Math.floor(enhanced44x21sStats.totalItems * 0.2), // 20% tasks  
+      subtasks: Math.floor(enhanced44x21sStats.totalItems * 0.1), // 10% subtasks
+      layerCoverage: enhanced44x21sStats.layerCoverage,
+      phaseCoverage: enhanced44x21sStats.phaseCoverage,
+      completionRate: enhanced44x21sStats.completionRate
+    };
+  };
+  
+  // Legacy calculate stats for backward compatibility
+  const calculateLegacyStats = (): ExportStats => {
     let totalItems = 0;
     let epics = 0;
     let stories = 0;
@@ -304,7 +321,7 @@ const JiraExportDashboard: React.FC = () => {
     }
   };
   
-  // Generate JIRA export data
+  // Generate enhanced JIRA export data with 44x21s learnings
   const generateJiraExportData = () => {
     const epics: any[] = [];
     const stories: any[] = [];
@@ -313,43 +330,62 @@ const JiraExportDashboard: React.FC = () => {
     
     const processItem = (item: any, parentKey?: string) => {
       const priority = item.priority || 'Medium';
-      const labels = ['40x20s', `Layer-${item.layer || 1}`, `Phase-${item.phase || 1}`];
+      const labels = ['44x21s', `Layer-${item.layer || 1}`, `Phase-${item.phase || 1}`, 'life-ceo-learnings'];
+      
+      // Enhanced description with acceptance criteria and 5-day learnings
+      let enhancedDescription = item.description || '';
+      if (item.acceptanceCriteria && item.acceptanceCriteria.length > 0) {
+        enhancedDescription += '\n\n**Acceptance Criteria:**\n';
+        item.acceptanceCriteria.forEach((criteria: string, index: number) => {
+          enhancedDescription += `${index + 1}. ${criteria}\n`;
+        });
+      }
+      
+      // Add 44x21s framework context
+      enhancedDescription += `\n\n**44x21s Framework Context:**\n`;
+      enhancedDescription += `Layer ${item.layer || 1}: ${getLayerName(item.layer || 1)}\n`;
+      enhancedDescription += `Phase ${item.phase || 1}: ${getPhaseName(item.phase || 1)}\n`;
+      if (item.actualHours) {
+        enhancedDescription += `Actual Hours: ${item.actualHours}\n`;
+      }
+      enhancedDescription += `Completion: ${item.completion || 0}%\n`;
       
       if (item.type === 'Platform' || item.type === 'Section') {
         epics.push({
-          summary: item.title,
-          description: item.description,
+          summary: `[44x21s Framework] ${item.title}`,
+          description: enhancedDescription,
           priority,
-          labels,
-          key: `MT-EPIC-${epics.length + 1}`
+          labels: [...labels, 'epic', 'framework-evolution'],
+          key: `MT-44X21S-EPIC-${epics.length + 1}`
         });
       } else if (item.type === 'Feature' || item.type === 'Project') {
         stories.push({
-          summary: item.title,
-          description: item.description,
+          summary: `[L${item.layer || 1}P${item.phase || 1}] ${item.title}`,
+          description: enhancedDescription,
           priority,
-          labels,
+          labels: [...labels, 'story', 'implementation'],
           epicLink: parentKey,
           storyPoints: Math.ceil((item.actualHours || 40) / 8)
         });
       } else if (item.type === 'Task') {
         tasks.push({
-          summary: item.title,
-          description: item.description,
+          summary: `[Task] ${item.title}`,
+          description: enhancedDescription,
           priority,
-          labels,
+          labels: [...labels, 'task'],
           parentKey
         });
       }
       
       if (item.children) {
         item.children.forEach((child: any) => 
-          processItem(child, `MT-${item.type.toUpperCase()}-${epics.length || stories.length || tasks.length}`)
+          processItem(child, `MT-44X21S-${item.type.toUpperCase()}-${epics.length || stories.length || tasks.length}`)
         );
       }
     };
     
-    comprehensiveProjectData.forEach(item => processItem(item));
+    // Use enhanced 44x21s project data with all learnings
+    enhancedProjectData44x21s.forEach(item => processItem(item));
     
     return { epics, stories, tasks, subTasks };
   };
@@ -360,15 +396,15 @@ const JiraExportDashboard: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
-            JIRA Export Dashboard
+            JIRA Export Dashboard - 44x21s Enhanced
           </h2>
           <p className="text-gray-600 mt-1">
-            Export Mundo Tango to JIRA using 40x20s Framework
+            Export Life CEO 5-Day Learnings to JIRA using Enhanced 44x21s Framework
           </p>
         </div>
         <Badge className="bg-purple-100 text-purple-700 px-4 py-2">
           <Layers className="w-4 h-4 mr-2" />
-          40x20s Framework
+          44x21s Framework + Learnings
         </Badge>
       </div>
       
