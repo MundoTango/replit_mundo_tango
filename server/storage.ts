@@ -273,6 +273,11 @@ export interface IStorage {
   getNotificationsByUserId(userId: number): Promise<any[]>;
   markNotificationAsRead(notificationId: number): Promise<void>;
 
+  // Chat message operations for AI functionality
+  createMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  getMessagesByRoom(roomSlug: string): Promise<ChatMessage[]>;
+  createOrGetChatRoom(slug: string, name: string, type: string): Promise<ChatRoom>;
+
   // Enhanced post features for rich content support
   createCommentWithMentions(comment: InsertComment & { mentions?: string[] }): Promise<PostComment>;
   updateComment(id: number, updates: Partial<PostComment>): Promise<PostComment>;
@@ -4295,6 +4300,49 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error checking if friends:', error);
       return false;
+    }
+  }
+
+  // Chat message operations for AI functionality
+  async createMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    const [createdMessage] = await db.insert(chatMessages).values(message).returning();
+    return createdMessage;
+  }
+
+  async getMessagesByRoom(roomSlug: string): Promise<ChatMessage[]> {
+    return await db.select()
+      .from(chatMessages)
+      .where(eq(chatMessages.chatRoomSlug, roomSlug))
+      .orderBy(asc(chatMessages.createdAt))
+      .limit(50);
+  }
+
+  async createOrGetChatRoom(slug: string, name: string, type: string): Promise<ChatRoom> {
+    try {
+      // Try to get existing room first
+      const existing = await db.select()
+        .from(chatRooms)
+        .where(eq(chatRooms.slug, slug))
+        .limit(1);
+      
+      if (existing.length > 0) {
+        return existing[0];
+      }
+      
+      // Create new room if it doesn't exist
+      const [newRoom] = await db.insert(chatRooms).values({
+        slug,
+        name,
+        type,
+        userId: 7, // Default to user 7 for AI chat rooms
+        isGroup: false,
+        isActive: true
+      }).returning();
+      
+      return newRoom;
+    } catch (error) {
+      console.error('Error creating/getting chat room:', error);
+      throw error;
     }
   }
 }

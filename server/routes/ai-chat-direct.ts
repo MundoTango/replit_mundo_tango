@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { storage } from '../storage';
+import pkg from 'pg';
+const { Pool } = pkg;
 
 // AI Chat endpoint using direct PostgreSQL (bypassing Supabase client cache issues)
 export const handleAiChatDirect = async (req: Request, res: Response) => {
@@ -12,36 +14,47 @@ export const handleAiChatDirect = async (req: Request, res: Response) => {
     const userSlug = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const aiSlug = `ai_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    // Insert user message using direct SQL
-    const userMessage = await storage.db.query(`
-      INSERT INTO chat_messages (slug, chat_room_slug, user_slug, message_type, message, is_forwarded, is_reply, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
-      RETURNING *;
-    `, [userSlug, roomSlug, `user_${userId}`, 'text', message, false, false]);
+    // Ensure chat room exists first
+    await storage.createOrGetChatRoom(roomSlug, `AI Chat Room for User ${userId}`, 'direct');
+    
+    // Insert user message using Drizzle ORM
+    const userMessage = await storage.createMessage({
+      slug: userSlug,
+      chatRoomSlug: roomSlug,
+      userSlug: `user_${userId}`,
+      messageType: 'text',
+      message: message,
+      isForwarded: false,
+      isReply: false
+    });
 
-    if (!userMessage.rows[0]) {
+    if (!userMessage) {
       return res.status(500).json({ error: 'Failed to save user message' });
     }
 
     // Generate AI response
     const aiResponse = generateAiResponse(message);
     
-    // Insert AI response using direct SQL
-    const aiMessage = await storage.db.query(`
-      INSERT INTO chat_messages (slug, chat_room_slug, user_slug, message_type, message, is_forwarded, is_reply, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
-      RETURNING *;
-    `, [aiSlug, roomSlug, 'ai_assistant', 'text', aiResponse, false, false]);
+    // Insert AI response using Drizzle ORM
+    const aiMessage = await storage.createMessage({
+      slug: aiSlug,
+      chatRoomSlug: roomSlug,
+      userSlug: 'ai_assistant',
+      messageType: 'text',
+      message: aiResponse,
+      isForwarded: false,
+      isReply: false
+    });
 
-    console.log(`✅ AI Chat Direct Success - User: ${userMessage.rows[0].id}, AI: ${aiMessage.rows[0]?.id || 'failed'}`);
+    console.log(`✅ AI Chat Direct Success - User: ${userMessage.id}, AI: ${aiMessage?.id || 'failed'}`);
 
     res.json({
       success: true,
-      userMessage: userMessage.rows[0],
-      aiResponse: aiMessage.rows[0],
+      userMessage: userMessage,
+      aiResponse: aiMessage,
       messageLength: message.length,
       timestamp: new Date().toISOString(),
-      method: 'direct_postgresql'
+      method: 'drizzle_orm'
     });
 
   } catch (error) {
@@ -61,19 +74,14 @@ export const getConversationHistoryDirect = async (req: Request, res: Response) 
     const userId = req.query.userId || 7;
     const roomSlug = conversationId || `conv_${userId}`;
 
-    const result = await storage.db.query(`
-      SELECT * FROM chat_messages 
-      WHERE chat_room_slug = $1 
-      ORDER BY created_at ASC 
-      LIMIT 50;
-    `, [roomSlug]);
+    const messages = await storage.getMessagesByRoom(roomSlug);
 
     res.json({
       success: true,
-      messages: result.rows || [],
+      messages: messages || [],
       conversationId: roomSlug,
-      count: result.rows?.length || 0,
-      method: 'direct_postgresql'
+      count: messages?.length || 0,
+      method: 'drizzle_orm'
     });
 
   } catch (error) {
