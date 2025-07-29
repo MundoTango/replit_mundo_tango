@@ -65,9 +65,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     contentCreationLimiter
   } = await import('./middleware/rateLimiting');
   
-  // Apply security middleware - Life CEO 44x21s CSP disabled for Replit preview
+  // Apply security middleware - Life CEO 44x21s Layer 44 Critical Fix
   app.use(securityHeaders);
-  // CSP disabled for Replit iframe compatibility
+  // CRITICAL: CSP completely disabled for Replit iframe compatibility
+  // app.use(contentSecurityPolicy); // DISABLED for preview
   app.use(sanitizeInput);
   
   // Set up Replit Auth middleware

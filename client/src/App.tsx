@@ -56,6 +56,7 @@ const TravelPlanner = lazy(() => import("@/pages/TravelPlanner"));
 const AnalyticsDashboard = lazy(() => import("@/pages/AnalyticsDashboard"));
 const SupabaseTest = lazy(() => import("@/pages/SupabaseTest"));
 const AiChatTest = lazy(() => import("@/pages/AiChatTest"));
+const PreviewTest = lazy(() => import("@/pages/PreviewTest"));
 
 // Life CEO 44x21s Layer 44 - Minimal loading component to prevent browser freeze
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
@@ -116,26 +117,27 @@ function Router() {
   
   const { user, isLoading, isAuthenticated } = useAuth();
   
-  // Life CEO Layer 23: Basic auth timeout to prevent hangs
+  // Life CEO Layer 44: CRITICAL - Immediate timeout to prevent infinite loading
   const [authTimeout, setAuthTimeout] = React.useState(false);
   
   React.useEffect(() => {
     if (isLoading) {
       const timer = setTimeout(() => {
-        console.log('Life CEO: Auth timeout - proceeding');
+        console.log('Life CEO 44x21s: CRITICAL timeout - forcing app render');
         setAuthTimeout(true);
-      }, 2000); // Reduced from 3s to 2s
+      }, 1000); // REDUCED to 1 second for immediate response
       return () => clearTimeout(timer);
     }
   }, [isLoading]);
 
-  // Show loading for max 2 seconds
+  // CRITICAL: Show loading for MAX 1 second only
   if (isLoading && !authTimeout) {
+    console.log('Life CEO 44x21s: Showing 1s loading screen');
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-turquoise-50 via-cyan-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading...</p>
+          <div className="w-16 h-16 border-4 border-turquoise-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Life CEO Loading...</p>
         </div>
       </div>
     );
@@ -151,6 +153,12 @@ function Router() {
     <ErrorBoundary>
       <Suspense fallback={<LoadingFallback />}>
         <Switch>
+          {/* Life CEO 44x21s Layer 44 - CRITICAL: Test route for preview debugging */}
+          <Route path="/preview-test">
+            <Suspense fallback={<LoadingFallback message="Loading test..." />}>
+              <PreviewTest />
+            </Suspense>
+          </Route>
           {/* Life CEO 44x21s Layer 22 - Progressive Enhancement: Real Memory Feed */}
           <Route path="/">
             <Suspense fallback={<LoadingFallback message="Loading memories..." />}>

@@ -121,24 +121,19 @@ function sanitizeObject(obj: any): void {
   }
 }
 
-// Security headers middleware - Life CEO 44x21s Layer 11-20 Replit Compatibility
+// Security headers middleware - Life CEO 44x21s Layer 44 Critical Replit Preview Fix
 export const securityHeaders = (req: Request, res: Response, next: NextFunction) => {
-  // Layer 44 Critical: Completely remove iframe blocking for Replit preview
+  // Layer 44 Critical: MINIMAL security headers for Replit preview compatibility
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'geolocation=(self), microphone=(), camera=()');
+  
+  // CRITICAL: Allow ALL frame ancestors for Replit preview
+  res.setHeader('X-Frame-Options', 'ALLOWALL');
   
   // CORS headers for Replit preview
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   
-  // HSTS for production only
-  if (process.env.NODE_ENV === 'production') {
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  }
-
   next();
 };
 
