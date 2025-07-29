@@ -40,6 +40,8 @@ import {
   travelDetails,
   userSettings,
   notifications,
+  eventPageAdmins,
+  eventPagePosts,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -104,7 +106,11 @@ import {
   type InsertGuestProfile,
   type TravelDetail,
   type InsertTravelDetail,
-  type UpdateTravelDetail
+  type UpdateTravelDetail,
+  type EventPageAdmin,
+  type InsertEventPageAdmin,
+  type EventPagePost,
+  type InsertEventPagePost
 } from '../shared/schema';
 import { db, pool } from './db';
 import { eq, desc, asc, sql, and, or, gte, lte, count, ilike, inArray } from 'drizzle-orm';
@@ -148,6 +154,21 @@ export interface IStorage {
   rsvpEvent(eventId: number, userId: number, status: string): Promise<EventRsvp>;
   getEventRsvps(eventId: number): Promise<EventRsvp[]>;
   getUserEventRsvps(userId: number): Promise<EventRsvp[]>;
+  
+  // Event Page operations (Facebook Groups/Pages style with RBAC/ABAC)
+  createEventPage(eventId: number, userId: number, slug: string, description?: string): Promise<Event>;
+  getEventPageBySlug(slug: string): Promise<Event | undefined>;
+  addEventPageAdmin(eventPageAdmin: InsertEventPageAdmin): Promise<EventPageAdmin>;
+  removeEventPageAdmin(eventId: number, userId: number): Promise<void>;
+  getEventPageAdmins(eventId: number): Promise<EventPageAdmin[]>;
+  updateEventPageAdminPermissions(eventId: number, userId: number, permissions: Record<string, boolean>): Promise<EventPageAdmin>;
+  userCanManageEventPage(eventId: number, userId: number, permission: string): Promise<boolean>;
+  createEventPagePost(eventPagePost: InsertEventPagePost): Promise<EventPagePost>;
+  getEventPagePosts(eventId: number, limit?: number, offset?: number): Promise<EventPagePost[]>;
+  approveEventPagePost(postId: number, approvedBy: number): Promise<EventPagePost>;
+  deleteEventPagePost(postId: number): Promise<void>;
+  pinEventPagePost(postId: number, pinnedBy: number): Promise<EventPagePost>;
+  unpinEventPagePost(postId: number): Promise<EventPagePost>;
   
   // User followed cities
   getUserFollowedCities(userId: number): Promise<{ id: number; city: string; country: string; userId: number; createdAt: Date | null }[]>;
@@ -4346,6 +4367,177 @@ export class DatabaseStorage implements IStorage {
       console.error('Error creating/getting chat room:', error);
       throw error;
     }
+  }
+
+  // Event Page operations (Facebook Groups/Pages style with RBAC/ABAC)
+  async createEventPage(eventId: number, userId: number, slug: string, description?: string): Promise<Event> {
+    const [updatedEvent] = await db
+      .update(events)
+      .set({
+        hasEventPage: true,
+        eventPageSlug: slug,
+        eventPageDescription: description,
+        updatedAt: new Date()
+      })
+      .where(eq(events.id, eventId))
+      .returning();
+
+    // Automatically add the creator as owner/admin
+    await this.addEventPageAdmin({
+      eventId,
+      userId,
+      role: 'owner',
+      permissions: {
+        canManageEvent: true,
+        canManageAdmins: true,
+        canApproveContent: true,
+        canDeleteContent: true,
+        canManageRSVPs: true,
+        canPostAnnouncements: true,
+        canEditEventDetails: true,
+        canInviteParticipants: true,
+        canBanUsers: true
+      },
+      delegatedBy: userId,
+      isActive: true
+    });
+
+    return updatedEvent;
+  }
+
+  async getEventPageBySlug(slug: string): Promise<Event | undefined> {
+    const result = await db
+      .select()
+      .from(events)
+      .where(eq(events.eventPageSlug, slug))
+      .limit(1);
+    return result[0];
+  }
+
+  async addEventPageAdmin(eventPageAdmin: InsertEventPageAdmin): Promise<EventPageAdmin> {
+    const [newAdmin] = await db.insert(eventPageAdmins).values(eventPageAdmin).returning();
+    return newAdmin;
+  }
+
+  async removeEventPageAdmin(eventId: number, userId: number): Promise<void> {
+    await db
+      .update(eventPageAdmins)
+      .set({ isActive: false })
+      .where(
+        and(
+          eq(eventPageAdmins.eventId, eventId),
+          eq(eventPageAdmins.userId, userId)
+        )
+      );
+  }
+
+  async getEventPageAdmins(eventId: number): Promise<EventPageAdmin[]> {
+    return await db
+      .select()
+      .from(eventPageAdmins)
+      .where(
+        and(
+          eq(eventPageAdmins.eventId, eventId),
+          eq(eventPageAdmins.isActive, true)
+        )
+      )
+      .orderBy(desc(eventPageAdmins.createdAt));
+  }
+
+  async updateEventPageAdminPermissions(eventId: number, userId: number, permissions: Record<string, boolean>): Promise<EventPageAdmin> {
+    const [updatedAdmin] = await db
+      .update(eventPageAdmins)
+      .set({ 
+        permissions: permissions,
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          eq(eventPageAdmins.eventId, eventId),
+          eq(eventPageAdmins.userId, userId),
+          eq(eventPageAdmins.isActive, true)
+        )
+      )
+      .returning();
+    return updatedAdmin;
+  }
+
+  async userCanManageEventPage(eventId: number, userId: number, permission: string): Promise<boolean> {
+    const admin = await db
+      .select()
+      .from(eventPageAdmins)
+      .where(
+        and(
+          eq(eventPageAdmins.eventId, eventId),
+          eq(eventPageAdmins.userId, userId),
+          eq(eventPageAdmins.isActive, true)
+        )
+      )
+      .limit(1);
+
+    if (!admin[0]) return false;
+
+    const permissions = admin[0].permissions as Record<string, boolean>;
+    return permissions[permission] === true;
+  }
+
+  async createEventPagePost(eventPagePost: InsertEventPagePost): Promise<EventPagePost> {
+    const [newPost] = await db.insert(eventPagePosts).values(eventPagePost).returning();
+    return newPost;
+  }
+
+  async getEventPagePosts(eventId: number, limit: number = 20, offset: number = 0): Promise<EventPagePost[]> {
+    return await db
+      .select()
+      .from(eventPagePosts)
+      .where(eq(eventPagePosts.eventId, eventId))
+      .orderBy(desc(eventPagePosts.isPinned), desc(eventPagePosts.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async approveEventPagePost(postId: number, approvedBy: number): Promise<EventPagePost> {
+    const [approvedPost] = await db
+      .update(eventPagePosts)
+      .set({
+        isApproved: true,
+        approvedBy,
+        approvedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(eventPagePosts.id, postId))
+      .returning();
+    return approvedPost;
+  }
+
+  async deleteEventPagePost(postId: number): Promise<void> {
+    await db.delete(eventPagePosts).where(eq(eventPagePosts.id, postId));
+  }
+
+  async pinEventPagePost(postId: number, pinnedBy: number): Promise<EventPagePost> {
+    const [pinnedPost] = await db
+      .update(eventPagePosts)
+      .set({
+        isPinned: true,
+        pinnedBy,
+        updatedAt: new Date()
+      })
+      .where(eq(eventPagePosts.id, postId))
+      .returning();
+    return pinnedPost;
+  }
+
+  async unpinEventPagePost(postId: number): Promise<EventPagePost> {
+    const [unpinnedPost] = await db
+      .update(eventPagePosts)
+      .set({
+        isPinned: false,
+        pinnedBy: null,
+        updatedAt: new Date()
+      })
+      .where(eq(eventPagePosts.id, postId))
+      .returning();
+    return unpinnedPost;
   }
 }
 

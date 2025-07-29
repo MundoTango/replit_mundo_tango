@@ -54,6 +54,8 @@ export const users = pgTable("users", {
   formStatus: integer("form_status").default(0),
   isOnboardingComplete: boolean("is_onboarding_complete").default(false),
   codeOfConductAccepted: boolean("code_of_conduct_accepted").default(false),
+  occupation: varchar("occupation", { length: 255 }), // Adding missing occupation field
+  termsAccepted: boolean("terms_accepted").default(false), // Adding missing terms accepted field
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -171,6 +173,10 @@ export const posts = pgTable("posts", {
   placeId: text("place_id"), // Google Maps Place ID
   formattedAddress: text("formatted_address"), // Standardized address
   visibility: varchar("visibility", { length: 20 }).default("public"), // public, friends, private
+  postType: varchar("post_type", { length: 50 }).default("memory"), // memory, story, announcement, event_update
+  likes: integer("likes").default(0), // Adding missing likes field
+  comments: integer("comments").default(0), // Adding missing comments field  
+  shares: integer("shares").default(0), // Adding missing shares field
   likesCount: integer("likes_count").default(0),
   commentsCount: integer("comments_count").default(0),
   sharesCount: integer("shares_count").default(0),
@@ -182,6 +188,7 @@ export const posts = pgTable("posts", {
   index("idx_posts_user_created").on(table.userId, table.createdAt),
   index("idx_posts_visibility").on(table.visibility),
   index("idx_posts_hashtags").on(table.hashtags),
+  index("idx_posts_post_type").on(table.postType),
 ]);
 
 // Activities/Categories table
@@ -251,6 +258,15 @@ export const events = pgTable("events", {
   seriesId: integer("series_id"), // For recurring events
   status: varchar("status", { length: 20 }).default("active"), // active, cancelled, postponed, completed
   isFeatured: boolean("is_featured").default(false),
+  // Event Pages features (Facebook Groups/Pages style)
+  hasEventPage: boolean("has_event_page").default(false), // Whether this event has a dedicated page
+  eventPageSlug: varchar("event_page_slug", { length: 255 }).unique(), // Unique slug for event page URL
+  eventPageDescription: text("event_page_description"), // Extended description for event page
+  eventPageRules: text("event_page_rules"), // Rules and guidelines for event page
+  eventPageCoverImage: text("event_page_cover_image"), // Cover image for event page
+  allowEventPagePosts: boolean("allow_event_page_posts").default(true), // Allow users to post on event page
+  requirePostApproval: boolean("require_post_approval").default(false), // Require admin approval for posts
+  eventVisualMarker: varchar("event_visual_marker", { length: 20 }).default("default"), // Visual marker/color for event type (milonga=red, practica=blue, workshop=green)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -280,6 +296,65 @@ export const eventInvitations = pgTable("event_invitations", {
   sentAt: timestamp("sent_at").defaultNow(),
   respondedAt: timestamp("responded_at"),
 });
+
+// Event Page Admins table for RBAC/ABAC controls and delegation
+export const eventPageAdmins = pgTable("event_page_admins", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").references(() => events.id, { onDelete: "cascade" }).notNull(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  role: varchar("role", { length: 50 }).notNull().default("moderator"), // owner, admin, moderator, content_manager
+  permissions: jsonb("permissions").default({
+    canManageEvent: false,
+    canManageAdmins: false,
+    canApproveContent: true,
+    canDeleteContent: false,
+    canManageRSVPs: false,
+    canPostAnnouncements: true,
+    canEditEventDetails: false,
+    canInviteParticipants: true,
+    canBanUsers: false
+  }).notNull(),
+  delegatedBy: integer("delegated_by").references(() => users.id), // Who delegated this role
+  delegatedAt: timestamp("delegated_at").defaultNow(),
+  expiresAt: timestamp("expires_at"), // Optional expiration for temporary delegations
+  isActive: boolean("is_active").default(true),
+  notes: text("notes"), // Delegation notes or special instructions
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique().on(table.eventId, table.userId, table.role),
+  index("idx_event_page_admins_event").on(table.eventId),
+  index("idx_event_page_admins_user").on(table.userId),
+  index("idx_event_page_admins_role").on(table.role),
+  index("idx_event_page_admins_active").on(table.isActive),
+]);
+
+// Event Page Posts table for community content on event pages
+export const eventPagePosts = pgTable("event_page_posts", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").references(() => events.id, { onDelete: "cascade" }).notNull(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  postType: varchar("post_type", { length: 50 }).default("discussion"), // discussion, announcement, photo, question, poll
+  title: varchar("title", { length: 255 }),
+  content: text("content").notNull(),
+  mediaUrls: text("media_urls").array().default([]),
+  isApproved: boolean("is_approved").default(true), // Auto-approved unless event requires approval
+  approvedBy: integer("approved_by").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  isPinned: boolean("is_pinned").default(false),
+  pinnedBy: integer("pinned_by").references(() => users.id),
+  likesCount: integer("likes_count").default(0),
+  commentsCount: integer("comments_count").default(0),
+  reportsCount: integer("reports_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_event_page_posts_event").on(table.eventId),
+  index("idx_event_page_posts_user").on(table.userId),
+  index("idx_event_page_posts_type").on(table.postType),
+  index("idx_event_page_posts_approved").on(table.isApproved),
+  index("idx_event_page_posts_created").on(table.createdAt),
+]);
 
 // User followed cities table
 export const userFollowedCities = pgTable("user_followed_cities", {
@@ -995,6 +1070,7 @@ export const groups = pgTable("groups", {
   coverImage: text("coverImage"), // Cover photo for group detail pages
   description: text("description"),
   isPrivate: boolean("is_private").default(false),
+  visibility: varchar("visibility", { length: 20 }).default("public"), // Adding missing visibility field
   city: varchar("city", { length: 100 }),
   country: varchar("country", { length: 100 }),
   latitude: numeric("latitude", { precision: 10, scale: 7 }),
@@ -1316,6 +1392,29 @@ export type UserFollowedCity = typeof userFollowedCities.$inferSelect;
 export type InsertUserFollowedCity = typeof userFollowedCities.$inferInsert;
 export type EventSeries = typeof eventSeries.$inferSelect;
 export type InsertEventSeries = typeof eventSeries.$inferInsert;
+
+// Event Page system types
+export type EventPageAdmin = typeof eventPageAdmins.$inferSelect;
+export type InsertEventPageAdmin = typeof eventPageAdmins.$inferInsert;
+export type EventPagePost = typeof eventPagePosts.$inferSelect;
+export type InsertEventPagePost = typeof eventPagePosts.$inferInsert;
+
+// Event Page insert schemas
+export const insertEventPageAdminSchema = createInsertSchema(eventPageAdmins).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  delegatedAt: true,
+});
+
+export const insertEventPagePostSchema = createInsertSchema(eventPagePosts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  likesCount: true,
+  commentsCount: true,
+  reportsCount: true,
+});
 
 // Custom role types
 export type CustomRoleRequest = typeof customRoleRequests.$inferSelect;

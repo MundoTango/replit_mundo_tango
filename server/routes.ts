@@ -4090,6 +4090,381 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Event Pages API Routes - ESA Layer 8-10 Implementation (Facebook Groups/Pages style with RBAC/ABAC)
+  
+  // Create Event Page (convert regular event to recurring event page)
+  app.post('/api/events/:id/create-page', isAuthenticated, eventCreationLimiter, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const eventId = parseInt(req.params.id);
+      const { slug, description } = req.body;
+
+      if (!slug) {
+        return res.status(400).json({
+          success: false,
+          error: 'Event page slug is required'
+        });
+      }
+
+      // Check if user has permission to create event page (event owner or admin)
+      const event = await storage.getEventById(eventId);
+      if (!event) {
+        return res.status(404).json({
+          success: false,
+          error: 'Event not found'
+        });
+      }
+
+      if (event.userId !== userId) {
+        return res.status(403).json({
+          success: false,
+          error: 'Only event owners can create event pages'
+        });
+      }
+
+      const eventPage = await storage.createEventPage(eventId, userId, slug, description);
+      
+      res.json({
+        success: true,
+        data: eventPage,
+        message: 'Event page created successfully'
+      });
+    } catch (error: any) {
+      console.error('Error creating event page:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create event page'
+      });
+    }
+  });
+
+  // Get Event Page by slug
+  app.get('/api/event-pages/:slug', cacheMiddleware({ ttl: 'medium' }), async (req: any, res) => {
+    try {
+      const { slug } = req.params;
+      const eventPage = await storage.getEventPageBySlug(slug);
+      
+      if (!eventPage) {
+        return res.status(404).json({
+          success: false,
+          error: 'Event page not found'
+        });
+      }
+
+      // Get event page admins
+      const admins = await storage.getEventPageAdmins(eventPage.id);
+      
+      res.json({
+        success: true,
+        data: {
+          ...eventPage,
+          admins
+        }
+      });
+    } catch (error: any) {
+      console.error('Error fetching event page:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch event page'
+      });
+    }
+  });
+
+  // Add Event Page Admin
+  app.post('/api/events/:id/admins', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const eventId = parseInt(req.params.id);
+      const { targetUserId, role, permissions } = req.body;
+
+      // Check if current user can manage admins
+      const canManage = await storage.userCanManageEventPage(eventId, userId, 'canManageAdmins');
+      if (!canManage) {
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have permission to manage admins'
+        });
+      }
+
+      const admin = await storage.addEventPageAdmin({
+        eventId,
+        userId: targetUserId,
+        role: role || 'admin',
+        permissions: permissions || {
+          canApproveContent: true,
+          canDeleteContent: false,
+          canManageRSVPs: true,
+          canPostAnnouncements: false,
+          canEditEventDetails: false,
+          canInviteParticipants: true,
+          canBanUsers: false
+        },
+        delegatedBy: userId,
+        isActive: true
+      });
+
+      res.json({
+        success: true,
+        data: admin,
+        message: 'Admin added successfully'
+      });
+    } catch (error: any) {
+      console.error('Error adding event page admin:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to add admin'
+      });
+    }
+  });
+
+  // Remove Event Page Admin
+  app.delete('/api/events/:id/admins/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const eventId = parseInt(req.params.id);
+      const targetUserId = parseInt(req.params.userId);
+
+      // Check if current user can manage admins
+      const canManage = await storage.userCanManageEventPage(eventId, userId, 'canManageAdmins');
+      if (!canManage) {
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have permission to manage admins'
+        });
+      }
+
+      await storage.removeEventPageAdmin(eventId, targetUserId);
+
+      res.json({
+        success: true,
+        message: 'Admin removed successfully'
+      });
+    } catch (error: any) {
+      console.error('Error removing event page admin:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to remove admin'
+      });
+    }
+  });
+
+  // Update Event Page Admin Permissions
+  app.put('/api/events/:id/admins/:userId/permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const eventId = parseInt(req.params.id);
+      const targetUserId = parseInt(req.params.userId);
+      const { permissions } = req.body;
+
+      // Check if current user can manage admins
+      const canManage = await storage.userCanManageEventPage(eventId, userId, 'canManageAdmins');
+      if (!canManage) {
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have permission to manage admin permissions'
+        });
+      }
+
+      const updatedAdmin = await storage.updateEventPageAdminPermissions(eventId, targetUserId, permissions);
+
+      res.json({
+        success: true,
+        data: updatedAdmin,
+        message: 'Admin permissions updated successfully'
+      });
+    } catch (error: any) {
+      console.error('Error updating admin permissions:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update admin permissions'
+      });
+    }
+  });
+
+  // Create Event Page Post
+  app.post('/api/events/:id/posts', isAuthenticated, contentCreationLimiter, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const eventId = parseInt(req.params.id);
+      const { content, postType, mediaUrls, isAnnouncement } = req.body;
+
+      // Check posting permissions
+      if (isAnnouncement) {
+        const canPost = await storage.userCanManageEventPage(eventId, userId, 'canPostAnnouncements');
+        if (!canPost) {
+          return res.status(403).json({
+            success: false,
+            error: 'You do not have permission to post announcements'
+          });
+        }
+      }
+
+      const post = await storage.createEventPagePost({
+        eventId,
+        userId,
+        content,
+        postType: postType || 'general',
+        mediaUrls: mediaUrls || [],
+        isAnnouncement: isAnnouncement || false,
+        isApproved: true, // Auto-approve for now, can add moderation later
+        isPinned: false
+      });
+
+      res.json({
+        success: true,
+        data: post,
+        message: 'Post created successfully'
+      });
+    } catch (error: any) {
+      console.error('Error creating event page post:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create post'
+      });
+    }
+  });
+
+  // Get Event Page Posts
+  app.get('/api/events/:id/posts', cacheMiddleware({ ttl: 'short' }), async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const { limit = 20, offset = 0 } = req.query;
+
+      const posts = await storage.getEventPagePosts(
+        eventId, 
+        parseInt(limit as string), 
+        parseInt(offset as string)
+      );
+
+      res.json({
+        success: true,
+        data: posts
+      });
+    } catch (error: any) {
+      console.error('Error fetching event page posts:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch posts'
+      });
+    }
+  });
+
+  // Pin/Unpin Event Page Post
+  app.put('/api/events/:eventId/posts/:postId/pin', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const eventId = parseInt(req.params.eventId);
+      const postId = parseInt(req.params.postId);
+      const { pin } = req.body;
+
+      // Check if user can manage content
+      const canManage = await storage.userCanManageEventPage(eventId, userId, 'canApproveContent');
+      if (!canManage) {
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have permission to pin/unpin posts'
+        });
+      }
+
+      const post = pin 
+        ? await storage.pinEventPagePost(postId, userId)
+        : await storage.unpinEventPagePost(postId);
+
+      res.json({
+        success: true,
+        data: post,
+        message: pin ? 'Post pinned successfully' : 'Post unpinned successfully'
+      });
+    } catch (error: any) {
+      console.error('Error pinning/unpinning post:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to pin/unpin post'
+      });
+    }
+  });
+
+  // Delete Event Page Post
+  app.delete('/api/events/:eventId/posts/:postId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const eventId = parseInt(req.params.eventId);
+      const postId = parseInt(req.params.postId);
+
+      // Check if user can delete content (post owner or admin with delete permission)
+      const canDelete = await storage.userCanManageEventPage(eventId, userId, 'canDeleteContent');
+      if (!canDelete) {
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have permission to delete posts'
+        });
+      }
+
+      await storage.deleteEventPagePost(postId);
+
+      res.json({
+        success: true,
+        message: 'Post deleted successfully'
+      });
+    } catch (error: any) {
+      console.error('Error deleting event page post:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to delete post'
+      });
+    }
+  });
+
+  // Get Event Page Admins
+  app.get('/api/events/:id/admins', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const admins = await storage.getEventPageAdmins(eventId);
+
+      res.json({
+        success: true,
+        data: admins
+      });
+    } catch (error: any) {
+      console.error('Error fetching event page admins:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch admins'
+      });
+    }
+  });
+
+  // Check User Event Page Permissions
+  app.get('/api/events/:id/permissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const eventId = parseInt(req.params.id);
+
+      const permissions = {
+        canManageEvent: await storage.userCanManageEventPage(eventId, userId, 'canManageEvent'),
+        canManageAdmins: await storage.userCanManageEventPage(eventId, userId, 'canManageAdmins'),
+        canApproveContent: await storage.userCanManageEventPage(eventId, userId, 'canApproveContent'),
+        canDeleteContent: await storage.userCanManageEventPage(eventId, userId, 'canDeleteContent'),
+        canManageRSVPs: await storage.userCanManageEventPage(eventId, userId, 'canManageRSVPs'),
+        canPostAnnouncements: await storage.userCanManageEventPage(eventId, userId, 'canPostAnnouncements'),
+        canEditEventDetails: await storage.userCanManageEventPage(eventId, userId, 'canEditEventDetails'),
+        canInviteParticipants: await storage.userCanManageEventPage(eventId, userId, 'canInviteParticipants'),
+        canBanUsers: await storage.userCanManageEventPage(eventId, userId, 'canBanUsers')
+      };
+
+      res.json({
+        success: true,
+        data: permissions
+      });
+    } catch (error: any) {
+      console.error('Error checking event page permissions:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to check permissions'
+      });
+    }
+  });
+
   // Events routes - matching original backend
   app.get("/api/event", authMiddleware, async (req, res) => {
     try {
