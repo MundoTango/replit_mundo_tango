@@ -111,24 +111,51 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
 }
 
 function Router() {
-  // Life CEO 44x21s Layer 1 - Minimal rendering to prevent hangs
-  console.log("Life CEO 44x21s - Minimal Router Loading");
+  // Life CEO 44x21s Layer 22 - Progressive router with basic auth
+  console.log("Life CEO 44x21s - Progressive Router Loading");
   
-  // Skip all auth/loading checks that might cause infinite loops
+  const { user, isLoading, isAuthenticated } = useAuth();
+  
+  // Life CEO Layer 23: Basic auth timeout to prevent hangs
+  const [authTimeout, setAuthTimeout] = React.useState(false);
+  
+  React.useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        console.log('Life CEO: Auth timeout - proceeding');
+        setAuthTimeout(true);
+      }, 2000); // Reduced from 3s to 2s
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
+
+  // Show loading for max 2 seconds
+  if (isLoading && !authTimeout) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Life CEO Layer 24: Skip complex auth flows for now
+  console.log("Life CEO: Showing main app");
+  
+  const currentPath = window.location.pathname;
+  console.log("🔍 Current path:", currentPath);
   
   return (
     <ErrorBoundary>
       <Suspense fallback={<LoadingFallback />}>
         <Switch>
-          {/* Life CEO 44x21s Layer 7 - Simplified Memory Feed Route */}
+          {/* Life CEO 44x21s Layer 22 - Progressive Enhancement: Real Memory Feed */}
           <Route path="/">
-            <div style={{ padding: '2rem', fontFamily: 'system-ui', minHeight: '100vh', background: 'linear-gradient(to-br, #f0fdfa, #ecfeff)' }}>
-              <h1 style={{ color: '#0891b2', marginBottom: '1rem' }}>🌊 Mundo Tango Memory Feed</h1>
-              <p style={{ color: '#64748b' }}>Memory feed loading simplified - Life CEO 44x21s Layer 7 active</p>
-              <div style={{ marginTop: '2rem', padding: '1rem', background: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
-                <strong>Status:</strong> React Router Active | Memory Feed Route Working
-              </div>
-            </div>
+            <Suspense fallback={<LoadingFallback message="Loading memories..." />}>
+              <EnhancedTimelineV2 />
+            </Suspense>
           </Route>
           <Route path="/life-ceo">
             <Suspense fallback={<LoadingFallback message="Loading Life CEO..." />}>
@@ -314,13 +341,17 @@ function Router() {
 }
 
 export default function App() {
-  // Life CEO 44x21s Layer 1 - Ultra minimal app to debug loading issues
-  console.log('Life CEO 44x21s - Minimal App Loading');
+  // Life CEO 44x21s Layer 25 - Add TenantProvider to fix useTenant context error
+  console.log('Life CEO 44x21s - Adding required context providers');
   
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <AuthProvider>
+        <TenantProvider>
+          <Router />
+          <Toaster />
+        </TenantProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
