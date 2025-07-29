@@ -273,12 +273,6 @@ export default function Profile() {
             </TabsList>
             <div className="p-6">
               <TabsContent value="about" className="space-y-4">
-                {console.log('🔍 Life CEO Debug: Passing user to ProfileAboutSection', {
-                  user,
-                  userTangoRoles: user?.tangoRoles,
-                  tangoRolesType: typeof user?.tangoRoles,
-                  isOwnProfile: true
-                })}
                 <ProfileAboutSection 
                   user={user} 
                   isOwnProfile={true}

@@ -22,7 +22,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await login(formData.email, formData.password);
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
@@ -39,8 +39,8 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl border-0">
+    <div className="min-h-screen bg-gradient-to-br from-turquoise-50 via-cyan-50 to-blue-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-2xl border-0 glassmorphic-card">
         <CardHeader className="text-center space-y-4 pb-8 relative">
           <Button
             variant="ghost"
@@ -51,7 +51,7 @@ export default function Login() {
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <div className="mx-auto w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-turquoise-400 to-cyan-500 rounded-full flex items-center justify-center shadow-lg">
             <span className="text-white text-2xl font-bold">MT</span>
           </div>
           <CardTitle className="text-3xl font-bold text-gray-900">
@@ -70,8 +70,8 @@ export default function Login() {
               <Input
                 id="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
                 placeholder="Enter your email"
                 required
               />
@@ -84,8 +84,8 @@ export default function Login() {
               <Input
                 id="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
                 placeholder="Enter your password"
                 required
               />
@@ -93,17 +93,17 @@ export default function Login() {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-gradient-to-r from-turquoise-500 to-cyan-500 hover:from-turquoise-600 hover:to-cyan-600 text-white shadow-lg"
               disabled={isLoading}
             >
-              {isLoading ? "Sign in..." : "Sign In"}
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{" "}
-              <Link href="/register" className="text-tango-red hover:text-tango-red/80 font-medium">
+              <Link href="/register" className="text-turquoise-600 hover:text-turquoise-700 font-medium underline underline-offset-2">
                 Sign up here
               </Link>
             </p>

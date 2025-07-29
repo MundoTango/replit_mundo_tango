@@ -45,7 +45,7 @@ interface User {
   leaderLevel?: number;
   followerLevel?: number;
   languages?: string[];
-  createdAt: string;
+  createdAt?: string;
   isVerified?: boolean;
   profileViews?: number;
   socialLinks?: {
@@ -342,7 +342,7 @@ export default function EnhancedProfileHeader({
               )}
               <div className="flex items-center gap-2 text-gray-600">
                 <Calendar className="h-4 w-4 text-turquoise-500" />
-                <span>Joined {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                <span>Joined {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently'}</span>
               </div>
               {user.languages && user.languages.length > 0 && (
                 <div className="flex items-center gap-2 text-gray-600">
