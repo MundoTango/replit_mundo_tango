@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { GuestProfileDisplay } from '@/components/GuestProfile/GuestProfileDisplay';
-import { Camera, Video, Users, Calendar, Star, UserCheck, Globe, PenLine, UserCircle, Sparkles, MapPin, Eye } from 'lucide-react';
+import { Camera, Video, Users, Calendar, Star, UserCheck, Globe, PenLine, UserCircle, Sparkles, MapPin, Eye, GraduationCap, Music, Heart, MoreHorizontal, Plus, Edit2, Flame, Share2, MessageCircle, UserPlus } from 'lucide-react';
 import { TravelDetailsComponent } from '@/components/profile/TravelDetailsComponent';
 import { ProfileMemoryPostModal } from '@/components/profile/ProfileMemoryPostModal';
 import { UserPhotosGallery } from '@/components/profile/UserPhotosGallery';
@@ -21,7 +21,7 @@ import { UserVideosGallery } from '@/components/profile/UserVideosGallery';
 import { UserFriendsList } from '@/components/profile/UserFriendsList';
 import { UserEventsList } from '@/components/profile/UserEventsList';
 import { ProfileAboutSection } from '@/components/profile/ProfileAboutSection';
-import { ProfileEngagementFeatures } from '@/components/profile/ProfileEngagementFeatures';
+import { ProfileEngagementFeatures } from '@/components/profile/ProfileEngagementFeaturesSimplified';
 
 // Phase 5: Production Hardening imports
 import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
@@ -45,7 +45,7 @@ export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('about');
+  const [activeTab, setActiveTab] = useState('memories');
   const [showMemoryPostModal, setShowMemoryPostModal] = useState(false);
 
   // Track component performance
@@ -722,24 +722,79 @@ export default function Profile() {
                       </Card>
                     </div>
 
-                    {/* Event-Based Experience Entries */}
+                    {/* Professional Experience by Category */}
                     <div className="space-y-6">
                       <h4 className="font-semibold text-gray-800 text-lg">Professional Experience</h4>
                       
-                      {/* Sample Experience Entry - This would be populated from accepted event roles */}
-                      <div className="border-l-4 border-turquoise-400 pl-6 py-4 bg-gradient-to-r from-turquoise-50/30 to-transparent">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h5 className="font-semibold text-gray-900">Lead Instructor</h5>
-                            <p className="text-turquoise-600 font-medium">Buenos Aires Tango Festival 2024</p>
-                            <p className="text-gray-600 text-sm">Taught intermediate tango technique to 50+ students</p>
-                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                              <span>📅 March 2024</span>
-                              <span>📍 Buenos Aires, Argentina</span>
-                              <span>⭐ 4.9/5 rating from organizer</span>
+                      {/* Teacher Experience */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <GraduationCap className="w-5 h-5 text-turquoise-600" />
+                          <h5 className="font-semibold text-turquoise-700">Teaching Experience</h5>
+                        </div>
+                        <div className="border-l-4 border-turquoise-400 pl-6 py-4 bg-gradient-to-r from-turquoise-50/30 to-transparent">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h6 className="font-semibold text-gray-900">Intermediate Tango Instructor</h6>
+                              <p className="text-turquoise-600 font-medium">Buenos Aires Tango Festival 2024</p>
+                              <p className="text-gray-600 text-sm">Taught advanced technique to 50+ international students</p>
+                              <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                <span>📅 Started: 2020</span>
+                                <span>⭐ Years dancing: 8</span>
+                              </div>
                             </div>
+                            <Button variant="outline" size="sm" className="text-turquoise-600 border-turquoise-200">
+                              + Add Entry
+                            </Button>
                           </div>
-                          <Badge className="bg-green-100 text-green-700">Completed</Badge>
+                        </div>
+                      </div>
+
+                      {/* Organizer Experience */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-cyan-600" />
+                          <h5 className="font-semibold text-cyan-700">Event Organization</h5>
+                        </div>
+                        <div className="border-l-4 border-cyan-400 pl-6 py-4 bg-gradient-to-r from-cyan-50/30 to-transparent">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h6 className="font-semibold text-gray-900">Milonga Organizer</h6>
+                              <p className="text-cyan-600 font-medium">Monthly Practica Series</p>
+                              <p className="text-gray-600 text-sm">Coordinated weekly events for 100+ dancers</p>
+                              <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                <span>📅 Started: 2022</span>
+                                <span>⭐ Years dancing: 8</span>
+                              </div>
+                            </div>
+                            <Button variant="outline" size="sm" className="text-cyan-600 border-cyan-200">
+                              + Add Entry
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* DJ Experience */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Music className="w-5 h-5 text-purple-600" />
+                          <h5 className="font-semibold text-purple-700">DJ Experience</h5>
+                        </div>
+                        <div className="border-l-4 border-purple-400 pl-6 py-4 bg-gradient-to-r from-purple-50/30 to-transparent">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h6 className="font-semibold text-gray-900">Resident DJ</h6>
+                              <p className="text-purple-600 font-medium">La Milonguita Weekly</p>
+                              <p className="text-gray-600 text-sm">Curated traditional tandas for intimate milonga setting</p>
+                              <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                <span>📅 Started: 2021</span>
+                                <span>⭐ Years dancing: 8</span>
+                              </div>
+                            </div>
+                            <Button variant="outline" size="sm" className="text-purple-600 border-purple-200">
+                              + Add Entry
+                            </Button>
+                          </div>
                         </div>
                       </div>
 

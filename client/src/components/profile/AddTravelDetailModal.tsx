@@ -237,10 +237,11 @@ export const AddTravelDetailModal: React.FC<AddTravelDetailModalProps> = ({ isOp
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="planning">Planning</SelectItem>
                   <SelectItem value="planned">Planned</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
                   <SelectItem value="ongoing">Ongoing</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -256,6 +257,7 @@ export const AddTravelDetailModal: React.FC<AddTravelDetailModalProps> = ({ isOp
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="close_friends">Close Friends</SelectItem>
                   <SelectItem value="private">Private</SelectItem>
                 </SelectContent>
               </Select>

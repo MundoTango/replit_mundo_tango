@@ -8,7 +8,6 @@ import {
   Target, 
   Heart, 
   Star, 
-  Gift, 
   Users,
   MapPin,
   Calendar,
@@ -35,10 +34,10 @@ export const ProfileEngagementFeatures: React.FC<ProfileEngagementFeaturesProps>
       component: (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { name: 'First Steps', icon: '👶', unlocked: true, description: 'Joined Mundo Tango' },
-            { name: 'Social Butterfly', icon: '🦋', unlocked: true, description: '5+ friends added' },
-            { name: 'Event Enthusiast', icon: '🎉', unlocked: false, description: 'Attend 10 events' },
-            { name: 'Tango Master', icon: '🎩', unlocked: false, description: 'Complete profile 100%' },
+            { name: 'First Steps', icon: '👶', unlocked: true, description: 'Joined Mundo Tango', progress: 100 },
+            { name: 'Social Butterfly', icon: '🦋', unlocked: true, description: '5+ friends added', progress: 100 },
+            { name: 'Event Enthusiast', icon: '🎉', unlocked: false, description: 'Attend 10 events', progress: 60 },
+            { name: 'Tango Master', icon: '🎩', unlocked: false, description: 'Complete profile 100%', progress: 85 },
           ].map((achievement) => (
             <div 
               key={achievement.name}
@@ -59,10 +58,14 @@ export const ProfileEngagementFeatures: React.FC<ProfileEngagementFeaturesProps>
                 <div 
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     achievement.unlocked 
-                      ? 'bg-gradient-to-r from-turquoise-400 to-cyan-500 w-full' 
-                      : 'bg-gray-300 w-1/3'
+                      ? 'bg-gradient-to-r from-turquoise-400 to-cyan-500' 
+                      : 'bg-gradient-to-r from-gray-300 to-gray-400'
                   }`}
+                  style={{ width: `${achievement.progress}%` }}
                 ></div>
+              </div>
+              <div className="text-xs text-gray-400 mt-1">
+                {achievement.progress}% complete
               </div>
               {achievement.unlocked && (
                 <Badge className="mt-1 text-xs bg-green-100 text-green-700">Unlocked</Badge>
@@ -85,26 +88,31 @@ export const ProfileEngagementFeatures: React.FC<ProfileEngagementFeaturesProps>
           ].map((challenge) => (
             <div 
               key={challenge.name}
-              className="p-4 bg-gradient-to-r from-turquoise-50/50 to-cyan-50/50 rounded-lg border border-turquoise-200 cursor-pointer hover:shadow-md transition-all"
-              onClick={() => setSelectedChallenge(challenge.name)}
+              className="p-4 bg-white/70 rounded-lg border border-gray-200 hover:border-turquoise-300 transition-colors cursor-pointer"
+              onClick={() => setSelectedChallenge(selectedChallenge === challenge.name ? null : challenge.name)}
             >
               <div className="flex items-center justify-between mb-2">
                 <h5 className="font-medium text-gray-900">{challenge.name}</h5>
-                <Badge className="bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-700">
+                <Badge variant="outline" className="bg-turquoise-50 text-turquoise-700 border-turquoise-200">
                   +{challenge.points} pts
                 </Badge>
               </div>
               <p className="text-sm text-gray-600 mb-3">{challenge.description}</p>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-turquoise-400 to-cyan-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${(challenge.progress / challenge.total) * 100}%` }}
-                  />
+              <div className="flex items-center justify-between">
+                <div className="flex-1 mr-3">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-turquoise-400 to-cyan-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${(challenge.progress / challenge.total) * 100}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {challenge.progress}/{challenge.total} completed
+                  </div>
                 </div>
-                <span className="text-sm font-medium text-turquoise-700">
-                  {challenge.progress}/{challenge.total}
-                </span>
+                <Button size="sm" variant="outline" className="border-turquoise-200 text-turquoise-700 hover:bg-turquoise-50">
+                  {challenge.progress === challenge.total ? 'Claim' : 'Continue'}
+                </Button>
               </div>
             </div>
           ))}
@@ -113,23 +121,21 @@ export const ProfileEngagementFeatures: React.FC<ProfileEngagementFeaturesProps>
     },
     {
       id: 'streaks',
-      title: '⚡ Activity Streaks',
-      description: 'Keep your momentum going with daily activities',
+      title: '🔥 Activity Streaks',
+      description: 'Keep your momentum going with daily engagement',
       component: (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { name: 'Daily Check-in', current: 7, best: 12, icon: '📅' },
-            { name: 'Weekly Posts', current: 3, best: 5, icon: '📝' },
-            { name: 'Event Attendance', current: 2, best: 4, icon: '🎪' },
+            { name: 'Daily Check-in', current: 7, best: 15, icon: Star, color: 'text-yellow-500' },
+            { name: 'Memory Posts', current: 3, best: 12, icon: Sparkles, color: 'text-purple-500' },
+            { name: 'Friend Interactions', current: 5, best: 8, icon: Users, color: 'text-blue-500' },
           ].map((streak) => (
-            <Card key={streak.name} className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-              <CardContent className="p-4 text-center">
-                <div className="text-3xl mb-2">{streak.icon}</div>
-                <div className="text-2xl font-bold text-purple-600 mb-1">{streak.current}</div>
-                <div className="text-sm text-purple-700 font-medium mb-1">{streak.name}</div>
-                <div className="text-xs text-purple-600">Best: {streak.best}</div>
-              </CardContent>
-            </Card>
+            <div key={streak.name} className="text-center p-4 bg-white/50 rounded-lg border border-gray-200">
+              <streak.icon className={`w-8 h-8 mx-auto mb-2 ${streak.color}`} />
+              <div className="text-2xl font-bold text-gray-900">{streak.current}</div>
+              <div className="text-xs text-gray-600">{streak.name}</div>
+              <div className="text-xs text-gray-500 mt-1">Best: {streak.best} days</div>
+            </div>
           ))}
         </div>
       )
@@ -152,52 +158,6 @@ export const ProfileEngagementFeatures: React.FC<ProfileEngagementFeaturesProps>
               <div className="text-xs text-gray-600">{metric.label}</div>
             </div>
           ))}
-        </div>
-      )
-    },
-    {
-      id: 'rewards',
-      title: '🎁 Rewards & Recognition',
-      description: 'Earn rewards through community participation',
-      component: (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
-            <div className="flex items-center gap-3">
-              <Gift className="w-8 h-8 text-yellow-600" />
-              <div>
-                <h5 className="font-medium text-yellow-800">Available Reward</h5>
-                <p className="text-sm text-yellow-600">Free milonga entrance - expires in 3 days</p>
-              </div>
-            </div>
-            <Button size="sm" className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white">
-              Claim
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[
-              { name: 'VIP Event Access', points: 500, current: 387 },
-              { name: 'Featured Profile', points: 300, current: 387 },
-              { name: 'Custom Badge', points: 200, current: 387 },
-              { name: 'Priority Support', points: 100, current: 387 },
-            ].map((reward) => (
-              <div key={reward.name} className="p-3 bg-white/70 rounded-lg border border-gray-200">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-900">{reward.name}</span>
-                  <span className="text-xs text-turquoise-600">{reward.points} pts</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div 
-                    className="bg-gradient-to-r from-turquoise-400 to-cyan-500 h-1.5 rounded-full"
-                    style={{ width: `${Math.min((reward.current / reward.points) * 100, 100)}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {reward.current >= reward.points ? 'Available!' : `${reward.points - reward.current} pts needed`}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       )
     }

@@ -92,7 +92,13 @@ export default function EnhancedProfileHeader({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('image', file);
-      return apiRequest('/api/user/cover-image', { method: 'PUT', body: formData });
+      const response = await fetch('/api/user/cover-image', {
+        method: 'PUT',
+        body: formData,
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -115,7 +121,13 @@ export default function EnhancedProfileHeader({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('image', file);
-      return apiRequest('/api/user/profile-image', { method: 'PUT', body: formData });
+      const response = await fetch('/api/user/profile-image', {
+        method: 'PUT', 
+        body: formData,
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -159,8 +171,8 @@ export default function EnhancedProfileHeader({
   const handleFollow = () => {
     setIsFollowing(!isFollowing);
     toast({
-      title: isFollowing ? "Dance partnership ended" : "New dance partner added!",
-      description: isFollowing ? `You are no longer dance partners with ${user.name}` : `${user.name} is now in your dance circle`
+      title: isFollowing ? "Abrazo terminado" : "¡Nuevo abrazo!",
+      description: isFollowing ? `Ya no estás en abrazo con ${user.name}` : `${user.name} ahora está en tu círculo`
     });
   };
 
@@ -335,12 +347,12 @@ export default function EnhancedProfileHeader({
                     {isFollowing ? (
                       <>
                         <Users className="mr-2 h-4 w-4" />
-                        Dance Partner
+                        En Mi Círculo
                       </>
                     ) : (
                       <>
                         <Heart className="mr-2 h-4 w-4" />
-                        Add Partner
+                        Invitar al Abrazo
                       </>
                     )}
                   </Button>
@@ -459,15 +471,15 @@ export default function EnhancedProfileHeader({
             <div className="flex flex-wrap gap-8 justify-center md:justify-start">
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{stats?.posts || 0}</p>
-                <p className="text-sm text-gray-600">Memories</p>
+                <p className="text-sm text-gray-600">Recuerdos</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{stats?.followers || 0}</p>
-                <p className="text-sm text-gray-600">Dance Partners</p>
+                <p className="text-sm text-gray-600">Mi Círculo</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{stats?.following || 0}</p>
-                <p className="text-sm text-gray-600">Following</p>
+                <p className="text-sm text-gray-600">Siguiendo</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{stats?.events || 0}</p>
