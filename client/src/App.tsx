@@ -198,96 +198,25 @@ function Router() {
     <ErrorBoundary>
       <Suspense fallback={<LoadingFallback />}>
         <Switch>
-          {/* Life CEO 44x21s Layer 44 - Minimal diagnostic route */}
+          {/* Life CEO 44x21s Layer 1 - Ultra-minimal foundation route */}
           <Route path="/">
-            <div style={{ 
-              minHeight: '100vh', 
-              padding: '2rem',
-              background: 'linear-gradient(to bottom right, #f0fdfa, #ecfeff)',
-              fontFamily: 'system-ui'
-            }}>
-              <div style={{ 
-                maxWidth: '800px', 
-                margin: '0 auto',
-                background: 'rgba(255, 255, 255, 0.9)',
-                padding: '2rem',
-                borderRadius: '12px',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <h1 style={{ 
-                  color: '#0f766e', 
-                  marginBottom: '1rem',
-                  fontSize: '2rem'
-                }}>
-                  🎯 Life CEO Platform - Diagnostic Mode
-                </h1>
-                <p style={{ color: '#374151', marginBottom: '2rem' }}>
-                  The platform is operational and ready for use. This diagnostic mode confirms all systems are working.
-                </p>
-                
-                <div style={{ 
-                  display: 'grid', 
-                  gap: '1rem',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))'
-                }}>
-                  <button 
-                    onClick={() => window.location.href = '/enhanced-timeline'}
-                    style={{
-                      padding: '1rem',
-                      background: 'linear-gradient(135deg, #14b8a6, #06b6d4)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '1rem'
-                    }}
-                  >
-                    📱 Enhanced Timeline
-                  </button>
-                  
-                  <button 
-                    onClick={() => window.location.href = '/ai-chat-test'}
-                    style={{
-                      padding: '1rem',
-                      background: 'linear-gradient(135deg, #8b5cf6, #a855f7)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '1rem'
-                    }}
-                  >
-                    🤖 AI Chat Test
-                  </button>
-                  
-                  <button 
-                    onClick={() => window.location.href = '/life-ceo'}
-                    style={{
-                      padding: '1rem',
-                      background: 'linear-gradient(135deg, #f59e0b, #f97316)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '1rem'
-                    }}
-                  >
-                    🧠 Life CEO Interface
-                  </button>
-                </div>
-                
-                <div style={{ 
-                  marginTop: '2rem',
-                  padding: '1rem',
-                  background: 'rgba(16, 185, 129, 0.1)',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(16, 185, 129, 0.3)'
-                }}>
-                  <h3 style={{ color: '#065f46', margin: '0 0 0.5rem 0' }}>System Status</h3>
-                  <p style={{ color: '#047857', margin: 0 }}>
-                    ✅ Server: Healthy | ✅ Database: Connected | ✅ AI Chat: Operational
-                  </p>
-                </div>
+            <div>
+              <h1>Life CEO Platform - Diagnostic Mode</h1>
+              <p>The platform is operational and ready for use.</p>
+              <div>
+                <button onClick={() => window.location.href = '/enhanced-timeline'}>
+                  Enhanced Timeline
+                </button>
+                <button onClick={() => window.location.href = '/ai-chat-test'}>
+                  AI Chat Test
+                </button>
+                <button onClick={() => window.location.href = '/life-ceo'}>
+                  Life CEO Interface
+                </button>
+              </div>
+              <div>
+                <h3>System Status</h3>
+                <p>Server: Healthy | Database: Connected | AI Chat: Operational</p>
               </div>
             </div>
           </Route>
