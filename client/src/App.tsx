@@ -54,6 +54,7 @@ const ErrorBoundaryPage = lazy(() => import("@/pages/ErrorBoundaryPage"));
 const MobileAppDashboard = lazy(() => import("@/pages/MobileAppDashboard"));
 const TravelPlanner = lazy(() => import("@/pages/TravelPlanner"));
 const AnalyticsDashboard = lazy(() => import("@/pages/AnalyticsDashboard"));
+const SupabaseTest = lazy(() => import("@/pages/SupabaseTest"));
 
 // Loading component for Suspense boundaries
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
@@ -280,6 +281,12 @@ function Router() {
           <Route path="/analytics">
             <Suspense fallback={<LoadingFallback message="Loading analytics..." />}>
               <AnalyticsDashboard />
+            </Suspense>
+          </Route>
+          
+          <Route path="/supabase-test">
+            <Suspense fallback={<LoadingFallback message="Loading Supabase test..." />}>
+              <SupabaseTest />
             </Suspense>
           </Route>
           

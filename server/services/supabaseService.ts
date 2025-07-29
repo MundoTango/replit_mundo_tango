@@ -222,7 +222,7 @@ export class SupabaseService {
   }
 
   // Search Operations
-  async searchUsers(query: string, limit = 20): Promise<User[]> {
+  async searchUsers(query: string, limit = 20): Promise<Partial<User>[]> {
     const { data, error } = await supabase
       .from('users')
       .select('id, name, username, profile_image, bio, city, country')

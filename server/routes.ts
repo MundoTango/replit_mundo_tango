@@ -15259,5 +15259,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Supabase integration test endpoints (bypass CSRF for testing)
+  const { testSupabaseConnection, testLargeBodyHandling, testSupabaseRealtime } = await import('./routes/supabase-test');
+  
+  app.get('/api/supabase/test-connection', testSupabaseConnection);
+  app.post('/api/supabase/test-large-body', (req, res, next) => {
+    // Bypass CSRF for this test endpoint
+    req.skipCsrf = true;
+    next();
+  }, testLargeBodyHandling);
+  app.get('/api/supabase/test-realtime', testSupabaseRealtime);
+
   return server;
 }

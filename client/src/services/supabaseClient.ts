@@ -38,10 +38,12 @@ export const supabase = (supabaseUrl && supabaseAnonKey && isValidUrl(supabaseUr
 // Auth helpers for client-side authentication
 export const auth = {
   signIn: async (email: string, password: string) => {
+    if (!supabase) throw new Error('Supabase not configured');
     return await supabase.auth.signInWithPassword({ email, password })
   },
   
   signUp: async (email: string, password: string, userData?: any) => {
+    if (!supabase) throw new Error('Supabase not configured');
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -53,18 +55,22 @@ export const auth = {
   },
   
   signOut: async () => {
+    if (!supabase) throw new Error('Supabase not configured');
     return await supabase.auth.signOut()
   },
   
   getSession: async () => {
+    if (!supabase) throw new Error('Supabase not configured');
     return await supabase.auth.getSession()
   },
   
   getUser: async () => {
+    if (!supabase) throw new Error('Supabase not configured');
     return await supabase.auth.getUser()
   },
   
   onAuthStateChange: (callback: (event: string, session: any) => void) => {
+    if (!supabase) throw new Error('Supabase not configured');
     return supabase.auth.onAuthStateChange(callback)
   }
 }
@@ -72,6 +78,7 @@ export const auth = {
 // Real-time subscriptions for client
 export const realtime = {
   subscribeToPosts: (userId: string, callback: (payload: any) => void) => {
+    if (!supabase) throw new Error('Supabase not configured');
     return supabase
       .channel(`posts-${userId}`)
       .on('postgres_changes', {
@@ -83,6 +90,7 @@ export const realtime = {
   },
   
   subscribeToMessages: (roomId: string, callback: (payload: any) => void) => {
+    if (!supabase) throw new Error('Supabase not configured');
     return supabase
       .channel(`messages-${roomId}`)
       .on('postgres_changes', {
@@ -95,11 +103,12 @@ export const realtime = {
   },
   
   subscribeToNotifications: (userId: string, callback: (payload: any) => void) => {
+    if (!supabase) throw new Error('Supabase not configured');
     return supabase
       .channel(`notifications-${userId}`)
       .on('postgres_changes', {
         event: 'INSERT',
-        schema: 'public',
+        schema: 'public',  
         table: 'notifications',
         filter: `recipient_id=eq.${userId}`
       }, callback)
