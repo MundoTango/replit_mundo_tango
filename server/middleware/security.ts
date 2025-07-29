@@ -58,9 +58,15 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction) 
     return next();
   }
 
-  // Skip CSRF for test endpoints and AI chat
+  // Skip CSRF for test endpoints, AI chat, and file uploads
   if (req.path.startsWith('/api/supabase/test-') || 
-      req.path.startsWith('/api/ai/') || 
+      req.path.startsWith('/api/ai/') ||
+      req.path.startsWith('/api/upload/') ||
+      req.path.includes('/photo') ||
+      req.path.includes('/upload') ||
+      req.path.includes('/cover-image') ||
+      req.path.includes('/profile-image') ||
+      req.headers['content-type']?.includes('multipart/form-data') ||
       (req as any).skipCsrf) {
     return next();
   }

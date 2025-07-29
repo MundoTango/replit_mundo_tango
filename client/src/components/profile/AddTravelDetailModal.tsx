@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { LocationAutocomplete } from '@/components/ui/LocationAutocomplete';
 import EventAutocomplete from '@/components/autocomplete/EventAutocomplete';
 import CityGroupAutocomplete from '@/components/autocomplete/CityGroupAutocomplete';
 
@@ -61,7 +62,10 @@ export const AddTravelDetailModal: React.FC<AddTravelDetailModalProps> = ({ isOp
 
   const createTravelDetailMutation = useMutation({
     mutationFn: async (data: TravelDetailForm) => {
-      return apiRequest('POST', '/api/user/travel-details', data);
+      return apiRequest('/api/user/travel-details', {
+        method: 'POST',
+        body: data
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/travel-details'] });
@@ -166,29 +170,27 @@ export const AddTravelDetailModal: React.FC<AddTravelDetailModalProps> = ({ isOp
 
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 space-y-2">
-              <CityGroupAutocomplete
-                label="City"
-                value={selectedCityGroup}
-                onSelect={(cityGroup) => {
-                  setSelectedCityGroup(cityGroup);
-                  if (cityGroup) {
-                    // Parse city and country from group name (e.g., "Buenos Aires, Argentina")
-                    const parts = cityGroup.name.split(',').map(p => p.trim());
-                    handleInputChange('city', parts[0] || cityGroup.name);
-                    handleInputChange('country', parts[1] || '');
+              <Label htmlFor="location">Location</Label>
+              <LocationAutocomplete
+                value={formData.city && formData.country ? `${formData.city}, ${formData.country}` : ''}
+                onChange={(value, details) => {
+                  if (details) {
+                    handleInputChange('city', details.city);
+                    handleInputChange('country', details.country);
                   } else {
-                    handleInputChange('city', '');
-                    handleInputChange('country', '');
+                    // Handle free text input
+                    const parts = value.split(',').map(p => p.trim());
+                    if (parts.length >= 2) {
+                      handleInputChange('city', parts[0] || '');
+                      handleInputChange('country', parts[parts.length - 1] || '');
+                    } else {
+                      handleInputChange('city', value);
+                      handleInputChange('country', '');
+                    }
                   }
                 }}
-                placeholder="Search for a city"
-                required={true}
-                allowCreate={true}
-                onCreateNew={(cityName) => {
-                  // For now, just set the city name directly
-                  handleInputChange('city', cityName);
-                  handleInputChange('country', '');
-                }}
+                placeholder="Enter city, country (e.g., Buenos Aires, Argentina)"
+                className="w-full"
               />
             </div>
           </div>

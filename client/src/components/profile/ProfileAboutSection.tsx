@@ -11,6 +11,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { TileSelect } from "@/components/ui/tile-select";
+import { LocationAutocomplete } from "@/components/ui/LocationAutocomplete";
 import { AutocompleteLocationPicker } from "@/components/profile/AutocompleteLocationPicker";
 import { ComprehensiveRoleSelector } from "@/components/profile/ComprehensiveRoleSelector";
 import GoogleMapsLocationPicker from "@/components/onboarding/GoogleMapsLocationPicker";
@@ -206,16 +207,19 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
   // Update profile mutation matching registration form
   const updateProfileMutation = useMutation({
     mutationFn: async (data: AboutData) => {
-      return apiRequest('PUT', '/api/user/profile', {
-        name: data.nickname,
-        city: data.location.city,
-        state: data.location.state,
-        country: data.location.country,
-        startedDancingYear: data.startedDancingYear,
-        tangoRoles: data.selectedRoles,
-        leaderLevel: data.leaderLevel,
-        followerLevel: data.followerLevel,
-        languages: data.languages
+      return apiRequest('/api/user/profile', {
+        method: 'PUT',
+        body: {
+          name: data.nickname,
+          city: data.location.city,
+          state: data.location.state,
+          country: data.location.country,
+          startedDancingYear: data.startedDancingYear,
+          tangoRoles: data.selectedRoles,
+          leaderLevel: data.leaderLevel,
+          followerLevel: data.followerLevel,
+          languages: data.languages
+        }
       });
     },
     onSuccess: (response) => {
@@ -597,22 +601,35 @@ export const ProfileAboutSection: React.FC<ProfileAboutSectionProps> = ({
                 </h3>
                 
                 <div className="glassmorphic-card p-4 border border-turquoise-200/30">
-                  <AutocompleteLocationPicker
-                    selectedLocation={{
-                      country: form.watch('location')?.country || '',
-                      state: form.watch('location')?.state || '',
-                      city: form.watch('location')?.city || ''
+                  <LocationAutocomplete
+                    value={form.watch('location')?.city ? `${form.watch('location')?.city}${form.watch('location')?.state ? `, ${form.watch('location')?.state}` : ''}, ${form.watch('location')?.country}` : ''}
+                    onChange={(value, details) => {
+                      if (details) {
+                        form.setValue('location', {
+                          country: details.country,
+                          state: details.state || '',
+                          city: details.city,
+                          countryId: 0,
+                          stateId: 0,
+                          cityId: 0
+                        });
+                      } else {
+                        // Handle free text input
+                        const parts = value.split(',').map(p => p.trim());
+                        if (parts.length >= 2) {
+                          form.setValue('location', {
+                            country: parts[parts.length - 1] || '',
+                            state: parts.length > 2 ? parts[parts.length - 2] : '',
+                            city: parts[0] || '',
+                            countryId: 0,
+                            stateId: 0,
+                            cityId: 0
+                          });
+                        }
+                      }
                     }}
-                    onLocationSelect={(location) => {
-                      form.setValue('location', {
-                        country: location.country,
-                        state: location.state || '',
-                        city: location.city,
-                        countryId: 0,
-                        stateId: 0,
-                        cityId: 0
-                      });
-                    }}
+                    placeholder="Enter city, state, country (e.g., Kolasin, Montenegro)"
+                    className="w-full"
                   />
                 </div>
               </div>

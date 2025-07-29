@@ -92,13 +92,10 @@ export default function EnhancedProfileHeader({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('image', file);
-      const response = await fetch('/api/user/cover-image', {
-        method: 'PUT',
-        body: formData,
-        credentials: 'include'
+      return apiRequest('/api/user/cover-image', { 
+        method: 'PUT', 
+        body: formData
       });
-      if (!response.ok) throw new Error('Upload failed');
-      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -121,13 +118,10 @@ export default function EnhancedProfileHeader({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('image', file);
-      const response = await fetch('/api/user/profile-image', {
+      return apiRequest('/api/user/profile-image', { 
         method: 'PUT', 
-        body: formData,
-        credentials: 'include'
+        body: formData
       });
-      if (!response.ok) throw new Error('Upload failed');
-      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -303,18 +297,12 @@ export default function EnhancedProfileHeader({
                       {user.bio}
                     </p>
                   )}
-                  {user.tangoRoles && user.tangoRoles.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {(typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles).slice(0, 3).map((role: string) => (
-                        <Badge key={role} variant="secondary" className="bg-turquoise-100 text-turquoise-700 hover:bg-turquoise-200">
-                          {role.replace('_', ' ')}
-                        </Badge>
-                      ))}
-                      {(typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles).length > 3 && (
-                        <Badge variant="outline" className="border-turquoise-200 text-turquoise-600">
-                          +{(typeof user.tangoRoles === 'string' ? JSON.parse(user.tangoRoles) : user.tangoRoles).length - 3} more
-                        </Badge>
-                      )}
+                  {user.city && (
+                    <div className="flex items-center gap-1 mt-2">
+                      <MapPin className="w-3 h-3 text-turquoise-500" />
+                      <span className="text-sm text-gray-600">
+                        {user.city}{user.country ? `, ${user.country}` : ''}
+                      </span>
                     </div>
                   )}
                 </div>

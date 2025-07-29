@@ -45,7 +45,7 @@ export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('posts');
+  const [activeTab, setActiveTab] = useState('memories');
   const [showMemoryPostModal, setShowMemoryPostModal] = useState(false);
 
   // Track component performance
@@ -307,9 +307,10 @@ export default function Profile() {
                         ) : (
                           <div className="text-center space-y-3">
                             <UserCheck className="w-8 h-8 text-gray-300 mx-auto" />
-                            <p className="text-xs text-gray-600">Create your guest profile to request stays</p>
+                            <p className="text-xs text-gray-600">Create your guest profile to be housed by Hosts in the global tango community</p>
                             <Button 
                               size="sm"
+                              onClick={() => setLocation('/groups')}
                               className="w-full text-xs bg-gradient-to-r from-turquoise-500 to-cyan-600 hover:from-turquoise-600 hover:to-cyan-700 text-white"
                             >
                               Create Profile

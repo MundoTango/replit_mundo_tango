@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { LocationAutocomplete } from '@/components/ui/LocationAutocomplete';
 import { 
   MapPin, 
   Image, 
@@ -484,36 +485,22 @@ export default function BeautifulPostCreator({
               )}
             </div>
 
-            {/* Location input */}
+            {/* Location input using LocationAutocomplete */}
             <div className="relative">
               <div className="flex items-center space-x-2">
-                <div className="flex-1 relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
+                <div className="flex-1">
+                  <LocationAutocomplete
                     value={location}
-                    onChange={handleLocationChange}
-                    placeholder="Add location..."
-                    className="w-full pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-turquoise-500/50 focus:border-transparent transition-all glassmorphic-input"
+                    onChange={(value, details) => {
+                      setLocation(value);
+                      if (details) {
+                        // Enhanced location data from LocationAutocomplete
+                        console.log('📍 Location selected:', details);
+                      }
+                    }}
+                    placeholder="Add location (e.g., Kolasin, Montenegro)..."
+                    className="w-full glassmorphic-input"
                   />
-                  
-                  {/* Location suggestions */}
-                  {showLocationSuggestions && locationSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50 max-h-60 overflow-y-auto">
-                      {locationSuggestions.map((suggestion, index) => (
-                        <button
-                          key={index}
-                          onClick={() => selectLocation(suggestion)}
-                          className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm border-b border-gray-100 last:border-0"
-                        >
-                          <div className="font-medium text-gray-900">{suggestion.display_name.split(',')[0]}</div>
-                          <div className="text-gray-500 text-xs">
-                            {suggestion.display_name.split(',').slice(1, 3).join(',')}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 <Button
