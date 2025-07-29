@@ -339,11 +339,12 @@ const OriginalEnhancedPostCreator: React.FC<{
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-gray-600 hover:text-turquoise-600 hover:bg-turquoise-50"
+                    className="text-gray-600 hover:text-turquoise-600 hover:bg-turquoise-50 flex items-center gap-2 px-3"
                     asChild
                   >
-                    <span>
-                      <ImageIcon className="w-5 h-5" />
+                    <span className="flex items-center gap-2">
+                      <Camera className="w-5 h-5" />
+                      <span className="text-sm font-medium">Photo/Video</span>
                     </span>
                   </Button>
                 </label>

@@ -541,7 +541,7 @@ const MemoryCardWithInteractions: React.FC<{
     mutationFn: async ({ content }: { content: string }) => {
       return apiRequest('/api/posts/' + memory.id + '/comments', {
         method: 'POST',
-        body: JSON.stringify({ content })
+        body: { content }
       });
     },
     onSuccess: () => {
@@ -567,7 +567,7 @@ const MemoryCardWithInteractions: React.FC<{
     mutationFn: async ({ comment }: { comment?: string }) => {
       return apiRequest('/api/posts/' + memory.id + '/share', {
         method: 'POST',
-        body: JSON.stringify({ comment })
+        body: { comment }
       });
     },
     onSuccess: () => {
@@ -591,7 +591,8 @@ const MemoryCardWithInteractions: React.FC<{
   const saveMutation = useMutation({
     mutationFn: async () => {
       return apiRequest('/api/posts/' + memory.id + '/save', {
-        method: 'POST'
+        method: 'POST',
+        body: {}
       });
     },
     onSuccess: () => {
@@ -614,11 +615,11 @@ const MemoryCardWithInteractions: React.FC<{
     mutationFn: async ({ reason, description }: { reason: string; description?: string }) => {
       return apiRequest('/api/posts/' + memory.id + '/report', {
         method: 'POST',
-        body: JSON.stringify({ 
+        body: { 
           reportType: reason,
           description: description || '',
           memoryId: memory.id
-        })
+        }
       });
     },
     onSuccess: () => {
@@ -870,7 +871,7 @@ export default function EnhancedTimelineV2() {
       // Use the enhanced posts endpoint that exists
       const response = await apiRequest('/api/posts/enhanced', {
         method: 'POST',
-        body: JSON.stringify(data)
+        body: data
       });
       return response;
     },
@@ -962,6 +963,11 @@ export default function EnhancedTimelineV2() {
                   });
                 }}
               />
+            </div>
+
+            {/* Mobile Events Section */}
+            <div className="block lg:hidden mb-6">
+              <EventsBoard />
             </div>
 
             {/* Posts with Virtual Scrolling */}

@@ -8,21 +8,25 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest(
-  method: string,
   url: string,
-  data?: unknown | undefined,
+  options?: {
+    method?: string;
+    body?: any;
+    headers?: Record<string, string>;
+  }
 ): Promise<Response> {
-  const headers: Record<string, string> = {};
+  const method = options?.method || 'GET';
+  const headers: Record<string, string> = options?.headers || {};
   
   let body: any = undefined;
   
-  if (data) {
-    if (data instanceof FormData) {
+  if (options?.body) {
+    if (options.body instanceof FormData) {
       // Don't set Content-Type for FormData - let browser set it with boundary
-      body = data;
+      body = options.body;
     } else {
       headers["Content-Type"] = "application/json";
-      body = JSON.stringify(data);
+      body = JSON.stringify(options.body);
     }
   }
 

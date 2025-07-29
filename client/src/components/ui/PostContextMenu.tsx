@@ -44,12 +44,6 @@ export const PostContextMenu: React.FC<PostContextMenuProps> = ({
       icon: <Trash2 className="h-4 w-4" />,
       action: onDelete,
       className: 'text-red-600 hover:bg-red-50'
-    },
-    {
-      label: 'Share Post',
-      icon: <Share2 className="h-4 w-4" />,
-      action: onShare,
-      className: 'text-gray-600 hover:bg-gray-50'
     }
   ];
 
@@ -59,12 +53,6 @@ export const PostContextMenu: React.FC<PostContextMenuProps> = ({
       icon: <Flag className="h-4 w-4" />,
       action: onReport,
       className: 'text-red-600 hover:bg-red-50'
-    },
-    {
-      label: 'Share Post',
-      icon: <Share2 className="h-4 w-4" />,
-      action: onShare,
-      className: 'text-gray-600 hover:bg-gray-50'
     },
     {
       label: 'Copy Link',

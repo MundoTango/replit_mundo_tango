@@ -2,6 +2,18 @@
 
 ## Overview
 
+**UPDATE (July 29, 2025 - API Request Signature Fix)**: Fixed HTTP Token Errors & Enhanced UI
+- **Critical Fix**: Resolved "Method is not a valid HTTP token" errors by fixing apiRequest mutations
+  - Removed JSON.stringify from all mutation bodies - apiRequest now expects objects not strings
+  - Fixed shareMutation, commentMutation, reportMutation, and saveMutation
+  - All mutations now use correct format: body: { data } instead of body: JSON.stringify({ data })
+- **UI Enhancements**: 
+  - Photo/Video button now clearly labeled with text "Photo/Video" instead of just icons
+  - Mobile events section added to timeline for better mobile visibility
+  - Removed save/share from "..." menu as they're in posting module (kept report)
+  - Added responsive CSS to prevent UI shrinking on mobile devices
+- **44x21s Compliance**: All fixes maintain sub-3s render times and MT ocean theme
+
 **UPDATE (July 27, 2025 - Real-Time Messaging System Implementation)**: Complete WebSocket-Powered Messaging Platform
 - **WebSocket Integration Complete**: Successfully integrated Socket.io WebSocket service for real-time bidirectional communication
   - WebSocketService class handles authentication, room management, and message delivery

@@ -1,5 +1,23 @@
 /* Enhanced Memories UI - Life CEO 44x21s Styling */
 
+/* Prevent UI Shrinking on Mobile - Life CEO 44x21s */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  font-size: 16px !important;
+  min-width: 320px;
+}
+
+body {
+  min-width: 320px;
+  overflow-x: hidden;
+}
+
+.enhanced-timeline-container {
+  min-width: 100%;
+  width: 100%;
+}
+
 /* Glassmorphic Effects */
 .enhanced-glassmorphic {
   background: rgba(255, 255, 255, 0.85);
