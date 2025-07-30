@@ -485,9 +485,14 @@ export interface IStorage {
   // User settings methods
   getUserSettings(userId: number): Promise<any>;
   updateUserSettings(userId: number, settings: any): Promise<void>;
+  
+  // Database access for admin queries
+  db: any;
 }
 
 export class DatabaseStorage implements IStorage {
+  // Expose db for admin endpoints
+  public db = db;
   async getUser(id: number): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
     if (result[0]) {
@@ -1820,13 +1825,12 @@ export class DatabaseStorage implements IStorage {
         u.profile_image as reporter_image,
         rt.name as report_type_name
       FROM reports r
-      JOIN users u ON r.user_id = u.id
+      JOIN users u ON r.reporter_id = u.id
       JOIN report_types rt ON r.report_type_id = rt.id
-      WHERE r.deleted_at IS NULL
     `;
     
     if (status) {
-      query = sql`${query} AND r.status = ${status}`;
+      query = sql`${query} WHERE r.status = ${status}`;
     }
     
     query = sql`${query} ORDER BY r.created_at DESC`;
