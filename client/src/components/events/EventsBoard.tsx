@@ -302,16 +302,7 @@ export default function EventsBoard() {
                 We couldn't find any upcoming events in your area
               </p>
               
-              {/* Debug information in development */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="bg-blue-50 rounded-lg p-3 text-left text-sm space-y-1">
-                  <p className="text-blue-700 font-semibold">Debug Info:</p>
-                  <p className="text-blue-600">User Location: {user?.city || 'Not set'}</p>
-                  <p className="text-blue-600">User ID: {user?.id || 'Unknown'}</p>
-                  <p className="text-blue-600">API Status: {error ? 'Error' : 'Success'}</p>
-                  {error && <p className="text-red-600">Error: {error.message}</p>}
-                </div>
-              )}
+
               
               <div className="text-sm text-blue-600/60 space-y-1">
                 <p>Events are filtered by:</p>
