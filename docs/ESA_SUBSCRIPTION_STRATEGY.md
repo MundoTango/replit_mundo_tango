@@ -30,7 +30,7 @@
 - No event creation
 - Limited photo uploads (10 photos)
 - No advanced analytics
-- Basic AI chat (10 messages/day)
+- Tango-specific ads displayed
 
 #### Tier 2: Basic Paid ($5/month)
 **Everything in Free, plus:**
@@ -41,9 +41,8 @@
 - Join unlimited groups
 - Create posts with location tagging
 - Priority support
-- Ad-free experience
 - Basic analytics dashboard
-- Unlimited AI chat
+- Tango-specific ads remain (supporting community)
 
 #### Future Professional Tiers
 

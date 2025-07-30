@@ -41,6 +41,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error('Failed to load Life CEO learnings routes:', err);
   });
 
+  // Import and register subscription admin routes
+  import('./routes/subscriptionAdmin').then(module => {
+    module.registerSubscriptionAdminRoutes(app);
+  }).catch(err => {
+    console.error('Failed to load subscription admin routes:', err);
+  });
+
   // Add compression middleware for better performance
   const compression = (await import('compression')).default;
   app.use(compression());

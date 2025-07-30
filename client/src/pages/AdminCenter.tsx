@@ -60,7 +60,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
-import { Layers } from 'lucide-react';
+import { Layers, CreditCard } from 'lucide-react';
+import SubscriptionManagement from '@/components/admin/SubscriptionManagement';
 
 interface AdminStats {
   // User Management
@@ -332,6 +333,7 @@ const AdminCenter: React.FC = React.memo(() => {
     { id: 'system', label: 'System Health & Security', icon: <Activity className="w-4 h-4" /> },
     { id: 'validation', label: 'Phase 2/3 Validation', icon: <CheckCircle className="w-4 h-4" />, isNew: true },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
+    { id: 'subscriptions', label: 'Subscription Management', icon: <CreditCard className="w-4 h-4" />, isNew: true },
   ];
 
   const StatCard = ({ 
@@ -2541,6 +2543,7 @@ const AdminCenter: React.FC = React.memo(() => {
       case 'system': return renderSystemHealth();
       case 'validation': return <Phase40x20sValidationDashboard />;
       case 'settings': return renderSettings();
+      case 'subscriptions': return <SubscriptionManagement />;
       default: return renderOverview();
     }
   };
