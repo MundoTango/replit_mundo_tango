@@ -70,6 +70,65 @@ const featureFlags: Map<string, FeatureFlag> = new Map([
     enabled: true,
     rolloutPercentage: 100,
   }],
+  
+  // Subscription Feature Flags
+  ['subscription-free-tier', {
+    key: 'subscription-free-tier',
+    description: 'Free tier with basic features',
+    enabled: true,
+    rolloutPercentage: 100,
+  }],
+  ['subscription-basic-tier', {
+    key: 'subscription-basic-tier', 
+    description: 'Basic paid tier at $5/month',
+    enabled: true,
+    rolloutPercentage: 100,
+  }],
+  ['subscription-enthusiast-tier', {
+    key: 'subscription-enthusiast-tier',
+    description: 'Enthusiast tier at $9.99/month (future)',
+    enabled: false,
+    rolloutPercentage: 0,
+  }],
+  ['subscription-professional-tier', {
+    key: 'subscription-professional-tier',
+    description: 'Professional tier at $24.99/month (future)',
+    enabled: false,
+    rolloutPercentage: 0,
+  }],
+  ['subscription-enterprise-tier', {
+    key: 'subscription-enterprise-tier',
+    description: 'Enterprise tier at $99.99/month (future)',
+    enabled: false,
+    rolloutPercentage: 0,
+  }],
+  ['subscription-teacher-special', {
+    key: 'subscription-teacher-special',
+    description: 'Special pricing for dance teachers',
+    enabled: false,
+    rolloutPercentage: 0,
+    userGroups: ['teacher'],
+  }],
+  ['subscription-organizer-special', {
+    key: 'subscription-organizer-special',
+    description: 'Special pricing for event organizers',
+    enabled: false,
+    rolloutPercentage: 0,
+    userGroups: ['organizer'],
+  }],
+  ['subscription-dj-special', {
+    key: 'subscription-dj-special',
+    description: 'Special pricing for tango DJs',
+    enabled: false,
+    rolloutPercentage: 0,
+    userGroups: ['dj'],
+  }],
+  ['subscription-trial-period', {
+    key: 'subscription-trial-period',
+    description: '7-day free trial for paid tiers',
+    enabled: true,
+    rolloutPercentage: 100,
+  }],
   ['websocket-scaling', {
     key: 'websocket-scaling',
     description: 'Horizontal WebSocket scaling',
