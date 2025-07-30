@@ -331,9 +331,9 @@ const AdminCenter: React.FC = React.memo(() => {
     { id: 'compliance', label: 'Compliance Center', icon: <Shield className="w-4 h-4" /> },
     { id: 'rbac', label: 'RBAC/ABAC Manager', icon: <Lock className="w-4 h-4" /> },
     { id: 'system', label: 'System Health & Security', icon: <Activity className="w-4 h-4" /> },
+    { id: 'subscriptions', label: 'Subscription Management', icon: <CreditCard className="w-4 h-4" />, isNew: true },
     { id: 'validation', label: 'Phase 2/3 Validation', icon: <CheckCircle className="w-4 h-4" />, isNew: true },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
-    { id: 'subscriptions', label: 'Subscription Management', icon: <CreditCard className="w-4 h-4" />, isNew: true },
   ];
 
   const StatCard = ({ 
