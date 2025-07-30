@@ -1,5 +1,6 @@
 import { Express } from "express";
 import { createServer, type Server } from "http";
+import eventsRoutes from './routes/eventsRoutes';
 import * as path from 'path';
 import * as fs from 'fs';
 import { setupVite, serveStatic, log } from "./vite";
@@ -10414,6 +10415,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register search routes - this enables comprehensive search across platform
   const searchRoutes = await import('./routes/searchRoutes');
   app.use('/api/search', searchRoutes.default);
+
+  // ========================================================================
+  // Events API Routes - Recurring Events & Delegation
+  // ========================================================================
+  
+  // Register event routes - handles recurring events, delegation, and reminders
+  const eventsRoutes = await import('./routes/eventsRoutes');
+  app.use('/api/events', eventsRoutes.default);
 
   const server = createServer(app);
 

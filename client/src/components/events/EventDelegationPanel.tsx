@@ -53,7 +53,7 @@ export default function EventDelegationPanel({ eventId, isOwner, currentUserId }
   });
 
   // Search users for adding as admin
-  const { data: searchResults } = useQuery({
+  const { data: searchResults } = useQuery<{ users: Array<{ id: number; name: string; username: string; profileImage: string | null }> }>({
     queryKey: ['/api/user/global-search', searchTerm],
     enabled: searchTerm.length > 2 && showAddDialog,
   });
@@ -61,9 +61,7 @@ export default function EventDelegationPanel({ eventId, isOwner, currentUserId }
   // Add admin mutation
   const addAdminMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: number; role: string }) => {
-      const response = await apiRequest('POST', `/api/events/${eventId}/admins`, {
-        body: { userId, role }
-      });
+      const response = await apiRequest('POST', `/api/events/${eventId}/admins`, { userId, role });
       return response.json();
     },
     onSuccess: () => {
@@ -109,9 +107,7 @@ export default function EventDelegationPanel({ eventId, isOwner, currentUserId }
   // Update permissions mutation
   const updatePermissionsMutation = useMutation({
     mutationFn: async ({ adminId, permissions }: { adminId: number; permissions: any }) => {
-      const response = await apiRequest('PUT', `/api/events/${eventId}/admins/${adminId}/permissions`, {
-        body: { permissions }
-      });
+      const response = await apiRequest('PUT', `/api/events/${eventId}/admins/${adminId}/permissions`, { permissions });
       return response.json();
     },
     onSuccess: () => {
@@ -231,7 +227,7 @@ export default function EventDelegationPanel({ eventId, isOwner, currentUserId }
           <p>Loading administrators...</p>
         ) : (
           <div className="space-y-4">
-            {admins?.map((admin: EventAdmin) => (
+            {admins && Array.isArray(admins) && admins.map((admin: EventAdmin) => (
               <div key={admin.id} className="glassmorphic-card p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -291,7 +287,7 @@ export default function EventDelegationPanel({ eventId, isOwner, currentUserId }
               </div>
             ))}
 
-            {(!admins || admins.length === 0) && (
+            {(!admins || !Array.isArray(admins) || admins.length === 0) && (
               <p className="text-center text-gray-600 py-8">
                 No administrators yet. Add someone to help manage this event.
               </p>

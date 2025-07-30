@@ -465,6 +465,20 @@ export const eventSeries = pgTable("event_series", {
 });
 
 // Event Participants table for role tagging system
+// Event Admins table for delegation features
+export const eventAdmins = pgTable("event_admins", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").references(() => events.id, { onDelete: "cascade" }).notNull(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  role: varchar("role", { length: 20 }).notNull(), // owner, admin, moderator
+  permissions: jsonb("permissions").default({}).notNull(),
+  addedAt: timestamp("added_at").defaultNow(),
+}, (table) => [
+  unique().on(table.eventId, table.userId),
+  index("idx_event_admins_event_id").on(table.eventId),
+  index("idx_event_admins_user_id").on(table.userId),
+]);
+
 export const eventParticipants = pgTable("event_participants", {
   id: serial("id").primaryKey(),
   eventId: integer("event_id").references(() => events.id).notNull(),

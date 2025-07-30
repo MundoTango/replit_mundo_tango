@@ -967,7 +967,7 @@ export default function EnhancedTimelineV2() {
 
             {/* Mobile Events Section */}
             <div className="block lg:hidden mb-6">
-              <EventsBoard />
+              <EventsBoard currentUserId={user?.id || 0} />
             </div>
 
             {/* Posts with Virtual Scrolling */}
@@ -1042,7 +1042,7 @@ export default function EnhancedTimelineV2() {
           {/* Sidebar */}
           <div className="lg:col-span-4">
             <div className="sticky top-6">
-              <EventsBoard />
+              <EventsBoard currentUserId={user?.id || 0} />
             </div>
           </div>
         </div>
