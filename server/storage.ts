@@ -42,6 +42,13 @@ import {
   notifications,
   eventPageAdmins,
   eventPagePosts,
+  languages,
+  userLanguagePreferences,
+  translations,
+  contentTranslations,
+  translationVotes,
+  languageAnalytics,
+  lunfardoDictionary,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -488,6 +495,18 @@ export interface IStorage {
   
   // Database access for admin queries
   db: any;
+  
+  // Language operations
+  getLanguageIdByCode(code: string): Promise<number | null>;
+  getUserLanguagePreferences(userId: number): Promise<any>;
+  updateUserLanguagePreferences(userId: number, preferences: any): Promise<void>;
+  getTranslations(languageCode: string, namespace: string): Promise<any>;
+  getContentTranslation(contentType: string, contentId: string, targetLanguage: string): Promise<any>;
+  submitTranslation(translation: any): Promise<any>;
+  voteOnTranslation(translationId: number, userId: number, voteType: 'up' | 'down', reason?: string): Promise<void>;
+  logLanguageAnalytics(analytics: any): Promise<void>;
+  getLunfardoTerms(): Promise<any[]>;
+  getSupportedLanguages(): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4542,6 +4561,307 @@ export class DatabaseStorage implements IStorage {
       .where(eq(eventPagePosts.id, postId))
       .returning();
     return unpinnedPost;
+  }
+  
+  // Language operations
+  async getLanguageIdByCode(code: string): Promise<number | null> {
+    try {
+      const result = await db
+        .select()
+        .from(languages)
+        .where(eq(languages.code, code))
+        .limit(1);
+      return result[0]?.id || null;
+    } catch (error) {
+      console.error('Error getting language ID by code:', error);
+      return null;
+    }
+  }
+  
+  async getUserLanguagePreferences(userId: number): Promise<any> {
+    try {
+      const result = await db
+        .select({
+          id: userLanguagePreferences.id,
+          userId: userLanguagePreferences.userId,
+          primaryLanguage: languages.code,
+          interfaceLanguage: sql`(SELECT code FROM ${languages} WHERE id = ${userLanguagePreferences.interfaceLanguageId})`.as('interfaceLanguage'),
+          secondaryLanguages: userLanguagePreferences.secondaryLanguages,
+          contentLanguageIds: userLanguagePreferences.contentLanguageIds,
+          autoTranslate: userLanguagePreferences.autoTranslate,
+          showOriginalWithTranslation: userLanguagePreferences.showOriginalWithTranslation,
+          preferredTranslationService: userLanguagePreferences.preferredTranslationService,
+          detectedFromIp: userLanguagePreferences.detectedFromIp
+        })
+        .from(userLanguagePreferences)
+        .leftJoin(languages, eq(userLanguagePreferences.primaryLanguageId, languages.id))
+        .where(eq(userLanguagePreferences.userId, userId))
+        .limit(1);
+      
+      if (!result[0]) {
+        // Return default preferences if none exist
+        return {
+          userId,
+          primaryLanguage: 'en',
+          interfaceLanguage: 'en',
+          secondaryLanguages: [],
+          contentLanguageIds: [],
+          autoTranslate: true,
+          showOriginalWithTranslation: false,
+          preferredTranslationService: 'google'
+        };
+      }
+      
+      return result[0];
+    } catch (error) {
+      console.error('Error getting user language preferences:', error);
+      return null;
+    }
+  }
+  
+  async updateUserLanguagePreferences(userId: number, preferences: any): Promise<void> {
+    try {
+      // Get language IDs
+      const primaryLangId = await this.getLanguageIdByCode(preferences.primaryLanguage || 'en');
+      const interfaceLangId = await this.getLanguageIdByCode(preferences.interfaceLanguage || preferences.primaryLanguage || 'en');
+      
+      if (!primaryLangId || !interfaceLangId) {
+        throw new Error('Invalid language codes provided');
+      }
+      
+      // Check if preferences exist
+      const existing = await db
+        .select()
+        .from(userLanguagePreferences)
+        .where(eq(userLanguagePreferences.userId, userId))
+        .limit(1);
+      
+      const preferencesData = {
+        primaryLanguageId: primaryLangId,
+        interfaceLanguageId: interfaceLangId,
+        secondaryLanguages: preferences.secondaryLanguages || [],
+        contentLanguageIds: preferences.contentLanguageIds || [],
+        autoTranslate: preferences.autoTranslate ?? true,
+        showOriginalWithTranslation: preferences.showOriginalWithTranslation ?? false,
+        preferredTranslationService: preferences.preferredTranslationService || 'google',
+        detectedFromIp: preferences.detectedFromIp,
+        updatedAt: new Date()
+      };
+      
+      if (existing[0]) {
+        await db
+          .update(userLanguagePreferences)
+          .set(preferencesData)
+          .where(eq(userLanguagePreferences.userId, userId));
+      } else {
+        await db
+          .insert(userLanguagePreferences)
+          .values({
+            ...preferencesData,
+            userId
+          });
+      }
+    } catch (error) {
+      console.error('Error updating user language preferences:', error);
+      throw error;
+    }
+  }
+  
+  async getTranslations(languageCode: string, namespace: string): Promise<any> {
+    try {
+      const languageId = await this.getLanguageIdByCode(languageCode);
+      if (!languageId) {
+        return {};
+      }
+      
+      const result = await db
+        .select({
+          key: translations.key,
+          value: translations.value
+        })
+        .from(translations)
+        .where(
+          and(
+            eq(translations.languageId, languageId),
+            eq(translations.category, namespace)
+          )
+        );
+      
+      // Convert to key-value object
+      const translationsObj: Record<string, string> = {};
+      result.forEach(t => {
+        translationsObj[t.key] = t.value;
+      });
+      
+      return translationsObj;
+    } catch (error) {
+      console.error('Error getting translations:', error);
+      return {};
+    }
+  }
+  
+  async getContentTranslation(contentType: string, contentId: string, targetLanguage: string): Promise<any> {
+    try {
+      const targetLangId = await this.getLanguageIdByCode(targetLanguage);
+      if (!targetLangId) {
+        return null;
+      }
+      
+      const result = await db
+        .select()
+        .from(contentTranslations)
+        .where(
+          and(
+            eq(contentTranslations.contentType, contentType),
+            eq(contentTranslations.contentId, contentId),
+            eq(contentTranslations.targetLanguageId, targetLangId),
+            eq(contentTranslations.isApproved, true)
+          )
+        )
+        .orderBy(desc(contentTranslations.votes), desc(contentTranslations.createdAt))
+        .limit(1);
+      
+      return result[0] || null;
+    } catch (error) {
+      console.error('Error getting content translation:', error);
+      return null;
+    }
+  }
+  
+  async submitTranslation(translation: any): Promise<any> {
+    try {
+      const originalLangId = await this.getLanguageIdByCode(translation.originalLanguage);
+      const targetLangId = await this.getLanguageIdByCode(translation.targetLanguage);
+      
+      if (!originalLangId || !targetLangId) {
+        throw new Error('Invalid language codes');
+      }
+      
+      const [newTranslation] = await db
+        .insert(contentTranslations)
+        .values({
+          contentType: translation.contentType,
+          contentId: translation.contentId,
+          originalLanguageId: originalLangId,
+          targetLanguageId: targetLangId,
+          originalText: translation.originalText,
+          translatedText: translation.translatedText,
+          translationType: translation.translationType || 'manual',
+          translatedBy: translation.userId,
+          translationService: translation.translationService || 'manual',
+          confidence: translation.confidence || 0.8,
+          votes: 0,
+          isApproved: false
+        })
+        .returning();
+      
+      return newTranslation;
+    } catch (error) {
+      console.error('Error submitting translation:', error);
+      throw error;
+    }
+  }
+  
+  async voteOnTranslation(translationId: number, userId: number, voteType: 'up' | 'down', reason?: string): Promise<void> {
+    try {
+      // Check if user already voted
+      const existingVote = await db
+        .select()
+        .from(translationVotes)
+        .where(
+          and(
+            eq(translationVotes.translationId, translationId),
+            eq(translationVotes.userId, userId)
+          )
+        )
+        .limit(1);
+      
+      if (existingVote[0]) {
+        // Update existing vote
+        await db
+          .update(translationVotes)
+          .set({
+            voteType,
+            reason,
+            createdAt: new Date()
+          })
+          .where(
+            and(
+              eq(translationVotes.translationId, translationId),
+              eq(translationVotes.userId, userId)
+            )
+          );
+      } else {
+        // Create new vote
+        await db
+          .insert(translationVotes)
+          .values({
+            translationId,
+            userId,
+            voteType,
+            reason
+          });
+      }
+      
+      // Update vote count on translation
+      const voteChange = voteType === 'up' ? 1 : -1;
+      await db
+        .update(contentTranslations)
+        .set({
+          votes: sql`${contentTranslations.votes} + ${voteChange}`
+        })
+        .where(eq(contentTranslations.id, translationId));
+    } catch (error) {
+      console.error('Error voting on translation:', error);
+      throw error;
+    }
+  }
+  
+  async logLanguageAnalytics(analytics: any): Promise<void> {
+    try {
+      await db
+        .insert(languageAnalytics)
+        .values({
+          userId: analytics.userId,
+          languageId: analytics.languageId,
+          action: analytics.action,
+          contentType: analytics.contentType,
+          contentId: analytics.contentId,
+          sourceLanguageId: analytics.sourceLanguageId,
+          ipAddress: analytics.ipAddress,
+          userAgent: analytics.userAgent,
+          country: analytics.country,
+          city: analytics.city
+        });
+    } catch (error) {
+      console.error('Error logging language analytics:', error);
+    }
+  }
+  
+  async getLunfardoTerms(): Promise<any[]> {
+    try {
+      return await db
+        .select()
+        .from(lunfardoDictionary)
+        .where(eq(lunfardoDictionary.isVerified, true))
+        .orderBy(asc(lunfardoDictionary.term));
+    } catch (error) {
+      console.error('Error getting lunfardo terms:', error);
+      return [];
+    }
+  }
+  
+  async getSupportedLanguages(): Promise<any[]> {
+    try {
+      return await db
+        .select()
+        .from(languages)
+        .where(eq(languages.isActive, true))
+        .orderBy(asc(languages.name));
+    } catch (error) {
+      console.error('Error getting supported languages:', error);
+      return [];
+    }
   }
 }
 

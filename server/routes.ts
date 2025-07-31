@@ -5719,6 +5719,153 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Language routes
+  app.get("/api/languages/supported", async (req, res) => {
+    try {
+      const languages = await storage.getSupportedLanguages();
+      res.json({ success: true, data: languages });
+    } catch (error) {
+      console.error("Error getting supported languages:", error);
+      res.status(500).json({ error: "Failed to get supported languages" });
+    }
+  });
+
+  app.get("/api/languages/preferences", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const preferences = await storage.getUserLanguagePreferences(userId);
+      res.json({ success: true, data: preferences });
+    } catch (error) {
+      console.error("Error getting language preferences:", error);
+      res.status(500).json({ error: "Failed to get language preferences" });
+    }
+  });
+
+  app.put("/api/languages/preferences", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      await storage.updateUserLanguagePreferences(userId, req.body);
+      res.json({ success: true, message: "Language preferences updated" });
+    } catch (error) {
+      console.error("Error updating language preferences:", error);
+      res.status(500).json({ error: "Failed to update language preferences" });
+    }
+  });
+
+  app.get("/api/translations/:languageCode/:namespace", async (req, res) => {
+    try {
+      const { languageCode, namespace } = req.params;
+      const translations = await storage.getTranslations(languageCode, namespace);
+      res.json({ success: true, data: translations });
+    } catch (error) {
+      console.error("Error getting translations:", error);
+      res.status(500).json({ error: "Failed to get translations" });
+    }
+  });
+
+  app.get("/api/content-translation/:contentType/:contentId", setUserContext, async (req, res) => {
+    try {
+      const { contentType, contentId } = req.params;
+      const { targetLanguage } = req.query;
+      
+      if (!targetLanguage) {
+        return res.status(400).json({ error: "Target language is required" });
+      }
+
+      const translation = await storage.getContentTranslation(
+        contentType,
+        contentId,
+        targetLanguage as string
+      );
+      res.json({ success: true, data: translation });
+    } catch (error) {
+      console.error("Error getting content translation:", error);
+      res.status(500).json({ error: "Failed to get content translation" });
+    }
+  });
+
+  app.post("/api/translations/submit", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const translation = await storage.submitTranslation({
+        ...req.body,
+        userId
+      });
+      res.json({ success: true, data: translation });
+    } catch (error) {
+      console.error("Error submitting translation:", error);
+      res.status(500).json({ error: "Failed to submit translation" });
+    }
+  });
+
+  app.post("/api/translations/:translationId/vote", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { translationId } = req.params;
+      const { voteType, reason } = req.body;
+
+      if (!voteType || !['up', 'down'].includes(voteType)) {
+        return res.status(400).json({ error: "Invalid vote type" });
+      }
+
+      await storage.voteOnTranslation(
+        Number(translationId),
+        userId,
+        voteType as 'up' | 'down',
+        reason
+      );
+      res.json({ success: true, message: "Vote recorded" });
+    } catch (error) {
+      console.error("Error voting on translation:", error);
+      res.status(500).json({ error: "Failed to vote on translation" });
+    }
+  });
+
+  app.post("/api/languages/analytics", setUserContext, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const ipAddress = req.ip || req.connection.remoteAddress || '';
+      const userAgent = req.headers['user-agent'] || '';
+
+      await storage.logLanguageAnalytics({
+        ...req.body,
+        userId,
+        ipAddress,
+        userAgent
+      });
+      res.json({ success: true, message: "Analytics logged" });
+    } catch (error) {
+      console.error("Error logging language analytics:", error);
+      res.status(500).json({ error: "Failed to log analytics" });
+    }
+  });
+
+  app.get("/api/languages/lunfardo", async (req, res) => {
+    try {
+      const terms = await storage.getLunfardoTerms();
+      res.json({ success: true, data: terms });
+    } catch (error) {
+      console.error("Error getting lunfardo terms:", error);
+      res.status(500).json({ error: "Failed to get lunfardo terms" });
+    }
+  });
+
   // Stories routes
   app.get("/api/stories/following", isAuthenticated, async (req: any, res) => {
     try {

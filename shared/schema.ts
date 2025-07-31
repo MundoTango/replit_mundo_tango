@@ -1946,3 +1946,28 @@ export { homeAmenities, homePhotos } from './schema/hostHomes';
 
 // Export from travelDetails module
 export { travelDetails } from './travelDetails';
+
+// Export language-related tables and types from languageSchema
+export {
+  languages,
+  userLanguagePreferences,
+  translations,
+  contentTranslations,
+  translationVotes,
+  languageAnalytics,
+  lunfardoDictionary,
+  type Language,
+  type InsertLanguage,
+  type UserLanguagePreference,
+  type InsertUserLanguagePreference,
+  type Translation,
+  type InsertTranslation,
+  type ContentTranslation,
+  type InsertContentTranslation,
+  type TranslationVote,
+  type InsertTranslationVote,
+  type LanguageAnalytics,
+  type InsertLanguageAnalytics,
+  type LunfardoDictionary,
+  type InsertLunfardoDictionary
+} from './languageSchema';
