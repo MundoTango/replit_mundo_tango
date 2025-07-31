@@ -13,15 +13,37 @@ import {
   DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Globe2, Check, Sparkles, Languages } from 'lucide-react';
-import { supportedLanguages, changeLanguage } from '@/i18n/config';
+import { changeLanguage } from '@/i18n/config';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface LanguageSelectorProps {
   variant?: 'dropdown' | 'list';
   showFlags?: boolean;
   groupByRegion?: boolean;
   className?: string;
+}
+
+interface Language {
+  code: string;
+  name: string;
+  nativeName: string;
+  country: string;
+  isActive: boolean;
+  isLunfardo?: boolean;
+}
+
+interface UserLanguagePreference {
+  id: number;
+  userId: number;
+  primaryLanguage: string;
+  additionalLanguages: string[];
+  preferredContentLanguages: string[];
+  autoTranslate: boolean;
+  showOriginalContent: boolean;
+  translationQualityThreshold: number;
 }
 
 const LanguageSelector = ({ 
@@ -33,29 +55,61 @@ const LanguageSelector = ({
   const { i18n, t } = useTranslation();
   const { toast } = useToast();
   const [isChanging, setIsChanging] = useState(false);
-  const [userLanguages, setUserLanguages] = useState<string[]>([]);
 
-  useEffect(() => {
-    // Fetch user's language preferences
-    fetchUserLanguages();
-  }, []);
+  // Fetch supported languages from API
+  const { data: supportedLanguages = [] } = useQuery<Language[]>({
+    queryKey: ['/api/languages/supported'],
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour
+  });
 
-  const fetchUserLanguages = async () => {
-    try {
-      const response = await fetch('/api/user/language-preferences');
-      if (response.ok) {
-        const data = await response.json();
-        setUserLanguages(data.languages || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch user languages:', error);
-    }
-  };
+  // Fetch user's language preferences
+  const { data: userPreferences } = useQuery<UserLanguagePreference>({
+    queryKey: ['/api/languages/preferences'],
+  });
+
+  // Update language preferences mutation
+  const updatePreferencesMutation = useMutation({
+    mutationFn: (preferences: Partial<UserLanguagePreference>) =>
+      apiRequest('/api/languages/preferences', { method: 'PUT', body: preferences }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/languages/preferences'] });
+    },
+  });
+
+  // Track language analytics mutation
+  const trackAnalyticsMutation = useMutation({
+    mutationFn: (data: { action: string; languageCode: string; metadata?: any }) =>
+      apiRequest('/api/languages/analytics', { method: 'POST', body: data }),
+  });
+
+  const userLanguages = userPreferences?.additionalLanguages || [];
 
   const handleLanguageChange = async (languageCode: string) => {
     setIsChanging(true);
     try {
+      // Change language in i18n
       await changeLanguage(languageCode);
+      
+      // Update user preferences on backend
+      if (userPreferences) {
+        await updatePreferencesMutation.mutateAsync({
+          primaryLanguage: languageCode,
+          additionalLanguages: userLanguages.includes(languageCode) 
+            ? userLanguages 
+            : [...userLanguages, languageCode],
+        });
+      }
+      
+      // Track analytics
+      await trackAnalyticsMutation.mutateAsync({
+        action: 'language_changed',
+        languageCode,
+        metadata: {
+          previousLanguage: i18n.language,
+          source: variant,
+        },
+      });
+      
       toast({
         title: t('settings.languageChanged'),
         description: t('settings.languageChangedDesc', { 
@@ -74,7 +128,7 @@ const LanguageSelector = ({
   };
 
   const getLanguageGroups = () => {
-    const groups: Record<string, typeof supportedLanguages> = {
+    const groups: Record<string, Language[]> = {
       'Popular': supportedLanguages.filter(lang => 
         ['en', 'es', 'es-ar', 'pt', 'fr', 'de', 'it', 'ja', 'zh'].includes(lang.code)
       ),
@@ -95,7 +149,7 @@ const LanguageSelector = ({
     return groups;
   };
 
-  const renderLanguageItem = (lang: typeof supportedLanguages[0]) => {
+  const renderLanguageItem = (lang: Language) => {
     const isSelected = i18n.language === lang.code;
     const isUserLanguage = userLanguages.includes(lang.code);
     
