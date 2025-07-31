@@ -123,7 +123,7 @@ export default function EventsPage() {
   const [uploadedMedia, setUploadedMedia] = useState<any[]>([]);
   const [assignedRoles, setAssignedRoles] = useState<Array<{userIdentifier: string, role: string}>>([]);
 
-  // Fetch events
+  // Fetch events with performance optimizations
   const { data: events, isLoading } = useQuery({
     queryKey: ['/api/events', filterBy, searchQuery, activeTab, eventTypeFilter, levelFilter, priceFilter, showVirtualOnly, showRecurringOnly],
     queryFn: async () => {
@@ -151,7 +151,12 @@ export default function EventsPage() {
       
       const result = await response.json();
       return result.data || [];
-    }
+    },
+    // Performance optimizations
+    staleTime: 5 * 60 * 1000, // Data is fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false, // Don't refetch when switching tabs
+    refetchOnMount: 'always' // Always refetch on mount
   });
 
   // Create event mutation

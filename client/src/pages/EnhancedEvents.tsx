@@ -198,7 +198,7 @@ export default function EnhancedEventsPage() {
     document.getElementById('event-search')?.focus();
   });
 
-  // Fetch events
+  // Fetch events with performance optimizations
   const { data: eventsData, isLoading: eventsLoading, refetch } = useQuery<EventApiResponse>({
     queryKey: ['/api/events', {
       search: searchQuery,
@@ -210,7 +210,12 @@ export default function EnhancedEventsPage() {
       dateEnd: dateRange.end?.toISOString(),
       tab: activeTab
     }],
-    enabled: true
+    enabled: true,
+    // Performance optimizations
+    staleTime: 5 * 60 * 1000, // Data is fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false, // Don't refetch when switching tabs
+    refetchOnMount: 'always' // Always refetch on mount
   });
 
   const events = eventsData?.data || [];

@@ -4546,6 +4546,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Events feed API for NewFeedEvents component
+  app.get("/api/events/feed", cacheMiddleware({ ttl: 'medium' }), async (req: any, res) => {
+    try {
+      // Use fallback authentication
+      let user = null;
+      
+      if (req.isAuthenticated && req.isAuthenticated() && req.user?.claims?.sub) {
+        user = await storage.getUserByReplitId(req.user.claims.sub);
+      } else if (req.user) {
+        user = req.user;
+      } else {
+        // Development fallback
+        user = await storage.getUserByReplitId('44164221');
+      }
+      
+      // Get all upcoming events
+      const allEvents = await storage.getEvents(50, 0);
+      const now = new Date();
+      
+      // Filter for upcoming events only
+      const upcomingEvents = allEvents.filter(event => new Date(event.startDate) > now);
+      
+      // Initialize response structure
+      const response = {
+        upcoming_events: [],
+        city_events: [],
+        followed_events: []
+      };
+      
+      if (user) {
+        // Get user RSVPs
+        const userRsvps = await storage.getUserEventRsvps(user.id);
+        const rsvpEventIds = new Set(userRsvps.map(rsvp => rsvp.eventId));
+        
+        // Get user's followed groups/cities
+        const followedGroups = await storage.getUserFollowingGroups(user.id);
+        const followedCities = followedGroups
+          .filter(g => g.type === 'city')
+          .map(g => g.name.split(',')[0].trim());
+        
+        // Categorize events
+        for (const event of upcomingEvents) {
+          const eventData = {
+            id: event.id,
+            title: event.title,
+            startDate: event.startDate,
+            location: event.location || '',
+            attendeesCount: event.currentAttendees || 0,
+            isRSVPed: rsvpEventIds.has(event.id)
+          };
+          
+          // RSVP'd events
+          if (rsvpEventIds.has(event.id)) {
+            response.upcoming_events.push(eventData);
+          }
+          
+          // City events
+          if (event.city?.toLowerCase() === user.city?.toLowerCase()) {
+            response.city_events.push(eventData);
+          }
+          
+          // Followed city events
+          if (followedCities.some(city => event.city?.toLowerCase() === city.toLowerCase())) {
+            response.followed_events.push(eventData);
+          }
+        }
+      } else {
+        // Guest view - show general upcoming events
+        response.city_events = upcomingEvents.slice(0, 5).map(event => ({
+          id: event.id,
+          title: event.title,
+          startDate: event.startDate,
+          location: event.location || '',
+          attendeesCount: event.currentAttendees || 0,
+          isRSVPed: false
+        }));
+      }
+      
+      // Limit to 3 events per category for sidebar display
+      response.upcoming_events = response.upcoming_events.slice(0, 3);
+      response.city_events = response.city_events.slice(0, 3);
+      response.followed_events = response.followed_events.slice(0, 3);
+      
+      res.json({
+        success: true,
+        data: response
+      });
+    } catch (error: any) {
+      console.error('Error fetching events feed:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch events feed',
+        data: {
+          upcoming_events: [],
+          city_events: [],
+          followed_events: []
+        }
+      });
+    }
+  });
+
   // Events sidebar API for Memories page with personalized content
   app.get("/api/events/sidebar", async (req: any, res) => {
     try {
