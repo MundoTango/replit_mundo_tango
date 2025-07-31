@@ -2528,11 +2528,11 @@ export class DatabaseStorage implements IStorage {
 
   async getUserFollowingGroups(userId: number): Promise<any[]> {
     const result = await pool.query(
-      `SELECT g.*, gf.created_at as followed_at 
+      `SELECT g.*, gf.followed_at 
        FROM groups g 
        JOIN group_followers gf ON g.id = gf.group_id 
        WHERE gf.user_id = $1 
-       ORDER BY gf.created_at DESC`,
+       ORDER BY gf.followed_at DESC`,
       [userId]
     );
     return result.rows;

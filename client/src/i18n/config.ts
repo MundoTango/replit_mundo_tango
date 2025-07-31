@@ -107,6 +107,60 @@ i18n
       allowMultiLoading: false,
       crossDomain: false,
       withCredentials: true,
+      
+      // Client-side caching
+      requestOptions: {
+        cache: 'default',
+      },
+      
+      // Custom cache implementation using localStorage
+      request: async function(options: any, url: string, payload: any, callback: any) {
+        const cacheKey = `i18n_cache_${url}`;
+        const cacheExpiry = 3600000; // 1 hour
+        
+        // Check cache first
+        try {
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            const { data, timestamp } = JSON.parse(cached);
+            if (Date.now() - timestamp < cacheExpiry) {
+              callback(null, { status: 200, data });
+              return;
+            }
+          }
+        } catch (e) {
+          // Cache read error, continue with request
+        }
+        
+        // Make the actual request
+        try {
+          const response = await fetch(url, {
+            method: options.method || 'GET',
+            headers: options.headers || {},
+            credentials: 'include',
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            
+            // Cache the response
+            try {
+              localStorage.setItem(cacheKey, JSON.stringify({
+                data,
+                timestamp: Date.now(),
+              }));
+            } catch (e) {
+              // Cache write error, ignore
+            }
+            
+            callback(null, { status: response.status, data });
+          } else {
+            callback(response.statusText || 'Failed to load translations', { status: response.status });
+          }
+        } catch (error) {
+          callback(error, null);
+        }
+      },
     },
     
     // Namespaces
