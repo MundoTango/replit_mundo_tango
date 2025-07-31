@@ -57,6 +57,8 @@ const AnalyticsDashboard = lazy(() => import("@/pages/AnalyticsDashboard"));
 const SupabaseTest = lazy(() => import("@/pages/SupabaseTest"));
 const AiChatTest = lazy(() => import("@/pages/AiChatTest"));
 const PreviewTest = lazy(() => import("@/pages/PreviewTest"));
+const Subscribe = lazy(() => import("@/pages/Subscribe"));
+const BillingDashboard = lazy(() => import("@/pages/BillingDashboard"));
 
 // Life CEO 44x21s Layer 44 - Minimal loading component to prevent browser freeze
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
@@ -283,6 +285,18 @@ function Router() {
           <Route path="/settings">
             <Suspense fallback={<LoadingFallback message="Loading settings..." />}>
               <UserSettings />
+            </Suspense>
+          </Route>
+          
+          <Route path="/subscribe">
+            <Suspense fallback={<LoadingFallback message="Loading subscription plans..." />}>
+              <Subscribe />
+            </Suspense>
+          </Route>
+          
+          <Route path="/settings/billing">
+            <Suspense fallback={<LoadingFallback message="Loading billing..." />}>
+              <BillingDashboard />
             </Suspense>
           </Route>
           
