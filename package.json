@@ -191,6 +191,7 @@
     "react-avatar-group": "^1.0.2",
     "react-beautiful-dnd": "^13.1.1",
     "react-big-calendar": "^1.19.4",
+    "react-confetti": "^6.4.0",
     "react-copy-to-clipboard": "^5.1.0",
     "react-countdown": "^2.3.6",
     "react-csv": "^2.2.2",

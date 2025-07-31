@@ -23,6 +23,7 @@ import * as Sentry from "@sentry/react";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import LifeCeoTest from "@/pages/LifeCeoTest";
+import TrialBanner from "@/components/TrialBanner";
 
 // Lazy loaded components to reduce bundle size (90% reduction in initial load)
 const Home = lazy(() => import("@/pages/home"));
@@ -59,6 +60,11 @@ const AiChatTest = lazy(() => import("@/pages/AiChatTest"));
 const PreviewTest = lazy(() => import("@/pages/PreviewTest"));
 const Subscribe = lazy(() => import("@/pages/Subscribe"));
 const BillingDashboard = lazy(() => import("@/pages/BillingDashboard"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const PaymentMethods = lazy(() => import("./pages/PaymentMethods"));
+const Invoices = lazy(() => import("./pages/Invoices"));
+const SubscriptionAnalytics = lazy(() => import("./pages/SubscriptionAnalytics"));
+const PromoCodesAdmin = lazy(() => import("./pages/PromoCodesAdmin"));
 
 // Life CEO 44x21s Layer 44 - Minimal loading component to prevent browser freeze
 const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => (
@@ -300,6 +306,36 @@ function Router() {
             </Suspense>
           </Route>
           
+          <Route path="/checkout/:tier">
+            <Suspense fallback={<LoadingFallback message="Loading checkout..." />}>
+              <Checkout />
+            </Suspense>
+          </Route>
+          
+          <Route path="/payment-methods">
+            <Suspense fallback={<LoadingFallback message="Loading payment methods..." />}>
+              <PaymentMethods />
+            </Suspense>
+          </Route>
+          
+          <Route path="/invoices">
+            <Suspense fallback={<LoadingFallback message="Loading invoices..." />}>
+              <Invoices />
+            </Suspense>
+          </Route>
+          
+          <Route path="/admin/subscription-analytics">
+            <Suspense fallback={<LoadingFallback message="Loading analytics..." />}>
+              <SubscriptionAnalytics />
+            </Suspense>
+          </Route>
+          
+          <Route path="/admin/promo-codes">
+            <Suspense fallback={<LoadingFallback message="Loading promo codes..." />}>
+              <PromoCodesAdmin />
+            </Suspense>
+          </Route>
+          
           <Route path="/events">
             <Suspense fallback={<LoadingFallback message="Loading events..." />}>
               <EnhancedEvents />
@@ -370,6 +406,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TenantProvider>
+          <TrialBanner />
           <Router />
           <Toaster />
         </TenantProvider>
