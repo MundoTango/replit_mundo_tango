@@ -58,10 +58,10 @@ const NewFeedEvents = () => {
 
   if (isLoading) {
     return (
-      <Card className="h-full bg-white mx-2.5 lg:mx-0 rounded-xl lg:rounded-none">
+      <Card className="h-full glassmorphic-card mx-2.5 lg:mx-0 rounded-xl lg:rounded-none">
         <CardContent className="p-6">
           <div className="flex items-center justify-center h-48">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-turquoise-500"></div>
           </div>
         </CardContent>
       </Card>
@@ -69,17 +69,17 @@ const NewFeedEvents = () => {
   }
 
   return (
-    <Card className="h-full bg-white mx-2.5 lg:mx-0 rounded-xl lg:rounded-none overflow-hidden">
+    <Card className="h-full glassmorphic-card mx-2.5 lg:mx-0 rounded-xl lg:rounded-none overflow-hidden">
       <CardContent className="p-0">
         {eventSections.map(({ title, events: sectionEvents, emptyMessage }, sectionIndex) => (
           <div key={sectionIndex}>
             <div className="p-6 pb-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-gray-900 text-sm">{title}</h3>
+                <h3 className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-turquoise-500 to-cyan-600 text-sm">{title}</h3>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-red-600 hover:text-red-700 text-xs font-semibold"
+                  className="text-turquoise-600 hover:text-cyan-700 text-xs font-semibold transition-colors hover:bg-turquoise-50"
                   onClick={() => window.location.href = '/user/events'}
                 >
                   See all
@@ -89,8 +89,8 @@ const NewFeedEvents = () => {
               <div className="space-y-3">
                 {sectionEvents.length > 0 ? (
                   sectionEvents.slice(0, 3).map((event) => (
-                    <div key={event.id} className="flex items-start gap-3">
-                      <div className="w-2 h-2 rounded-full bg-red-600 mt-2 flex-shrink-0"></div>
+                    <div key={event.id} className="flex items-start gap-3 hover:bg-turquoise-50/50 p-2 -m-2 rounded-lg transition-colors">
+                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-turquoise-400 to-cyan-500 mt-2 flex-shrink-0"></div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-gray-900 text-sm leading-tight mb-1">
                           {event.title}
@@ -114,7 +114,7 @@ const NewFeedEvents = () => {
                           )}
                         </div>
                         {event.isRSVPed && (
-                          <Badge variant="secondary" className="mt-2 text-xs bg-green-100 text-green-800">
+                          <Badge variant="secondary" className="mt-2 text-xs bg-turquoise-100 text-turquoise-800 border border-turquoise-200">
                             RSVP'd
                           </Badge>
                         )}
@@ -122,13 +122,13 @@ const NewFeedEvents = () => {
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 text-sm text-center py-4">{emptyMessage}</p>
+                  <p className="text-gray-400 text-sm text-center py-8 italic">{emptyMessage}</p>
                 )}
               </div>
             </div>
             
             {sectionIndex < eventSections.length - 1 && (
-              <hr className="mx-6 border-gray-200" />
+              <hr className="mx-6 border-turquoise-100" />
             )}
           </div>
         ))}
