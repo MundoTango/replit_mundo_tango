@@ -80,7 +80,7 @@ const NewFeedEvents = () => {
                   variant="ghost"
                   size="sm"
                   className="text-turquoise-600 hover:text-cyan-700 text-xs font-semibold transition-colors hover:bg-turquoise-50"
-                  onClick={() => window.location.href = '/user/events'}
+                  onClick={() => window.location.href = '/events'}
                 >
                   See all
                 </Button>
@@ -89,7 +89,11 @@ const NewFeedEvents = () => {
               <div className="space-y-3">
                 {sectionEvents.length > 0 ? (
                   sectionEvents.slice(0, 3).map((event) => (
-                    <div key={event.id} className="flex items-start gap-3 hover:bg-turquoise-50/50 p-2 -m-2 rounded-lg transition-colors">
+                    <div 
+                      key={event.id} 
+                      className="flex items-start gap-3 hover:bg-turquoise-50/50 p-2 -m-2 rounded-lg transition-colors cursor-pointer"
+                      onClick={() => window.location.href = `/events/${event.id}`}
+                    >
                       <div className="w-2 h-2 rounded-full bg-gradient-to-r from-turquoise-400 to-cyan-500 mt-2 flex-shrink-0"></div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-gray-900 text-sm leading-tight mb-1">
