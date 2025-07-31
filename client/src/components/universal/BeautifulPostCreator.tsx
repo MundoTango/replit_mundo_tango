@@ -609,24 +609,11 @@ export default function BeautifulPostCreator({
                 <div className="group relative">
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="relative p-4 rounded-2xl bg-gradient-to-br from-turquoise-50 to-turquoise-100 hover:from-turquoise-100 hover:to-turquoise-200 text-turquoise-600 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl"
+                    className="relative px-6 py-3 rounded-2xl bg-gradient-to-br from-turquoise-50 to-turquoise-100 hover:from-turquoise-100 hover:to-turquoise-200 text-turquoise-600 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl flex items-center gap-2"
                   >
-                    <Camera className="h-6 w-6" />
-                    <div className="absolute -top-2 -right-2 px-2 py-1 bg-turquoise-600 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                      Photo
-                    </div>
-                  </button>
-                </div>
-                
-                <div className="group relative">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="relative p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 text-blue-600 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl"
-                  >
-                    <Video className="h-6 w-6" />
-                    <div className="absolute -top-2 -right-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                      Video
-                    </div>
+                    <Camera className="h-5 w-5" />
+                    <Video className="h-5 w-5" />
+                    <span className="text-sm font-medium">Photo/Video</span>
                   </button>
                 </div>
 
@@ -642,16 +629,7 @@ export default function BeautifulPostCreator({
                   </button>
                 </div>
 
-                <div className="group relative">
-                  <button
-                    className="relative p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 text-purple-600 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl"
-                  >
-                    <Mic className="h-6 w-6" />
-                    <div className="absolute -top-2 -right-2 px-2 py-1 bg-purple-600 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                      Voice
-                    </div>
-                  </button>
-                </div>
+
               </div>
 
               <button
@@ -680,7 +658,7 @@ export default function BeautifulPostCreator({
                     <>
                       <Sparkles className="h-5 w-5 animate-pulse" />
                       <span>Share Memory</span>
-                      <span className="text-2xl">→</span>
+                      <span className={`text-2xl ${createPostMutation.isPending ? 'send-animation' : ''}`}>→</span>
                     </>
                   )}
                 </span>

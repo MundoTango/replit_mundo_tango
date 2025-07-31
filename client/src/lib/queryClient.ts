@@ -1,5 +1,26 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// Store CSRF token
+let csrfToken: string | null = null;
+
+// Fetch CSRF token
+async function fetchCsrfToken() {
+  try {
+    const response = await fetch('/api/auth/csrf-token', {
+      credentials: 'include'
+    });
+    if (response.ok) {
+      const data = await response.json();
+      csrfToken = data.csrfToken;
+    }
+  } catch (error) {
+    console.error('Failed to fetch CSRF token:', error);
+  }
+}
+
+// Initialize CSRF token on app start
+fetchCsrfToken();
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -17,6 +38,11 @@ export async function apiRequest(
 ): Promise<Response> {
   const method = options?.method || 'GET';
   const headers: Record<string, string> = options?.headers || {};
+  
+  // Add CSRF token for state-changing requests
+  if (method !== 'GET' && method !== 'HEAD' && csrfToken) {
+    headers['x-csrf-token'] = csrfToken;
+  }
   
   let body: any = undefined;
   
@@ -36,6 +62,26 @@ export async function apiRequest(
     body,
     credentials: "include", // This ensures session cookies are sent with the request
   });
+
+  // If we get a 403 with CSRF error, try refreshing the token
+  if (res.status === 403) {
+    const text = await res.text();
+    if (text.includes('Invalid CSRF token')) {
+      await fetchCsrfToken();
+      // Retry the request with new token
+      if (csrfToken) {
+        headers['x-csrf-token'] = csrfToken;
+        const retryRes = await fetch(url, {
+          method,
+          headers,
+          body,
+          credentials: "include",
+        });
+        await throwIfResNotOk(retryRes);
+        return retryRes;
+      }
+    }
+  }
 
   await throwIfResNotOk(res);
   return res;

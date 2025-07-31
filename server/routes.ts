@@ -758,6 +758,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CSRF token endpoint
+  app.get('/api/auth/csrf-token', (req, res) => {
+    const session = req.session as any;
+    if (!session.csrfToken) {
+      const { randomBytes } = require('crypto');
+      session.csrfToken = randomBytes(32).toString('hex');
+    }
+    res.json({ csrfToken: session.csrfToken });
+  });
+
   app.get("/api/user/profile", setUserContext, async (req: any, res) => {
     try {
       // Get user from context with fallback
