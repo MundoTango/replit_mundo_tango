@@ -49,9 +49,24 @@ import {
   translationVotes,
   languageAnalytics,
   lunfardoDictionary,
+  subscriptions,
+  paymentMethods,
+  payments,
+  subscriptionFeatures,
+  webhookEvents,
   type User,
   type InsertUser,
   type UpsertUser,
+  type Subscription,
+  type InsertSubscription,
+  type PaymentMethod,
+  type InsertPaymentMethod,
+  type Payment,
+  type InsertPayment,
+  type SubscriptionFeature,
+  type InsertSubscriptionFeature,
+  type WebhookEvent,
+  type InsertWebhookEvent,
   type Post,
   type InsertPost,
   type Event,
@@ -507,6 +522,37 @@ export interface IStorage {
   logLanguageAnalytics(analytics: any): Promise<void>;
   getLunfardoTerms(): Promise<any[]>;
   getSupportedLanguages(): Promise<any[]>;
+  
+  // Payment/Subscription operations
+  createSubscription(subscription: InsertSubscription): Promise<Subscription>;
+  getSubscriptionByUserId(userId: number): Promise<Subscription | undefined>;
+  getSubscriptionByStripeId(stripeSubscriptionId: string): Promise<Subscription | undefined>;
+  updateSubscription(id: string, updates: Partial<Subscription>): Promise<Subscription>;
+  cancelSubscription(id: string, canceledAt: Date): Promise<Subscription>;
+  
+  createPaymentMethod(paymentMethod: InsertPaymentMethod): Promise<PaymentMethod>;
+  getUserPaymentMethods(userId: number): Promise<PaymentMethod[]>;
+  getDefaultPaymentMethod(userId: number): Promise<PaymentMethod | undefined>;
+  updatePaymentMethod(id: string, updates: Partial<PaymentMethod>): Promise<PaymentMethod>;
+  setDefaultPaymentMethod(userId: number, paymentMethodId: string): Promise<void>;
+  deletePaymentMethod(id: string): Promise<void>;
+  
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  getPaymentById(id: string): Promise<Payment | undefined>;
+  getUserPayments(userId: number, limit?: number): Promise<Payment[]>;
+  getPaymentByStripeIntentId(stripePaymentIntentId: string): Promise<Payment | undefined>;
+  
+  getSubscriptionFeatures(tier: string): Promise<SubscriptionFeature[]>;
+  getAllSubscriptionFeatures(): Promise<SubscriptionFeature[]>;
+  createSubscriptionFeature(feature: InsertSubscriptionFeature): Promise<SubscriptionFeature>;
+  updateSubscriptionFeature(id: string, updates: Partial<SubscriptionFeature>): Promise<SubscriptionFeature>;
+  
+  createWebhookEvent(event: InsertWebhookEvent): Promise<WebhookEvent>;
+  getWebhookEventByStripeId(stripeEventId: string): Promise<WebhookEvent | undefined>;
+  markWebhookEventProcessed(id: string): Promise<void>;
+  
+  updateUserStripeCustomerId(userId: number, stripeCustomerId: string): Promise<User>;
+  updateUserSubscriptionInfo(userId: number, subscriptionId: string, status: string, tier: string): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4862,6 +4908,255 @@ export class DatabaseStorage implements IStorage {
       console.error('Error getting supported languages:', error);
       return [];
     }
+  }
+  
+  // Payment/Subscription operations implementation
+  async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
+    const [newSubscription] = await db
+      .insert(subscriptions)
+      .values(subscription)
+      .returning();
+    return newSubscription;
+  }
+  
+  async getSubscriptionByUserId(userId: number): Promise<Subscription | undefined> {
+    const [subscription] = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.userId, userId))
+      .orderBy(desc(subscriptions.createdAt))
+      .limit(1);
+    return subscription;
+  }
+  
+  async getSubscriptionByStripeId(stripeSubscriptionId: string): Promise<Subscription | undefined> {
+    const [subscription] = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.stripeSubscriptionId, stripeSubscriptionId))
+      .limit(1);
+    return subscription;
+  }
+  
+  async getSubscriptionByProviderSubscriptionId(providerSubscriptionId: string): Promise<Subscription | undefined> {
+    const [subscription] = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.providerSubscriptionId, providerSubscriptionId))
+      .limit(1);
+    return subscription;
+  }
+  
+  async updateSubscription(id: string, updates: Partial<Subscription>): Promise<Subscription> {
+    const [updated] = await db
+      .update(subscriptions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(subscriptions.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async cancelSubscription(id: string, canceledAt: Date): Promise<Subscription> {
+    const [updated] = await db
+      .update(subscriptions)
+      .set({
+        status: 'canceled',
+        canceledAt,
+        updatedAt: new Date()
+      })
+      .where(eq(subscriptions.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async createPaymentMethod(paymentMethod: InsertPaymentMethod): Promise<PaymentMethod> {
+    const [newMethod] = await db
+      .insert(paymentMethods)
+      .values(paymentMethod)
+      .returning();
+    return newMethod;
+  }
+  
+  async getUserPaymentMethods(userId: number): Promise<PaymentMethod[]> {
+    return await db
+      .select()
+      .from(paymentMethods)
+      .where(eq(paymentMethods.userId, userId))
+      .orderBy(desc(paymentMethods.isDefault), desc(paymentMethods.createdAt));
+  }
+  
+  async getDefaultPaymentMethod(userId: number): Promise<PaymentMethod | undefined> {
+    const [method] = await db
+      .select()
+      .from(paymentMethods)
+      .where(
+        and(
+          eq(paymentMethods.userId, userId),
+          eq(paymentMethods.isDefault, true)
+        )
+      )
+      .limit(1);
+    return method;
+  }
+  
+  async updatePaymentMethod(id: string, updates: Partial<PaymentMethod>): Promise<PaymentMethod> {
+    const [updated] = await db
+      .update(paymentMethods)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(paymentMethods.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async setDefaultPaymentMethod(userId: number, paymentMethodId: string): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Remove default from all other methods
+      await tx
+        .update(paymentMethods)
+        .set({ isDefault: false })
+        .where(eq(paymentMethods.userId, userId));
+      
+      // Set new default
+      await tx
+        .update(paymentMethods)
+        .set({ isDefault: true })
+        .where(eq(paymentMethods.id, paymentMethodId));
+    });
+  }
+  
+  async deletePaymentMethod(id: string): Promise<void> {
+    await db
+      .delete(paymentMethods)
+      .where(eq(paymentMethods.id, id));
+  }
+  
+  async createPayment(payment: InsertPayment): Promise<Payment> {
+    const [newPayment] = await db
+      .insert(payments)
+      .values(payment)
+      .returning();
+    return newPayment;
+  }
+  
+  async getPaymentById(id: string): Promise<Payment | undefined> {
+    const [payment] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.id, id))
+      .limit(1);
+    return payment;
+  }
+  
+  async getUserPayments(userId: number, limit: number = 50): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.userId, userId))
+      .orderBy(desc(payments.createdAt))
+      .limit(limit);
+  }
+  
+  async getPaymentByStripeIntentId(stripePaymentIntentId: string): Promise<Payment | undefined> {
+    const [payment] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.stripePaymentIntentId, stripePaymentIntentId))
+      .limit(1);
+    return payment;
+  }
+  
+  async updatePaymentStatus(stripePaymentIntentId: string, status: string): Promise<void> {
+    await db
+      .update(payments)
+      .set({ 
+        status,
+        updatedAt: new Date()
+      })
+      .where(eq(payments.stripePaymentIntentId, stripePaymentIntentId));
+  }
+  
+  async getSubscriptionFeatures(tier: string): Promise<SubscriptionFeature[]> {
+    return await db
+      .select()
+      .from(subscriptionFeatures)
+      .where(
+        and(
+          eq(subscriptionFeatures.isActive, true),
+          sql`${tier} = ANY(${subscriptionFeatures.tiers})`
+        )
+      );
+  }
+  
+  async getAllSubscriptionFeatures(): Promise<SubscriptionFeature[]> {
+    return await db
+      .select()
+      .from(subscriptionFeatures)
+      .where(eq(subscriptionFeatures.isActive, true))
+      .orderBy(asc(subscriptionFeatures.featureName));
+  }
+  
+  async createSubscriptionFeature(feature: InsertSubscriptionFeature): Promise<SubscriptionFeature> {
+    const [newFeature] = await db
+      .insert(subscriptionFeatures)
+      .values(feature)
+      .returning();
+    return newFeature;
+  }
+  
+  async updateSubscriptionFeature(id: string, updates: Partial<SubscriptionFeature>): Promise<SubscriptionFeature> {
+    const [updated] = await db
+      .update(subscriptionFeatures)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(subscriptionFeatures.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async createWebhookEvent(event: InsertWebhookEvent): Promise<WebhookEvent> {
+    const [newEvent] = await db
+      .insert(webhookEvents)
+      .values(event)
+      .returning();
+    return newEvent;
+  }
+  
+  async getWebhookEventByStripeId(stripeEventId: string): Promise<WebhookEvent | undefined> {
+    const [event] = await db
+      .select()
+      .from(webhookEvents)
+      .where(eq(webhookEvents.stripeEventId, stripeEventId))
+      .limit(1);
+    return event;
+  }
+  
+  async markWebhookEventProcessed(id: string): Promise<void> {
+    await db
+      .update(webhookEvents)
+      .set({ processed: true })
+      .where(eq(webhookEvents.id, id));
+  }
+  
+  async updateUserStripeCustomerId(userId: number, stripeCustomerId: string): Promise<User> {
+    const [updated] = await db
+      .update(users)
+      .set({ stripeCustomerId })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
+  }
+  
+  async updateUserSubscriptionInfo(userId: number, subscriptionId: string, status: string, tier: string): Promise<User> {
+    const [updated] = await db
+      .update(users)
+      .set({
+        stripeSubscriptionId: subscriptionId,
+        subscriptionStatus: status,
+        subscriptionTier: tier,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
   }
 }
 

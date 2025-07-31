@@ -1,246 +1,391 @@
 import Stripe from 'stripe';
-import { db } from '../db';
-import { subscriptions, paymentMethods, transactions } from '../../shared/subscriptionSchema';
-import { users } from '../../shared/schema';
-import { eq } from 'drizzle-orm';
+import { storage } from '../storage';
+import type { User, Subscription, PaymentMethod, Payment } from '../../shared/schema';
 
-// Payment Provider Interface for multi-platform support
-export interface PaymentProvider {
-  processPayment(amount: number, currency: string, userId: number): Promise<PaymentResult>;
-  createSubscription(planId: string, userId: number): Promise<SubscriptionResult>;
-  cancelSubscription(subscriptionId: string): Promise<boolean>;
-  supportedCountries: string[];
-  supportedCurrencies: string[];
-  providerName: string;
-}
+// Initialize Stripe with secret key (lazy loaded)
+let stripe: Stripe | null = null;
 
-export interface PaymentResult {
-  success: boolean;
-  transactionId: string;
-  provider: string;
-  error?: string;
-}
-
-export interface SubscriptionResult {
-  success: boolean;
-  subscriptionId: string;
-  provider: string;
-  error?: string;
-}
-
-// Stripe Provider Implementation
-export class StripeProvider implements PaymentProvider {
-  private stripe: Stripe;
-  supportedCountries = ['US', 'CA', 'GB', 'EU', 'AU', 'JP', 'SG', 'MX', 'BR'];
-  supportedCurrencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'SGD', 'MXN', 'BRL'];
-  providerName = 'stripe';
-
-  constructor() {
+const getStripe = (): Stripe => {
+  if (!stripe) {
     if (!process.env.STRIPE_SECRET_KEY) {
-      throw new Error('STRIPE_SECRET_KEY is required');
+      throw new Error('STRIPE_SECRET_KEY is not configured. Please add it to your environment variables.');
     }
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-06-30.basil',
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-06-30.basil' as Stripe.LatestApiVersion,
     });
   }
+  return stripe;
+};
 
-  async processPayment(amount: number, currency: string, userId: number): Promise<PaymentResult> {
-    try {
-      const paymentIntent = await this.stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
-        currency: currency.toLowerCase(),
-        metadata: { userId: userId.toString() }
-      });
-
-      return {
-        success: true,
-        transactionId: paymentIntent.id,
-        provider: this.providerName
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        transactionId: '',
-        provider: this.providerName,
-        error: error.message
-      };
-    }
-  }
-
-  async createSubscription(planId: string, userId: number): Promise<SubscriptionResult> {
-    try {
-      // Get or create Stripe customer
-      const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-      if (!user[0]) throw new Error('User not found');
-
-      // Get or create customer ID from raw SQL since column is new
-      const customerQuery = await db.execute(sql`SELECT stripe_customer_id FROM users WHERE id = ${userId}`);
-      let customerId = customerQuery.rows[0]?.stripe_customer_id;
-      
-      if (!customerId) {
-        const customer = await this.stripe.customers.create({
-          email: user[0].email,
-          metadata: { userId: userId.toString() }
-        });
-        customerId = customer.id;
-        // Update user with Stripe customer ID using raw SQL
-        await db.execute(sql`UPDATE users SET stripe_customer_id = ${customerId} WHERE id = ${userId}`);
-      }
-
-      // Create subscription
-      const subscription = await this.stripe.subscriptions.create({
-        customer: customerId,
-        items: [{ price: planId }],
-        payment_behavior: 'default_incomplete',
-        expand: ['latest_invoice.payment_intent']
-      });
-
-      // Store subscription in database
-      await db.insert(subscriptions).values({
-        userId,
-        planId,
-        status: subscription.status,
-        currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : undefined,
-        currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : undefined,
-        paymentProvider: this.providerName,
-        providerSubscriptionId: subscription.id
-      });
-
-      return {
-        success: true,
-        subscriptionId: subscription.id,
-        provider: this.providerName
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        subscriptionId: '',
-        provider: this.providerName,
-        error: error.message
-      };
-    }
-  }
-
-  async cancelSubscription(subscriptionId: string): Promise<boolean> {
-    try {
-      await this.stripe.subscriptions.update(subscriptionId, {
-        cancel_at_period_end: true
-      });
-      
-      // Update database
-      await db.update(subscriptions)
-        .set({ cancelAtPeriodEnd: true })
-        .where(eq(subscriptions.providerSubscriptionId, subscriptionId));
-      
-      return true;
-    } catch (error) {
-      console.error('Error canceling subscription:', error);
-      return false;
-    }
-  }
-
-  async createPaymentIntent(amount: number, currency: string): Promise<{ clientSecret: string }> {
-    const paymentIntent = await this.stripe.paymentIntents.create({
-      amount: Math.round(amount * 100),
-      currency: currency.toLowerCase(),
-    });
-    return { clientSecret: paymentIntent.client_secret! };
-  }
-}
-
-// Crypto Provider for universal fallback (USDT)
-export class CryptoProvider implements PaymentProvider {
-  supportedCountries = ['ALL']; // Works everywhere
-  supportedCurrencies = ['USDT', 'BTC', 'ETH'];
-  providerName = 'crypto';
-
-  async processPayment(amount: number, currency: string, userId: number): Promise<PaymentResult> {
-    // Implementation would integrate with crypto payment gateway
-    // For now, return structure
-    return {
-      success: true,
-      transactionId: `crypto_${Date.now()}`,
-      provider: this.providerName
-    };
-  }
-
-  async createSubscription(planId: string, userId: number): Promise<SubscriptionResult> {
-    // Crypto subscriptions would use smart contracts or recurring payment requests
-    return {
-      success: true,
-      subscriptionId: `crypto_sub_${Date.now()}`,
-      provider: this.providerName
-    };
-  }
-
-  async cancelSubscription(subscriptionId: string): Promise<boolean> {
-    // Cancel crypto subscription
-    return true;
-  }
-}
-
-// Payment Provider Factory
-export class PaymentProviderFactory {
-  private static providers: Map<string, PaymentProvider> = new Map();
-
-  static {
-    // Initialize providers
-    this.providers.set('stripe', new StripeProvider());
-    this.providers.set('crypto', new CryptoProvider());
-  }
-
-  static getProvider(country: string): PaymentProvider {
-    // Special cases for specific countries
-    if (country === 'RU' || country === 'BY' || country === 'KZ') {
-      // For Russia and CIS countries, use crypto
-      return this.providers.get('crypto')!;
-    }
-
-    // Default to Stripe for supported countries
-    const stripeProvider = this.providers.get('stripe')!;
-    if (stripeProvider.supportedCountries.includes(country)) {
-      return stripeProvider;
-    }
-
-    // Fallback to crypto for unsupported countries
-    return this.providers.get('crypto')!;
-  }
-
-  static getProviderByName(name: string): PaymentProvider | undefined {
-    return this.providers.get(name);
-  }
-}
-
-// Import sql for raw queries
-import { sql } from 'drizzle-orm';
-
-// Subscription plans configuration
-export const SUBSCRIPTION_PLANS = {
+// Subscription tiers and pricing
+export const SUBSCRIPTION_TIERS = {
   free: {
-    id: 'free',
     name: 'Free',
+    priceId: null,
     price: 0,
-    features: ['basic_profile', 'view_events', 'join_groups', '5_posts_per_month'],
+    features: ['basic_features', 'limited_storage']
+  },
+  basic: {
+    name: 'Basic',
+    priceId: process.env.STRIPE_PRICE_ID_BASIC || '',
+    price: 500, // $5.00 in cents
+    features: ['all_free_features', 'unlimited_storage', 'priority_support']
   },
   enthusiast: {
-    id: 'price_enthusiast', // Stripe price ID
     name: 'Enthusiast',
-    price: 9.99,
-    currency: 'USD',
-    features: ['unlimited_posts', 'priority_support', 'advanced_search', 'event_rsvp_priority'],
+    priceId: process.env.STRIPE_PRICE_ID_ENTHUSIAST || '',
+    price: 999, // $9.99 in cents
+    features: ['all_basic_features', 'advanced_analytics', 'custom_branding']
   },
   professional: {
-    id: 'price_professional', // Stripe price ID
     name: 'Professional',
-    price: 24.99,
-    currency: 'USD',
-    features: ['event_creation', 'analytics_dashboard', 'promotion_tools', 'verified_badge', 'custom_url'],
+    priceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL || '',
+    price: 2499, // $24.99 in cents
+    features: ['all_enthusiast_features', 'api_access', 'white_label']
   },
   enterprise: {
-    id: 'price_enterprise', // Stripe price ID
     name: 'Enterprise',
-    price: 99.99,
-    currency: 'USD',
-    features: ['multi_city_management', 'api_access', 'white_label', 'dedicated_support', 'custom_features'],
+    priceId: process.env.STRIPE_PRICE_ID_ENTERPRISE || '',
+    price: 9999, // $99.99 in cents
+    features: ['all_professional_features', 'dedicated_support', 'custom_features']
   }
 };
+
+export class PaymentService {
+  // Create or get Stripe customer
+  async getOrCreateCustomer(user: User): Promise<string> {
+    if (user.stripeCustomerId) {
+      return user.stripeCustomerId;
+    }
+
+    const customer = await getStripe().customers.create({
+      email: user.email,
+      name: user.name,
+      metadata: {
+        userId: user.id.toString()
+      }
+    });
+
+    await storage.updateUserStripeCustomerId(user.id, customer.id);
+    return customer.id;
+  }
+
+  // Create subscription
+  async createSubscription(userId: number, tier: string): Promise<Subscription> {
+    const user = await storage.getUser(userId);
+    if (!user) throw new Error('User not found');
+
+    const tierConfig = SUBSCRIPTION_TIERS[tier as keyof typeof SUBSCRIPTION_TIERS];
+    if (!tierConfig || !tierConfig.priceId) {
+      throw new Error('Invalid subscription tier');
+    }
+
+    const customerId = await this.getOrCreateCustomer(user);
+
+    // Create subscription in Stripe
+    const stripeSubscription = await getStripe().subscriptions.create({
+      customer: customerId,
+      items: [{ price: tierConfig.priceId }],
+      payment_behavior: 'default_incomplete',
+      payment_settings: { save_default_payment_method: 'on_subscription' },
+      expand: ['latest_invoice.payment_intent']
+    });
+
+    // Save subscription to database
+    const subscription = await storage.createSubscription({
+      userId: user.id,
+      planId: tierConfig.priceId,
+      status: stripeSubscription.status,
+      currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
+      currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+      paymentProvider: 'stripe',
+      providerSubscriptionId: stripeSubscription.id,
+      metadata: {
+        tier,
+        stripePriceId: tierConfig.priceId
+      }
+    });
+
+    // Update user subscription info
+    await storage.updateUserSubscriptionInfo(
+      user.id,
+      stripeSubscription.id,
+      stripeSubscription.status,
+      tier
+    );
+
+    return subscription;
+  }
+
+  // Get subscription client secret for payment
+  async getSubscriptionClientSecret(subscriptionId: string): Promise<string | null> {
+    const subscription = await getStripe().subscriptions.retrieve(subscriptionId, {
+      expand: ['latest_invoice.payment_intent']
+    });
+
+    const invoice = subscription.latest_invoice;
+    if (typeof invoice === 'object' && invoice !== null) {
+      const paymentIntent = (invoice as any).payment_intent;
+      if (typeof paymentIntent === 'object' && paymentIntent !== null) {
+        return paymentIntent.client_secret || null;
+      }
+    }
+
+    return null;
+  }
+
+  // Cancel subscription
+  async cancelSubscription(userId: number): Promise<void> {
+    const user = await storage.getUser(userId);
+    if (!user || !user.stripeSubscriptionId) {
+      throw new Error('No active subscription found');
+    }
+
+    await getStripe().subscriptions.update(user.stripeSubscriptionId, {
+      cancel_at_period_end: true
+    });
+
+    await storage.updateUserSubscriptionInfo(
+      user.id,
+      user.stripeSubscriptionId,
+      'canceled',
+      'free'
+    );
+  }
+
+  // Resume subscription
+  async resumeSubscription(userId: number): Promise<void> {
+    const user = await storage.getUser(userId);
+    if (!user || !user.stripeSubscriptionId) {
+      throw new Error('No subscription found');
+    }
+
+    await getStripe().subscriptions.update(user.stripeSubscriptionId, {
+      cancel_at_period_end: false
+    });
+
+    const subscription = await storage.getSubscriptionByUserId(userId);
+    if (subscription) {
+      const metadata = subscription.metadata as any;
+      await storage.updateUserSubscriptionInfo(
+        user.id,
+        user.stripeSubscriptionId,
+        'active',
+        metadata?.tier || 'basic'
+      );
+    }
+  }
+
+  // Create payment intent for one-time payments
+  async createPaymentIntent(userId: number, amount: number, currency: string = 'usd'): Promise<{ clientSecret: string }> {
+    const user = await storage.getUser(userId);
+    if (!user) throw new Error('User not found');
+
+    const customerId = await this.getOrCreateCustomer(user);
+
+    const paymentIntent = await getStripe().paymentIntents.create({
+      amount,
+      currency,
+      customer: customerId,
+      metadata: {
+        userId: user.id.toString()
+      }
+    });
+
+    // Record payment in database
+    await storage.createPayment({
+      userId: user.id,
+      stripePaymentIntentId: paymentIntent.id,
+      amount,
+      currency,
+      status: paymentIntent.status,
+      metadata: {
+        stripeCustomerId: customerId
+      }
+    });
+
+    return { clientSecret: paymentIntent.client_secret! };
+  }
+
+  // Add payment method
+  async addPaymentMethod(userId: number, paymentMethodId: string): Promise<PaymentMethod> {
+    const user = await storage.getUser(userId);
+    if (!user) throw new Error('User not found');
+
+    const customerId = await this.getOrCreateCustomer(user);
+
+    // Attach payment method to customer
+    await getStripe().paymentMethods.attach(paymentMethodId, {
+      customer: customerId
+    });
+
+    // Get payment method details
+    const stripePaymentMethod = await getStripe().paymentMethods.retrieve(paymentMethodId);
+
+    // Save to database
+    const paymentMethod = await storage.createPaymentMethod({
+      userId: user.id,
+      provider: 'stripe',
+      type: stripePaymentMethod.type,
+      lastFour: stripePaymentMethod.card?.last4,
+      brand: stripePaymentMethod.card?.brand,
+      country: stripePaymentMethod.card?.country,
+      expiryMonth: stripePaymentMethod.card?.exp_month,
+      expiryYear: stripePaymentMethod.card?.exp_year,
+      providerPaymentMethodId: paymentMethodId
+    });
+
+    return paymentMethod;
+  }
+
+  // Set default payment method
+  async setDefaultPaymentMethod(userId: number, paymentMethodId: string): Promise<void> {
+    const user = await storage.getUser(userId);
+    if (!user || !user.stripeCustomerId) throw new Error('User not found');
+
+    await getStripe().customers.update(user.stripeCustomerId, {
+      invoice_settings: {
+        default_payment_method: paymentMethodId
+      }
+    });
+
+    await storage.setDefaultPaymentMethod(userId, paymentMethodId);
+  }
+
+  // Get user's payment methods
+  async getUserPaymentMethods(userId: number): Promise<PaymentMethod[]> {
+    return await storage.getUserPaymentMethods(userId);
+  }
+
+  // Process webhook
+  async processWebhook(signature: string, payload: string): Promise<void> {
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      throw new Error('Webhook secret not configured');
+    }
+
+    let event: Stripe.Event;
+    try {
+      event = getStripe().webhooks.constructEvent(payload, signature, webhookSecret);
+    } catch (err) {
+      throw new Error('Invalid webhook signature');
+    }
+
+    // Check if we've already processed this event
+    const existingEvent = await storage.getWebhookEventByStripeId(event.id);
+    if (existingEvent?.processed) {
+      return;
+    }
+
+    // Record the event
+    const webhookEvent = await storage.createWebhookEvent({
+      stripeEventId: event.id,
+      type: event.type,
+      data: event.data as any
+    });
+
+    // Process based on event type
+    switch (event.type) {
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+        await this.handleSubscriptionUpdate(event.data.object as Stripe.Subscription);
+        break;
+      
+      case 'customer.subscription.deleted':
+        await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+        break;
+      
+      case 'invoice.payment_succeeded':
+        await this.handlePaymentSucceeded(event.data.object as Stripe.Invoice);
+        break;
+      
+      case 'invoice.payment_failed':
+        await this.handlePaymentFailed(event.data.object as Stripe.Invoice);
+        break;
+    }
+
+    // Mark as processed
+    await storage.markWebhookEventProcessed(webhookEvent.id.toString());
+  }
+
+  // Handle subscription update
+  private async handleSubscriptionUpdate(subscription: Stripe.Subscription): Promise<void> {
+    const customer = await stripe.customers.retrieve(subscription.customer as string);
+    if (typeof customer === 'string' || customer.deleted) return;
+
+    const userId = parseInt(customer.metadata.userId);
+    if (!userId) return;
+
+    // Update subscription in database
+    const dbSubscription = await storage.getSubscriptionByProviderSubscriptionId(subscription.id);
+    if (dbSubscription) {
+      await storage.updateSubscription(dbSubscription.id, {
+        status: subscription.status,
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end
+      });
+    }
+
+    // Update user subscription info
+    const tier = subscription.items.data[0]?.price.metadata?.tier || 'basic';
+    await storage.updateUserSubscriptionInfo(userId, subscription.id, subscription.status, tier);
+  }
+
+  // Handle subscription deleted
+  private async handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
+    const customer = await stripe.customers.retrieve(subscription.customer as string);
+    if (typeof customer === 'string' || customer.deleted) return;
+
+    const userId = parseInt(customer.metadata.userId);
+    if (!userId) return;
+
+    await storage.updateUserSubscriptionInfo(userId, '', 'canceled', 'free');
+  }
+
+  // Handle payment succeeded
+  private async handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
+    if (!invoice.payment_intent) return;
+
+    const paymentIntentId = typeof invoice.payment_intent === 'string' 
+      ? invoice.payment_intent 
+      : invoice.payment_intent.id;
+
+    await storage.updatePaymentStatus(paymentIntentId, 'succeeded');
+  }
+
+  // Handle payment failed
+  private async handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
+    if (!invoice.payment_intent) return;
+
+    const paymentIntentId = typeof invoice.payment_intent === 'string' 
+      ? invoice.payment_intent 
+      : invoice.payment_intent.id;
+
+    await storage.updatePaymentStatus(paymentIntentId, 'failed');
+  }
+
+  // Check user subscription status
+  async checkUserSubscriptionStatus(userId: number): Promise<{
+    hasActiveSubscription: boolean;
+    tier: string;
+    features: string[];
+  }> {
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return { hasActiveSubscription: false, tier: 'free', features: SUBSCRIPTION_TIERS.free.features };
+    }
+
+    const isActive = user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing';
+    const tier = user.subscriptionTier || 'free';
+    const tierConfig = SUBSCRIPTION_TIERS[tier as keyof typeof SUBSCRIPTION_TIERS] || SUBSCRIPTION_TIERS.free;
+
+    return {
+      hasActiveSubscription: isActive,
+      tier,
+      features: tierConfig.features
+    };
+  }
+}
+
+export const paymentService = new PaymentService();

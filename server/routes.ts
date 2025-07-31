@@ -1,4 +1,4 @@
-import { Express } from "express";
+import express, { Express } from "express";
 import { createServer, type Server } from "http";
 import eventsRoutes from './routes/eventsRoutes';
 import * as path from 'path';
@@ -1108,6 +1108,190 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: 'Internal server error. Please try again later.',
         data: {}
       });
+    }
+  });
+
+  // Payment and Subscription Routes - Life CEO ESA Payment Implementation
+  const paymentService = new (await import('./services/paymentService')).PaymentService();
+
+  // Get subscription tiers
+  app.get('/api/payments/subscription-tiers', async (req, res) => {
+    try {
+      const { SUBSCRIPTION_TIERS } = await import('./services/paymentService');
+      res.json({
+        success: true,
+        data: SUBSCRIPTION_TIERS
+      });
+    } catch (error) {
+      console.error('Error fetching subscription tiers:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to fetch subscription tiers' 
+      });
+    }
+  });
+
+  // Create or retrieve subscription
+  app.post('/api/payments/subscribe', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      const { tier } = req.body;
+      if (!tier || !['basic', 'enthusiast', 'professional', 'enterprise'].includes(tier)) {
+        return res.status(400).json({ error: 'Invalid subscription tier' });
+      }
+
+      const subscription = await paymentService.createSubscription(user.id, tier);
+      const clientSecret = await paymentService.getSubscriptionClientSecret(subscription.id);
+
+      res.json({
+        subscriptionId: subscription.id,
+        clientSecret,
+        tier
+      });
+    } catch (error: any) {
+      console.error('Error creating subscription:', error);
+      res.status(500).json({ error: error.message || 'Failed to create subscription' });
+    }
+  });
+
+  // Get user's subscription status
+  app.get('/api/payments/subscription', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      const subscription = await storage.getSubscriptionByUserId(user.id);
+      const paymentMethods = await storage.getUserPaymentMethods(user.id);
+
+      res.json({
+        subscription: subscription || null,
+        paymentMethods,
+        hasActiveSubscription: subscription?.status === 'active'
+      });
+    } catch (error: any) {
+      console.error('Error fetching subscription:', error);
+      res.status(500).json({ error: 'Failed to fetch subscription status' });
+    }
+  });
+
+  // Cancel subscription
+  app.post('/api/payments/cancel-subscription', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user || !user.stripeSubscriptionId) {
+        return res.status(400).json({ error: 'No active subscription found' });
+      }
+
+      const subscription = await paymentService.cancelSubscription(user.id);
+      
+      res.json({
+        message: 'Subscription cancelled successfully',
+        subscription
+      });
+    } catch (error: any) {
+      console.error('Error cancelling subscription:', error);
+      res.status(500).json({ error: 'Failed to cancel subscription' });
+    }
+  });
+
+  // Resume cancelled subscription
+  app.post('/api/payments/resume-subscription', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user || !user.stripeSubscriptionId) {
+        return res.status(400).json({ error: 'No subscription found' });
+      }
+
+      const subscription = await paymentService.resumeSubscription(user.id);
+      
+      res.json({
+        message: 'Subscription resumed successfully',
+        subscription
+      });
+    } catch (error: any) {
+      console.error('Error resuming subscription:', error);
+      res.status(500).json({ error: 'Failed to resume subscription' });
+    }
+  });
+
+  // Add payment method
+  app.post('/api/payments/payment-method', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      const { paymentMethodId, setAsDefault } = req.body;
+      
+      const paymentMethod = await paymentService.addPaymentMethod(
+        user.id, 
+        paymentMethodId, 
+        setAsDefault
+      );
+      
+      res.json({
+        message: 'Payment method added successfully',
+        paymentMethod
+      });
+    } catch (error: any) {
+      console.error('Error adding payment method:', error);
+      res.status(500).json({ error: 'Failed to add payment method' });
+    }
+  });
+
+  // Remove payment method
+  app.delete('/api/payments/payment-method/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      await paymentService.removePaymentMethod(user.id, req.params.id);
+      
+      res.json({
+        message: 'Payment method removed successfully'
+      });
+    } catch (error: any) {
+      console.error('Error removing payment method:', error);
+      res.status(500).json({ error: 'Failed to remove payment method' });
+    }
+  });
+
+  // Stripe webhook endpoint
+  app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    try {
+      const signature = req.headers['stripe-signature'] as string;
+      
+      if (!signature) {
+        return res.status(400).json({ error: 'Missing stripe signature' });
+      }
+
+      await paymentService.handleWebhook(req.body, signature);
+      
+      res.json({ received: true });
+    } catch (error: any) {
+      console.error('Webhook error:', error);
+      res.status(400).json({ error: error.message });
     }
   });
 

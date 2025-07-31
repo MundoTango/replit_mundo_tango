@@ -14,7 +14,7 @@ export interface FeatureFlag {
 }
 
 // Feature flags storage (in production, use a service like LaunchDarkly or Unleash)
-const featureFlags: Map<string, FeatureFlag> = new Map([
+export const featureFlags: Map<string, FeatureFlag> = new Map([
   ['life-ceo-performance', {
     key: 'life-ceo-performance',
     description: 'Life CEO performance optimization features',

@@ -56,6 +56,11 @@ export const users = pgTable("users", {
   codeOfConductAccepted: boolean("code_of_conduct_accepted").default(false),
   occupation: varchar("occupation", { length: 255 }), // Adding missing occupation field
   termsAccepted: boolean("terms_accepted").default(false), // Adding missing terms accepted field
+  // Stripe integration fields
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }).unique(),
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
+  subscriptionStatus: varchar("subscription_status", { length: 50 }), // active, canceled, past_due, etc
+  subscriptionTier: varchar("subscription_tier", { length: 50 }).default('free'), // free, basic, enthusiast, professional, enterprise
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -1946,6 +1951,123 @@ export { homeAmenities, homePhotos } from './schema/hostHomes';
 
 // Export from travelDetails module
 export { travelDetails } from './travelDetails';
+
+// Subscriptions table (matching existing database)
+export const subscriptions = pgTable("subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  planId: varchar("plan_id", { length: 255 }).notNull(),
+  status: varchar("status", { length: 50 }).notNull(),
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+  paymentProvider: varchar("payment_provider", { length: 50 }).notNull(),
+  providerSubscriptionId: varchar("provider_subscription_id", { length: 255 }).notNull(),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Payment methods table (matching existing database)
+export const paymentMethods = pgTable("payment_methods", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  provider: varchar("provider", { length: 50 }).notNull(),
+  type: varchar("type", { length: 50 }).notNull(),
+  lastFour: varchar("last_four", { length: 4 }),
+  brand: varchar("brand", { length: 50 }),
+  country: varchar("country", { length: 2 }),
+  expiryMonth: integer("expiry_month"),
+  expiryYear: integer("expiry_year"),
+  isDefault: boolean("is_default").default(false),
+  providerPaymentMethodId: varchar("provider_payment_method_id", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Payments/transactions table for payment history
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 255 }).unique(),
+  subscriptionId: integer("subscription_id").references(() => subscriptions.id),
+  amount: integer("amount").notNull(), // Amount in cents
+  currency: varchar("currency", { length: 3 }).notNull().default('usd'),
+  status: varchar("status", { length: 50 }).notNull(), // succeeded, pending, failed, etc
+  description: text("description"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_payments_user_id").on(table.userId),
+  index("idx_payments_subscription_id").on(table.subscriptionId),
+  index("idx_payments_stripe_payment_intent_id").on(table.stripePaymentIntentId),
+]);
+
+// Subscription features table for feature gating
+export const subscriptionFeatures = pgTable("subscription_features", {
+  id: serial("id").primaryKey(),
+  featureName: varchar("feature_name", { length: 255 }).unique().notNull(),
+  description: text("description"),
+  tiers: text("tiers").array().notNull(), // Array of tiers that have access to this feature
+  limitValue: integer("limit_value"), // NULL for unlimited, number for limited features
+  limitUnit: varchar("limit_unit", { length: 50 }), // 'count', 'mb', 'minutes', etc.
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Webhook events table for Stripe webhook tracking
+export const webhookEvents = pgTable("webhook_events", {
+  id: serial("id").primaryKey(),
+  stripeEventId: varchar("stripe_event_id", { length: 255 }).unique().notNull(),
+  type: varchar("type", { length: 255 }).notNull(),
+  data: jsonb("data").notNull(),
+  processed: boolean("processed").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_webhook_events_stripe_event_id").on(table.stripeEventId),
+  index("idx_webhook_events_processed").on(table.processed),
+]);
+
+// Insert schemas for payment tables
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSubscriptionFeatureSchema = createInsertSchema(subscriptionFeatures).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWebhookEventSchema = createInsertSchema(webhookEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types for payment tables
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type SubscriptionFeature = typeof subscriptionFeatures.$inferSelect;
+export type InsertSubscriptionFeature = z.infer<typeof insertSubscriptionFeatureSchema>;
+export type WebhookEvent = typeof webhookEvents.$inferSelect;
+export type InsertWebhookEvent = z.infer<typeof insertWebhookEventSchema>;
 
 // Export language-related tables and types from languageSchema
 export {
