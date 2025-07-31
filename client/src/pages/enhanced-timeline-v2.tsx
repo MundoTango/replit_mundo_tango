@@ -35,10 +35,10 @@ import '../styles/enhanced-memories.css';
 import { RoleEmojiDisplay } from '../components/ui/RoleEmojiDisplay';
 import { PostContextMenu } from '../components/ui/PostContextMenu';
 import { EnhancedPostCreator, EnhancedMemoryCard } from '../components/memories/EnhancedMemoriesUI';
+import NewFeedEvents from '../components/feed/NewFeedEvents';
 
 // Lazy load heavy components
 import { 
-  LazyEventBoard,
   LazyBeautifulPostCreator,
   LazyFacebookReactionSelector,
   LazyRichTextCommentEditor,
@@ -46,7 +46,6 @@ import {
   withSuspense
 } from '../lib/lazy-components';
 
-const EventsBoard = withSuspense(LazyEventBoard);
 const BeautifulPostCreator = withSuspense(LazyBeautifulPostCreator);
 const FacebookReactionSelector = withSuspense(LazyFacebookReactionSelector);
 const RichTextCommentEditor = withSuspense(LazyRichTextCommentEditor);
@@ -967,7 +966,7 @@ export default function EnhancedTimelineV2() {
 
             {/* Mobile Events Section */}
             <div className="block lg:hidden mb-6">
-              <EventsBoard currentUserId={user?.id || 0} />
+              <NewFeedEvents />
             </div>
 
             {/* Posts with Virtual Scrolling */}
@@ -1042,7 +1041,7 @@ export default function EnhancedTimelineV2() {
           {/* Sidebar */}
           <div className="lg:col-span-4">
             <div className="sticky top-6">
-              <EventsBoard currentUserId={user?.id || 0} />
+              <NewFeedEvents />
             </div>
           </div>
         </div>
