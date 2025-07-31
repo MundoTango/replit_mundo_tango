@@ -351,23 +351,23 @@ const AdminCenter: React.FC = React.memo(() => {
     trend?: string | null;
     bgColor?: string;
   }) => (
-    <div className={`${bgColor} rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow`}>
+    <div className={`glassmorphic-card backdrop-blur-xl ${bgColor} rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all border border-turquoise-100/50`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
+            <div className="p-2 bg-gradient-to-r from-turquoise-50 to-cyan-50 rounded-lg">
               {icon}
             </div>
-            <h3 className="text-sm font-medium text-gray-600">{title}</h3>
+            <h3 className="text-xs sm:text-sm font-medium text-gray-600">{title}</h3>
           </div>
-          <div className="text-2xl font-bold text-gray-900 mb-1">{value}</div>
+          <div className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-turquoise-700 to-cyan-700 bg-clip-text text-transparent mb-1">{value}</div>
           {subtitle && (
-            <p className="text-sm text-gray-500">{subtitle}</p>
+            <p className="text-xs sm:text-sm text-gray-500">{subtitle}</p>
           )}
           {trend && (
             <div className="flex items-center gap-1 mt-2">
-              <TrendingUp className="w-4 h-4 text-green-500" />
-              <span className="text-sm text-green-600">{trend}</span>
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
+              <span className="text-xs sm:text-sm text-green-600">{trend}</span>
             </div>
           )}
         </div>
@@ -407,18 +407,18 @@ const AdminCenter: React.FC = React.memo(() => {
     };
 
     return (
-      <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-white/50 shadow-lg hover:shadow-xl transition-all">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold bg-gradient-to-r from-turquoise-700 to-cyan-700 bg-clip-text text-transparent">{title}</h3>
-          <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${getStatusColor()}`}>
-            {getStatusIcon()}
-            <span className="text-sm font-medium">{score}%</span>
+      <div className="glassmorphic-card backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-turquoise-100/50 shadow-lg hover:shadow-xl transition-all">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h3 className="font-semibold bg-gradient-to-r from-turquoise-700 to-cyan-700 bg-clip-text text-transparent text-sm sm:text-base">{title}</h3>
+          <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full ${getStatusColor()}`}>
+            <span className="scale-75 sm:scale-100">{getStatusIcon()}</span>
+            <span className="text-xs sm:text-sm font-medium">{score}%</span>
           </div>
         </div>
-        <p className="text-sm text-gray-600 mb-4">{description}</p>
-        <div className="w-full bg-turquoise-100/50 rounded-full h-2">
+        <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">{description}</p>
+        <div className="w-full bg-turquoise-100/50 rounded-full h-1.5 sm:h-2">
           <div 
-            className={`h-2 rounded-full transition-all duration-300 ${
+            className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${
               score >= 90 ? 'bg-gradient-to-r from-turquoise-500 to-cyan-500' : 
               score >= 75 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' : 
               score >= 60 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-red-500 to-pink-500'
@@ -431,45 +431,45 @@ const AdminCenter: React.FC = React.memo(() => {
   };
 
   const renderOverview = () => (
-    <div className="space-y-6">
-      {/* Platform Statistics with MT Design */}
+    <div className="space-y-4 sm:space-y-6">
+      {/* ESA Platform Audit - Mobile-First Platform Statistics */}
       <div>
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Platform Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-            <div className="flex items-start justify-between mb-3">
-              <div className="p-2 bg-blue-500 rounded-xl">
-                <Users className="w-5 h-5 text-white" />
+        <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-turquoise-700 to-cyan-700 bg-clip-text text-transparent mb-3 sm:mb-4">Platform Overview</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+          <div className="glassmorphic-card backdrop-blur-xl bg-gradient-to-br from-turquoise-50/70 to-cyan-50/70 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 border border-turquoise-100/50">
+            <div className="flex items-start justify-between mb-2 sm:mb-3">
+              <div className="p-1.5 sm:p-2 bg-gradient-to-r from-turquoise-500 to-cyan-500 rounded-lg sm:rounded-xl">
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <span className="text-xs font-medium text-blue-600">+12%</span>
+              <span className="text-[10px] sm:text-xs font-medium text-turquoise-600">+12%</span>
             </div>
-            <div className="text-2xl font-bold text-gray-800">{stats?.totalUsers?.toLocaleString() || '0'}</div>
-            <div className="text-sm text-gray-600 mt-1">Total Users</div>
-            <div className="text-xs text-gray-500 mt-1">Registered members</div>
+            <div className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-turquoise-700 to-cyan-700 bg-clip-text text-transparent">{stats?.totalUsers?.toLocaleString() || '0'}</div>
+            <div className="text-xs sm:text-sm text-gray-600 mt-1">Total Users</div>
+            <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 hidden sm:block">Registered members</div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-            <div className="flex items-start justify-between mb-3">
-              <div className="p-2 bg-green-500 rounded-xl">
-                <Activity className="w-5 h-5 text-white" />
+          <div className="glassmorphic-card backdrop-blur-xl bg-gradient-to-br from-green-50/70 to-emerald-50/70 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 border border-green-100/50">
+            <div className="flex items-start justify-between mb-2 sm:mb-3">
+              <div className="p-1.5 sm:p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg sm:rounded-xl">
+                <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <span className="text-xs font-medium text-green-600">+8%</span>
+              <span className="text-[10px] sm:text-xs font-medium text-green-600">+8%</span>
             </div>
-            <div className="text-2xl font-bold text-gray-800">{stats?.activeUsers?.toLocaleString() || '0'}</div>
-            <div className="text-sm text-gray-600 mt-1">Active Users</div>
-            <div className="text-xs text-gray-500 mt-1">Last 30 days</div>
+            <div className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-green-700 to-emerald-700 bg-clip-text text-transparent">{stats?.activeUsers?.toLocaleString() || '0'}</div>
+            <div className="text-xs sm:text-sm text-gray-600 mt-1">Active Users</div>
+            <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 hidden sm:block">Last 30 days</div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-            <div className="flex items-start justify-between mb-3">
-              <div className="p-2 bg-purple-500 rounded-xl">
-                <Globe className="w-5 h-5 text-white" />
+          <div className="glassmorphic-card backdrop-blur-xl bg-gradient-to-br from-purple-50/70 to-indigo-50/70 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 border border-purple-100/50">
+            <div className="flex items-start justify-between mb-2 sm:mb-3">
+              <div className="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg sm:rounded-xl">
+                <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <span className="text-xs font-medium text-purple-600">+15%</span>
+              <span className="text-[10px] sm:text-xs font-medium text-purple-600">+15%</span>
             </div>
-            <div className="text-2xl font-bold text-gray-800">{stats?.totalEvents?.toLocaleString() || '0'}</div>
-            <div className="text-sm text-gray-600 mt-1">Total Events</div>
-            <div className="text-xs text-gray-500 mt-1">All time</div>
+            <div className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-purple-700 to-indigo-700 bg-clip-text text-transparent">{stats?.totalEvents?.toLocaleString() || '0'}</div>
+            <div className="text-xs sm:text-sm text-gray-600 mt-1">Total Events</div>
+            <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 hidden sm:block">All time</div>
           </div>
 
           <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
@@ -2571,30 +2571,40 @@ const AdminCenter: React.FC = React.memo(() => {
       
       <div className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : ''}`}>
         <div className="min-h-screen">
-          {/* MT Style Header */}
-          <div className="bg-gradient-to-r from-turquoise-600 to-blue-600 sticky top-0 z-10 shadow-xl">
-            <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
-                    <Shield className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-white">Admin Center</h1>
-                    <p className="text-sm text-white/80">Mundo Tango Platform Administration</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  {/* Back to App Button */}
-                  <button 
-                    onClick={() => window.location.href = '/moments'}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-xl hover:bg-white transition-all duration-200 shadow-lg group"
+          {/* ESA Platform Audit - Mobile-First MT Ocean Theme Header */}
+          <div className="glassmorphic-card backdrop-blur-xl bg-gradient-to-r from-turquoise-600/90 to-cyan-600/90 sticky top-0 z-10 shadow-2xl">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  {/* Mobile Menu Toggle */}
+                  <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="lg:hidden p-2 rounded-lg hover:bg-white/20 transition-colors min-h-[44px] min-w-[44px]"
                   >
-                    <ArrowLeft className="w-4 h-4 text-gray-700 group-hover:text-pink-600 transition-colors" />
-                    <span className="text-gray-700 font-medium">Back to App</span>
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
                   </button>
                   
-                  <div className="px-4 py-2 bg-gradient-to-r from-green-400 to-emerald-400 text-white rounded-full text-sm font-medium shadow-lg">
+                  <div className="p-2 sm:p-3 bg-white/20 backdrop-blur-sm rounded-xl sm:rounded-2xl">
+                    <Shield className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h1 className="text-lg sm:text-xl md:text-3xl font-bold text-white">Admin Center</h1>
+                    <p className="text-xs sm:text-sm text-white/80 hidden sm:block">Mundo Tango Platform</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 sm:gap-3 justify-end w-full sm:w-auto">
+                  {/* Mobile-Optimized Back Button */}
+                  <button 
+                    onClick={() => window.location.href = '/moments'}
+                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg sm:rounded-xl hover:bg-white transition-all duration-200 shadow-lg group min-h-[44px]"
+                  >
+                    <ArrowLeft className="w-4 h-4 text-gray-700 group-hover:text-turquoise-600 transition-colors" />
+                    <span className="text-gray-700 font-medium text-sm sm:text-base">Back</span>
+                  </button>
+                  
+                  <div className="px-3 sm:px-4 py-2 bg-gradient-to-r from-green-400 to-emerald-400 text-white rounded-full text-xs sm:text-sm font-medium shadow-lg hidden sm:flex">
                     System Healthy
                   </div>
                 </div>
@@ -2602,27 +2612,27 @@ const AdminCenter: React.FC = React.memo(() => {
             </div>
           </div>
 
-          {/* MT Style Navigation Tabs */}
-          <div className="bg-white/80 backdrop-blur-sm border-b border-pink-200/50 shadow-md">
-            <div className="max-w-7xl mx-auto px-4 md:px-6">
-              <nav className="flex flex-nowrap md:flex-wrap gap-2 md:gap-6 overflow-x-auto py-2 md:py-0">
+          {/* ESA Platform Audit - Mobile-Optimized Navigation Tabs */}
+          <div className="glassmorphic-card backdrop-blur-md bg-white/80 border-b border-turquoise-200/50 shadow-lg">
+            <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6">
+              <nav className="flex gap-1 sm:gap-2 md:gap-4 overflow-x-auto scrollbar-hide py-2 md:py-0 -mx-2 px-2">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setSelectedTab(tab.id)}
-                    className={`flex items-center gap-2 py-3 md:py-4 px-3 md:px-4 border-b-3 font-medium text-xs md:text-sm transition-all whitespace-nowrap rounded-t-xl ${
+                    className={`flex items-center gap-1 sm:gap-2 py-3 md:py-4 px-3 sm:px-4 border-b-3 font-medium text-xs sm:text-sm transition-all whitespace-nowrap rounded-t-lg min-h-[44px] ${
                       selectedTab === tab.id
-                        ? 'border-turquoise-500 text-turquoise-600 bg-gradient-to-t from-turquoise-50 to-transparent'
-                        : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                        ? 'border-turquoise-500 text-turquoise-600 bg-gradient-to-t from-turquoise-50/50 to-transparent shadow-sm'
+                        : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50/50'
                     }`}
                   >
-                    <span className={selectedTab === tab.id ? 'text-turquoise-600' : 'text-gray-500'}>
+                    <span className={`${selectedTab === tab.id ? 'text-turquoise-600' : 'text-gray-500'} scale-90 sm:scale-100`}>
                       {tab.icon}
                     </span>
-                    <span className="hidden md:inline">{tab.label}</span>
-                    <span className="md:hidden">{tab.label.split(' ')[0]}</span>
+                    <span className="hidden lg:inline">{tab.label}</span>
+                    <span className="hidden sm:inline lg:hidden">{tab.label.split(' ')[0]}</span>
                     {tab.isNew && (
-                      <Badge className="bg-gradient-to-r from-green-400 to-emerald-400 text-white text-xs ml-1 shadow-sm">NEW</Badge>
+                      <Badge className="bg-gradient-to-r from-turquoise-400 to-cyan-400 text-white text-[10px] sm:text-xs ml-1 shadow-sm px-1 py-0">NEW</Badge>
                     )}
                   </button>
                 ))}
@@ -2630,10 +2640,12 @@ const AdminCenter: React.FC = React.memo(() => {
             </div>
           </div>
 
-          {/* Main Content Area with MT Styling */}
-          <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-4 md:p-6">
-              {renderContent()}
+          {/* ESA Platform Audit - Mobile-First Content Area */}
+          <div className="flex-1 overflow-y-auto bg-gradient-to-br from-turquoise-50/30 via-cyan-50/30 to-blue-50/30">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
+              <div className="glassmorphic-card backdrop-blur-xl bg-white/90 rounded-xl sm:rounded-2xl shadow-2xl p-3 sm:p-4 md:p-6 border border-turquoise-100/50">
+                {renderContent()}
+              </div>
             </div>
           </div>
         </div>
