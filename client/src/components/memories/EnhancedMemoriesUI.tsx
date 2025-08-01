@@ -147,18 +147,79 @@ const OriginalEnhancedPostCreator: React.FC<{
     }
   }, [content, showMentionSuggestions, currentMentionPosition]);
 
-  // Handle file upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // ESA Platform Audit - Enhanced file upload with actual server upload
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setMedia(prev => [...prev, ...files]);
+    if (files.length === 0) return;
     
-    // Show preview animation
-    files.forEach(file => {
+    // Validate file sizes (10MB limit)
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    const oversizedFiles = files.filter(file => file.size > MAX_SIZE);
+    
+    if (oversizedFiles.length > 0) {
       toast({
-        title: `Added ${file.type.startsWith('image/') ? '📸 Photo' : '🎥 Video'}`,
-        description: file.name,
+        title: "Files too large",
+        description: `Files must be under 10MB. ${oversizedFiles.map(f => f.name).join(', ')} exceeded the limit.`,
+        variant: "destructive"
       });
-    });
+      return;
+    }
+    
+    setIsPosting(true);
+    
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'memories');
+        formData.append('visibility', visibility);
+        formData.append('tags', JSON.stringify(tags));
+        
+        // Show upload progress
+        toast({
+          title: `Uploading ${file.type.startsWith('image/') ? '📸 Photo' : '🎥 Video'}`,
+          description: `${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`,
+        });
+        
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.code === 200) {
+          // Store the uploaded file info with URL
+          setMedia(prev => [...prev, {
+            file,
+            url: result.data.url,
+            id: result.data.id,
+            path: result.data.path
+          }]);
+          
+          toast({
+            title: "Upload successful",
+            description: `${file.name} uploaded successfully!`,
+          });
+        } else {
+          throw new Error(result.message || 'Upload failed');
+        }
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : 'Failed to upload files',
+        variant: "destructive"
+      });
+    } finally {
+      setIsPosting(false);
+    }
   };
 
   // Handle post submission
@@ -174,7 +235,21 @@ const OriginalEnhancedPostCreator: React.FC<{
 
     setIsPosting(true);
     
-    // Simulate posting
+    // Extract media URLs/IDs from uploaded files
+    const mediaData = media.map(item => {
+      if ('url' in item) {
+        return {
+          id: item.id,
+          url: item.url,
+          path: item.path,
+          type: item.file.type
+        };
+      }
+      // For files not yet uploaded (shouldn't happen now)
+      return null;
+    }).filter(Boolean);
+    
+    // Submit post
     setTimeout(() => {
       onPost({
         content,
@@ -182,7 +257,7 @@ const OriginalEnhancedPostCreator: React.FC<{
         location,
         tags,
         mentions,
-        media,
+        media: mediaData,
         visibility,
         timestamp: new Date()
       });
@@ -266,29 +341,43 @@ const OriginalEnhancedPostCreator: React.FC<{
             {/* Media Preview */}
             {media.length > 0 && (
               <div className="grid grid-cols-3 gap-2 animate-fadeIn">
-                {media.map((file, index) => (
-                  <div key={index} className="relative group">
-                    <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                      {file.type.startsWith('image/') ? (
-                        <img 
-                          src={URL.createObjectURL(file)} 
-                          alt="" 
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Video className="w-8 h-8 text-gray-400" />
-                        </div>
-                      )}
+                {media.map((item, index) => {
+                  // Support both File objects and uploaded media with URLs
+                  const isUploaded = 'url' in item;
+                  const file = isUploaded ? item.file : item;
+                  const isImage = file.type.startsWith('image/');
+                  const isVideo = file.type.startsWith('video/');
+                  
+                  return (
+                    <div key={index} className="relative group">
+                      <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                        {isImage ? (
+                          <img 
+                            src={isUploaded ? item.url : URL.createObjectURL(file)} 
+                            alt="" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : isVideo ? (
+                          <video 
+                            src={isUploaded ? item.url : URL.createObjectURL(file)}
+                            className="w-full h-full object-cover"
+                            controls
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Video className="w-8 h-8 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => setMedia(prev => prev.filter((_, i) => i !== index))}
+                        className="absolute top-1 right-1 bg-black/50 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4 text-white" />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setMedia(prev => prev.filter((_, i) => i !== index))}
-                      className="absolute top-1 right-1 bg-black/50 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-4 h-4 text-white" />
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
