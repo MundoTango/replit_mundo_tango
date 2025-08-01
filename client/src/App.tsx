@@ -59,7 +59,7 @@ const SupabaseTest = lazy(() => import("@/pages/SupabaseTest"));
 const AiChatTest = lazy(() => import("@/pages/AiChatTest"));
 const PreviewTest = lazy(() => import("@/pages/PreviewTest"));
 const Subscribe = lazy(() => import("@/pages/Subscribe"));
-const BillingDashboard = lazy(() => import("@/pages/BillingDashboard"));
+const BillingDashboard = lazy(() => import("@/pages/BillingDashboard.tsx"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const PaymentMethods = lazy(() => import("./pages/PaymentMethods"));
 const Invoices = lazy(() => import("./pages/Invoices"));
