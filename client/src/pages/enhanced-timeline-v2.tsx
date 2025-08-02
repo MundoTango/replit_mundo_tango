@@ -867,10 +867,40 @@ export default function EnhancedTimelineV2() {
   // Create memory mutation - using Life CEO 44x21s methodology
   const createMemoryMutation = useMutation({
     mutationFn: async (data: any) => {
+      // ESA Fix - Create FormData for file uploads
+      const formData = new FormData();
+      formData.append('content', data.content || '');
+      formData.append('richContent', data.content || '');
+      formData.append('visibility', data.visibility || 'public');
+      formData.append('location', data.location || '');
+      
+      // Add hashtags, mentions, and emotions
+      if (data.hashtags?.length) {
+        formData.append('hashtags', JSON.stringify(data.hashtags));
+      }
+      if (data.mentions?.length) {
+        formData.append('mentions', JSON.stringify(data.mentions));
+      }
+      if (data.emotionTags?.length) {
+        formData.append('emotionTags', JSON.stringify(data.emotionTags));
+      }
+      
+      // Add media files directly
+      if (data.media?.length) {
+        data.media.forEach((item: any) => {
+          // Check if it's a File object or an uploaded media object
+          if (item instanceof File) {
+            formData.append('media', item);
+          } else if (item.file instanceof File) {
+            formData.append('media', item.file);
+          }
+        });
+      }
+      
       // Use the enhanced posts endpoint that exists
       const response = await apiRequest('/api/posts/enhanced', {
         method: 'POST',
-        body: data
+        body: formData
       });
       return response;
     },
@@ -957,7 +987,7 @@ export default function EnhancedTimelineV2() {
                     location: data.location,
                     hashtags: data.tags,
                     mentions: data.mentions,
-                    mediaUrls: data.media.map((f: File) => URL.createObjectURL(f)),
+                    media: data.media, // ESA Fix - Pass media files directly
                     visibility: data.visibility
                   });
                 }}

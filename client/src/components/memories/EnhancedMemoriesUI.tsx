@@ -79,7 +79,9 @@ const OriginalEnhancedPostCreator: React.FC<{
   const [location, setLocation] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [mentions, setMentions] = useState<string[]>([]);
-  const [media, setMedia] = useState<File[]>([]);
+  // ESA Fix - Support both File objects and uploaded media with URLs
+  type MediaItem = File | { file: File; url: string; id: string; path: string };
+  const [media, setMedia] = useState<MediaItem[]>([]);
   const [visibility, setVisibility] = useState<'public' | 'friends' | 'private'>('public');
   const [isPosting, setIsPosting] = useState(false);
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
@@ -259,9 +261,13 @@ const OriginalEnhancedPostCreator: React.FC<{
 
     setIsPosting(true);
     
-    // Extract media URLs/IDs from uploaded files
-    const mediaData = media.map(item => {
-      if ('url' in item) {
+    // ESA Fix - Extract media data with proper type handling
+    const mediaData = media.map((item: MediaItem) => {
+      if (item instanceof File) {
+        // If it's still a File object, pass it directly
+        return item;
+      } else if ('url' in item && 'id' in item && 'path' in item && 'file' in item) {
+        // If it's an uploaded media object
         return {
           id: item.id,
           url: item.url,
@@ -269,7 +275,6 @@ const OriginalEnhancedPostCreator: React.FC<{
           type: item.file.type
         };
       }
-      // For files not yet uploaded (shouldn't happen now)
       return null;
     }).filter(Boolean);
     
@@ -281,7 +286,7 @@ const OriginalEnhancedPostCreator: React.FC<{
         location,
         tags,
         mentions,
-        media: mediaData,
+        media: media, // ESA Fix - Pass media array directly with File objects
         visibility,
         timestamp: new Date()
       });
@@ -366,9 +371,10 @@ const OriginalEnhancedPostCreator: React.FC<{
             {media.length > 0 && (
               <div className="grid grid-cols-3 gap-2 animate-fadeIn">
                 {media.map((item, index) => {
-                  // Support both File objects and uploaded media with URLs
-                  const isUploaded = 'url' in item;
-                  const file = isUploaded ? item.file : item;
+                  // ESA Fix - Proper type handling for MediaItem
+                  const isFile = item instanceof File;
+                  const file = isFile ? item : item.file;
+                  const url = isFile ? getPreviewUrl(file, index) : item.url;
                   const isImage = file.type.startsWith('image/');
                   const isVideo = file.type.startsWith('video/');
                   
@@ -377,7 +383,7 @@ const OriginalEnhancedPostCreator: React.FC<{
                       <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
                         {isImage ? (
                           <img 
-                            src={isUploaded ? item.url : getPreviewUrl(file, index)} 
+                            src={url} 
                             alt="" 
                             className="w-full h-full object-cover"
                             loading="lazy"
@@ -386,7 +392,7 @@ const OriginalEnhancedPostCreator: React.FC<{
                           // Optimized video preview - no controls for better performance
                           <div className="w-full h-full relative">
                             <video 
-                              src={isUploaded ? item.url : getPreviewUrl(file, index)}
+                              src={url}
                               className="w-full h-full object-cover"
                               muted
                               playsInline
@@ -410,11 +416,11 @@ const OriginalEnhancedPostCreator: React.FC<{
                       <button
                         onClick={() => {
                           // Clean up URL when removing media
-                          if (!isUploaded) {
+                          if (isFile) {
                             const key = `${file.name}-${index}`;
-                            const url = previewUrls.get(key);
-                            if (url) {
-                              URL.revokeObjectURL(url);
+                            const previewUrl = previewUrls.get(key);
+                            if (previewUrl) {
+                              URL.revokeObjectURL(previewUrl);
                               setPreviewUrls(prev => {
                                 const newMap = new Map(prev);
                                 newMap.delete(key);
