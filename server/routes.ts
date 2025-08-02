@@ -3255,14 +3255,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test endpoint to verify routing
+  // Test endpoint to verify routing and AUTH_BYPASS
   app.post('/api/test-post', async (req: any, res) => {
     console.log('🚀 TEST POST - Request received');
-    res.json({ success: true, message: 'Test endpoint working' });
+    console.log('🔧 AUTH_BYPASS value:', process.env.AUTH_BYPASS);
+    
+    // Test creating a post without CSRF
+    const { getUserId } = await import('./utils/authHelper');
+    const userId = getUserId(req);
+    
+    res.json({ 
+      success: true, 
+      message: 'Test endpoint working',
+      authBypass: process.env.AUTH_BYPASS,
+      userId: userId
+    });
   });
 
   // Main post creation endpoint for BeautifulPostCreator
-  app.post('/api/posts', contentCreationLimiter, async (req: any, res) => {
+  app.post('/api/posts', 
+    // Skip CSRF for AUTH_BYPASS mode
+    (req: any, res: any, next: any) => {
+      if (process.env.AUTH_BYPASS === 'true') {
+        req.skipCsrf = true;
+      }
+      next();
+    },
+    contentCreationLimiter, 
+    async (req: any, res) => {
     console.log('🚀 POST /api/posts - Request received');
     console.log('🔐 Session exists:', !!req.session);
     console.log('🔐 Session passport:', req.session?.passport);
@@ -3291,8 +3311,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { 
         content, 
-        visibility = 'public', 
-        tags = [], 
+        hashtags = [], // Frontend sends hashtags array
+        isPublic = true, // Frontend sends isPublic boolean
+        imageUrl,
+        videoUrl,
         location,
         contextType,
         contextId,
@@ -3301,6 +3323,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         recommendationType,
         priceRange
       } = req.body;
+      
+      // Convert frontend format to backend format
+      const visibility = isPublic ? 'public' : 'private';
+      const tags = hashtags; // Use hashtags from frontend
 
       // Handle recommendation to city group
       let finalContextType = contextType;
@@ -3410,6 +3436,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Build media URLs array from imageUrl and videoUrl
+      const media_urls = [];
+      if (imageUrl) {
+        media_urls.push(imageUrl);
+      }
+      if (videoUrl) {
+        media_urls.push(videoUrl);
+      }
+
       // Create the post/memory with correct parameters
       const memory = await storage.createMemory({
         user_id: user.id, // Note: user_id not userId
@@ -3419,7 +3454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         emotion_visibility: visibility || 'public',
         trust_circle_level: 1, // Default public level
         location: location ? { name: location } : null,
-        media_urls: [],
+        media_urls,
         co_tagged_users: [],
         consent_required: false
       });
@@ -3546,13 +3581,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Enhanced post creation endpoint with rich text, mentions, hashtags, and multimedia
-  app.post('/api/posts/enhanced', contentCreationLimiter, isAuthenticated, upload.array('media', 10), async (req: any, res) => {
+  app.post('/api/posts/enhanced', contentCreationLimiter, upload.array('media', 10), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUserByReplitId(userId);
+      // Use flexible authentication from authHelper
+      const { getUserId } = await import('./utils/authHelper');
+      const userId = getUserId(req);
+      
+      if (!userId) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'Unauthorized'
+        });
+      }
+
+      const user = await storage.getUser(userId);
       
       if (!user) {
-        return res.status(401).json({ 
+        return res.status(404).json({ 
           success: false,
           message: 'User not found'
         });

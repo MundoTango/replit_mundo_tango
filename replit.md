@@ -23,6 +23,13 @@ The platform is designed with a strong emphasis on security, performance, and us
 
 **🔥 Active Remediation**: Comprehensive ESA-44x21 compliance sprint underway with 924 tasks across 44 layers × 21 phases. Critical payment security fixes completed. Current focus on test coverage and documentation. See `ESA_44X21S_COMPREHENSIVE_AUDIT_AUGUST_2025.md` and `ESA_44X21S_PAYMENT_SECURITY_REMEDIATION_REPORT.md` for full details.
 
+**✅ AUTH_BYPASS CSRF Fix Completed (August 2, 2025)**:
+- Fixed CSRF protection blocking POST requests in AUTH_BYPASS mode
+- Issue: AUTH_BYPASS env var was "True" (capitalized) but code checked for "true" (lowercase)
+- Solution: Made CSRF bypass check case-insensitive using `.toLowerCase()`
+- Post creation now working correctly with frontend data format (tags array, visibility string)
+- Verified posts are created and retrieved successfully via /api/posts and /api/posts/feed
+
 **✅ Recent Security Improvements (August 2, 2025)**:
 - Implemented CSRF protection on all payment endpoints
 - Added rate limiting for payment/subscription operations

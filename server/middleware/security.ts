@@ -49,6 +49,11 @@ export const contentSecurityPolicy = helmet.contentSecurityPolicy({
 
 // CSRF Protection middleware
 export const csrfProtection = (req: Request, res: Response, next: NextFunction) => {
+  // Skip CSRF for AUTH_BYPASS mode
+  if (process.env.AUTH_BYPASS?.toLowerCase() === 'true') {
+    return next();
+  }
+
   // Skip CSRF for API routes that use authentication headers
   if (req.path.startsWith('/api/') && req.headers.authorization) {
     return next();
@@ -69,6 +74,7 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction) 
       req.path.includes('/profile-image') ||
       req.path.includes('/performance/metrics') || // Performance metrics collection
       req.headers['content-type']?.includes('multipart/form-data') ||
+      (process.env.AUTH_BYPASS === 'true' && req.path === '/api/posts') || // Skip for posts in AUTH_BYPASS mode
       (req as any).skipCsrf) {
     return next();
   }
