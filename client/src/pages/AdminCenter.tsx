@@ -129,7 +129,7 @@ interface ComplianceMetrics {
 
 // Memoized AdminCenter component for better performance
 const AdminCenter: React.FC = React.memo(() => {
-  const [selectedTab, setSelectedTab] = useState('life-ceo');
+  const [selectedTab, setSelectedTab] = useState('life-ceo-command');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [rbacData, setRbacData] = useState<any>(null);
   const [rbacLoading, setRbacLoading] = useState(false);
@@ -2570,7 +2570,7 @@ const AdminCenter: React.FC = React.memo(() => {
       <TrangoTechSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       
       <div className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : ''}`}>
-        <div className="min-h-screen">
+        <div className="h-full flex flex-col">
           {/* ESA Platform Audit - Mobile-First MT Ocean Theme Header */}
           <div className="glassmorphic-card backdrop-blur-xl bg-gradient-to-r from-turquoise-600/90 to-cyan-600/90 sticky top-0 z-10 shadow-2xl">
             <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4">
