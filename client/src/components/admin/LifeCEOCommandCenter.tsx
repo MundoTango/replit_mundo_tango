@@ -29,8 +29,7 @@ import {
 import LifeCEOPortal from './LifeCEOPortal';
 import LifeCEOFrameworkAgent from '../life-ceo/LifeCEOFrameworkAgent';
 import { LifeCEOLearnings } from './LifeCEOLearnings';
-import Framework40x20sDashboard from './Framework40x20sDashboard';
-import Framework40LDashboard from './Framework40LDashboard';
+import Framework44x21Dashboard from './Framework44x21Dashboard';
 import { activityLogger } from '@/services/activityLoggingService';
 import LifeCEOContinuousLearnings from '../life-ceo/LifeCEOContinuousLearnings';
 import JiraExportDashboard from './JiraExportDashboard';
@@ -96,8 +95,8 @@ const LifeCEOCommandCenter: React.FC = () => {
   const renderDashboard = () => (
     <div className="space-y-6">
       {/* 44x21 Framework Header */}
-      <div className="text-center mb-6">
-        <h2 className="text-3xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-gray-900">
           Life CEO 44x21 Framework
         </h2>
         <p className="text-gray-600 mt-2">44 Technical Layers × 21 Development Phases</p>
@@ -113,7 +112,7 @@ const LifeCEOCommandCenter: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+            <p className="text-2xl font-bold text-gray-900">
               {stats.agentStatus}
             </p>
             <p className="text-sm text-gray-600 mt-1">Agent Status</p>
@@ -128,7 +127,7 @@ const LifeCEOCommandCenter: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+            <p className="text-2xl font-bold text-gray-900">
               {stats.learningsToday}
             </p>
             <p className="text-sm text-gray-600 mt-1">New Learnings</p>
@@ -143,7 +142,7 @@ const LifeCEOCommandCenter: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+            <p className="text-2xl font-bold text-gray-900">
               {stats.frameworkLayers}
             </p>
             <p className="text-sm text-gray-600 mt-1">Technical Layers</p>
@@ -158,7 +157,7 @@ const LifeCEOCommandCenter: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+            <p className="text-2xl font-bold text-gray-900">
               {stats.developmentPhases}
             </p>
             <p className="text-sm text-gray-600 mt-1">Dev Phases</p>
@@ -173,7 +172,7 @@ const LifeCEOCommandCenter: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+            <p className="text-2xl font-bold text-gray-900">
               {stats.activeProjects}
             </p>
             <p className="text-sm text-gray-600 mt-1">Active Projects</p>
@@ -188,7 +187,7 @@ const LifeCEOCommandCenter: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+            <p className="text-2xl font-bold text-gray-900">
               {stats.performanceScore}
             </p>
             <p className="text-sm text-gray-600 mt-1">Performance</p>
@@ -199,7 +198,7 @@ const LifeCEOCommandCenter: React.FC = () => {
       {/* Quick Actions */}
       <Card className="glassmorphic-card">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+          <CardTitle className="text-lg font-semibold text-gray-900">
             Quick Actions
           </CardTitle>
         </CardHeader>
@@ -244,7 +243,7 @@ const LifeCEOCommandCenter: React.FC = () => {
         <Card className="glassmorphic-card">
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle className="text-lg font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+              <CardTitle className="text-lg font-semibold text-gray-900">
                 Recent Agent Activity
               </CardTitle>
               <Button
@@ -252,9 +251,9 @@ const LifeCEOCommandCenter: React.FC = () => {
                 variant="outline"
                 onClick={async () => {
                   await activityLogger.logSystemOptimization(
-                    'Automatic Work Capture Test',
-                    'Testing automatic daily activity logging from Life CEO Command Center',
-                    { impact: 'High', layers: [40] }
+                    'Manual Activity Test',
+                    'Testing activity logging from Command Center',
+                    { impact: 'High', layers: [44] }
                   );
                   // Force flush immediately
                   await activityLogger.flushPendingActivities();
@@ -310,7 +309,7 @@ const LifeCEOCommandCenter: React.FC = () => {
 
         <Card className="glassmorphic-card">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+            <CardTitle className="text-lg font-semibold text-gray-900">
               Framework Overview
             </CardTitle>
           </CardHeader>
@@ -318,17 +317,17 @@ const LifeCEOCommandCenter: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">40L Framework</span>
-                  <span className="text-sm text-gray-600">Layer 35/40</span>
+                  <span className="text-sm font-medium">44x21 Framework Progress</span>
+                  <span className="text-sm text-gray-600">Phase 18/21</span>
                 </div>
-                <Progress value={87.5} className="h-2 bg-gray-200" />
+                <Progress value={85.7} className="h-2 bg-gray-200" />
               </div>
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">44x21 Progress</span>
-                  <span className="text-sm text-gray-600">Phase 18/21</span>
+                  <span className="text-sm font-medium">Layer Completion</span>
+                  <span className="text-sm text-gray-600">38/44 Layers</span>
                 </div>
-                <Progress value={90} className="h-2 bg-gray-200" />
+                <Progress value={86.4} className="h-2 bg-gray-200" />
               </div>
               <div className="pt-2 border-t">
                 <p className="text-sm text-gray-600">
@@ -344,7 +343,7 @@ const LifeCEOCommandCenter: React.FC = () => {
       {/* System Overview */}
       <Card className="glassmorphic-card">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+          <CardTitle className="text-lg font-semibold text-gray-900">
             Life CEO System Overview
           </CardTitle>
           <CardDescription>
@@ -377,7 +376,7 @@ const LifeCEOCommandCenter: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
           Life CEO Command Center
         </h2>
         <p className="text-gray-600">
@@ -386,17 +385,17 @@ const LifeCEOCommandCenter: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-6 gap-2 bg-white/50 p-1">
+        <TabsList className="flex flex-wrap gap-2 bg-white/50 p-2 justify-start">
           <TabsTrigger 
             value="dashboard" 
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white flex items-center"
           >
             <Activity className="w-4 h-4 mr-2" />
             Dashboard
           </TabsTrigger>
           <TabsTrigger 
             value="learnings"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white relative"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white relative flex items-center"
           >
             <Brain className="w-4 h-4 mr-2" />
             Learnings
@@ -404,28 +403,28 @@ const LifeCEOCommandCenter: React.FC = () => {
           </TabsTrigger>
           <TabsTrigger 
             value="agent"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white flex items-center"
           >
             <Bot className="w-4 h-4 mr-2" />
             AI Agent
           </TabsTrigger>
           <TabsTrigger 
             value="insights"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white flex items-center"
           >
             <Lightbulb className="w-4 h-4 mr-2" />
             Insights
           </TabsTrigger>
           <TabsTrigger 
             value="framework"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white flex items-center"
           >
             <Layers className="w-4 h-4 mr-2" />
-            Framework
+            44x21 Framework
           </TabsTrigger>
           <TabsTrigger 
             value="jira"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white relative"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white relative flex items-center"
           >
             <GitBranch className="w-4 h-4 mr-2" />
             JIRA Export
@@ -450,20 +449,7 @@ const LifeCEOCommandCenter: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="framework" className="mt-6">
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent mb-4">
-                40L Framework Status
-              </h3>
-              <Framework40LDashboard />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent mb-4">
-                40x20s Expert Worker System
-              </h3>
-              <Framework40x20sDashboard />
-            </div>
-          </div>
+          <Framework44x21Dashboard />
         </TabsContent>
         
         <TabsContent value="jira" className="mt-6">
