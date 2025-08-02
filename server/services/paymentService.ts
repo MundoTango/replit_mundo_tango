@@ -257,17 +257,24 @@ export class PaymentService {
     return await storage.getUserPaymentMethods(userId);
   }
 
-  // Process webhook
+  // Process webhook with enhanced security
   async processWebhook(signature: string, payload: string): Promise<void> {
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!webhookSecret) {
-      throw new Error('Webhook secret not configured');
+      console.error('[SECURITY] STRIPE_WEBHOOK_SECRET not configured');
+      throw new Error('Webhook configuration error');
     }
 
     let event: Stripe.Event;
     try {
+      // Verify webhook signature to prevent spoofing attacks
       event = getStripe().webhooks.constructEvent(payload, signature, webhookSecret);
-    } catch (err) {
+      console.log(`[AUDIT] Webhook verified: ${event.type} - ${event.id}`);
+    } catch (err: any) {
+      console.error('[SECURITY] Webhook signature verification failed:', {
+        error: err.message,
+        timestamp: new Date().toISOString()
+      });
       throw new Error('Invalid webhook signature');
     }
 

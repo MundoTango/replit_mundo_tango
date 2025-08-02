@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import { randomBytes } from 'crypto';
 import DOMPurify from 'isomorphic-dompurify';
+import rateLimit from 'express-rate-limit';
 
 // Content Security Policy configuration - Life CEO 44x21s Layer 1-5 Foundation Security
 export const contentSecurityPolicy = helmet.contentSecurityPolicy({
@@ -66,6 +67,7 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction) 
       req.path.includes('/upload') ||
       req.path.includes('/cover-image') ||
       req.path.includes('/profile-image') ||
+      req.path.includes('/performance/metrics') || // Performance metrics collection
       req.headers['content-type']?.includes('multipart/form-data') ||
       (req as any).skipCsrf) {
     return next();
@@ -73,6 +75,11 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction) 
 
   // Type assertion to handle session types
   const session = req.session as any;
+  
+  // Skip CSRF for webhook endpoints
+  if (req.path.includes('/webhook')) {
+    return next();
+  }
 
   // Generate CSRF token if not exists
   if (!session.csrfToken) {
@@ -209,4 +216,107 @@ export const sessionSecurityConfig = {
     sameSite: 'strict' as const
   },
   name: 'mundotango.sid' // Custom session name
+};
+
+// ESA-44x21 Payment Security Middleware - Layer 9: Security & Permissions Layer
+// Rate limiting for payment endpoints
+export const paymentRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 5 requests per windowMs
+  message: 'Too many payment requests from this IP, please try again after 15 minutes',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limiting for subscription management
+export const subscriptionRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // limit each IP to 10 requests per windowMs
+  message: 'Too many subscription requests from this IP, please try again after 15 minutes',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// CSRF token validation specifically for payment endpoints
+export const validateCSRFToken = (req: Request, res: Response, next: NextFunction) => {
+  // Skip for webhook endpoints
+  if (req.path.includes('/webhook')) {
+    return next();
+  }
+
+  const sessionCsrf = (req.session as any)?.csrfToken;
+  const headerCsrf = req.headers['x-csrf-token'];
+
+  if (!sessionCsrf || !headerCsrf || sessionCsrf !== headerCsrf) {
+    return res.status(403).json({ error: 'Invalid CSRF token' });
+  }
+
+  next();
+};
+
+// Sanitize error messages to prevent PII leakage
+export const sanitizeError = (error: any): { message: string; code?: string } => {
+  const sensitivePatterns = [
+    /stripeCustomerId[^\\s]*/gi,
+    /cus_[A-Za-z0-9]+/g,
+    /([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/g,
+    /\\b\\d{4}\\b/g, // Last 4 digits of card
+    /card_[A-Za-z0-9]+/g,
+    /pm_[A-Za-z0-9]+/g,
+    /pi_[A-Za-z0-9]+/g,
+    /sub_[A-Za-z0-9]+/g
+  ];
+
+  let message = error?.message || 'An error occurred';
+  
+  // Replace sensitive data with [REDACTED]
+  sensitivePatterns.forEach(pattern => {
+    message = message.replace(pattern, '[REDACTED]');
+  });
+
+  return {
+    message,
+    code: error?.code
+  };
+};
+
+// Audit payment events without logging PII
+export const auditPaymentEvent = (userId: number, action: string, metadata: Record<string, any>) => {
+  const sanitizedMetadata = { ...metadata };
+  const piiFields = ['email', 'stripeCustomerId', 'cardNumber', 'cvv', 'expiryDate'];
+  
+  piiFields.forEach(field => {
+    delete sanitizedMetadata[field];
+  });
+
+  console.log('[PAYMENT_AUDIT]', {
+    timestamp: new Date().toISOString(),
+    userId,
+    action,
+    metadata: sanitizedMetadata
+  });
+};
+
+// Create webhook signature verifier
+export const createWebhookSignatureVerifier = (secret: string, headerName: string) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const signature = req.headers[headerName];
+    
+    if (!signature) {
+      return res.status(401).json({ error: 'Missing signature' });
+    }
+
+    const crypto = require('crypto');
+    const expectedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(JSON.stringify(req.body), 'utf8')
+      .digest('hex');
+
+    if (signature !== expectedSignature) {
+      console.error('[SECURITY] Invalid webhook signature attempt');
+      return res.status(401).json({ error: 'Invalid signature' });
+    }
+
+    next();
+  };
 };
