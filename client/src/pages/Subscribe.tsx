@@ -123,11 +123,11 @@ const Subscribe: React.FC = () => {
       features: [
         'Basic profile',
         'View events',
-        'Join groups',
-        'Limited storage',
+        'Join city & professional groups',
+        '100MB storage',
         'Community access'
       ],
-      notIncluded: ['Event creation', 'Advanced analytics', 'Priority support']
+      notIncluded: ['Create events', 'Join other groups', 'Advanced analytics']
     },
     {
       key: 'basic',
@@ -137,43 +137,13 @@ const Subscribe: React.FC = () => {
       icon: <Star className="w-6 h-6" />,
       features: [
         'Everything in Free',
-        'Unlimited storage',
-        'Priority support',
-        'Create events',
+        '5GB storage',
+        'Create basic events',
+        'Join all groups',
         'Advanced search'
       ],
-      notIncluded: ['Analytics dashboard', 'Custom branding']
-    },
-    {
-      key: 'enthusiast',
-      name: 'Enthusiast',
-      price: 9.99,
-      description: 'For passionate tango lovers',
-      icon: <Zap className="w-6 h-6" />,
-      features: [
-        'Everything in Basic',
-        'Advanced analytics',
-        'Custom branding',
-        'Event promotions',
-        'Bulk invitations'
-      ],
-      notIncluded: ['API access', 'White label options'],
+      notIncluded: ['Analytics dashboard', 'Custom branding'],
       popular: true
-    },
-    {
-      key: 'professional',
-      name: 'Professional',
-      price: 24.99,
-      description: 'For teachers and organizers',
-      icon: <Crown className="w-6 h-6" />,
-      features: [
-        'Everything in Enthusiast',
-        'API access',
-        'White label options',
-        'Advanced reporting',
-        'Team collaboration'
-      ],
-      notIncluded: []
     }
   ];
 
@@ -205,7 +175,7 @@ const Subscribe: React.FC = () => {
         )}
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {tiersList.map((tier) => {
             const isCurrentPlan = currentTier === tier.key;
             const isUpgrade = tiersList.findIndex(t => t.key === currentTier) < tiersList.findIndex(t => t.key === tier.key);
@@ -295,20 +265,7 @@ const Subscribe: React.FC = () => {
           })}
         </div>
 
-        {/* Enterprise Section */}
-        <div className="mt-12 p-8 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-2xl text-center">
-          <h2 className="text-2xl font-bold mb-4">Need a Custom Solution?</h2>
-          <p className="text-gray-700 mb-6">
-            Our Enterprise plan offers custom features, dedicated support, and flexible pricing for large organizations.
-          </p>
-          <Button 
-            variant="outline" 
-            className="bg-white hover:bg-gray-50"
-            onClick={() => window.location.href = 'mailto:enterprise@mundotango.life'}
-          >
-            Contact Sales
-          </Button>
-        </div>
+
 
         {/* FAQ Section */}
         <div className="mt-12 text-center">
