@@ -10829,6 +10829,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize Supabase Storage bucket on server start
   initializeStorageBucket();
 
+  // ESA-44x21 JIRA Synchronization endpoint
+  app.post('/api/admin/jira-sync', isAuthenticated, async (req: any, res) => {
+    try {
+      // Check if user is admin
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserByReplitId(userId);
+      
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ 
+          error: 'Admin access required for JIRA synchronization' 
+        });
+      }
+
+      // Import and execute JIRA sync
+      const { jiraIntegrationService } = await import('./services/jiraIntegrationService');
+      
+      console.log('Starting ESA-44x21 JIRA synchronization...');
+      const result = await jiraIntegrationService.pushESAComplianceToJira();
+      
+      res.json({
+        success: result.success,
+        message: result.success 
+          ? 'ESA-44x21 compliance items successfully pushed to JIRA'
+          : 'Some items failed to sync to JIRA',
+        summary: result.summary,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('JIRA sync error:', error);
+      res.status(500).json({ 
+        error: 'Failed to sync with JIRA',
+        message: error.message 
+      });
+    }
+  });
+
   // 30L Framework - Layer 10: Deployment & Infrastructure
   // Health check endpoint for monitoring
   app.get('/api/health', async (req, res) => {
