@@ -38,7 +38,20 @@ export default function ImageCropper({
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
 
   const getCroppedImg = async () => {
-    if (!imgRef.current || !completedCrop) return;
+    if (!imgRef.current) return;
+    
+    // Use completedCrop if available, otherwise convert current crop to pixels
+    let cropToUse = completedCrop;
+    if (!cropToUse) {
+      const { width, height } = imgRef.current;
+      cropToUse = {
+        unit: 'px',
+        x: crop.unit === '%' ? (crop.x * width) / 100 : crop.x,
+        y: crop.unit === '%' ? (crop.y * height) / 100 : crop.y,
+        width: crop.unit === '%' ? (crop.width * width) / 100 : crop.width,
+        height: crop.unit === '%' ? (crop.height * height) / 100 : crop.height
+      };
+    }
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -47,8 +60,8 @@ export default function ImageCropper({
     const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
     const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
 
-    canvas.width = completedCrop.width;
-    canvas.height = completedCrop.height;
+    canvas.width = cropToUse.width;
+    canvas.height = cropToUse.height;
 
     ctx.save();
     
@@ -66,14 +79,14 @@ export default function ImageCropper({
 
     ctx.drawImage(
       imgRef.current,
-      completedCrop.x * scaleX,
-      completedCrop.y * scaleY,
-      completedCrop.width * scaleX,
-      completedCrop.height * scaleY,
+      cropToUse.x * scaleX,
+      cropToUse.y * scaleY,
+      cropToUse.width * scaleX,
+      cropToUse.height * scaleY,
       0,
       0,
-      completedCrop.width,
-      completedCrop.height
+      cropToUse.width,
+      cropToUse.height
     );
 
     ctx.restore();
@@ -89,10 +102,31 @@ export default function ImageCropper({
   };
 
   const handleCrop = async () => {
-    const croppedFile = await getCroppedImg();
-    if (croppedFile) {
-      onCropComplete(croppedFile);
-      onClose();
+    try {
+      // If no crop is completed yet, use the current crop
+      if (!completedCrop && imgRef.current) {
+        const { width, height } = imgRef.current;
+        const cropInPixels: PixelCrop = {
+          unit: 'px',
+          x: crop.unit === '%' ? (crop.x * width) / 100 : crop.x,
+          y: crop.unit === '%' ? (crop.y * height) / 100 : crop.y,
+          width: crop.unit === '%' ? (crop.width * width) / 100 : crop.width,
+          height: crop.unit === '%' ? (crop.height * height) / 100 : crop.height
+        };
+        setCompletedCrop(cropInPixels);
+        // Wait for state update
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      const croppedFile = await getCroppedImg();
+      if (croppedFile) {
+        onCropComplete(croppedFile);
+        onClose();
+      } else {
+        console.error('Failed to crop image - no file generated');
+      }
+    } catch (error) {
+      console.error('Error cropping image:', error);
     }
   };
 
