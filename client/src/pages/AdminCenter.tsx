@@ -483,16 +483,16 @@ const AdminCenter: React.FC = React.memo(() => {
             <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 hidden sm:block">All time</div>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-            <div className="flex items-start justify-between mb-3">
-              <div className="p-2 bg-orange-500 rounded-xl">
-                <Zap className="w-5 h-5 text-white" />
+          <div className="glassmorphic-card backdrop-blur-xl bg-gradient-to-br from-orange-50/70 to-amber-50/70 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 border border-orange-100/50">
+            <div className="flex items-start justify-between mb-2 sm:mb-3">
+              <div className="p-1.5 sm:p-2 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg sm:rounded-xl">
+                <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <span className="text-xs font-medium text-orange-600">Excellent</span>
+              <span className="text-[10px] sm:text-xs font-medium text-orange-600">Excellent</span>
             </div>
-            <div className="text-2xl font-bold text-gray-800">{stats?.systemHealth || 95}%</div>
-            <div className="text-sm text-gray-600 mt-1">System Health</div>
-            <div className="text-xs text-gray-500 mt-1">Overall performance</div>
+            <div className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-orange-700 to-amber-700 bg-clip-text text-transparent">{stats?.systemHealth?.toFixed(1) || '99.9'}%</div>
+            <div className="text-xs sm:text-sm text-gray-600 mt-1">System Health</div>
+            <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 hidden sm:block">Overall performance</div>
           </div>
         </div>
       </div>
@@ -2158,11 +2158,18 @@ const AdminCenter: React.FC = React.memo(() => {
         body: JSON.stringify({ settings: settingsData.settings })
       });
       if (response.ok) {
-        alert('Settings saved successfully!');
+        toast({
+          title: "Success",
+          description: "Settings saved successfully!",
+        });
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Failed to save settings');
+      toast({
+        title: "Error",
+        description: "Failed to save settings",
+        variant: "destructive",
+      });
     } finally {
       setSettingsSaving(false);
     }
