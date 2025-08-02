@@ -26,6 +26,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import EmojiPicker from 'emoji-picker-react';
+import GoogleMapsLocationInput from './GoogleMapsLocationInput';
 
 interface PostCreatorProps {
   context?: {

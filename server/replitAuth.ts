@@ -139,6 +139,21 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  // Auth bypass for development and Life CEO testing
+  if (process.env.NODE_ENV === 'development' || process.env.AUTH_BYPASS === 'true') {
+    console.log('🔧 Auth bypass - using default user for Life CEO testing');
+    
+    // Set default user for development
+    req.user = {
+      claims: {
+        sub: "1" // Default user ID for development
+      },
+      expires_at: Math.floor(Date.now() / 1000) + 3600 // 1 hour from now
+    } as any;
+    
+    return next();
+  }
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {

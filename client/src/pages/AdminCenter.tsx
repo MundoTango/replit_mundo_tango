@@ -2641,10 +2641,12 @@ const AdminCenter: React.FC = React.memo(() => {
           </div>
 
           {/* ESA Platform Audit - Mobile-First Content Area */}
-          <div className="flex-1 overflow-y-auto bg-gradient-to-br from-turquoise-50/30 via-cyan-50/30 to-blue-50/30">
-            <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
-              <div className="glassmorphic-card backdrop-blur-xl bg-white/90 rounded-xl sm:rounded-2xl shadow-2xl p-3 sm:p-4 md:p-6 border border-turquoise-100/50">
-                {renderContent()}
+          <div className="flex-1 bg-gradient-to-br from-turquoise-50/30 via-cyan-50/30 to-blue-50/30 overflow-hidden">
+            <div className="h-full overflow-y-auto">
+              <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
+                <div className="glassmorphic-card backdrop-blur-xl bg-white/90 rounded-xl sm:rounded-2xl shadow-2xl p-3 sm:p-4 md:p-6 border border-turquoise-100/50">
+                  {renderContent()}
+                </div>
               </div>
             </div>
           </div>
