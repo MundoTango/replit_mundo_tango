@@ -30,6 +30,7 @@ import {
   Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ImageCropper from '@/components/ImageCropper';
 
 interface User {
   id: number;
@@ -86,6 +87,11 @@ export default function EnhancedProfileHeader({
   const coverInputRef = useRef<HTMLInputElement>(null);
   const profileInputRef = useRef<HTMLInputElement>(null);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [showCoverCropper, setShowCoverCropper] = useState(false);
+  const [showProfileCropper, setShowProfileCropper] = useState(false);
+  const [tempCoverImage, setTempCoverImage] = useState<string | null>(null);
+  const [tempProfileImage, setTempProfileImage] = useState<string | null>(null);
+  const [viewAsVisitor, setViewAsVisitor] = useState(false);
 
   // Upload cover image mutation
   const uploadCoverMutation = useMutation({
@@ -142,15 +148,45 @@ export default function EnhancedProfileHeader({
   const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      uploadCoverMutation.mutate(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setTempCoverImage(event.target?.result as string);
+        setShowCoverCropper(true);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleProfileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      uploadProfileMutation.mutate(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setTempProfileImage(event.target?.result as string);
+        setShowProfileCropper(true);
+      };
+      reader.readAsDataURL(file);
     }
+  };
+
+  const handleCoverCropComplete = (croppedFile: File) => {
+    uploadCoverMutation.mutate(croppedFile);
+    setShowCoverCropper(false);
+    setTempCoverImage(null);
+  };
+
+  const handleProfileCropComplete = (croppedFile: File) => {
+    uploadProfileMutation.mutate(croppedFile);
+    setShowProfileCropper(false);
+    setTempProfileImage(null);
+  };
+
+  const handleViewAsVisitor = () => {
+    setViewAsVisitor(!viewAsVisitor);
+    toast({
+      title: viewAsVisitor ? "Editor mode" : "Visitor mode",
+      description: viewAsVisitor ? "You're now viewing as yourself" : "You're now viewing as a visitor would see"
+    });
   };
 
   const handleShare = () => {
@@ -320,9 +356,13 @@ export default function EnhancedProfileHeader({
                     <Edit className="mr-2 h-4 w-4" />
                     Edit Profile
                   </Button>
-                  <Button variant="outline" className="border-turquoise-200 text-turquoise-700 hover:bg-turquoise-50">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleViewAsVisitor}
+                    className="border-turquoise-200 text-turquoise-700 hover:bg-turquoise-50"
+                  >
                     <Eye className="mr-2 h-4 w-4" />
-                    View as Visitor
+                    {viewAsVisitor ? 'View as Owner' : 'View as Visitor'}
                   </Button>
                 </>
               ) : (
@@ -487,6 +527,36 @@ export default function EnhancedProfileHeader({
           </div>
         </div>
       </div>
+      
+      {/* Image Cropper Modals */}
+      {tempCoverImage && (
+        <ImageCropper
+          open={showCoverCropper}
+          onClose={() => {
+            setShowCoverCropper(false);
+            setTempCoverImage(null);
+          }}
+          onCropComplete={handleCoverCropComplete}
+          imageUrl={tempCoverImage}
+          aspectRatio={16 / 9}
+          title="Crop Cover Photo"
+        />
+      )}
+      
+      {tempProfileImage && (
+        <ImageCropper
+          open={showProfileCropper}
+          onClose={() => {
+            setShowProfileCropper(false);
+            setTempProfileImage(null);
+          }}
+          onCropComplete={handleProfileCropComplete}
+          imageUrl={tempProfileImage}
+          aspectRatio={1}
+          cropShape="round"
+          title="Crop Profile Photo"
+        />
+      )}
     </div>
   );
 }

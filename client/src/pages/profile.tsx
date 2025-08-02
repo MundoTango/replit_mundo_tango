@@ -22,6 +22,8 @@ import { UserFriendsList } from '@/components/profile/UserFriendsList';
 import { UserEventsList } from '@/components/profile/UserEventsList';
 import { ProfileAboutSection } from '@/components/profile/ProfileAboutSection';
 import { ProfileEngagementFeatures } from '@/components/profile/ProfileEngagementFeaturesSimplified';
+import EditProfileModal from '@/components/profile/EditProfileModal';
+import InlinePostComposer from '@/components/profile/InlinePostComposer';
 
 // Phase 5: Production Hardening imports
 import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
@@ -47,6 +49,7 @@ export default function Profile() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('memories');
   const [showMemoryPostModal, setShowMemoryPostModal] = useState(false);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
 
   // Track component performance
   useEffect(() => {
@@ -152,10 +155,7 @@ export default function Profile() {
   };
 
   const handleEditProfile = () => {
-    toast({
-      title: "Edit Profile",
-      description: "Profile editing functionality coming soon.",
-    });
+    setShowEditProfileModal(true);
   };
 
   const handleAddTravelDetails = () => {
@@ -310,7 +310,7 @@ export default function Profile() {
                             <p className="text-xs text-gray-600">Create your guest profile to be housed by Hosts in the global tango community</p>
                             <Button 
                               size="sm"
-                              onClick={() => setLocation('/groups')}
+                              onClick={() => setLocation('/guest-onboarding')}
                               className="w-full text-xs bg-gradient-to-r from-turquoise-500 to-cyan-600 hover:from-turquoise-600 hover:to-cyan-700 text-white"
                             >
                               Create Profile
@@ -421,16 +421,13 @@ export default function Profile() {
 
                   {/* Main Feed Area */}
                   <div className="lg:col-span-3 space-y-4">
-                    {/* Memory Post Button */}
-                    <div className="flex justify-end mb-4">
-                      <button 
-                        onClick={() => setShowMemoryPostModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-turquoise-400 to-cyan-500 text-white rounded-lg hover:shadow-lg transform transition-all hover:-translate-y-0.5"
-                      >
-                        <PenLine className="w-4 h-4" />
-                        Post a Memory
-                      </button>
-                    </div>
+                    {/* Inline Post Composer */}
+                    <InlinePostComposer 
+                      placeholder="Share a tango memory..." 
+                      onPostCreated={() => {
+                        queryClient.invalidateQueries({ queryKey: ['/api/user/posts'] });
+                      }}
+                    />
                 {postsError ? (
                   <NetworkErrorRetry onRetry={() => queryClient.invalidateQueries({ queryKey: ['/api/user/posts'] })} />
                 ) : postsLoading ? (
@@ -889,6 +886,13 @@ export default function Profile() {
             description: "Your memory has been shared successfully.",
           });
         }}
+      />
+      
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        open={showEditProfileModal}
+        onClose={() => setShowEditProfileModal(false)}
+        user={user}
       />
     </DashboardLayout>
     </ProfileErrorBoundary>

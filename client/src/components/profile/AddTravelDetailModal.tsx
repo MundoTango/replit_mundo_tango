@@ -25,7 +25,7 @@ interface TravelDetailForm {
   country: string;
   startDate: string;
   endDate: string;
-  status: 'planned' | 'ongoing' | 'completed' | 'cancelled';
+  status: 'considering' | 'planned' | 'working' | 'ongoing' | 'completed' | 'cancelled';
   notes: string;
   isPublic: boolean;
 }
@@ -239,11 +239,12 @@ export const AddTravelDetailModal: React.FC<AddTravelDetailModalProps> = ({ isOp
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="planning">Planning</SelectItem>
+                  <SelectItem value="considering">Considering</SelectItem>
                   <SelectItem value="planned">Planned</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="working">Working</SelectItem>
                   <SelectItem value="ongoing">Ongoing</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
             </div>

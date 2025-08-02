@@ -25,7 +25,7 @@ interface TravelDetail {
   country?: string;
   startDate: string;
   endDate: string;
-  status: 'planned' | 'ongoing' | 'completed' | 'cancelled';
+  status: 'considering' | 'planned' | 'working' | 'ongoing' | 'completed' | 'cancelled';
   notes?: string;
   isPublic: boolean;
   createdAt: string;
@@ -39,7 +39,7 @@ interface TravelDetailForm {
   country: string;
   startDate: string;
   endDate: string;
-  status: 'planned' | 'ongoing' | 'completed' | 'cancelled';
+  status: 'considering' | 'planned' | 'working' | 'ongoing' | 'completed' | 'cancelled';
   notes: string;
   isPublic: boolean;
 }
@@ -227,7 +227,9 @@ export const EditTravelDetailModal: React.FC<EditTravelDetailModalProps> = ({ is
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="considering">Considering</SelectItem>
                   <SelectItem value="planned">Planned</SelectItem>
+                  <SelectItem value="working">Working</SelectItem>
                   <SelectItem value="ongoing">Ongoing</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
