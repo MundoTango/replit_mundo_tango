@@ -14000,12 +14000,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .where(eq(userRoles.roleName, 'dancer'))
           .then(r => r[0]?.count || 0),
         
-        // Count distinct cities with active users
+        // Count distinct cities with active users (only Buenos Aires and Kolasin)
         db.select({ count: sql<number>`COUNT(DISTINCT city)` })
           .from(users)
           .where(and(
             isNotNull(users.city),
-            eq(users.isActive, true)
+            eq(users.isActive, true),
+            or(
+              eq(users.city, 'Buenos Aires'),
+              eq(users.city, 'Kolasin')
+            )
           ))
           .then(r => r[0]?.count || 0),
         
@@ -14030,7 +14034,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .then(r => r[0]?.count || 0)
       ]);
 
-      // Get city rankings (top cities by user count)
+      // Get city rankings (only Buenos Aires and Kolasin)
       const cityRankings = await db
         .select({
           city: users.city,
@@ -14040,7 +14044,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(users)
         .where(and(
           isNotNull(users.city),
-          eq(users.isActive, true)
+          eq(users.isActive, true),
+          or(
+            eq(users.city, 'Buenos Aires'),
+            eq(users.city, 'Kolasin')
+          )
         ))
         .groupBy(users.city, users.country)
         .orderBy(desc(sql`COUNT(*)`))

@@ -18,6 +18,7 @@ import { setupGlobalErrorHandlers, setupQueryErrorHandling } from "@/lib/global-
 import { MicroInteractionProvider } from "@/components/MicroInteractionProvider";
 import BuildOptimizer from "@/lib/build-optimizations";
 import * as Sentry from "@sentry/react";
+import "@/lib/i18n"; // Initialize i18n
 
 // Critical components that load immediately - minimal initial bundle
 import NotFound from "@/pages/not-found";

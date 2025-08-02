@@ -444,10 +444,10 @@ export default function BeautifulPostCreator({
                           className="w-full p-4 pl-12 rounded-xl bg-white/90 backdrop-blur-sm border border-amber-200/60 focus:outline-none focus:ring-4 focus:ring-amber-400/30 font-medium text-gray-800 appearance-none cursor-pointer transition-all hover:border-amber-300"
                         >
                           <option value="">Choose a category...</option>
-                          <option value="restaurant">Restaurant</option>
-                          <option value="cafe">Café</option>
-                          <option value="hotel">Hotel</option>
-                          <option value="venue">Venue</option>
+                          <option value="restaurant">🍽️ Restaurant</option>
+                          <option value="cafe">☕ Café</option>
+                          <option value="hotel">🏨 Hotel</option>
+                          <option value="venue">💃 Venue</option>
                         </select>
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-xl">
                           {recommendationType === 'restaurant' ? '🍽️' : 

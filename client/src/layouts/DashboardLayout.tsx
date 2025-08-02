@@ -200,12 +200,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <ChevronDown className="ml-1 h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-32">
-                  <DropdownMenuItem>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => window.i18n?.changeLanguage('en')}>
                     🇺🇸 English
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => window.i18n?.changeLanguage('es')}>
                     🇪🇸 Español
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => window.i18n?.changeLanguage('fr')}>
+                    🇫🇷 Français
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => window.i18n?.changeLanguage('de')}>
+                    🇩🇪 Deutsch
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => window.i18n?.changeLanguage('it')}>
+                    🇮🇹 Italiano
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => window.i18n?.changeLanguage('pt')}>
+                    🇵🇹 Português
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

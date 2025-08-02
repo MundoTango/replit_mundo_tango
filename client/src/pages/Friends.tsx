@@ -48,17 +48,19 @@ export function Friends() {
   const [selectedUser, setSelectedUser] = useState<SuggestedFriend | null>(null);
   const [activeTab, setActiveTab] = useState('friends');
 
-  // Fetch friends list
+  // Fetch friends list - only when friends tab is active
   const { data: friends = [], isLoading: friendsLoading } = useQuery({
     queryKey: ['/api/friends'],
     queryFn: async () => {
-      const response = await apiRequest('/api/friends', { method: 'GET' });
+      const response = await apiRequest('/api/friends?limit=50', { method: 'GET' });
       const data = await response.json();
       return data.data || [];
     },
+    enabled: activeTab === 'friends',
+    staleTime: 60000, // Cache for 1 minute
   });
 
-  // Fetch friend suggestions
+  // Fetch friend suggestions - only when suggestions tab is active
   const { data: suggestions = [], isLoading: suggestionsLoading } = useQuery({
     queryKey: ['/api/friends/suggestions'],
     queryFn: async () => {
@@ -66,9 +68,11 @@ export function Friends() {
       const data = await response.json();
       return data.data || [];
     },
+    enabled: activeTab === 'suggestions',
+    staleTime: 300000, // Cache for 5 minutes
   });
 
-  // Fetch pending friend requests count
+  // Fetch pending friend requests count - always fetch for badge count
   const { data: requestsData } = useQuery({
     queryKey: ['/api/friend-requests/received'],
     queryFn: async () => {
@@ -76,6 +80,7 @@ export function Friends() {
       const data = await response.json();
       return data.data || [];
     },
+    staleTime: 30000, // Cache for 30 seconds
   });
 
   const pendingRequestsCount = requestsData?.filter((r: any) => r.status === 'pending').length || 0;

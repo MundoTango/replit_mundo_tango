@@ -213,13 +213,13 @@ export function RecommendationsList({ groupId, groupCity }: RecommendationsListP
               className="w-full px-3 py-2 border rounded-lg"
             >
               <option value="all">All Categories</option>
-              <option value="restaurant">Restaurants</option>
-              <option value="bar">Bars</option>
-              <option value="cafe">Cafés</option>
-              <option value="attraction">Attractions</option>
-              <option value="shopping">Shopping</option>
-              <option value="entertainment">Entertainment</option>
-              <option value="other">Other</option>
+              <option value="restaurant">🍽️ Restaurants</option>
+              <option value="bar">🍷 Bars</option>
+              <option value="cafe">☕ Cafés</option>
+              <option value="attraction">🎭 Attractions</option>
+              <option value="shopping">🛍️ Shopping</option>
+              <option value="entertainment">🎵 Entertainment</option>
+              <option value="other">📍 Other</option>
             </select>
           </div>
 
