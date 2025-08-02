@@ -3,7 +3,7 @@ import EnhancedHierarchicalTreeView from './EnhancedHierarchicalTreeView';
 import ErrorBoundary from './ErrorBoundary';
 import JiraStyleItemDetailModal from './JiraStyleItemDetailModal';
 import DailyActivityView from './DailyActivityView';
-import Framework40LDashboard from './Framework40LDashboard';
+import Framework44x21Dashboard from './Framework44x21Dashboard';
 import { countAllProjects, getAllTeams, comprehensiveProjectData, getTeamStatistics, getProjectAnalytics, getProjectTimeline } from '@/data/comprehensive-project-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -75,7 +75,7 @@ interface ProjectItem {
   id: string;
   title: string;
   description?: string;
-  type: 'Platform' | 'Section' | 'Feature' | 'Project' | 'Task';
+  type: 'Platform' | 'Section' | 'Feature' | 'Project' | 'Task' | 'Sub-task' | 'Team';
   status: 'Complete' | 'In Progress' | 'Planning' | 'Blocked';
   completion: number;
   team?: string[];
@@ -97,10 +97,10 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
   // Dynamically determine the number of layers in the framework
   // This automatically updates when new layers are added to the framework
   // Update this number when expanding the framework (e.g., 30L → 40L)
-  const FRAMEWORK_LAYERS = 35; // Currently using 35L Framework (Layers 1-35)
+  const FRAMEWORK_LAYERS = 44; // Currently using 44x21 Framework (44 layers × 21 phases)
   
   // State management
-  const [view, setView] = useState<'hierarchy' | 'analytics' | 'timeline' | 'teams' | 'daily' | '35l'>('hierarchy');
+  const [view, setView] = useState<'hierarchy' | 'analytics' | 'timeline' | 'teams' | 'daily' | '44x21'>('hierarchy');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
@@ -302,9 +302,9 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
             <Activity className="h-4 w-4" />
             Daily Activity
           </TabsTrigger>
-          <TabsTrigger value="35l" className="flex items-center gap-2">
+          <TabsTrigger value="44x21" className="flex items-center gap-2">
             <Layers className="h-4 w-4" />
-            40L Framework
+            44x21 Framework
           </TabsTrigger>
         </TabsList>
 
@@ -510,7 +510,7 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
                         title: team.teamName,
                         description: `Team involved in ${team.projectCount} projects`,
                         type: 'Team' as const,
-                        status: team.inProgressCount > team.completedCount ? 'In Progress' : 'Completed' as const,
+                        status: team.inProgressCount > team.completedCount ? 'In Progress' : 'Complete' as const,
                         completion: team.avgCompletion,
                         team: [team.teamName],
                         priority: 'High' as const,
@@ -1087,9 +1087,9 @@ const Comprehensive11LProjectTracker: React.FC<ComprehensiveProjectTrackerProps>
           <DailyActivityView />
         </TabsContent>
 
-        {/* 40L Framework View */}
-        <TabsContent value="35l" className="space-y-6">
-          <Framework40LDashboard />
+        {/* 44x21 Framework View */}
+        <TabsContent value="44x21" className="space-y-6">
+          <Framework44x21Dashboard />
         </TabsContent>
       </Tabs>
 
