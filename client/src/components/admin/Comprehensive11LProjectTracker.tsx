@@ -76,15 +76,15 @@ interface ProjectItem {
   title: string;
   description?: string;
   type: 'Platform' | 'Section' | 'Feature' | 'Project' | 'Task' | 'Sub-task' | 'Team';
-  status: 'Complete' | 'In Progress' | 'Planning' | 'Blocked';
-  completion: number;
+  status: 'Complete' | 'In Progress' | 'Planning' | 'Blocked' | 'Completed' | 'Planned';
+  completion?: number;
   team?: string[];
   originalFiles?: string[];
   changesFrom?: string;
   currentState?: string;
   estimatedHours?: number;
   actualHours?: number;
-  priority: 'High' | 'Medium' | 'Low';
+  priority: 'High' | 'Medium' | 'Low' | 'Critical';
   layer?: string;
   children?: ProjectItem[];
 }

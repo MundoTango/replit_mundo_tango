@@ -316,23 +316,34 @@ const AdminCenter: React.FC = React.memo(() => {
   };
 
   const tabs = [
-    { id: 'life-ceo-command', label: 'Life CEO Command Center', icon: <Brain className="w-4 h-4" />, isNew: true },
+    // Core Management
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'statistics', label: 'Global Statistics', icon: <Globe className="w-4 h-4" />, isNew: true },
+    { id: 'life-ceo-command', label: 'Life CEO Command Center', icon: <Brain className="w-4 h-4" />, isNew: true },
     { id: 'project-tracker', label: '44x21 Project Tracker', icon: <GitCommit className="w-4 h-4" /> },
-    { id: 'phase4-tools', label: 'Phase 4 Tools', icon: <Package className="w-4 h-4" />, isNew: true },
-    { id: 'platform-audit', label: 'Platform Audit', icon: <AlertTriangle className="w-4 h-4" />, isNew: true },
+    
+    // User & Community
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
-    { id: 'content', label: 'Content Moderation', icon: <FileText className="w-4 h-4" /> },
-    { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="w-4 h-4" /> },
-    { id: 'events', label: 'Event Management', icon: <Calendar className="w-4 h-4" /> },
+    { id: 'statistics', label: 'Community Hub', icon: <Globe className="w-4 h-4" />, isNew: true },
+    { id: 'events', label: 'Groups & Events', icon: <Calendar className="w-4 h-4" /> },
     { id: 'event-types', label: 'Event Types', icon: <Calendar className="w-4 h-4" />, isNew: true },
-    { id: 'reports', label: 'Reports & Logs', icon: <Eye className="w-4 h-4" /> },
-    { id: 'compliance', label: 'Compliance Center', icon: <Shield className="w-4 h-4" /> },
-    { id: 'rbac', label: 'RBAC/ABAC Manager', icon: <Lock className="w-4 h-4" /> },
-    { id: 'system', label: 'System Health & Security', icon: <Activity className="w-4 h-4" /> },
+    
+    // Content & Compliance
+    { id: 'content', label: 'Content Moderation', icon: <FileText className="w-4 h-4" /> },
+    { id: 'reports', label: 'Reporting System', icon: <Eye className="w-4 h-4" /> },
+    { id: 'platform-audit', label: 'Platform Audit', icon: <AlertTriangle className="w-4 h-4" />, isNew: true },
+    
+    // Technical Tools
+    { id: 'rbac', label: 'RBAC/ABAC Management', icon: <Lock className="w-4 h-4" /> },
+    { id: 'system', label: 'System Health', icon: <Activity className="w-4 h-4" /> },
+    { id: 'phase4-tools', label: 'Performance Monitor', icon: <Package className="w-4 h-4" />, isNew: true },
+    
+    // Development & Analytics
+    { id: 'analytics', label: 'Framework Analytics', icon: <TrendingUp className="w-4 h-4" /> },
+    { id: 'compliance', label: 'Automation Dashboard', icon: <Shield className="w-4 h-4" /> },
+    { id: 'validation', label: 'Compliance Center', icon: <CheckCircle className="w-4 h-4" />, isNew: true },
+    
+    // Business
     { id: 'subscriptions', label: 'Subscription Management', icon: <CreditCard className="w-4 h-4" />, isNew: true },
-    { id: 'validation', label: 'Phase 2/3 Validation', icon: <CheckCircle className="w-4 h-4" />, isNew: true },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
   ];
 
