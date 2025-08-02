@@ -32,7 +32,7 @@ import { LifeCEOLearnings } from './LifeCEOLearnings';
 import Framework40x20sDashboard from './Framework40x20sDashboard';
 import Framework40LDashboard from './Framework40LDashboard';
 import { activityLogger } from '@/services/activityLoggingService';
-import LifeCEOFourDayLearnings from '../life-ceo/LifeCEOFourDayLearnings';
+import LifeCEOContinuousLearnings from '../life-ceo/LifeCEOContinuousLearnings';
 import JiraExportDashboard from './JiraExportDashboard';
 
 const LifeCEOCommandCenter: React.FC = () => {
@@ -374,8 +374,8 @@ const LifeCEOCommandCenter: React.FC = () => {
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-turquoise-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white relative"
           >
             <Brain className="w-4 h-4 mr-2" />
-            4-Day Learnings
-            <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1">NEW</Badge>
+            Learnings
+            <Badge className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1">LIVE</Badge>
           </TabsTrigger>
           <TabsTrigger 
             value="agent"
@@ -413,7 +413,7 @@ const LifeCEOCommandCenter: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="learnings" className="mt-6">
-          <LifeCEOFourDayLearnings />
+          <LifeCEOContinuousLearnings />
         </TabsContent>
 
         <TabsContent value="agent" className="mt-6">
