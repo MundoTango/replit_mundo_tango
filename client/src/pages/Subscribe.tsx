@@ -48,30 +48,21 @@ const Subscribe: React.FC = () => {
   // Create subscription mutation
   const createSubscriptionMutation = useMutation({
     mutationFn: async (tier: string) => {
-      return apiRequest('/api/payments/subscribe', { method: 'POST', body: { tier } });
+      const response = await apiRequest('POST', '/api/payments/subscribe', { tier });
+      return response.json();
     },
     onSuccess: async (data: any) => {
       if (data.clientSecret) {
-        // Redirect to Stripe Checkout
-        const stripe = await stripePromise;
-        if (!stripe) {
-          toast({
-            title: "Error",
-            description: "Stripe not loaded. Please check your connection.",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        // For now, show success and redirect to billing page
-        // In production, you would use Stripe Elements or redirect to checkout
+        // Redirect to checkout page with the selected tier
         toast({
           title: "Subscription Created",
-          description: "Redirecting to payment...",
+          description: "Redirecting to secure payment...",
         });
         
-        // TODO: Implement Stripe Elements payment flow
-        setLocation('/settings/billing');
+        // Store the client secret and redirect to checkout
+        sessionStorage.setItem('stripe_client_secret', data.clientSecret);
+        sessionStorage.setItem('selected_tier', data.tier);
+        setLocation(`/checkout/${data.tier}`);
       }
     },
     onError: (error: any) => {
