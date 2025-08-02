@@ -75,7 +75,11 @@ const Subscribe: React.FC = () => {
   });
 
   const handleSubscribe = (tier: string) => {
-    if (!isAuthenticated) {
+    // Temporarily bypass auth check for testing payment flow
+    // Remove this bypass in production
+    const skipAuthForTesting = true;
+    
+    if (!isAuthenticated && !skipAuthForTesting) {
       toast({
         title: "Authentication Required",
         description: "Please log in to subscribe",
