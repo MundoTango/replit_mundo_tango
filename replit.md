@@ -15,7 +15,23 @@ The platform is designed with a strong emphasis on security, performance, and us
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
-Development approach: Comprehensive full-stack implementation using the **Mundo Tango 11 Layers System (11L)**:
+Development approach: Comprehensive full-stack implementation using the **Mundo Tango 23L Framework** integrated with **Life CEO 16-Agent System** and **ESA Methodology**:
+
+**ESA-23L Integration Protocol:**
+When user says "use ESA", activate the full Life CEO 23L framework:
+- **E (Error)**: Use Life CEO Analysis Agents (Agents 1-5) to scan across all 23 technical layers
+- **S (Solution)**: Deploy Life CEO Planning Agents (Agents 6-10) to architect solutions following 23L patterns
+- **A (Action)**: Execute with Life CEO Implementation Agents (Agents 11-16) with continuous validation
+
+**Life CEO Agent Assignments for ESA:**
+- Agent 1-2: Code Analysis & Error Detection
+- Agent 3-4: Security & Performance Scanning
+- Agent 5-6: User Experience & Design Validation
+- Agent 7-8: Solution Architecture & Planning
+- Agent 9-10: Integration & API Coordination
+- Agent 11-12: Implementation & Testing
+- Agent 13-14: Deployment & Monitoring
+- Agent 15-16: Continuous Improvement & Optimization
 
 🏗️ 11 LAYERS SYSTEM FOR ANALYSIS + IMPLEMENTATION:
 1. **Expertise Layer** — Identify required expertise (full-stack, security, AI, etc.)
