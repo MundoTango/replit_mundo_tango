@@ -35,7 +35,7 @@ interface Phase3Result {
   details?: any;
 }
 
-export function Phase40x20sValidationDashboard() {
+export function Phase44x21ValidationDashboard() {
   const [activePhase, setActivePhase] = useState('phase2');
   const [isRunning, setIsRunning] = useState(false);
   const [phase2Results, setPhase2Results] = useState<any>(null);
@@ -44,7 +44,7 @@ export function Phase40x20sValidationDashboard() {
   const runPhase2Validation = async () => {
     setIsRunning(true);
     try {
-      const response = await apiRequest('/api/validation/phase2', 'POST', {});
+      const response = await apiRequest('POST', '/api/validation/phase2', {});
       setPhase2Results(response);
     } catch (error) {
       console.error('Phase 2 validation error:', error);
@@ -56,7 +56,7 @@ export function Phase40x20sValidationDashboard() {
   const runPhase3LoadTesting = async () => {
     setIsRunning(true);
     try {
-      const response = await apiRequest('/api/validation/phase3', 'POST', {});
+      const response = await apiRequest('POST', '/api/validation/phase3', {});
       setPhase3Results(response);
     } catch (error) {
       console.error('Phase 3 load testing error:', error);

@@ -15,9 +15,9 @@ import { EventTypesManager } from '@/components/admin/EventTypesManager';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalStatisticsDashboard } from '@/components/GlobalStatisticsDashboard';
 import PerformanceMonitor from '@/components/admin/PerformanceMonitor';
-import Framework35LDashboard from '@/components/admin/Framework35LDashboard';
+import Framework44x21Dashboard from '@/components/admin/Framework44x21Dashboard';
 import { ValidationDashboard } from '@/components/admin/ValidationDashboard';
-import { Phase40x20sValidationDashboard } from '@/components/admin/Phase40x20sValidationDashboard';
+import { Phase44x21ValidationDashboard } from '@/components/admin/Phase44x21ValidationDashboard';
 import { Phase4ToolsDashboard } from '@/components/life-ceo/Phase4ToolsDashboard';
 import { PlatformAuditDashboard } from '@/components/life-ceo/PlatformAuditDashboard';
 import { 
@@ -319,7 +319,7 @@ const AdminCenter: React.FC = React.memo(() => {
     { id: 'life-ceo-command', label: 'Life CEO Command Center', icon: <Brain className="w-4 h-4" />, isNew: true },
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'statistics', label: 'Global Statistics', icon: <Globe className="w-4 h-4" />, isNew: true },
-    { id: 'project-tracker', label: 'The Plan', icon: <GitCommit className="w-4 h-4" /> },
+    { id: 'project-tracker', label: '44x21 Project Tracker', icon: <GitCommit className="w-4 h-4" /> },
     { id: 'phase4-tools', label: 'Phase 4 Tools', icon: <Package className="w-4 h-4" />, isNew: true },
     { id: 'platform-audit', label: 'Platform Audit', icon: <AlertTriangle className="w-4 h-4" />, isNew: true },
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
@@ -2075,7 +2075,7 @@ const AdminCenter: React.FC = React.memo(() => {
     );
   };
 
-  const render35LFramework = () => <Framework35LDashboard />;
+  const renderFramework44x21 = () => <Framework44x21Dashboard />;
 
   // Settings tab state
   const [settingsData, setSettingsData] = useState<any>(null);
@@ -2541,7 +2541,7 @@ const AdminCenter: React.FC = React.memo(() => {
       case 'compliance': return renderCompliance();
       case 'rbac': return renderRbacManager();
       case 'system': return renderSystemHealth();
-      case 'validation': return <Phase40x20sValidationDashboard />;
+      case 'validation': return <Phase44x21ValidationDashboard />;
       case 'settings': return renderSettings();
       case 'subscriptions': return <SubscriptionManagement />;
       default: return renderOverview();
