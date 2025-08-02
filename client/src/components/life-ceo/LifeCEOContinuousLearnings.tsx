@@ -160,10 +160,10 @@ export default function LifeCEOContinuousLearnings() {
           <div className="flex justify-between items-start">
             <div>
               <CardTitle className="text-2xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
-                Life CEO Continuous Learnings
+                Life CEO Continuous Learnings - 44x21 Framework
               </CardTitle>
               <CardDescription>
-                Real-time insights and improvements captured by the 44x21 framework
+                Real-time insights across all 44 technical layers and 21 development phases
               </CardDescription>
             </div>
             <div className="flex gap-2">

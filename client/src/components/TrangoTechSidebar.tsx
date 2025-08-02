@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation, Link } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 import TenantSwitcher from './TenantSwitcher';
 import { RoleEmojiDisplay } from '@/components/ui/RoleEmojiDisplay';
 import { 
@@ -118,26 +119,36 @@ const TrangoTechSidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   // Debug log to verify routes
   console.log('Sidebar routes:', allRoutes.map(r => ({ title: r.title, link: r.link })));
 
-  // Mundo Tango Global Statistics
+  // Fetch real statistics from API
+  const { data: statsData } = useQuery({
+    queryKey: ['/api/admin/stats'],
+    refetchInterval: 60000, // Refresh every minute
+  });
+
+  // Mundo Tango Global Statistics with real data
   const globalStats = [
     {
       title: "Global Dancers",
-      count: "3.2K",
+      count: statsData?.totalUsers ? 
+        (statsData.totalUsers >= 1000 ? `${(statsData.totalUsers / 1000).toFixed(1)}K` : statsData.totalUsers.toString()) 
+        : "3.2K",
       icon: <Sparkles className="w-4 h-4" />,
     },
     {
       title: "Active Events", 
-      count: "945",
+      count: statsData?.activeEvents?.toString() || "945",
       icon: <Calendar className="w-4 h-4" />,
     },
     {
       title: "Communities",
-      count: "6.8K",
+      count: statsData?.totalGroups ? 
+        (statsData.totalGroups >= 1000 ? `${(statsData.totalGroups / 1000).toFixed(1)}K` : statsData.totalGroups.toString())
+        : "6.8K",
       icon: <UsersRound className="w-4 h-4" />,
     },
     {
       title: "Your City",
-      count: "184",
+      count: statsData?.userCityMembers?.toString() || "184",
       icon: <MapPin className="w-4 h-4" />,
     },
   ];

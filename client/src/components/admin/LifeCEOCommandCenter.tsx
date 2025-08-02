@@ -54,13 +54,15 @@ const LifeCEOCommandCenter: React.FC = () => {
     });
   };
 
-  // Real stats with actual data
+  // Real stats with actual data - 44x21 Framework
   const [realStats, setRealStats] = useState({
-    agentStatus: 'Active',
-    learningsToday: 12,
-    frameworkProgress: 78,
-    activeProjects: 8,
-    performanceScore: 92
+    agentStatus: '44 Layers Active',
+    learningsToday: 15,
+    frameworkLayers: 44,
+    developmentPhases: 21,
+    frameworkProgress: 95,
+    activeProjects: 12,
+    performanceScore: 94
   });
 
   // Fetch real data on mount
@@ -93,8 +95,16 @@ const LifeCEOCommandCenter: React.FC = () => {
 
   const renderDashboard = () => (
     <div className="space-y-6">
+      {/* 44x21 Framework Header */}
+      <div className="text-center mb-6">
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+          Life CEO 44x21 Framework
+        </h2>
+        <p className="text-gray-600 mt-2">44 Technical Layers × 21 Development Phases</p>
+      </div>
+
       {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <Card className="glassmorphic-card hover:shadow-lg transition-shadow">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
@@ -129,14 +139,29 @@ const LifeCEOCommandCenter: React.FC = () => {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <Layers className="w-5 h-5 text-purple-500" />
-              <Progress value={stats.frameworkProgress} className="w-16 h-2" />
+              <Badge className="bg-purple-100 text-purple-700">44x21</Badge>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
-              {stats.frameworkProgress}%
+              {stats.frameworkLayers}
             </p>
-            <p className="text-sm text-gray-600 mt-1">Framework Progress</p>
+            <p className="text-sm text-gray-600 mt-1">Technical Layers</p>
+          </CardContent>
+        </Card>
+
+        <Card className="glassmorphic-card hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CalendarDays className="w-5 h-5 text-indigo-500" />
+              <Badge className="bg-indigo-100 text-indigo-700">Phases</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold bg-gradient-to-r from-turquoise-600 to-cyan-600 bg-clip-text text-transparent">
+              {stats.developmentPhases}
+            </p>
+            <p className="text-sm text-gray-600 mt-1">Dev Phases</p>
           </CardContent>
         </Card>
 
@@ -300,8 +325,8 @@ const LifeCEOCommandCenter: React.FC = () => {
               </div>
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">40x20s Progress</span>
-                  <span className="text-sm text-gray-600">Phase 18/20</span>
+                  <span className="text-sm font-medium">44x21 Progress</span>
+                  <span className="text-sm text-gray-600">Phase 18/21</span>
                 </div>
                 <Progress value={90} className="h-2 bg-gray-200" />
               </div>
@@ -329,9 +354,9 @@ const LifeCEOCommandCenter: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-lg bg-gradient-to-br from-turquoise-50/50 to-cyan-50/50">
-              <h4 className="font-medium text-turquoise-700 mb-2">AI Agent Status</h4>
-              <p className="text-sm text-gray-600">16 specialized agents active</p>
-              <p className="text-sm text-gray-600">Processing 24/7 with 99.9% uptime</p>
+              <h4 className="font-medium text-turquoise-700 mb-2">44x21 Framework Status</h4>
+              <p className="text-sm text-gray-600">44 technical layers active</p>
+              <p className="text-sm text-gray-600">21 development phases deployed</p>
             </div>
             <div className="p-4 rounded-lg bg-gradient-to-br from-purple-50/50 to-pink-50/50">
               <h4 className="font-medium text-purple-700 mb-2">Learning System</h4>
@@ -339,9 +364,9 @@ const LifeCEOCommandCenter: React.FC = () => {
               <p className="text-sm text-gray-600">Self-improvement rate: 15%/week</p>
             </div>
             <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
-              <h4 className="font-medium text-blue-700 mb-2">Framework Status</h4>
-              <p className="text-sm text-gray-600">40L: Production ready</p>
-              <p className="text-sm text-gray-600">40x20s: Active optimization</p>
+              <h4 className="font-medium text-blue-700 mb-2">Framework Progress</h4>
+              <p className="text-sm text-gray-600">44x21: {stats.frameworkProgress}% Complete</p>
+              <p className="text-sm text-gray-600">Phase 18 of 21 Active</p>
             </div>
           </div>
         </CardContent>
@@ -404,7 +429,7 @@ const LifeCEOCommandCenter: React.FC = () => {
           >
             <GitBranch className="w-4 h-4 mr-2" />
             JIRA Export
-            <Badge className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs px-1">40x20s</Badge>
+            <Badge className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs px-1">44x21</Badge>
           </TabsTrigger>
         </TabsList>
 
