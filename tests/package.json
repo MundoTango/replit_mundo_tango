@@ -1,0 +1,31 @@
+{
+  "name": "mundo-tango-tests",
+  "version": "1.0.0",
+  "description": "ESA-44x21S Compliant Test Suite for Mundo Tango",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:p0": "jest --selectProjects P0-Auth P0-Payment",
+    "test:p1": "jest --selectProjects P1-APIs P1-Services P1-Middleware",
+    "test:p2": "jest --selectProjects P2-Frontend",
+    "test:p3": "jest --selectProjects P3-E2E",
+    "test:backend": "jest --testPathPattern=backend",
+    "test:frontend": "jest --testPathPattern=frontend",
+    "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
+    "test:ci": "jest --ci --coverage --maxWorkers=2",
+    "test:update-snapshots": "jest --updateSnapshot"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.1",
+    "@types/jest": "^29.5.10",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jest-junit": "^16.0.0",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.1.1"
+  }
+}
