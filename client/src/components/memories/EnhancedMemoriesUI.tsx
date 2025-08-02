@@ -85,6 +85,7 @@ const OriginalEnhancedPostCreator: React.FC<{
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
   const [currentMentionPosition, setCurrentMentionPosition] = useState(0);
+  const [previewUrls, setPreviewUrls] = useState<Map<string, string>>(new Map());
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
@@ -128,6 +129,29 @@ const OriginalEnhancedPostCreator: React.FC<{
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [content]);
+
+  // ESA Performance Optimization - Clean up object URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Cleanup all preview URLs when component unmounts
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  // Create optimized preview URL with cleanup
+  const getPreviewUrl = useCallback((file: File, index: number) => {
+    const key = `${file.name}-${index}`;
+    
+    // Return existing URL if already created
+    if (previewUrls.has(key)) {
+      return previewUrls.get(key)!;
+    }
+    
+    // Create new URL and store it
+    const url = URL.createObjectURL(file);
+    setPreviewUrls(prev => new Map(prev).set(key, url));
+    return url;
+  }, [previewUrls]);
 
   // Handle mention detection
   useEffect(() => {
@@ -338,7 +362,7 @@ const OriginalEnhancedPostCreator: React.FC<{
               </div>
             )}
 
-            {/* Media Preview */}
+            {/* ESA Optimized Media Preview - Fast loading with memory management */}
             {media.length > 0 && (
               <div className="grid grid-cols-3 gap-2 animate-fadeIn">
                 {media.map((item, index) => {
@@ -353,16 +377,30 @@ const OriginalEnhancedPostCreator: React.FC<{
                       <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
                         {isImage ? (
                           <img 
-                            src={isUploaded ? item.url : URL.createObjectURL(file)} 
+                            src={isUploaded ? item.url : getPreviewUrl(file, index)} 
                             alt="" 
                             className="w-full h-full object-cover"
+                            loading="lazy"
                           />
                         ) : isVideo ? (
-                          <video 
-                            src={isUploaded ? item.url : URL.createObjectURL(file)}
-                            className="w-full h-full object-cover"
-                            controls
-                          />
+                          // Optimized video preview - no controls for better performance
+                          <div className="w-full h-full relative">
+                            <video 
+                              src={isUploaded ? item.url : getPreviewUrl(file, index)}
+                              className="w-full h-full object-cover"
+                              muted
+                              playsInline
+                              preload="metadata"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                              <div className="bg-white/90 rounded-full p-3">
+                                <Video className="w-6 h-6 text-gray-700" />
+                              </div>
+                            </div>
+                            <div className="absolute bottom-2 left-2 text-xs text-white bg-black/70 px-2 py-1 rounded">
+                              {(file.size / 1024 / 1024).toFixed(1)}MB
+                            </div>
+                          </div>
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <Video className="w-8 h-8 text-gray-400" />
@@ -370,7 +408,22 @@ const OriginalEnhancedPostCreator: React.FC<{
                         )}
                       </div>
                       <button
-                        onClick={() => setMedia(prev => prev.filter((_, i) => i !== index))}
+                        onClick={() => {
+                          // Clean up URL when removing media
+                          if (!isUploaded) {
+                            const key = `${file.name}-${index}`;
+                            const url = previewUrls.get(key);
+                            if (url) {
+                              URL.revokeObjectURL(url);
+                              setPreviewUrls(prev => {
+                                const newMap = new Map(prev);
+                                newMap.delete(key);
+                                return newMap;
+                              });
+                            }
+                          }
+                          setMedia(prev => prev.filter((_, i) => i !== index));
+                        }}
                         className="absolute top-1 right-1 bg-black/50 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="w-4 h-4 text-white" />
