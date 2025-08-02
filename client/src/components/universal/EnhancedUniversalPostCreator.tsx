@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import EmojiPicker from 'emoji-picker-react';
 import GoogleMapsLocationInput from './GoogleMapsLocationInput';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface PostCreatorProps {
   context?: {
@@ -65,9 +66,6 @@ export default function EnhancedUniversalPostCreator({
   const [location, setLocation] = useState('');
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
-  const [locationError, setLocationError] = useState('');
-  const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
-  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
@@ -88,10 +86,13 @@ export default function EnhancedUniversalPostCreator({
   // Get user's location using browser API
   const getCurrentLocation = useCallback(() => {
     setLocationLoading(true);
-    setLocationError('');
 
     if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by your browser');
+      toast({
+        title: "Geolocation not supported",
+        description: "Your browser doesn't support location services",
+        variant: "destructive"
+      });
       setLocationLoading(false);
       return;
     }
@@ -125,7 +126,6 @@ export default function EnhancedUniversalPostCreator({
         setLocationLoading(false);
       },
       (error) => {
-        setLocationError('Unable to retrieve your location');
         setLocationLoading(false);
         toast({
           title: "Location access denied",
@@ -135,40 +135,6 @@ export default function EnhancedUniversalPostCreator({
       }
     );
   }, [toast]);
-
-  // Search locations as user types
-  const searchLocations = useCallback(async (query: string) => {
-    if (query.length < 3) {
-      setLocationSuggestions([]);
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
-      );
-      const data = await response.json();
-      setLocationSuggestions(data);
-      setShowLocationSuggestions(true);
-    } catch (error) {
-      console.error('Location search error:', error);
-    }
-  }, []);
-
-  // Handle location input change
-  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setLocation(value);
-    searchLocations(value);
-  };
-
-  // Select location from suggestions
-  const selectLocation = (suggestion: any) => {
-    setLocation(suggestion.display_name);
-    setCoordinates({ lat: parseFloat(suggestion.lat), lng: parseFloat(suggestion.lon) });
-    setLocationSuggestions([]);
-    setShowLocationSuggestions(false);
-  };
 
   // Handle media upload
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -429,43 +395,21 @@ export default function EnhancedUniversalPostCreator({
               )}
             </motion.div>
 
-            {/* Location input */}
+            {/* Location input with Google Maps */}
             <div className="relative">
               <div className="flex items-center space-x-2">
-                <div className="flex-1 relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
+                <div className="flex-1">
+                  <GoogleMapsLocationInput
                     value={location}
-                    onChange={handleLocationChange}
-                    placeholder="Add location..."
-                    className="w-full pl-10 pr-3 py-2 bg-gray-50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-turquoise-500/50 transition-all"
+                    onChange={(newLocation, newCoordinates) => {
+                      setLocation(newLocation);
+                      if (newCoordinates) {
+                        setCoordinates(newCoordinates);
+                      }
+                    }}
+                    placeholder="Search for a business or place..."
+                    className="bg-gray-50 border-0 focus:ring-turquoise-500"
                   />
-                  
-                  {/* Location suggestions dropdown */}
-                  <AnimatePresence>
-                    {showLocationSuggestions && locationSuggestions.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50"
-                      >
-                        {locationSuggestions.map((suggestion, index) => (
-                          <button
-                            key={index}
-                            onClick={() => selectLocation(suggestion)}
-                            className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm"
-                          >
-                            <div className="font-medium">{suggestion.display_name.split(',')[0]}</div>
-                            <div className="text-gray-500 text-xs">
-                              {suggestion.display_name.split(',').slice(1, 3).join(',')}
-                            </div>
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
 
                 <Button
@@ -483,12 +427,7 @@ export default function EnhancedUniversalPostCreator({
                 </Button>
               </div>
 
-              {locationError && (
-                <p className="mt-1 text-xs text-red-500 flex items-center">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {locationError}
-                </p>
-              )}
+
             </div>
 
             {/* Tags */}
@@ -667,7 +606,7 @@ export default function EnhancedUniversalPostCreator({
                     setContent(prev => prev + emojiData.emoji);
                     setShowEmojiPicker(false);
                   }}
-                  theme="light"
+                  theme={'light' as any}
                   lazyLoadEmojis
                 />
               </motion.div>
