@@ -29,25 +29,7 @@ export const SUBSCRIPTION_TIERS = {
     name: 'Basic',
     priceId: process.env.STRIPE_PRICE_ID_BASIC || '',
     price: 500, // $5.00 in cents
-    features: ['all_free_features', 'unlimited_storage', 'priority_support']
-  },
-  enthusiast: {
-    name: 'Enthusiast',
-    priceId: process.env.STRIPE_PRICE_ID_ENTHUSIAST || '',
-    price: 999, // $9.99 in cents
-    features: ['all_basic_features', 'advanced_analytics', 'custom_branding']
-  },
-  professional: {
-    name: 'Professional',
-    priceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL || '',
-    price: 2499, // $24.99 in cents
-    features: ['all_enthusiast_features', 'api_access', 'white_label']
-  },
-  enterprise: {
-    name: 'Enterprise',
-    priceId: process.env.STRIPE_PRICE_ID_ENTERPRISE || '',
-    price: 9999, // $99.99 in cents
-    features: ['all_professional_features', 'dedicated_support', 'custom_features']
+    features: ['5gb_storage', 'basic_events', 'city_professional_groups']
   }
 };
 

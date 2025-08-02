@@ -271,11 +271,12 @@ const Subscribe: React.FC = () => {
         <div className="mt-12 text-center">
           <p className="text-gray-600">
             Questions about our plans?{' '}
-            <Link href="/help/billing">
-              <a className="text-turquoise-600 hover:text-turquoise-700 underline">
-                View billing FAQ
-              </a>
-            </Link>
+            <a 
+              href="mailto:support@mundotango.life" 
+              className="text-turquoise-600 hover:text-turquoise-700 underline"
+            >
+              Contact support
+            </a>
           </p>
         </div>
       </div>

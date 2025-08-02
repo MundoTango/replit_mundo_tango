@@ -198,7 +198,7 @@ const Checkout: React.FC = () => {
     return null;
   }
 
-  if (!tier || !['basic', 'enthusiast', 'professional', 'enterprise'].includes(tier)) {
+  if (!tier || !['basic'].includes(tier)) {
     setLocation('/subscribe');
     return null;
   }

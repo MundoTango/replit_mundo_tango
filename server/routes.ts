@@ -1155,7 +1155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const { tier } = req.body;
-        if (!tier || !['basic', 'enthusiast', 'professional', 'enterprise'].includes(tier)) {
+        if (!tier || !['basic'].includes(tier)) {
           return res.status(400).json({ error: 'Invalid subscription tier' });
         }
 
@@ -1164,6 +1164,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Audit payment event
         auditPaymentEvent(user.id, 'subscription_created', { tier });
+
+        res.json({
+          subscriptionId: subscription.id,
+          clientSecret,
+          tier
+        });
+      } catch (error: any) {
+        const sanitized = sanitizeError(error);
+        res.status(500).json({ error: sanitized.message });
+      }
+    }
+  );
+
+  // Create checkout session for payment
+  app.post('/api/payments/create-checkout-session',
+    isAuthenticated,
+    paymentRateLimiter,
+    validateCSRFToken,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const user = await storage.getUserByReplitId(userId);
+        
+        if (!user) {
+          return res.status(401).json({ error: 'User not found' });
+        }
+
+        const { tier, promoCode } = req.body;
+        if (!tier || !['basic'].includes(tier)) {
+          return res.status(400).json({ error: 'Invalid subscription tier' });
+        }
+
+        // Create or get existing subscription
+        const subscription = await paymentService.createSubscription(user.id, tier);
+        const clientSecret = await paymentService.getSubscriptionClientSecret(subscription.id);
+
+        // Audit payment event
+        auditPaymentEvent(user.id, 'checkout_session_created', { tier });
 
         res.json({
           subscriptionId: subscription.id,
