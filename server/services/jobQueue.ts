@@ -90,7 +90,7 @@ const notificationWorker = redisConnection ? new Worker('notifications', async (
 }, {
   connection: redisConnection,
   concurrency: 10,
-});
+}) : null;
 
 // Image processing worker
 const imageWorker = new Worker('images', async (job: Job) => {

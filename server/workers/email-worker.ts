@@ -77,3 +77,4 @@ emailWorker.on('failed', (job, err) => {
 });
 
 console.log('📧 Life CEO: Email worker started');
+}
