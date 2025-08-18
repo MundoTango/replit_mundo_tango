@@ -7,9 +7,9 @@ channel = "stable-24_05"
 packages = ["unzip", "imagemagick", "k6", "ffmpeg", "jq", "chromium", "firefox", "glib", "nspr", "nss", "dbus", "atk", "cups", "libxkbcommon", "at-spi2-core", "cairo", "pango", "alsa-lib", "gtk3", "libdrm", "gdk-pixbuf", "mesa", "xorg.libX11", "xorg.libXext", "xorg.libXrandr", "xorg.libXcomposite", "xorg.libXdamage", "xorg.libXfixes", "xorg.libXi", "xorg.libXcursor", "xorg.libXrender", "git-lfs", "git-filter-repo", "vips", "pkg-config"]
 
 [deployment]
-deploymentTarget = "gce"
-build = ["sh", "-c", "./build-simple.sh"]
-run = ["sh", "-c", "node deploy-fullstack.js"]
+deploymentTarget = "cloudrun"
+build = ["sh", "-c", "npm run build"]
+run = ["sh", "-c", "npm start"]
 
 [[ports]]
 localPort = 5000

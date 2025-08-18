@@ -115,6 +115,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
+// Simple health check for deployment
+app.get('/healthz', (_req, res) => {
+  res.status(200).send('ok');
+});
+
 app.get('/ready', async (req, res) => {
   try {
     const { db } = await import('./db');
@@ -182,9 +187,9 @@ const startServer = async () => {
       res.sendFile(pathModule.join(clientPath, 'index.html'));
     });
     
-    const PORT = process.env.PORT || 5000;
+    const PORT = Number(process.env.PORT) || 5000;
     
-    httpServer.listen(PORT, () => {
+    httpServer.listen(PORT, '0.0.0.0', () => {
       const heapSize = Math.round(process.memoryUsage().heapTotal / 1024 / 1024 / 1024 * 100) / 100;
       console.log(`✅ ESA LIFE CEO 56x21 Server running on port ${PORT}`);
       console.log(`  Heap Limit: ${heapSize} GB`);
@@ -192,6 +197,7 @@ const startServer = async () => {
       console.log(`  Video uploads: ✅ Enabled (456MB+ support)`);
       console.log(`  Memory management: ✅ Optimized`);
       console.log(`  All core features: ✅ Operational`);
+      console.log(`[server] listening on ${PORT}`);
     });
   } catch (error) {
     logger.fatal('Failed to start server:', error);
