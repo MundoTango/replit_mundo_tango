@@ -19,12 +19,12 @@ RUN npm ci --omit=dev
 # --- runtime stage ---
 FROM node:20-slim AS runtime
 WORKDIR /app
-ENV NODE_ENV=production PORT=5000
+ENV NODE_ENV=production PORT=80
 
 # copy prod node_modules and built artifacts only
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 
 # health check endpoint is served by the app at /health if you have one
-EXPOSE 5000
+EXPOSE 80
 CMD ["node", "dist/index.js"]

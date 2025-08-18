@@ -187,7 +187,8 @@ const startServer = async () => {
       res.sendFile(pathModule.join(clientPath, 'index.html'));
     });
     
-    const PORT = Number(process.env.PORT) || 5000;
+    // Use port 80 for production deployments (Replit requirement)
+    const PORT = Number(process.env.PORT) || (process.env.NODE_ENV === 'production' ? 80 : 5000);
     
     httpServer.listen(PORT, '0.0.0.0', () => {
       const heapSize = Math.round(process.memoryUsage().heapTotal / 1024 / 1024 / 1024 * 100) / 100;
