@@ -10,6 +10,7 @@ RUN npm ci
 # copy sources and build
 COPY client ./client
 COPY server ./server
+COPY shared ./shared
 COPY public ./public
 COPY vite.config.ts tsconfig.json ./
 RUN npm run build
