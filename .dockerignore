@@ -1,26 +1,27 @@
+# VCS & tooling
 .git
 .gitignore
-**/.git
-**/.DS_Store
+.dockerignore
+.vscode
+*.log
+npm-debug.log*
+
+# Local caches & deps
 node_modules
-pnpm-lock.yaml
-yarn.lock
-.npm
 .pnpm-store
+.npm
 .cache
-playwright-report
-test-results
+
+# Tests / docs / reports
 tests
+test-results
 coverage
-artifacts
+**/*.md
+!README.md
+
+# Big local-only content
 uploads
 attached_assets
-cypress
-*.md
-!.github
-!.replit
-!replit.yaml
-!.env
-!.env.*
-Dockerfile*
+
+# Build leftovers
 dist/*.map
