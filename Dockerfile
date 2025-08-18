@@ -1,10 +1,17 @@
 # ---- build stage ----
-FROM node:20-slim AS builder
+FROM node:20-slim AS build
 WORKDIR /app
-ENV NODE_ENV=development
-COPY package*.json ./
+ENV CI=true NODE_ENV=production
+
+# install only what we need to build
+COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
 RUN npm ci
-COPY . .
+
+# copy sources and build
+COPY client ./client
+COPY server ./server
+COPY public ./public
+COPY vite.config.ts tsconfig.json ./
 RUN npm run build
 
 # ---- runtime stage ----
@@ -12,15 +19,15 @@ FROM node:20-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production PORT=5000
 
-# Install only prod deps
-COPY package*.json ./
-RUN npm ci --omit=dev --ignore-scripts
+# install prod deps only
+COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
+RUN npm ci --omit=dev && npm cache clean --force
 
-# Bring in built assets only
-COPY --from=builder /app/dist ./dist
+# bring in the built artifacts and server entry
+COPY --from=build /app/dist ./dist
 
-# Healthcheck (adjust if you expose a health route)
-# HEALTHCHECK --interval=30s --timeout=5s --start-period=30s CMD node -e "process.exit(0)"
+# minimal healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD node -e "process.exit(0)"
 
 EXPOSE 5000
-CMD ["node", "dist/index.js"]
+CMD ["npm","run","start"]

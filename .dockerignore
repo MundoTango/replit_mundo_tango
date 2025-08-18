@@ -1,27 +1,20 @@
-# VCS & tooling
+# keep Docker context tiny
 .git
 .gitignore
-.dockerignore
-.vscode
-*.log
-npm-debug.log*
-
-# Local caches & deps
+**/.git
 node_modules
-.pnpm-store
 .npm
+.pnpm-store
 .cache
-
-# Tests / docs / reports
-tests
+.cypress
+playwright
 test-results
+tests
 coverage
-**/*.md
-!README.md
-
-# Big local-only content
+**/*.mp4
 uploads
 attached_assets
-
-# Build leftovers
-dist/*.map
+*.log
+*.local
+*.env.local
+*.DS_Store
