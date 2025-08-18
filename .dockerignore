@@ -1,28 +1,21 @@
 
-# Never send these to the image
+# keep Docker context tiny
 .git
 .gitignore
 **/.git
-**/.DS_Store
 node_modules
-pnpm-lock.yaml
-yarn.lock
 .npm
 .pnpm-store
 .cache
-tmp
-coverage
-cypress
+.cypress
 playwright
-tests
 test-results
-**/*.md
+tests
+coverage
+**/*.mp4
 uploads
 attached_assets
-dist/public/.vite
-dist/public/.cache
-
-# keep build output only
-!dist
-!dist/public
-!dist/index.js
+*.log
+*.local
+*.env.local
+*.DS_Store
