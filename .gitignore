@@ -1,0 +1,60 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+
+# Uploads and media files (should not be in version control)
+uploads/
+attached_assets/
+
+# Video files (tracked by LFS if outside uploads/)
+# *.mp4
+# *.MP4
+# *.avi
+# *.mov
+# *.wmv
+# *.flv
+# *.webm
+
+# Cypress cache
+.cache/
+
+# Test results
+test-results/
+
+# Large files
+*.zip
+*.rar
+# Secrets & local scripts
+push-now.sh
+emergency-push.sh
+
+# User uploads / heavy assets (never version control)
+uploads/
+attached_assets/
+
+# Video/media (prefer Git LFS or storage bucket)
+*.mp4
+*.mov
+*.avi
+
+# Security - Never commit these
+push-now.sh
+emergency-push.sh
+safe-github-push.sh
+*-token.txt
+*.pat
+
+# Large directories
+uploads/
+attached_assets/
+tmp/
+
+# Media files (use Git LFS instead)
+*.mp4
+*.mov
+*.avi
+*.MP4
+*.MOV

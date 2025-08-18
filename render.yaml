@@ -1,0 +1,79 @@
+services:
+  # Main Mundo Tango Application
+  - type: web
+    name: mundo-tango-app
+    runtime: node
+    buildCommand: npm install --legacy-peer-deps && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mundo-tango-db
+          property: connectionString
+      - key: N8N_BASE_URL
+        sync: false
+      - key: N8N_ENCRYPTION_KEY
+        sync: false
+      - key: N8N_JWT_SECRET
+        sync: false
+      - key: TESTSPRITE_API_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+    autoDeploy: false
+    healthCheckPath: /api/health
+    
+  # n8n Automation Service
+  - type: web
+    name: mundo-tango-n8n
+    runtime: docker
+    dockerfilePath: ./n8n.Dockerfile
+    dockerContext: .
+    envVars:
+      - key: N8N_BASIC_AUTH_ACTIVE
+        value: true
+      - key: N8N_BASIC_AUTH_USER
+        value: admin
+      - key: N8N_BASIC_AUTH_PASSWORD
+        generateValue: true
+      - key: DB_TYPE
+        value: postgresdb
+      - key: DB_POSTGRESDB_DATABASE
+        value: n8n_workflows
+      - key: DB_POSTGRESDB_HOST
+        fromDatabase:
+          name: n8n-db
+          property: host
+      - key: DB_POSTGRESDB_PORT
+        fromDatabase:
+          name: n8n-db
+          property: port
+      - key: DB_POSTGRESDB_USER
+        fromDatabase:
+          name: n8n-db
+          property: user
+      - key: DB_POSTGRESDB_PASSWORD
+        fromDatabase:
+          name: n8n-db
+          property: password
+    autoDeploy: false
+    healthCheckPath: /healthz
+
+databases:
+  # Main application database
+  - name: mundo-tango-db
+    databaseName: mundo_tango
+    user: mundo_user
+    plan: starter
+    
+  # n8n workflows database
+  - name: n8n-db
+    databaseName: n8n_workflows
+    user: n8n_user
+    plan: starter

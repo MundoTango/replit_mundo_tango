@@ -1,0 +1,269 @@
+{
+  "name": "Payment Processing (Stripe) - Complete Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "stripe-webhook",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "s1t2r3i4-p5e6-w7e8-b9h0-o1o2k3w4e5b6",
+      "name": "Stripe Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "stripe-webhook-id-123"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{$json[\"body\"][\"type\"]}}",
+                    "operation": "equals",
+                    "value2": "payment_intent.succeeded"
+                  }
+                ]
+              },
+              "outputKey": "payment_success"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{$json[\"body\"][\"type\"]}}",
+                    "operation": "equals",
+                    "value2": "customer.subscription.created"
+                  }
+                ]
+              },
+              "outputKey": "subscription_created"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{$json[\"body\"][\"type\"]}}",
+                    "operation": "equals",
+                    "value2": "customer.subscription.deleted"
+                  }
+                ]
+              },
+              "outputKey": "subscription_cancelled"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{$json[\"body\"][\"type\"]}}",
+                    "operation": "equals",
+                    "value2": "payment_intent.payment_failed"
+                  }
+                ]
+              },
+              "outputKey": "payment_failed"
+            }
+          ]
+        },
+        "fallbackOutput": "other"
+      },
+      "id": "r1o2u3t4-e5r6-s7w8-i9t0-c1h2e3r4o5u6",
+      "name": "Route by Event Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": false,
+        "values": {
+          "string": [
+            {
+              "name": "paymentId",
+              "value": "={{$json[\"body\"][\"data\"][\"object\"][\"id\"]}}"
+            },
+            {
+              "name": "amount",
+              "value": "={{$json[\"body\"][\"data\"][\"object\"][\"amount\"] / 100}}"
+            },
+            {
+              "name": "currency",
+              "value": "={{$json[\"body\"][\"data\"][\"object\"][\"currency\"].toUpperCase()}}"
+            },
+            {
+              "name": "customerEmail",
+              "value": "={{$json[\"body\"][\"data\"][\"object\"][\"receipt_email\"]}}"
+            },
+            {
+              "name": "status",
+              "value": "succeeded"
+            }
+          ]
+        }
+      },
+      "id": "p1r2o3c4-e5s6-s7p8-a9y0-m1e2n3t4d5a6",
+      "name": "Process Payment Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://mundotango.life/api/payments/confirm",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json)}}"
+      },
+      "id": "u1p2d3a4-t5e6-p7a8-y9m0-e1n2t3s4t5a6",
+      "name": "Update Payment Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "fromEmail": "payments@mundotango.life",
+        "toEmail": "={{$json[\"customerEmail\"]}}",
+        "subject": "Payment Confirmation - Mundo Tango",
+        "html": "<h2>Payment Received</h2><p>Thank you for your payment!</p><p><strong>Amount:</strong> ${{$json[\"amount\"]}} {{$json[\"currency\"]}}</p><p><strong>Payment ID:</strong> {{$json[\"paymentId\"]}}</p><p><strong>Status:</strong> Confirmed</p><p>If you have any questions, please contact support@mundotango.life</p><p>Best regards,<br>The Mundo Tango Team</p>",
+        "options": {}
+      },
+      "id": "e1m2a3i4-l5c6-o7n8-f9i0-r1m2a3t4i5o6",
+      "name": "Send Payment Confirmation",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://mundotango.life/api/subscriptions/create",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"customerId\":\"{{$json[\"body\"][\"data\"][\"object\"][\"customer\"]}}\",\"subscriptionId\":\"{{$json[\"body\"][\"data\"][\"object\"][\"id\"]}}\",\"status\":\"active\",\"planId\":\"{{$json[\"body\"][\"data\"][\"object\"][\"items\"][\"data\"][0][\"price\"][\"id\"]}}\"}"
+      },
+      "id": "s1u2b3s4-c5r6-i7p8-t9i0-o1n2c3r4e5a6",
+      "name": "Create Subscription Record",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://mundotango.life/api/subscriptions/cancel",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"subscriptionId\":\"{{$json[\"body\"][\"data\"][\"object\"][\"id\"]}}\",\"status\":\"cancelled\",\"cancelledAt\":\"{{new Date().toISOString()}}\"}"
+      },
+      "id": "c1a2n3c4-e5l6-s7u8-b9s0-c1r2i3p4t5i6",
+      "name": "Cancel Subscription",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "channel": "#payments",
+        "text": "⚠️ Payment Failed!\nCustomer: {{$json[\"body\"][\"data\"][\"object\"][\"receipt_email\"]}}\nAmount: ${{$json[\"body\"][\"data\"][\"object\"][\"amount\"] / 100}}\nError: {{$json[\"body\"][\"data\"][\"object\"][\"last_payment_error\"][\"message\"]}}"
+      },
+      "id": "a1l2e3r4-t5f6-a7i8-l9e0-d1p2a3y4m5e6",
+      "name": "Alert Payment Failure",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [650, 500]
+    }
+  ],
+  "connections": {
+    "Stripe Webhook": {
+      "main": [
+        [
+          {
+            "node": "Route by Event Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Event Type": {
+      "main": [
+        [
+          {
+            "node": "Process Payment Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Subscription Record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancel Subscription",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert Payment Failure",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Process Payment Data": {
+      "main": [
+        [
+          {
+            "node": "Update Payment Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Payment Status": {
+      "main": [
+        [
+          {
+            "node": "Send Payment Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "saveDataSuccessExecution": "all",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "executionTimeout": 300
+  },
+  "versionId": "stripe-v1",
+  "id": "1fCTBbLCNEml0vTV",
+  "tags": []
+}

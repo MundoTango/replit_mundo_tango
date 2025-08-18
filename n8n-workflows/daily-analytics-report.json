@@ -1,0 +1,252 @@
+{
+  "name": "Daily Analytics Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": "0 9 * * *",
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 9,
+              "minute": 0
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Daily at 9 AM",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  DATE(created_at) as date,\n  COUNT(DISTINCT CASE WHEN role = 'dancer' THEN user_id END) as new_dancers,\n  COUNT(DISTINCT CASE WHEN role = 'host' THEN user_id END) as new_hosts,\n  COUNT(DISTINCT CASE WHEN role = 'teacher' THEN user_id END) as new_teachers,\n  COUNT(DISTINCT user_id) as total_users,\n  COUNT(DISTINCT CASE WHEN subscription_status = 'active' THEN user_id END) as active_subscriptions\nFROM users\nWHERE created_at >= CURRENT_DATE - INTERVAL '30 days'\nGROUP BY DATE(created_at)\nORDER BY date DESC;"
+      },
+      "id": "query-users",
+      "name": "Query User Analytics",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [450, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  COUNT(*) as total_posts,\n  COUNT(DISTINCT user_id) as active_posters,\n  AVG(reaction_count) as avg_reactions,\n  COUNT(CASE WHEN created_at >= CURRENT_DATE - INTERVAL '1 day' THEN 1 END) as posts_today\nFROM posts\nWHERE created_at >= CURRENT_DATE - INTERVAL '30 days';"
+      },
+      "id": "query-posts",
+      "name": "Query Post Analytics",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  COUNT(*) as total_events,\n  COUNT(DISTINCT city) as active_cities,\n  COUNT(CASE WHEN event_date >= CURRENT_DATE THEN 1 END) as upcoming_events,\n  AVG(attendee_count) as avg_attendees\nFROM events\nWHERE created_at >= CURRENT_DATE - INTERVAL '30 days';"
+      },
+      "id": "query-events",
+      "name": "Query Event Analytics",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [450, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Combine all analytics data\nconst userStats = $node[\"Query User Analytics\"].json;\nconst postStats = $node[\"Query Post Analytics\"].json;\nconst eventStats = $node[\"Query Event Analytics\"].json;\n\nconst today = new Date().toISOString().split('T')[0];\nconst report = {\n  date: today,\n  users: {\n    total: userStats[0]?.total_users || 0,\n    newDancers: userStats[0]?.new_dancers || 0,\n    newHosts: userStats[0]?.new_hosts || 0,\n    newTeachers: userStats[0]?.new_teachers || 0,\n    activeSubscriptions: userStats[0]?.active_subscriptions || 0\n  },\n  content: {\n    totalPosts: postStats.total_posts || 0,\n    activePosters: postStats.active_posters || 0,\n    avgReactions: Number(postStats.avg_reactions || 0).toFixed(2),\n    postsToday: postStats.posts_today || 0\n  },\n  events: {\n    totalEvents: eventStats.total_events || 0,\n    activeCities: eventStats.active_cities || 0,\n    upcomingEvents: eventStats.upcoming_events || 0,\n    avgAttendees: Number(eventStats.avg_attendees || 0).toFixed(0)\n  },\n  trends: {\n    userGrowth: calculateGrowth(userStats),\n    engagementRate: calculateEngagement(postStats, userStats)\n  }\n};\n\nfunction calculateGrowth(data) {\n  if (data.length < 2) return 0;\n  const current = data[0].total_users;\n  const previous = data[1].total_users;\n  return ((current - previous) / previous * 100).toFixed(2);\n}\n\nfunction calculateEngagement(posts, users) {\n  const activeUsers = posts.active_posters || 0;\n  const totalUsers = users[0]?.total_users || 1;\n  return ((activeUsers / totalUsers) * 100).toFixed(2);\n}\n\nreturn [{json: report}];"
+      },
+      "id": "generate-report",
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "sheetId": "YOUR_ANALYTICS_SHEET_ID",
+        "range": "Analytics!A:K",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        },
+        "data": {
+          "values": [
+            [
+              "={{$json[\"date\"]}}",
+              "={{$json[\"users\"][\"total\"]}}",
+              "={{$json[\"users\"][\"newDancers\"]}}",
+              "={{$json[\"users\"][\"newHosts\"]}}",
+              "={{$json[\"users\"][\"newTeachers\"]}}",
+              "={{$json[\"content\"][\"totalPosts\"]}}",
+              "={{$json[\"content\"][\"postsToday\"]}}",
+              "={{$json[\"events\"][\"upcomingEvents\"]}}",
+              "={{$json[\"events\"][\"activeCities\"]}}",
+              "={{$json[\"trends\"][\"userGrowth\"]}}%",
+              "={{$json[\"trends\"][\"engagementRate\"]}}%"
+            ]
+          ]
+        }
+      },
+      "id": "log-to-sheets",
+      "name": "Log to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "fromEmail": "analytics@mundotango.life",
+        "toEmail": "management@mundotango.life",
+        "subject": "📊 Daily Analytics Report - {{$json[\"date\"]}}",
+        "html": "<h2>Daily Analytics Report</h2>\n<p>Date: {{$json[\"date\"]}}</p>\n\n<h3>👥 User Metrics</h3>\n<table border=\"1\">\n<tr><td>Total Users</td><td>{{$json[\"users\"][\"total\"]}}</td></tr>\n<tr><td>New Dancers</td><td>{{$json[\"users\"][\"newDancers\"]}}</td></tr>\n<tr><td>New Hosts</td><td>{{$json[\"users\"][\"newHosts\"]}}</td></tr>\n<tr><td>New Teachers</td><td>{{$json[\"users\"][\"newTeachers\"]}}</td></tr>\n<tr><td>Active Subscriptions</td><td>{{$json[\"users\"][\"activeSubscriptions\"]}}</td></tr>\n</table>\n\n<h3>📝 Content Metrics</h3>\n<table border=\"1\">\n<tr><td>Total Posts</td><td>{{$json[\"content\"][\"totalPosts\"]}}</td></tr>\n<tr><td>Posts Today</td><td>{{$json[\"content\"][\"postsToday\"]}}</td></tr>\n<tr><td>Active Posters</td><td>{{$json[\"content\"][\"activePosters\"]}}</td></tr>\n<tr><td>Avg Reactions</td><td>{{$json[\"content\"][\"avgReactions\"]}}</td></tr>\n</table>\n\n<h3>🎪 Event Metrics</h3>\n<table border=\"1\">\n<tr><td>Total Events</td><td>{{$json[\"events\"][\"totalEvents\"]}}</td></tr>\n<tr><td>Upcoming Events</td><td>{{$json[\"events\"][\"upcomingEvents\"]}}</td></tr>\n<tr><td>Active Cities</td><td>{{$json[\"events\"][\"activeCities\"]}}</td></tr>\n<tr><td>Avg Attendees</td><td>{{$json[\"events\"][\"avgAttendees\"]}}</td></tr>\n</table>\n\n<h3>📈 Trends</h3>\n<ul>\n<li>User Growth: {{$json[\"trends\"][\"userGrowth\"]}}%</li>\n<li>Engagement Rate: {{$json[\"trends\"][\"engagementRate\"]}}%</li>\n</ul>"
+      },
+      "id": "email-report",
+      "name": "Email Report",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#daily-analytics",
+        "text": "📊 *Daily Analytics Report - {{$json[\"date\"]}}*",
+        "attachments": [
+          {
+            "color": "#36a64f",
+            "fields": [
+              {
+                "title": "Total Users",
+                "value": "{{$json[\"users\"][\"total\"]}}",
+                "short": true
+              },
+              {
+                "title": "Posts Today",
+                "value": "{{$json[\"content\"][\"postsToday\"]}}",
+                "short": true
+              },
+              {
+                "title": "Upcoming Events",
+                "value": "{{$json[\"events\"][\"upcomingEvents\"]}}",
+                "short": true
+              },
+              {
+                "title": "User Growth",
+                "value": "{{$json[\"trends\"][\"userGrowth\"]}}%",
+                "short": true
+              }
+            ]
+          }
+        ]
+      },
+      "id": "slack-summary",
+      "name": "Slack Summary",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "resource": "contact",
+        "operation": "getAll",
+        "additionalFields": {
+          "properties": ["email", "firstname", "lastname", "mundo_tango_role"],
+          "propertiesMode": "includeOnly",
+          "limit": 1000
+        }
+      },
+      "id": "sync-hubspot",
+      "name": "Sync HubSpot Stats",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Daily at 9 AM": {
+      "main": [
+        [
+          {
+            "node": "Query User Analytics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Query Post Analytics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Query Event Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query User Analytics": {
+      "main": [
+        [
+          {
+            "node": "Generate Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Post Analytics": {
+      "main": [
+        [
+          {
+            "node": "Generate Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Event Analytics": {
+      "main": [
+        [
+          {
+            "node": "Generate Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Report": {
+      "main": [
+        [
+          {
+            "node": "Log to Google Sheets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Report",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack Summary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sync HubSpot Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "1",
+  "id": "daily-analytics",
+  "tags": ["analytics", "reporting", "scheduled"]
+}

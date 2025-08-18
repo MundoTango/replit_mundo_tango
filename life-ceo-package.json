@@ -1,0 +1,75 @@
+{
+  "name": "life-ceo-platform",
+  "version": "1.0.0",
+  "description": "AI-powered life management system with hierarchical agent architecture",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:unit": "vitest run --dir src/tests/unit",
+    "test:integration": "vitest run --dir src/tests/integration",
+    "test:e2e": "playwright test",
+    "db:init": "tsx scripts/init-database.ts",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "agent:spawn": "tsx scripts/spawn-agents.ts",
+    "daily-review": "tsx src/agents/life-ceo/daily-review.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
+    "format": "prettier --write \"src/**/*.{ts,tsx,json,md}\""
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "life-management",
+    "automation",
+    "supabase"
+  ],
+  "author": "Scott Boddye",
+  "license": "PRIVATE",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "@anthropic-ai/sdk": "^0.16.0",
+    "openai": "^4.24.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "winston": "^3.11.0",
+    "node-cron": "^3.0.3",
+    "zod": "^3.22.4",
+    "p-queue": "^8.0.1",
+    "uuid": "^9.0.1",
+    "date-fns": "^3.0.6",
+    "axios": "^1.6.5",
+    "ws": "^8.16.0",
+    "@octokit/rest": "^20.0.2",
+    "@notionhq/client": "^2.2.14",
+    "nanoid": "^5.0.4",
+    "bull": "^4.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/express": "^4.17.21",
+    "@types/ws": "^8.5.10",
+    "@types/node-cron": "^3.0.11",
+    "@types/uuid": "^9.0.7",
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.0",
+    "vitest": "^1.1.0",
+    "@playwright/test": "^1.40.1",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "prettier": "^3.1.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "volta": {
+    "node": "20.10.0"
+  }
+}

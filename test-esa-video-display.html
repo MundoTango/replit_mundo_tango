@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESA LIFE CEO 56x21 - Video Display Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        video {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            border: 2px solid #333;
+            margin: 10px 0;
+            display: block;
+        }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .debug-log {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎥 ESA LIFE CEO 56x21 - Video Display Comprehensive Test</h1>
+        
+        <div class="test-section">
+            <h2>Test 1: Direct Video URL Test</h2>
+            <button onclick="testDirectVideo()">Test Direct Video</button>
+            <div id="direct-test"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 2: API Feed Test</h2>
+            <button onclick="testAPIFeed()">Fetch Memories Feed</button>
+            <div id="api-test"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 3: Static Video File Test</h2>
+            <button onclick="testStaticVideo()">Test Static Video</button>
+            <div id="static-test"></div>
+        </div>
+
+        <div class="debug-log">
+            <strong>Debug Log:</strong>
+            <div id="debug-log"></div>
+        </div>
+    </div>
+
+    <script>
+        let logEntries = [];
+        
+        function log(message, data = null) {
+            const timestamp = new Date().toISOString();
+            const logEntry = `[${timestamp}] ${message}`;
+            console.log(logEntry, data);
+            logEntries.push(logEntry + (data ? ' ' + JSON.stringify(data, null, 2) : ''));
+            updateLog();
+        }
+        
+        function updateLog() {
+            const logDiv = document.getElementById('debug-log');
+            logDiv.innerHTML = logEntries.slice(-20).join('<br>');
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        // Test 1: Direct Video URL
+        function testDirectVideo() {
+            log('🎬 ESA Test 1: Testing direct video URL...');
+            const container = document.getElementById('direct-test');
+            
+            // Test with a known video URL from the backend logs
+            const videoUrl = '/uploads/posts/7/1754662848512_ahp1827xy_GX010293_1754662261317.MP4';
+            const fullUrl = window.location.origin + videoUrl;
+            
+            container.innerHTML = `
+                <p>Testing video URL: ${videoUrl}</p>
+                <video 
+                    src="${fullUrl}"
+                    controls
+                    preload="metadata"
+                    style="display: block; width: 100%; max-width: 600px; height: auto;"
+                    onloadedmetadata="console.log('✅ ESA Video metadata loaded')"
+                    oncanplay="console.log('✅ ESA Video can play')"
+                    onerror="console.error('❌ ESA Video error', event)"
+                ></video>
+            `;
+            
+            log('✅ Created video element with URL: ' + fullUrl);
+        }
+        
+        // Test 2: API Feed
+        async function testAPIFeed() {
+            log('📡 ESA Test 2: Fetching memories feed...');
+            const container = document.getElementById('api-test');
+            
+            try {
+                const response = await fetch('/api/memories/feed', {
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                log('📊 API Response received', { success: data.success, count: data.data?.length });
+                
+                if (data.success && data.data) {
+                    const videoPosts = data.data.filter(post => {
+                        const hasVideo = 
+                            (post.mediaEmbeds && post.mediaEmbeds.length > 0) ||
+                            (post.mediaUrls && post.mediaUrls.length > 0) ||
+                            (post.imageUrl && post.imageUrl.toLowerCase().includes('.mp4')) ||
+                            (post.videoUrl && post.videoUrl.toLowerCase().includes('.mp4'));
+                        
+                        if (hasVideo) {
+                            log(`🎥 Post ${post.id} has video:`, {
+                                mediaEmbeds: post.mediaEmbeds,
+                                mediaUrls: post.mediaUrls,
+                                imageUrl: post.imageUrl,
+                                videoUrl: post.videoUrl
+                            });
+                        }
+                        
+                        return hasVideo;
+                    });
+                    
+                    log(`📹 Found ${videoPosts.length} posts with videos`);
+                    
+                    if (videoPosts.length > 0) {
+                        container.innerHTML = '<div class="video-grid">';
+                        
+                        videoPosts.forEach(post => {
+                            // Collect all possible video URLs
+                            const urls = [];
+                            if (post.mediaEmbeds) urls.push(...post.mediaEmbeds);
+                            if (post.mediaUrls) urls.push(...post.mediaUrls);
+                            if (post.imageUrl) urls.push(post.imageUrl);
+                            if (post.videoUrl) urls.push(post.videoUrl);
+                            
+                            // Filter for video files
+                            const videoUrls = urls.filter(url => {
+                                if (!url) return false;
+                                const lower = url.toLowerCase();
+                                return lower.includes('.mp4') || lower.includes('.mov') || 
+                                       lower.includes('.webm') || lower.includes('.avi');
+                            });
+                            
+                            if (videoUrls.length > 0) {
+                                const videoUrl = videoUrls[0];
+                                const fullUrl = videoUrl.startsWith('http') ? videoUrl : window.location.origin + videoUrl;
+                                
+                                const videoHtml = `
+                                    <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+                                        <h4>Post ${post.id}</h4>
+                                        <p>URL: ${videoUrl}</p>
+                                        <video 
+                                            src="${fullUrl}"
+                                            controls
+                                            preload="metadata"
+                                            style="width: 100%; height: auto; display: block;"
+                                            onloadedmetadata="console.log('✅ ESA Post ${post.id} video loaded')"
+                                            onerror="console.error('❌ ESA Post ${post.id} video error')"
+                                        ></video>
+                                    </div>
+                                `;
+                                
+                                container.innerHTML += videoHtml;
+                                log(`✅ Rendered video for post ${post.id}: ${videoUrl}`);
+                            }
+                        });
+                        
+                        container.innerHTML += '</div>';
+                    } else {
+                        container.innerHTML = '<p class="warning">No posts with videos found</p>';
+                    }
+                } else {
+                    container.innerHTML = '<p class="error">Failed to fetch feed</p>';
+                }
+            } catch (error) {
+                log('❌ Error fetching feed:', error.message);
+                container.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Test 3: Static Video
+        function testStaticVideo() {
+            log('🎬 ESA Test 3: Testing static video element...');
+            const container = document.getElementById('static-test');
+            
+            // Create multiple test videos
+            container.innerHTML = `
+                <p>Testing various video formats and sources:</p>
+                
+                <h4>Test MP4 with full path:</h4>
+                <video 
+                    src="${window.location.origin}/uploads/posts/7/1754662848512_ahp1827xy_GX010293_1754662261317.MP4"
+                    controls
+                    style="width: 100%; max-width: 400px; display: block; margin: 10px 0;"
+                ></video>
+                
+                <h4>Test with video element attributes:</h4>
+                <video 
+                    controls
+                    preload="metadata"
+                    playsInline
+                    style="width: 100%; max-width: 400px; display: block; visibility: visible; opacity: 1; margin: 10px 0;"
+                >
+                    <source src="/uploads/posts/7/1754662674298_4cgu422y1_GX010293_1754662261317.MP4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            `;
+            
+            log('✅ Created static video elements');
+        }
+        
+        // Auto-run tests on load
+        window.addEventListener('load', () => {
+            log('🚀 ESA LIFE CEO 56x21 - Video Display Test Started');
+            // Auto-test API feed
+            setTimeout(testAPIFeed, 1000);
+        });
+    </script>
+</body>
+</html>

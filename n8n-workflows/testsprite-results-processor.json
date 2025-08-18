@@ -1,0 +1,215 @@
+{
+  "name": "TestSprite Results Processor",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "testsprite-results",
+        "options": {}
+      },
+      "id": "testsprite-webhook",
+      "name": "TestSprite Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse TestSprite results\nconst testData = items[0].json;\nconst results = {\n  testId: testData.testId,\n  timestamp: testData.timestamp || new Date().toISOString(),\n  status: testData.status,\n  passed: testData.passed || 0,\n  failed: testData.failed || 0,\n  skipped: testData.skipped || 0,\n  coverage: testData.coverage || 0,\n  duration: testData.duration || 0,\n  errors: testData.errors || [],\n  url: testData.url || '',\n  environment: testData.environment || 'production'\n};\n\n// Calculate success rate\nresults.successRate = results.passed / (results.passed + results.failed) * 100;\n\nreturn [{json: results}];"
+      },
+      "id": "parse-results",
+      "name": "Parse Test Results",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"status\"]}}",
+              "operation": "equals",
+              "value2": "failed"
+            }
+          ]
+        }
+      },
+      "id": "check-failure",
+      "name": "Check If Failed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "test_results",
+        "columns": "test_id,timestamp,status,passed,failed,coverage,duration,environment",
+        "additionalFields": {
+          "values": "={{$json[\"testId\"]}},={{$json[\"timestamp\"]}},={{$json[\"status\"]}},={{$json[\"passed\"]}},={{$json[\"failed\"]}},={{$json[\"coverage\"]}},={{$json[\"duration\"]}},={{$json[\"environment\"]}}"
+        }
+      },
+      "id": "log-to-database",
+      "name": "Log to Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "project": "MUNDO",
+        "issueType": "Bug",
+        "summary": "TestSprite Test Failure: {{$json[\"testId\"]}}",
+        "description": "Test Suite Failed\n\n*Test ID:* {{$json[\"testId\"]}}\n*Timestamp:* {{$json[\"timestamp\"]}}\n*Failed Tests:* {{$json[\"failed\"]}}\n*Coverage:* {{$json[\"coverage\"]}}%\n*Duration:* {{$json[\"duration\"]}}ms\n\n*Errors:*\n{{$json[\"errors\"].join('\\n')}}\n\n*URL:* {{$json[\"url\"]}}",
+        "additionalFields": {
+          "priority": "High",
+          "labels": ["automated-test", "testsprite", "ci-failure"]
+        }
+      },
+      "id": "create-jira-ticket",
+      "name": "Create Jira Ticket",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "channel": "#qa-alerts",
+        "text": "🚨 *Test Suite Failed!*\n\n*Test ID:* {{$json[\"testId\"]}}\n*Failed:* {{$json[\"failed\"]}} tests\n*Coverage:* {{$json[\"coverage\"]}}%\n*Success Rate:* {{$json[\"successRate\"].toFixed(2)}}%\n\n<{{$json[\"url\"]}}|View Details>",
+        "attachments": [
+          {
+            "color": "#FF0000",
+            "fields": [
+              {
+                "title": "Environment",
+                "value": "{{$json[\"environment\"]}}",
+                "short": true
+              },
+              {
+                "title": "Duration",
+                "value": "{{$json[\"duration\"]}}ms",
+                "short": true
+              }
+            ]
+          }
+        ]
+      },
+      "id": "slack-alert",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [1050, 400]
+    },
+    {
+      "parameters": {
+        "fromEmail": "qa@mundotango.life",
+        "toEmail": "dev-team@mundotango.life",
+        "subject": "⚠️ TestSprite Alert: Test Suite Failed",
+        "html": "<h2>Automated Test Failure</h2><p>The automated test suite has detected failures.</p><h3>Summary:</h3><ul><li><strong>Test ID:</strong> {{$json[\"testId\"]}}</li><li><strong>Status:</strong> {{$json[\"status\"]}}</li><li><strong>Failed Tests:</strong> {{$json[\"failed\"]}}</li><li><strong>Passed Tests:</strong> {{$json[\"passed\"]}}</li><li><strong>Coverage:</strong> {{$json[\"coverage\"]}}%</li><li><strong>Success Rate:</strong> {{$json[\"successRate\"].toFixed(2)}}%</li></ul><h3>Errors:</h3><pre>{{$json[\"errors\"].join('\\n')}}</pre><p><a href=\"{{$json[\"url\"]}}\">View Full Report</a></p>"
+      },
+      "id": "email-alert",
+      "name": "Email Dev Team",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "url": "https://api.mundotango.life/metrics/test-results",
+        "method": "POST",
+        "body": "={{$json}}",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json",
+            "X-API-Key": "{{$credentials.apiKey}}"
+          }
+        }
+      },
+      "id": "update-metrics",
+      "name": "Update Metrics Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1050, 200]
+    }
+  ],
+  "connections": {
+    "TestSprite Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Test Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Test Results": {
+      "main": [
+        [
+          {
+            "node": "Check If Failed",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Failed": {
+      "main": [
+        [
+          {
+            "node": "Create Jira Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Log to Database": {
+      "main": [
+        [
+          {
+            "node": "Update Metrics Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Jira Ticket": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Slack Alert": {
+      "main": [
+        [
+          {
+            "node": "Email Dev Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "1",
+  "id": "testsprite-processor",
+  "tags": ["testing", "automation", "qa"]
+}

@@ -1,0 +1,205 @@
+{
+  "timestamp": "2025-08-08T21:58:49.715Z",
+  "hierarchy": {
+    "totalFiles": 6808,
+    "totalDirectories": 559,
+    "maxDepth": 12,
+    "avgFilesPerDirectory": 12.178890876565296,
+    "orphanedFiles": [],
+    "misplacedFiles": [
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/components/getUserId.jsx",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/components/userClient.jsx",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/activityApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/baseApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/communityApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/dashboardApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/eventAPI.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/friendApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/groupApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/notificationApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/postApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/reportPostApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/searchApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/settingApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/staticContentApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/subscriptionApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/tangoDetails.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/userApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/userAuthApi.js",
+      "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/userFormsApi.js",
+      "/home/runner/workspace/client/src/utils/lazyComponents.tsx",
+      "/home/runner/workspace/data/services/baseApi.js"
+    ],
+    "moduleCohesion": 0.85,
+    "couplingScore": 0.23
+  },
+  "usage": {
+    "hotModules": [],
+    "coldModules": [],
+    "importFrequency": {},
+    "lastModified": {}
+  },
+  "suggestions": [
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/components/getUserId.jsx",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/components/userClient.jsx",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/activityApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/baseApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/communityApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/dashboardApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/eventAPI.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/friendApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/groupApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/notificationApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/postApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/reportPostApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/searchApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/settingApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/staticContentApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/subscriptionApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/tangoDetails.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/userApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/userAuthApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/attached_assets/MundoTango-WebApp-main/frontend/src/data/services/userFormsApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/client/src/utils/lazyComponents.tsx",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "move",
+      "target": "/home/runner/workspace/data/services/baseApi.js",
+      "reason": "File naming doesn't match directory convention",
+      "confidence": 0.9,
+      "impact": "medium"
+    },
+    {
+      "type": "merge",
+      "target": "Deep directory nesting",
+      "reason": "Max depth 12 makes navigation difficult",
+      "confidence": 0.6,
+      "impact": "medium"
+    }
+  ]
+}

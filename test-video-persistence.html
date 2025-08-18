@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESA LIFE CEO 56x21 - Video Persistence Debug</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+        .test-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .video-test {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        video {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            border-radius: 8px;
+            background: #000;
+            display: block;
+            margin: 10px 0;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        .debug-log {
+            background: #1e1e1e;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .button:hover {
+            opacity: 0.9;
+        }
+        .react-simulation {
+            padding: 20px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎥 ESA LIFE CEO 56x21 - Video Persistence Debug</h1>
+        
+        <div class="test-section">
+            <div class="test-title">🔍 Test 1: Direct Video Element Creation</div>
+            <div id="direct-video-test" class="video-test">
+                <p>Creating video element directly...</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">🔄 Test 2: React-like Re-render Simulation</div>
+            <div id="react-sim-test" class="video-test">
+                <button class="button" onclick="simulateReactRender()">Simulate React Re-render</button>
+                <button class="button" onclick="simulateReactUnmount()">Simulate React Unmount</button>
+                <button class="button" onclick="fixVideoPersistence()">Apply ESA Fix</button>
+                <div id="react-container" class="react-simulation"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">📊 Test 3: Fetch Real Posts with Videos</div>
+            <div id="real-posts-test" class="video-test">
+                <button class="button" onclick="fetchRealPosts()">Fetch Posts from API</button>
+                <div id="posts-container"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">🛠️ ESA LIFE CEO 56x21 Solution</div>
+            <div class="status success">
+                <h3>✅ Identified Issues:</h3>
+                <ol>
+                    <li>React re-renders cause video elements to unmount and remount</li>
+                    <li>Video src URLs are not stable between renders</li>
+                    <li>Missing key props or changing keys cause element recreation</li>
+                    <li>Query refetching replaces DOM elements</li>
+                </ol>
+            </div>
+            <div class="status warning">
+                <h3>🔧 Applied Fixes:</h3>
+                <ol>
+                    <li>Use React.useMemo to memoize video URL processing</li>
+                    <li>Add stable keys based on post ID and URL</li>
+                    <li>Disable React Query refetch on mount and window focus</li>
+                    <li>Force video element visibility with inline styles</li>
+                    <li>Add playsInline attribute for mobile compatibility</li>
+                </ol>
+            </div>
+        </div>
+
+        <div id="debug-log" class="debug-log">
+            <strong>Debug Console:</strong>
+            <div id="log-content"></div>
+        </div>
+    </div>
+
+    <script>
+        let logMessages = [];
+        let videoUrls = [];
+        
+        function log(message) {
+            const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+            logMessages.push(`[${timestamp}] ${message}`);
+            updateLog();
+        }
+        
+        function updateLog() {
+            const logContent = document.getElementById('log-content');
+            logContent.innerHTML = logMessages.slice(-30).join('<br>');
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+        
+        // Test 1: Direct Video Creation
+        function createDirectVideo() {
+            log('🎬 ESA Test 1: Creating direct video element...');
+            const container = document.getElementById('direct-video-test');
+            
+            // Fetch a video URL from the API
+            fetch('/api/memories/feed', { credentials: 'include' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.data && data.data.length > 0) {
+                        const videoPost = data.data.find(post => 
+                            post.imageUrl?.toLowerCase().includes('.mp4') ||
+                            post.videoUrl?.toLowerCase().includes('.mp4') ||
+                            (post.mediaEmbeds && post.mediaEmbeds[0]?.toLowerCase().includes('.mp4'))
+                        );
+                        
+                        if (videoPost) {
+                            const videoUrl = videoPost.videoUrl || videoPost.imageUrl || videoPost.mediaEmbeds?.[0];
+                            const fullUrl = videoUrl.startsWith('http') ? videoUrl : `${window.location.origin}${videoUrl}`;
+                            
+                            log(`✅ Found video URL: ${videoUrl}`);
+                            
+                            const video = document.createElement('video');
+                            video.src = fullUrl;
+                            video.controls = true;
+                            video.playsInline = true;
+                            video.preload = 'metadata';
+                            video.style.display = 'block';
+                            video.style.visibility = 'visible';
+                            
+                            video.onloadedmetadata = () => log('✅ Video metadata loaded');
+                            video.oncanplay = () => log('▶️ Video can play');
+                            video.onerror = (e) => log(`❌ Video error: ${e.message || 'Unknown error'}`);
+                            
+                            container.innerHTML = '<p>Video element created:</p>';
+                            container.appendChild(video);
+                            
+                            // Store for later tests
+                            videoUrls.push(fullUrl);
+                        } else {
+                            log('⚠️ No video posts found');
+                            container.innerHTML = '<p class="warning">No video posts found. Upload a video first.</p>';
+                        }
+                    }
+                })
+                .catch(err => {
+                    log(`❌ API error: ${err.message}`);
+                });
+        }
+        
+        // Test 2: React Simulation
+        let reactRenderCount = 0;
+        let useESAFix = false;
+        
+        function simulateReactRender() {
+            reactRenderCount++;
+            log(`🔄 ESA Test 2: Simulating React render #${reactRenderCount}...`);
+            
+            const container = document.getElementById('react-container');
+            
+            if (videoUrls.length > 0) {
+                const videoUrl = videoUrls[0];
+                
+                // Simulate React's behavior
+                if (!useESAFix) {
+                    // Without fix: Create new element each time
+                    container.innerHTML = '';
+                    setTimeout(() => {
+                        const video = document.createElement('video');
+                        video.src = videoUrl;
+                        video.controls = true;
+                        video.playsInline = true;
+                        container.appendChild(video);
+                        log('❌ Video recreated (without ESA fix) - will lose playback state');
+                    }, 50);
+                } else {
+                    // With ESA fix: Reuse existing element if possible
+                    let video = container.querySelector('video');
+                    if (!video) {
+                        video = document.createElement('video');
+                        video.src = videoUrl;
+                        video.controls = true;
+                        video.playsInline = true;
+                        video.style.display = 'block';
+                        video.style.visibility = 'visible';
+                        video.setAttribute('data-esa-fixed', 'true');
+                        container.appendChild(video);
+                        log('✅ Video created with ESA fix - will persist');
+                    } else {
+                        log('✅ Video element reused (ESA fix active)');
+                    }
+                }
+            } else {
+                container.innerHTML = '<p>Run Test 1 first to load a video URL</p>';
+            }
+        }
+        
+        function simulateReactUnmount() {
+            log('🔄 ESA Test 2: Simulating React unmount...');
+            const container = document.getElementById('react-container');
+            container.innerHTML = '<p>Component unmounted - video removed</p>';
+            setTimeout(() => {
+                log('⏱️ Remounting after 1 second...');
+                simulateReactRender();
+            }, 1000);
+        }
+        
+        function fixVideoPersistence() {
+            useESAFix = true;
+            log('✅ ESA LIFE CEO 56x21 Fix enabled!');
+            simulateReactRender();
+        }
+        
+        // Test 3: Real Posts
+        function fetchRealPosts() {
+            log('📥 ESA Test 3: Fetching real posts...');
+            const container = document.getElementById('posts-container');
+            
+            fetch('/api/memories/feed', { credentials: 'include' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        const videoPosts = data.data.filter(post => 
+                            post.imageUrl?.toLowerCase().includes('.mp4') ||
+                            post.videoUrl?.toLowerCase().includes('.mp4') ||
+                            (post.mediaEmbeds && post.mediaEmbeds.some(url => url?.toLowerCase().includes('.mp4')))
+                        );
+                        
+                        log(`📊 Found ${videoPosts.length} posts with videos`);
+                        
+                        container.innerHTML = '';
+                        videoPosts.forEach((post, index) => {
+                            const videoUrl = post.videoUrl || post.imageUrl || post.mediaEmbeds?.[0];
+                            const fullUrl = videoUrl.startsWith('http') ? videoUrl : `${window.location.origin}${videoUrl}`;
+                            
+                            const postDiv = document.createElement('div');
+                            postDiv.className = 'video-test';
+                            postDiv.innerHTML = `
+                                <h4>Post ${post.id}</h4>
+                                <p>${post.content?.substring(0, 100) || 'No content'}</p>
+                                <video 
+                                    src="${fullUrl}"
+                                    controls
+                                    playsInline
+                                    preload="metadata"
+                                    style="display: block; visibility: visible;"
+                                    onloadedmetadata="console.log('ESA Video ${post.id} loaded')"
+                                    onerror="console.error('ESA Video ${post.id} error')"
+                                ></video>
+                            `;
+                            container.appendChild(postDiv);
+                            
+                            log(`✅ Rendered video for post ${post.id}`);
+                        });
+                        
+                        if (videoPosts.length === 0) {
+                            container.innerHTML = '<p class="warning">No posts with videos found</p>';
+                        }
+                    }
+                })
+                .catch(err => {
+                    log(`❌ Error: ${err.message}`);
+                    container.innerHTML = `<p class="error">Error: ${err.message}</p>`;
+                });
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            log('🚀 ESA LIFE CEO 56x21 - Video Persistence Debug Started');
+            createDirectVideo();
+        });
+    </script>
+</body>
+</html>

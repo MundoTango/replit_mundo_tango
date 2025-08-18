@@ -1,0 +1,208 @@
+{
+  "name": "User Registration to HubSpot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "429c4621-4e0e-42dc-8eef-1965c7aa8812",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "429c4621-4e0e-42dc-8eef-1965c7aa8812"
+    },
+    {
+      "parameters": {
+        "resource": "contact",
+        "operation": "upsert",
+        "email": "={{$json[\"email\"]}}",
+        "additionalFields": {
+          "firstName": "={{$json[\"name\"].split(' ')[0]}}",
+          "lastName": "={{$json[\"name\"].split(' ').slice(1).join(' ')}}",
+          "phone": "={{$json[\"phone\"]}}",
+          "lifecycleStage": "customer",
+          "properties": [
+            {
+              "property": "mundo_tango_role",
+              "value": "={{$json[\"role\"]}}"
+            },
+            {
+              "property": "mundo_tango_user_id",
+              "value": "={{$json[\"userId\"]}}"
+            },
+            {
+              "property": "registration_date",
+              "value": "={{$json[\"timestamp\"]}}"
+            },
+            {
+              "property": "platform",
+              "value": "Mundo Tango"
+            }
+          ]
+        }
+      },
+      "id": "hubspot-create",
+      "name": "Create/Update HubSpot Contact",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Webhook Trigger\"].json[\"role\"]}}",
+              "operation": "equals",
+              "value2": "host"
+            }
+          ]
+        }
+      },
+      "id": "if-host",
+      "name": "If Host",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Webhook Trigger\"].json[\"role\"]}}",
+              "operation": "equals",
+              "value2": "dancer"
+            }
+          ]
+        }
+      },
+      "id": "if-dancer",
+      "name": "If Dancer",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "fromEmail": "welcome@mundotango.life",
+        "toEmail": "={{$node[\"Webhook Trigger\"].json[\"email\"]}}",
+        "subject": "Welcome to Mundo Tango, {{$node[\"Webhook Trigger\"].json[\"name\"].split(' ')[0]}}! 🎉",
+        "html": "<h2>Welcome to the Mundo Tango Community!</h2><p>Dear {{$node[\"Webhook Trigger\"].json[\"name\"]}},</p><p>We're thrilled to have you join our global tango community as a <strong>{{$node[\"Webhook Trigger\"].json[\"role\"]}}</strong>!</p><p>Here's what you can do next:</p><ul><li>Complete your profile</li><li>Connect with other tango enthusiasts</li><li>Discover events in your area</li><li>Share your tango journey</li></ul><p>Best regards,<br>The Mundo Tango Team</p>",
+        "options": {}
+      },
+      "id": "send-welcome-email",
+      "name": "Send Welcome Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#new-registrations",
+        "text": "🆕 New {{$node[\"Webhook Trigger\"].json[\"role\"]}} registered!\n*Name:* {{$node[\"Webhook Trigger\"].json[\"name\"]}}\n*Email:* {{$node[\"Webhook Trigger\"].json[\"email\"]}}\n*Location:* {{$node[\"Webhook Trigger\"].json[\"location\"] || 'Not specified'}}\n*Time:* {{$node[\"Webhook Trigger\"].json[\"timestamp\"]}}",
+        "otherOptions": {}
+      },
+      "id": "slack-notification",
+      "name": "Notify Team on Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "sheetId": "YOUR_GOOGLE_SHEET_ID",
+        "range": "A:G",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        },
+        "data": {
+          "values": [
+            [
+              "={{$node[\"Webhook Trigger\"].json[\"timestamp\"]}}",
+              "={{$node[\"Webhook Trigger\"].json[\"userId\"]}}",
+              "={{$node[\"Webhook Trigger\"].json[\"name\"]}}",
+              "={{$node[\"Webhook Trigger\"].json[\"email\"]}}",
+              "={{$node[\"Webhook Trigger\"].json[\"role\"]}}",
+              "={{$node[\"Webhook Trigger\"].json[\"location\"]}}",
+              "={{$node[\"Create/Update HubSpot Contact\"].json[\"id\"]}}"
+            ]
+          ]
+        }
+      },
+      "id": "log-to-sheets",
+      "name": "Log to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Create/Update HubSpot Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create/Update HubSpot Contact": {
+      "main": [
+        [
+          {
+            "node": "If Host",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If Dancer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Welcome Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Welcome Email": {
+      "main": [
+        [
+          {
+            "node": "Notify Team on Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Team on Slack": {
+      "main": [
+        [
+          {
+            "node": "Log to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "1",
+  "id": "user-registration-hubspot",
+  "meta": {
+    "instanceId": "mundotango"
+  },
+  "tags": []
+}

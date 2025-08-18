@@ -1,0 +1,186 @@
+{
+  "name": "User Registration to HubSpot - Complete Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "user-registration",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "id": "e8b3f3d4-7c2a-4b1e-9d0c-5a6f8e3b2c1d",
+      "name": "Registration Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+    },
+    {
+      "parameters": {
+        "keepOnlySet": false,
+        "values": {
+          "string": [
+            {
+              "name": "email",
+              "value": "={{$json[\"body\"][\"email\"]}}"
+            },
+            {
+              "name": "firstName",
+              "value": "={{$json[\"body\"][\"firstName\"]}}"
+            },
+            {
+              "name": "lastName",
+              "value": "={{$json[\"body\"][\"lastName\"]}}"
+            },
+            {
+              "name": "phone",
+              "value": "={{$json[\"body\"][\"phone\"] || \"\"}}"
+            },
+            {
+              "name": "company",
+              "value": "={{$json[\"body\"][\"company\"] || \"Mundo Tango\"}}"
+            },
+            {
+              "name": "source",
+              "value": "Mundo Tango Registration"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{new Date().toISOString()}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6",
+      "name": "Format User Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "resource": "contact",
+        "operation": "create",
+        "email": "={{$json[\"email\"]}}",
+        "additionalFields": {
+          "firstName": "={{$json[\"firstName\"]}}",
+          "lastName": "={{$json[\"lastName\"]}}",
+          "phone": "={{$json[\"phone\"]}}",
+          "company": "={{$json[\"company\"]}}",
+          "lifecycleStage": "subscriber",
+          "leadStatus": "NEW"
+        }
+      },
+      "id": "q1w2e3r4-t5y6-u7i8-o9p0-a1s2d3f4g5h6",
+      "name": "Create HubSpot Contact",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [650, 300],
+      "credentials": {
+        "hubspotApi": {
+          "id": "{{HUBSPOT_CREDENTIALS_ID}}",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://mundotango.life/api/users/sync",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"email\":\"{{$json[\"properties\"][\"email\"][\"value\"]}}\",\"hubspotId\":\"{{$json[\"vid\"]}}\",\"status\":\"synced\",\"timestamp\":\"{{new Date().toISOString()}}\"}"
+      },
+      "id": "z1x2c3v4-b5n6-m7k8-l9o0-p1q2w3e4r5t6",
+      "name": "Update Database",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@mundotango.life",
+        "toEmail": "={{$node[\"Format User Data\"].json[\"email\"]}}",
+        "subject": "Welcome to Mundo Tango!",
+        "html": "<h2>Welcome {{$node[\"Format User Data\"].json[\"firstName\"]}}!</h2><p>Your account has been created successfully. You're now part of the global Mundo Tango community!</p><p>Get started by:</p><ul><li>Completing your profile</li><li>Joining your local community</li><li>Connecting with other tango enthusiasts</li></ul><p>Best regards,<br>The Mundo Tango Team</p>",
+        "options": {}
+      },
+      "id": "m1n2b3v4-c5x6-z7a8-s9d0-f1g2h3j4k5l6",
+      "name": "Send Welcome Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Registration Webhook": {
+      "main": [
+        [
+          {
+            "node": "Format User Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format User Data": {
+      "main": [
+        [
+          {
+            "node": "Create HubSpot Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create HubSpot Contact": {
+      "main": [
+        [
+          {
+            "node": "Update Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Database": {
+      "main": [
+        [
+          {
+            "node": "Send Welcome Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "saveDataSuccessExecution": "all",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "executionTimeout": 300
+  },
+  "versionId": "d8f3e4b2-6a1c-4f7d-9e2b-3c5a8f1b7d4e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8c8f3e5d6a2b1c4f7e9d0a3b5c6e8f1a2d4b6c8e"
+  },
+  "id": "9KtusuER4HVn7DHM",
+  "tags": []
+}

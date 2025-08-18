@@ -1,0 +1,245 @@
+{
+  "name": "TestSprite Results Processor - Complete Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "testsprite-results",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "id": "t1e2s3t4-s5p6-r7i8-t9e0-w1e2b3h4o5o6",
+      "name": "TestSprite Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "testsprite-webhook-123"
+    },
+    {
+      "parameters": {
+        "keepOnlySet": false,
+        "values": {
+          "string": [
+            {
+              "name": "testId",
+              "value": "={{$json[\"body\"][\"testId\"]}}"
+            },
+            {
+              "name": "testName",
+              "value": "={{$json[\"body\"][\"testName\"]}}"
+            },
+            {
+              "name": "status",
+              "value": "={{$json[\"body\"][\"failed\"] > 0 ? \"FAILED\" : \"PASSED\"}}"
+            },
+            {
+              "name": "reportUrl",
+              "value": "={{$json[\"body\"][\"reportUrl\"]}}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{new Date().toISOString()}}"
+            }
+          ],
+          "number": [
+            {
+              "name": "passed",
+              "value": "={{$json[\"body\"][\"passed\"] || 0}}"
+            },
+            {
+              "name": "failed",
+              "value": "={{$json[\"body\"][\"failed\"] || 0}}"
+            },
+            {
+              "name": "total",
+              "value": "={{($json[\"body\"][\"passed\"] || 0) + ($json[\"body\"][\"failed\"] || 0)}}"
+            },
+            {
+              "name": "passRate",
+              "value": "={{$json[\"body\"][\"passed\"] && $json[\"body\"][\"failed\"] ? Math.round(($json[\"body\"][\"passed\"] / (($json[\"body\"][\"passed\"] || 0) + ($json[\"body\"][\"failed\"] || 0))) * 100) : 100}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c1a2l3c4-m5e6-t7r8-i9c0-s1d2a3t4a5n6",
+      "name": "Calculate Test Metrics",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json[\"passRate\"]}}",
+              "operation": "smaller",
+              "value2": 95
+            }
+          ]
+        }
+      },
+      "id": "c1h2e3c4-k5t6-h7r8-e9s0-h1o2l3d4t5e6",
+      "name": "Check Pass Threshold",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#test-alerts",
+        "text": "⚠️ Test Suite Failed!\n*Test:* {{$node[\"Calculate Test Metrics\"].json[\"testName\"]}}\n*Pass Rate:* {{$node[\"Calculate Test Metrics\"].json[\"passRate\"]}}%\n*Failed Tests:* {{$node[\"Calculate Test Metrics\"].json[\"failed\"]}}/{{$node[\"Calculate Test Metrics\"].json[\"total\"]}}\n*Status:* {{$node[\"Calculate Test Metrics\"].json[\"status\"]}}\n*View Report:* {{$node[\"Calculate Test Metrics\"].json[\"reportUrl\"]}}",
+        "attachments": [],
+        "otherOptions": {}
+      },
+      "id": "s1l2a3c4-k5a6-l7e8-r9t0-f1a2i3l4e5d6",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [850, 250],
+      "credentials": {
+        "slackApi": {
+          "id": "{{SLACK_CREDENTIALS_ID}}",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://mundotango.life/api/test-results",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($node[\"Calculate Test Metrics\"].json)}}"
+      },
+      "id": "s1t2o3r4-e5r6-e7s8-u9l0-t1s2d3b4s5t6",
+      "name": "Store Test Results",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 350]
+    },
+    {
+      "parameters": {
+        "fromEmail": "testing@mundotango.life",
+        "toEmail": "dev-team@mundotango.life",
+        "subject": "✅ Test Suite Passed - {{$node[\"Calculate Test Metrics\"].json[\"testName\"]}}",
+        "html": "<h2>Test Suite Passed Successfully</h2><p><strong>Test Name:</strong> {{$node[\"Calculate Test Metrics\"].json[\"testName\"]}}</p><p><strong>Pass Rate:</strong> {{$node[\"Calculate Test Metrics\"].json[\"passRate\"]}}%</p><p><strong>Passed Tests:</strong> {{$node[\"Calculate Test Metrics\"].json[\"passed\"]}}/{{$node[\"Calculate Test Metrics\"].json[\"total\"]}}</p><p><strong>Report:</strong> <a href=\"{{$node[\"Calculate Test Metrics\"].json[\"reportUrl\"]}}\">View Full Report</a></p>",
+        "options": {}
+      },
+      "id": "e1m2a3i4-l5s6-u7c8-c9e0-s1s2n3o4t5i6",
+      "name": "Email Success Report",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [850, 450]
+    },
+    {
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "MT",
+        "issueType": "Bug",
+        "summary": "Test Suite Failed: {{$node[\"Calculate Test Metrics\"].json[\"testName\"]}}",
+        "description": "Automated test suite failed with {{$node[\"Calculate Test Metrics\"].json[\"failed\"]}} failures out of {{$node[\"Calculate Test Metrics\"].json[\"total\"]}} tests.\n\nPass Rate: {{$node[\"Calculate Test Metrics\"].json[\"passRate\"]}}%\nReport: {{$node[\"Calculate Test Metrics\"].json[\"reportUrl\"]}}",
+        "additionalFields": {
+          "priority": "High",
+          "labels": ["automated-testing", "testsprite"]
+        }
+      },
+      "id": "j1i2r3a4-t5i6-c7k8-e9t0-c1r2e3a4t5e6",
+      "name": "Create Jira Ticket",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [1050, 250],
+      "credentials": {
+        "jiraApi": {
+          "id": "{{JIRA_CREDENTIALS_ID}}",
+          "name": "Jira account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "TestSprite Webhook": {
+      "main": [
+        [
+          {
+            "node": "Calculate Test Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Test Metrics": {
+      "main": [
+        [
+          {
+            "node": "Check Pass Threshold",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Pass Threshold": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Store Test Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Success Report",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Store Test Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Slack Alert": {
+      "main": [
+        [
+          {
+            "node": "Create Jira Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "saveDataSuccessExecution": "all",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "executionTimeout": 300
+  },
+  "versionId": "testsprite-v1",
+  "id": "3RKLdC8ZlPpdV2rw",
+  "tags": []
+}

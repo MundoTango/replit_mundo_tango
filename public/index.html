@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mundo Tango - Global Community Platform</title>
+    
+    <!-- Cloudinary Upload Widget Script - MUST BE LOADED FIRST -->
+    <script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
+    
+    <!-- Cloudinary configuration -->
+    <script>
+        // Make Cloudinary config globally available
+        window.CLOUDINARY_CONFIG = {
+            cloudName: 'dwlfq9gec',
+            uploadPreset: 'Replit'
+        };
+        
+        // Log when Cloudinary is ready
+        if (window.cloudinary) {
+            console.log('[Cloudinary] ✅ Upload widget loaded successfully');
+            console.log('[Cloudinary] Cloud name:', window.CLOUDINARY_CONFIG.cloudName);
+        }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

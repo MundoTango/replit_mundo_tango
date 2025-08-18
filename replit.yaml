@@ -1,0 +1,11 @@
+# ESA LIFE CEO 61x21 - Dockerfile Deployment Configuration
+modules: []
+hidden: []
+
+# Development server
+run: "npm run dev"
+
+# Dockerfile deployment configuration
+deployment:
+  provider: "dockerfile"
+  run: "node dist/index.js"

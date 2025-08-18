@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: mundo-tango-n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://n8n.mundotango.life/
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_USER_MANAGEMENT_JWT_SECRET=${N8N_JWT_SECRET}
+      # Database configuration for n8n's own data
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=${PGUSER}
+      - DB_POSTGRESDB_PASSWORD=${PGPASSWORD}
+      # Enable user management
+      - N8N_USER_MANAGEMENT_ENABLED=true
+      - N8N_USER_MANAGEMENT_EMAIL_MODE=smtp
+      # SMTP configuration for notifications
+      - N8N_EMAIL_MODE=smtp
+      - N8N_SMTP_HOST=${SMTP_HOST}
+      - N8N_SMTP_PORT=${SMTP_PORT}
+      - N8N_SMTP_USER=${SMTP_USER}
+      - N8N_SMTP_PASS=${SMTP_PASS}
+      - N8N_SMTP_SSL=true
+      # Security
+      - N8N_SECURE_COOKIE=true
+      - N8N_DIAGNOSTICS_ENABLED=false
+      # Performance
+      - EXECUTIONS_PROCESS=main
+      - N8N_METRICS=true
+      - N8N_METRICS_PREFIX=n8n_
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n-workflows:/workflows
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - mundo-tango-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: mundo-tango-postgres
+    environment:
+      - POSTGRES_USER=${PGUSER}
+      - POSTGRES_PASSWORD=${PGPASSWORD}
+      - POSTGRES_DB=${PGDATABASE}
+      - POSTGRES_MULTIPLE_DATABASES=n8n,mundotango
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - mundo-tango-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: mundo-tango-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - mundo-tango-network
+
+volumes:
+  n8n_data:
+  postgres_data:
+  redis_data:
+
+networks:
+  mundo-tango-network:
+    driver: bridge

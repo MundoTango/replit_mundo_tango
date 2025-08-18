@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESA Video Upload Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 50px auto; 
+            padding: 20px;
+        }
+        .upload-area {
+            border: 2px dashed #4CAF50;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f5f5f5;
+        }
+        .progress {
+            margin-top: 20px;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #4CAF50;
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>ESA LIFE CEO 56x21 - Video Upload Test</h1>
+    <div class="upload-area">
+        <h2>Upload Large Video (456MB+)</h2>
+        <input type="file" id="fileInput" accept="video/*,image/*" />
+        <div id="fileInfo"></div>
+    </div>
+    
+    <div class="progress" style="display:none;">
+        <div class="progress-bar" id="progressBar">0%</div>
+    </div>
+    
+    <div id="status"></div>
+    
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const progressBar = document.getElementById('progressBar');
+        const status = document.getElementById('status');
+        
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+            fileInfo.innerHTML = `<p>File: ${file.name}<br>Size: ${sizeMB} MB<br>Type: ${file.type}</p>`;
+            
+            // Show status
+            status.className = 'status info';
+            status.textContent = `Starting upload of ${sizeMB}MB file...`;
+            
+            // Prepare upload
+            const formData = new FormData();
+            formData.append('media_0', file);
+            formData.append('content', 'Test video upload');
+            
+            // Show progress bar
+            document.querySelector('.progress').style.display = 'block';
+            
+            try {
+                // Monitor memory during upload
+                console.log('Starting upload, monitoring memory...');
+                const memoryInterval = setInterval(() => {
+                    if (performance.memory) {
+                        const usedMB = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(0);
+                        const limitMB = (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed(0);
+                        console.log(`Memory: ${usedMB}MB / ${limitMB}MB`);
+                    }
+                }, 2000);
+                
+                // Upload with progress tracking
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        progressBar.style.width = percent + '%';
+                        progressBar.textContent = percent + '%';
+                    }
+                });
+                
+                xhr.addEventListener('load', () => {
+                    clearInterval(memoryInterval);
+                    if (xhr.status === 200) {
+                        status.className = 'status success';
+                        status.textContent = '✅ Upload successful! No memory crash!';
+                    } else {
+                        status.className = 'status error';
+                        status.textContent = `❌ Upload failed: ${xhr.statusText}`;
+                    }
+                });
+                
+                xhr.addEventListener('error', () => {
+                    clearInterval(memoryInterval);
+                    status.className = 'status error';
+                    status.textContent = '❌ Upload error - check server logs';
+                });
+                
+                // Send to the optimized endpoint
+                xhr.open('POST', '/api/posts');
+                xhr.withCredentials = true;
+                xhr.send(formData);
+                
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = `❌ Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>

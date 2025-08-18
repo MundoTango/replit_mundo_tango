@@ -1,0 +1,159 @@
+# Mundo Tango Life CEO - Docker Compose Stack
+# 53x21s Framework: Layer 52 (Container Orchestration) + Layer 51 (n8n Automation) + Layer 53 (TestSprite AI Testing)
+version: '3.8'
+
+services:
+  # Main Application Container
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - N8N_BASE_URL=http://n8n:5678
+      - TESTSPRITE_API_KEY=${TESTSPRITE_API_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - HUBSPOT_ACCESS_TOKEN=${HUBSPOT_ACCESS_TOKEN}
+    depends_on:
+      - n8n
+      - redis
+    networks:
+      - mundo-tango-network
+    volumes:
+      - app-uploads:/app/uploads
+      - app-logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # n8n Automation Platform
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_JWT_SECRET=${N8N_JWT_SECRET}
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=mundotango2025
+      - WEBHOOK_URL=http://app:5000
+      - N8N_PROTOCOL=http
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - EXECUTIONS_PROCESS=main
+      - EXECUTIONS_MODE=regular
+      - N8N_LOG_LEVEL=info
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n_workflows
+      - DB_POSTGRESDB_USER=n8n_user
+      - DB_POSTGRESDB_PASSWORD=n8n_secure_pass_2025
+    volumes:
+      - n8n-data:/home/node/.n8n
+      - n8n-workflows:/home/node/.n8n/workflows
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - mundo-tango-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # PostgreSQL for n8n workflows (separate from main app DB)
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=n8n_workflows
+      - POSTGRES_USER=n8n_user
+      - POSTGRES_PASSWORD=n8n_secure_pass_2025
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-n8n-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mundo-tango-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n_user -d n8n_workflows"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and job queues
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass redis_secure_2025
+    volumes:
+      - redis-data:/data
+    networks:
+      - mundo-tango-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - app
+      - n8n
+    networks:
+      - mundo-tango-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  app-uploads:
+    driver: local
+  app-logs:
+    driver: local
+  n8n-data:
+    driver: local
+  n8n-workflows:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  nginx-logs:
+    driver: local
+
+networks:
+  mundo-tango-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

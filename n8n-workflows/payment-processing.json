@@ -1,0 +1,309 @@
+{
+  "name": "Payment Processing Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "stripe-webhook",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "stripe-webhook",
+      "name": "Stripe Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Verify Stripe webhook signature\nconst stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);\nconst endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;\n\nconst sig = items[0].headers['stripe-signature'];\nconst rawBody = items[0].json.body;\n\ntry {\n  const event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);\n  \n  // Process different event types\n  const eventData = {\n    type: event.type,\n    id: event.id,\n    created: new Date(event.created * 1000).toISOString(),\n    data: event.data.object\n  };\n  \n  // Extract relevant information based on event type\n  switch(event.type) {\n    case 'payment_intent.succeeded':\n      eventData.amount = event.data.object.amount / 100;\n      eventData.currency = event.data.object.currency;\n      eventData.customerId = event.data.object.customer;\n      eventData.status = 'succeeded';\n      break;\n    case 'customer.subscription.created':\n    case 'customer.subscription.updated':\n      eventData.subscriptionId = event.data.object.id;\n      eventData.customerId = event.data.object.customer;\n      eventData.status = event.data.object.status;\n      eventData.currentPeriodEnd = new Date(event.data.object.current_period_end * 1000).toISOString();\n      break;\n    case 'invoice.payment_failed':\n      eventData.customerId = event.data.object.customer;\n      eventData.attemptCount = event.data.object.attempt_count;\n      eventData.status = 'failed';\n      break;\n  }\n  \n  return [{json: eventData}];\n} catch (err) {\n  throw new Error(`Webhook signature verification failed: ${err.message}`);\n}"
+      },
+      "id": "verify-stripe",
+      "name": "Verify & Parse Stripe Event",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"type\"]}}",
+              "operation": "contains",
+              "value2": "payment_intent"
+            }
+          ]
+        }
+      },
+      "id": "is-payment",
+      "name": "Is Payment?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"type\"]}}",
+              "operation": "contains",
+              "value2": "subscription"
+            }
+          ]
+        }
+      },
+      "id": "is-subscription",
+      "name": "Is Subscription?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "users",
+        "updateKey": "stripe_customer_id",
+        "columns": "subscription_status,subscription_end_date",
+        "additionalFields": {
+          "values": "={{$json[\"status\"]}},={{$json[\"currentPeriodEnd\"]}}"
+        }
+      },
+      "id": "update-user-subscription",
+      "name": "Update User Subscription",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "payments",
+        "columns": "stripe_payment_id,customer_id,amount,currency,status,created_at",
+        "additionalFields": {
+          "values": "={{$json[\"id\"]}},={{$json[\"customerId\"]}},={{$json[\"amount\"]}},={{$json[\"currency\"]}},={{$json[\"status\"]}},={{$json[\"created\"]}}"
+        }
+      },
+      "id": "log-payment",
+      "name": "Log Payment",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "resource": "contact",
+        "operation": "update",
+        "email": "={{$json[\"customerEmail\"]}}",
+        "additionalFields": {
+          "properties": [
+            {
+              "property": "lifecyclestage",
+              "value": "customer"
+            },
+            {
+              "property": "last_payment_date",
+              "value": "={{$json[\"created\"]}}"
+            },
+            {
+              "property": "subscription_status",
+              "value": "={{$json[\"status\"]}}"
+            }
+          ]
+        }
+      },
+      "id": "update-hubspot",
+      "name": "Update HubSpot Contact",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "billing@mundotango.life",
+        "toEmail": "={{$json[\"customerEmail\"]}}",
+        "subject": "Payment Confirmation - Mundo Tango",
+        "html": "<h2>Payment Received</h2>\n<p>Thank you for your payment!</p>\n<p><strong>Amount:</strong> ${{$json[\"amount\"]}} {{$json[\"currency\"].toUpperCase()}}</p>\n<p><strong>Date:</strong> {{$json[\"created\"]}}</p>\n<p><strong>Payment ID:</strong> {{$json[\"id\"]}}</p>\n<p>Your subscription is active until: {{$json[\"currentPeriodEnd\"]}}</p>\n<p>If you have any questions, please contact our support team.</p>\n<p>Best regards,<br>The Mundo Tango Team</p>"
+      },
+      "id": "send-receipt",
+      "name": "Send Receipt Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "channel": "#payments",
+        "text": "💰 *New Payment Received*\n\n*Amount:* ${{$json[\"amount\"]}} {{$json[\"currency\"].toUpperCase()}}\n*Customer:* {{$json[\"customerId\"]}}\n*Type:* {{$json[\"type\"]}}\n*Status:* {{$json[\"status\"]}}\n*Time:* {{$json[\"created\"]}}",
+        "attachments": [
+          {
+            "color": "#00ff00",
+            "fields": [
+              {
+                "title": "Payment ID",
+                "value": "{{$json[\"id\"]}}",
+                "short": true
+              },
+              {
+                "title": "Next Billing",
+                "value": "{{$json[\"currentPeriodEnd\"]}}",
+                "short": true
+              }
+            ]
+          }
+        ]
+      },
+      "id": "slack-payment-notification",
+      "name": "Notify Finance Team",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"type\"]}}",
+              "operation": "equals",
+              "value2": "invoice.payment_failed"
+            }
+          ]
+        }
+      },
+      "id": "check-failed-payment",
+      "name": "Payment Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 500]
+    },
+    {
+      "parameters": {
+        "fromEmail": "billing@mundotango.life",
+        "toEmail": "={{$json[\"customerEmail\"]}}",
+        "subject": "⚠️ Payment Failed - Action Required",
+        "html": "<h2>Payment Failed</h2>\n<p>We were unable to process your payment.</p>\n<p>This was attempt #{{$json[\"attemptCount\"]}} to charge your card.</p>\n<p>Please update your payment method to avoid service interruption:</p>\n<p><a href=\"https://mundotango.life/billing\">Update Payment Method</a></p>\n<p>If you need assistance, please contact our support team.</p>\n<p>Best regards,<br>The Mundo Tango Team</p>"
+      },
+      "id": "failed-payment-email",
+      "name": "Send Failed Payment Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [850, 500]
+    }
+  ],
+  "connections": {
+    "Stripe Webhook": {
+      "main": [
+        [
+          {
+            "node": "Verify & Parse Stripe Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify & Parse Stripe Event": {
+      "main": [
+        [
+          {
+            "node": "Is Payment?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Subscription?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Payment Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Payment?": {
+      "main": [
+        [
+          {
+            "node": "Log Payment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Is Subscription?": {
+      "main": [
+        [
+          {
+            "node": "Update User Subscription",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Log Payment": {
+      "main": [
+        [
+          {
+            "node": "Send Receipt Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update HubSpot Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update User Subscription": {
+      "main": [
+        [
+          {
+            "node": "Update HubSpot Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update HubSpot Contact": {
+      "main": [
+        [
+          {
+            "node": "Notify Finance Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Failed?": {
+      "main": [
+        [
+          {
+            "node": "Send Failed Payment Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "1",
+  "id": "payment-processing",
+  "tags": ["payments", "stripe", "billing"]
+}

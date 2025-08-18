@@ -1,0 +1,1745 @@
+import React, { useState } from 'react';
+import { 
+  ChevronDown, 
+  ChevronRight, 
+  Globe, 
+  Users, 
+  Shield, 
+  Code, 
+  Database, 
+  Zap, 
+  BarChart3,
+  Brain,
+  Target,
+  Calendar,
+  Clock,
+  User,
+  FileText,
+  GitBranch,
+  CheckCircle,
+  AlertTriangle,
+  Smartphone,
+  Monitor,
+  XCircle
+} from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+
+interface ProjectItem {
+  id: string;
+  title: string;
+  description?: string;
+  type: 'Platform' | 'Section' | 'Feature' | 'Project' | 'Task' | 'Sub-task';
+  status: 'Complete' | 'In Progress' | 'Planning' | 'Blocked' | 'Not Started';
+  completion: number;
+  team?: string[];
+  originalFiles?: string[];
+  changesFrom?: string;
+  currentState?: string;
+  estimatedHours?: number;
+  actualHours?: number;
+  priority: 'High' | 'Medium' | 'Low';
+  layer?: string;
+  webStatus?: string;
+  mobileStatus?: string;
+  mobileNextSteps?: string[];
+  children?: ProjectItem[];
+}
+
+interface DetailedCardProps {
+  item: ProjectItem;
+  onClose: () => void;
+}
+
+const DetailedCard: React.FC<DetailedCardProps> = ({ item, onClose }) => {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Complete': return 'bg-green-100 text-green-800 border-green-300';
+      case 'In Progress': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'Planning': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'Blocked': return 'bg-red-100 text-red-800 border-red-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'High': return 'bg-red-600 text-white';
+      case 'Medium': return 'bg-yellow-600 text-white';
+      case 'Low': return 'bg-green-600 text-white';
+      default: return 'bg-gray-600 text-white';
+    }
+  };
+
+  return (
+    <Card className="fixed inset-4 z-50 overflow-auto bg-white shadow-2xl border-2">
+      <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">{item.title}</h2>
+            <div className="flex items-center gap-2 mt-2">
+              <Badge className={getStatusColor(item.status)}>{item.status}</Badge>
+              <Badge className={getPriorityColor(item.priority)}>{item.priority}</Badge>
+              <Badge variant="outline">{item.type}</Badge>
+              {item.layer && <Badge variant="secondary">{item.layer}</Badge>}
+            </div>
+          </div>
+          <Button onClick={onClose} variant="outline" size="sm">
+            Close
+          </Button>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="p-6 space-y-6">
+        {/* Description */}
+        {item.description && (
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Description</h3>
+            <p className="text-gray-700">{item.description}</p>
+          </div>
+        )}
+
+        {/* Progress Section */}
+        <div>
+          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-blue-600" />
+            Progress
+          </h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Completion:</span>
+              <span className="text-lg font-bold text-blue-600">{item.completion}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div 
+                className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${item.completion}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Team Section */}
+        {item.team && item.team.length > 0 && (
+          <div>
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <Users className="h-5 w-5 text-green-600" />
+              Team ({item.team.length})
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {item.team.map((member, index) => (
+                <Badge key={index} variant="outline" className="flex items-center gap-1">
+                  <User className="h-3 w-3" />
+                  {member}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Original TT Files */}
+        {item.originalFiles && item.originalFiles.length > 0 && (
+          <div>
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-purple-600" />
+              Original TrangoTech Files ({item.originalFiles.length})
+            </h3>
+            <div className="bg-purple-50 rounded-lg p-4">
+              <div className="space-y-2">
+                {item.originalFiles.map((file, index) => (
+                  <div key={index} className="flex items-center gap-2 text-sm">
+                    <GitBranch className="h-4 w-4 text-purple-600" />
+                    <code className="bg-purple-100 px-2 py-1 rounded text-purple-800">{file}</code>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Changes From TT to Current State */}
+        {item.changesFrom && (
+          <div>
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <GitBranch className="h-5 w-5 text-orange-600" />
+              Evolution from TrangoTech
+            </h3>
+            <div className="bg-orange-50 rounded-lg p-4">
+              <p className="text-orange-800">{item.changesFrom}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Current State */}
+        {item.currentState && (
+          <div>
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Current State
+            </h3>
+            <div className="bg-green-50 rounded-lg p-4">
+              <p className="text-green-800">{item.currentState}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Completion Tracking - What's Done vs What Remains */}
+        <div>
+          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Target className="h-5 w-5 text-blue-600" />
+            Completion Analysis
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Completed Tasks */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                ✓ Completed ({Math.round(item.completion)}%)
+              </h4>
+              <div className="space-y-2 text-sm text-green-700">
+                {getCompletedTasks(item).map((task, index) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
+                    <span>{task}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Remaining Tasks */}
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <h4 className="font-semibold text-orange-800 mb-3 flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                → Remaining ({100 - Math.round(item.completion)}%)
+              </h4>
+              <div className="space-y-2 text-sm text-orange-700">
+                {getRemainingTasks(item).map((task, index) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0" />
+                    <span>{task}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Web vs Mobile Development Status */}
+        {(item.webStatus || item.mobileStatus || item.mobileNextSteps) && (
+          <div>
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <Smartphone className="h-5 w-5 text-indigo-600" />
+              Web vs Mobile Development Status
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {/* Web Development Status */}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                  <Monitor className="h-4 w-4" />
+                  Web Development
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Status:</span>
+                    <Badge 
+                      variant={item.webStatus === 'Complete' ? 'default' : 'secondary'}
+                      className={item.webStatus === 'Complete' ? 'bg-green-600' : 'bg-orange-500'}
+                    >
+                      {item.webStatus || 'Not Specified'}
+                    </Badge>
+                  </div>
+                  {item.webStatus === 'Complete' && (
+                    <div className="text-sm text-green-700">
+                      ✓ Ready for mobile development handoff
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Mobile Development Status */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                  <Smartphone className="h-4 w-4" />
+                  Mobile Development
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Status:</span>
+                    <Badge 
+                      variant={item.mobileStatus === 'Complete' ? 'default' : 'secondary'}
+                      className={item.mobileStatus === 'Complete' ? 'bg-green-600' : 'bg-red-500'}
+                    >
+                      {item.mobileStatus || 'Not Started'}
+                    </Badge>
+                  </div>
+                  {item.mobileStatus === 'Not Started' && (
+                    <div className="text-sm text-blue-700">
+                      → Requires Senior Mobile Architect
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Web Development Prerequisites for Mobile */}
+            {item.webStatus === 'Complete' && item.mobileStatus === 'Not Started' && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Web Development Foundation - Ready for Mobile
+                </h4>
+                <div className="space-y-2">
+                  {getWebDevFoundationTasks(item).map((task, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        ✓
+                      </div>
+                      <div className="text-sm text-green-700 leading-relaxed">{task}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 p-3 bg-green-100 rounded-lg">
+                  <p className="text-xs text-green-800 font-medium">
+                    ✅ Web Development Complete: These foundational components are built and ready for mobile integration. 
+                    The API endpoints, data structures, and business logic are prepared for native mobile consumption.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Web Development Tasks Needed for Mobile Readiness */}
+            {item.webStatus !== 'Complete' && item.mobileStatus === 'Not Started' && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                <h4 className="font-semibold text-orange-800 mb-3 flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Web Development Prerequisites for Mobile
+                </h4>
+                <div className="space-y-2">
+                  {getWebDevPrerequisites(item).map((task, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        {index + 1}
+                      </div>
+                      <div className="text-sm text-orange-700 leading-relaxed">{task}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 p-3 bg-orange-100 rounded-lg">
+                  <p className="text-xs text-orange-800 font-medium">
+                    🔧 Web Team Action Required: These tasks must be completed by the web development team 
+                    before mobile development can begin. Focus on API endpoints, data structures, and business logic.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Mobile Development Next Steps */}
+            {item.mobileNextSteps && item.mobileNextSteps.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                  <Smartphone className="h-4 w-4" />
+                  Mobile Development Implementation Steps
+                </h4>
+                <div className="space-y-2">
+                  {item.mobileNextSteps.map((step, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        {index + 1}
+                      </div>
+                      <div className="text-sm text-blue-700 leading-relaxed">{step}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 p-3 bg-blue-100 rounded-lg">
+                  <p className="text-xs text-blue-800 font-medium">
+                    📱 Mobile Architect Tasks: These steps require Senior Mobile Architect expertise. 
+                    Native iOS (Swift/SwiftUI) and Android (Kotlin/Jetpack Compose) implementation ready to begin 
+                    once web development prerequisites are complete.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Handoff Instructions */}
+        <div>
+          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <GitBranch className="h-5 w-5 text-purple-600" />
+            AI/Human Handoff Instructions
+          </h3>
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div className="space-y-3">
+              <div>
+                <h4 className="font-medium text-purple-800 mb-2">Context for Continuation:</h4>
+                <p className="text-sm text-purple-700">{getHandoffContext(item)}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-purple-800 mb-2">Next Steps:</h4>
+                <div className="space-y-1 text-sm text-purple-700">
+                  {getNextSteps(item).map((step, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <span className="font-medium">{index + 1}.</span>
+                      <span>{step}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium text-purple-800 mb-2">Key Files to Review:</h4>
+                <div className="space-y-1">
+                  {getKeyFiles(item).map((file, index) => (
+                    <code key={index} className="block text-xs bg-purple-100 px-2 py-1 rounded text-purple-800">
+                      {file}
+                    </code>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Time Tracking */}
+        {(item.estimatedHours || item.actualHours) && (
+          <div>
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-blue-600" />
+              Time Tracking
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              {item.estimatedHours && (
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <div className="text-sm text-blue-600 font-medium">Estimated</div>
+                  <div className="text-xl font-bold text-blue-800">{item.estimatedHours}h</div>
+                </div>
+              )}
+              {item.actualHours && (
+                <div className="bg-indigo-50 rounded-lg p-3">
+                  <div className="text-sm text-indigo-600 font-medium">Actual</div>
+                  <div className="text-xl font-bold text-indigo-800">{item.actualHours}h</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// Comprehensive project data structure using 11L methodology
+const projectData: ProjectItem[] = [
+  {
+    id: 'mundo-tango-platform',
+    title: 'Mundo Tango Platform',
+    description: 'Complete social media platform for the global tango community',
+    type: 'Platform',
+    status: 'In Progress',
+    completion: 85,
+    priority: 'High',
+    team: ['Scott Boddye', 'Full Stack Team'],
+    webStatus: 'In Progress',
+    mobileStatus: 'Not Started',
+    children: [
+      {
+        id: 'core-features',
+        title: 'Core Social Features',
+        description: 'Essential social media functionality',
+        type: 'Section',
+        status: 'Complete',
+        completion: 95,
+        priority: 'High',
+        webStatus: 'Complete',
+        mobileStatus: 'Not Started',
+        children: [
+          {
+            id: 'authentication',
+            title: 'Authentication & User Management',
+            description: 'Complete user authentication system with role-based access',
+            type: 'Feature',
+            status: 'Complete',
+            completion: 100,
+            priority: 'High',
+            layer: 'Layer 1: Authentication',
+            team: ['Scott Boddye', 'Backend Team'],
+            originalFiles: [
+              'TT-Backend/controllers/AuthController.php',
+              'TT-Backend/models/User.php',
+              'TT-Backend/middleware/AuthMiddleware.php'
+            ],
+            changesFrom: 'Migrated from PHP Laravel JWT authentication to Node.js Express with Replit OAuth integration. Enhanced with multi-role support and comprehensive user profiles.',
+            currentState: 'Fully operational authentication system supporting Replit OAuth, JWT tokens, role-based access control with 23 role types, and comprehensive user onboarding flow.',
+            estimatedHours: 40,
+            actualHours: 45,
+            children: [
+              {
+                id: 'MT-001-USER-REG',
+                title: 'User Registration & Onboarding',
+                type: 'Project',
+                status: 'Complete',
+                completion: 100,
+                priority: 'High',
+                team: ['Authentication Team', 'Mobile UI Team', 'Backend Integration Team'],
+                originalFiles: ['TT-Frontend/pages/auth/register.tsx'],
+                changesFrom: 'Enhanced from basic TT registration to comprehensive multi-step onboarding with location picker, role selection, and code of conduct acceptance.',
+                currentState: 'Complete onboarding flow with city-based group assignment, tango role selection from 23 options, and automatic community integration.',
+                estimatedHours: 15,
+                actualHours: 18,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                children: [
+                  {
+                    id: 'MT-001-001-FORM',
+                    title: 'Registration Form Components',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 100,
+                    priority: 'High',
+                    team: ['Frontend Team', 'Mobile UI Team'],
+                    originalFiles: ['client/src/components/auth/RegisterForm.tsx'],
+                    changesFrom: 'Built comprehensive multi-step form with validation, location picker, and role selection.',
+                    currentState: 'Web: Complete form system with React Hook Form validation. Mobile: Needs native form components with platform-specific validation.',
+                    estimatedHours: 8,
+                    actualHours: 10,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Create native iOS registration screens using SwiftUI forms with validation',
+                      'Build Android registration flow with Jetpack Compose form components',
+                      'Implement native location picker using MapKit (iOS) and Google Maps SDK (Android)',
+                      'Add biometric authentication setup during registration'
+                    ],
+                    children: [
+                      {
+                        id: 'MT-001-001-001-VALID',
+                        title: 'Form Validation Logic',
+                        type: 'Sub-task',
+                        status: 'Complete',
+                        completion: 100,
+                        priority: 'Medium',
+                        team: ['Frontend Team', 'Mobile Validation Team'],
+                        originalFiles: ['client/src/utils/validationSchemas.ts'],
+                        changesFrom: 'Implemented Zod validation schemas for all registration fields.',
+                        currentState: 'Web: Complete Zod validation. Mobile: Need native validation patterns.',
+                        estimatedHours: 4,
+                        actualHours: 5,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Implement iOS native validation using Combine framework',
+                          'Create Android validation using LiveData and ViewModel patterns',
+                          'Add real-time form validation feedback'
+                        ]
+                      },
+                      {
+                        id: 'MT-001-001-002-LOC',
+                        title: 'Location Selection Integration',
+                        type: 'Sub-task',
+                        status: 'Complete',
+                        completion: 100,
+                        priority: 'High',
+                        team: ['Location Services Team', 'Mobile Location Team'],
+                        originalFiles: ['client/src/components/GoogleMapsLocationPicker.tsx'],
+                        changesFrom: 'Integrated Google Maps Platform for city selection during registration.',
+                        currentState: 'Web: Google Maps autocomplete working. Mobile: Need native location services.',
+                        estimatedHours: 6,
+                        actualHours: 8,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Integrate MapKit location search for iOS with Core Location',
+                          'Implement Android location services with Google Places SDK',
+                          'Add permission handling for location access',
+                          'Create offline location database for app-only access'
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    id: 'MT-001-002-ONBOARD',
+                    title: 'Onboarding Flow Management',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 100,
+                    priority: 'High',
+                    team: ['UX Team', 'Mobile Navigation Team'],
+                    originalFiles: ['client/src/components/auth/OnboardingFlow.tsx'],
+                    changesFrom: 'Created multi-step onboarding with progress tracking and role-based routing.',
+                    currentState: 'Web: Complete step-by-step onboarding. Mobile: Need native navigation patterns.',
+                    estimatedHours: 10,
+                    actualHours: 12,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Design native iOS onboarding with UIPageViewController',
+                      'Create Android onboarding using ViewPager2 and Fragments',
+                      'Implement swipe gestures and progress indicators',
+                      'Add onboarding skip functionality with user consent tracking'
+                    ],
+                    children: [
+                      {
+                        id: 'MT-001-002-001-PROG',
+                        title: 'Progress Tracking System',
+                        type: 'Sub-task',
+                        status: 'Complete',
+                        completion: 100,
+                        priority: 'Medium',
+                        team: ['Frontend Team', 'Mobile State Team'],
+                        originalFiles: ['client/src/hooks/useOnboardingProgress.ts'],
+                        changesFrom: 'Built progress tracking with step completion validation.',
+                        currentState: 'Web: React state management for progress. Mobile: Need native state persistence.',
+                        estimatedHours: 4,
+                        actualHours: 5,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Implement iOS progress persistence using UserDefaults',
+                          'Create Android progress tracking with SharedPreferences',
+                          'Add progress recovery for app termination scenarios'
+                        ]
+                      },
+                      {
+                        id: 'MT-001-002-002-ROUTE',
+                        title: 'Role-Based Routing Logic',
+                        type: 'Sub-task',
+                        status: 'Complete',
+                        completion: 100,
+                        priority: 'High',
+                        team: ['Authentication Team', 'Mobile Navigation Team'],
+                        originalFiles: ['client/src/utils/roleBasedRouting.ts'],
+                        changesFrom: 'Implemented automatic routing based on selected tango roles.',
+                        currentState: 'Web: Complete role-based navigation. Mobile: Need native navigation controllers.',
+                        estimatedHours: 6,
+                        actualHours: 7,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Create iOS navigation controller with role-based tab configuration',
+                          'Implement Android navigation component with conditional destinations',
+                          'Add deep linking support for role-specific features'
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                id: 'role-system',
+                title: 'Multi-Role Authentication System',
+                type: 'Project',
+                status: 'Complete',
+                completion: 100,
+                priority: 'High',
+                originalFiles: ['TT-Backend/database/migrations/create_roles_table.php'],
+                changesFrom: 'Expanded from basic user/admin roles to comprehensive 23-role system with community roles (dancer, teacher, DJ, organizer) and platform roles (admin, moderator).',
+                currentState: 'Advanced role system supporting multiple roles per user, role switching, permission hierarchies, and role-based routing throughout the platform.',
+                estimatedHours: 25,
+                actualHours: 27
+              }
+            ]
+          },
+          {
+            id: 'MT-002-POSTS',
+            title: 'Posts & Feed System',
+            description: 'Enhanced post creation with rich media and real-time features',
+            type: 'Feature',
+            status: 'Complete',
+            completion: 90,
+            priority: 'High',
+            layer: 'Layer 2: Content Management',
+            webStatus: 'Complete',
+            mobileStatus: 'Not Started',
+            children: [
+              {
+                id: 'MT-002-001-CREATE',
+                title: 'Enhanced Post Creation',
+                type: 'Project',
+                status: 'Complete',
+                completion: 95,
+                priority: 'High',
+                team: ['Content Team', 'Mobile Content Team'],
+                originalFiles: ['TT-Frontend/components/PostCreator.tsx'],
+                changesFrom: 'Enhanced from basic TT post creation to rich media composer with mentions, Google Maps, emoji picker.',
+                currentState: 'Complete ModernPostCreator with rich text, media uploads, location selection, and user mentions.',
+                estimatedHours: 20,
+                actualHours: 24,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Create native iOS post composer using UIKit rich text editing',
+                  'Build Android post creation with Material Design components',
+                  'Implement native camera integration for iOS/Android',
+                  'Add native location picker using platform-specific maps'
+                ],
+                children: [
+                  {
+                    id: 'MT-002-001-001-RICH',
+                    title: 'Rich Text Editor Integration',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 100,
+                    priority: 'High',
+                    team: ['Frontend Team', 'Mobile Text Team'],
+                    originalFiles: ['client/src/components/RichTextEditor.tsx'],
+                    changesFrom: 'Integrated Quill.js for web-based rich text editing.',
+                    currentState: 'Web: Complete Quill.js integration. Mobile: Need native text editing.',
+                    estimatedHours: 8,
+                    actualHours: 10,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Implement iOS rich text editing using NSAttributedString',
+                      'Create Android rich text with SpannableString and EditText',
+                      'Add formatting toolbar for mobile platforms'
+                    ]
+                  },
+                  {
+                    id: 'MT-002-001-002-MEDIA',
+                    title: 'Media Upload & Processing',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 100,
+                    priority: 'High',
+                    team: ['Media Team', 'Mobile Camera Team'],
+                    originalFiles: ['client/src/components/UploadMedia.tsx'],
+                    changesFrom: 'Built comprehensive media upload with drag-drop, preview, and Supabase integration.',
+                    currentState: 'Web: Complete Supabase Storage integration. Mobile: Need native camera/gallery.',
+                    estimatedHours: 12,
+                    actualHours: 15,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Integrate iOS camera using AVFoundation and PHPhotoLibrary',
+                      'Implement Android camera with CameraX and MediaStore',
+                      'Add image compression and video processing for mobile'
+                    ]
+                  }
+                ]
+              },
+              {
+                id: 'MT-002-002-FEED',
+                title: 'Real-time Feed System',
+                type: 'Project',
+                status: 'Complete',
+                completion: 85,
+                priority: 'High',
+                team: ['Backend Team', 'Mobile Real-time Team'],
+                originalFiles: ['TT-Backend/controllers/PostController.php'],
+                changesFrom: 'Migrated from PHP to Node.js with Supabase real-time subscriptions.',
+                currentState: 'Web: Real-time feed with WebSocket. Mobile: Need native real-time implementation.',
+                estimatedHours: 18,
+                actualHours: 22,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Implement iOS real-time using WebSocket with URLSessionWebSocketTask',
+                  'Create Android real-time with OkHttp WebSocket implementation',
+                  'Add background sync for mobile offline scenarios'
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'event-management',
+        title: 'Event Management System',
+        description: 'Comprehensive event creation, RSVP, and discovery platform',
+        type: 'Section',
+        status: 'Complete',
+        completion: 88,
+        priority: 'High',
+        webStatus: 'Complete',
+        mobileStatus: 'Not Started',
+        children: [
+          {
+            id: 'MT-003-EVENTS',
+            title: 'Event Creation & Management',
+            description: 'Complete event lifecycle management with role assignments',
+            type: 'Feature',
+            status: 'Complete',
+            completion: 90,
+            priority: 'High',
+            layer: 'Layer 3: Event Management',
+            webStatus: 'Complete',
+            mobileStatus: 'Not Started',
+            children: [
+              {
+                id: 'MT-003-001-CREATE',
+                title: 'Event Creation Workflow',
+                type: 'Project',
+                status: 'Complete',
+                completion: 95,
+                priority: 'High',
+                team: ['Event Team', 'Mobile Event Team'],
+                originalFiles: ['TT-Backend/controllers/EventController.php'],
+                changesFrom: 'Enhanced from basic TT event creation to comprehensive workflow with role assignments, location integration.',
+                currentState: 'Complete event creation with Google Maps, role assignment, automatic city group integration.',
+                estimatedHours: 25,
+                actualHours: 30,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Create native iOS event creation using UIKit forms and MapKit',
+                  'Build Android event creation with Material Design and Google Maps SDK',
+                  'Implement native calendar integration for iOS/Android',
+                  'Add photo upload for event covers using native camera'
+                ],
+                children: [
+                  {
+                    id: 'MT-003-001-001-FORM',
+                    title: 'Event Form Components',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 100,
+                    priority: 'High',
+                    team: ['Frontend Team', 'Mobile Forms Team'],
+                    originalFiles: ['client/src/components/events/EventForm.tsx'],
+                    changesFrom: 'Built comprehensive event form with validation, date/time pickers, location selection.',
+                    currentState: 'Web: Complete React form with validation. Mobile: Need native form components.',
+                    estimatedHours: 10,
+                    actualHours: 12,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Create iOS event form using UITableView with custom cells',
+                      'Build Android event form with RecyclerView and custom ViewHolders',
+                      'Implement native date/time pickers for both platforms'
+                    ],
+                    children: [
+                      {
+                        id: 'MT-003-001-001-001-VALID',
+                        title: 'Event Validation Logic',
+                        type: 'Sub-task',
+                        status: 'Complete',
+                        completion: 100,
+                        priority: 'Medium',
+                        team: ['Validation Team', 'Mobile Validation Team'],
+                        originalFiles: ['client/src/utils/eventValidation.ts'],
+                        changesFrom: 'Implemented comprehensive validation for event fields.',
+                        currentState: 'Web: Zod validation schemas. Mobile: Need native validation.',
+                        estimatedHours: 4,
+                        actualHours: 5,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Implement iOS validation using NSFormatter and NSPredicate',
+                          'Create Android validation with custom InputFilters and TextWatchers'
+                        ]
+                      },
+                      {
+                        id: 'MT-003-001-001-002-DATE',
+                        title: 'Date/Time Selection',
+                        type: 'Sub-task',
+                        status: 'Complete',
+                        completion: 100,
+                        priority: 'High',
+                        team: ['UI Team', 'Mobile DateTime Team'],
+                        originalFiles: ['client/src/components/DateTimePicker.tsx'],
+                        changesFrom: 'Integrated MUI date/time pickers for web interface.',
+                        currentState: 'Web: Complete MUI integration. Mobile: Need native pickers.',
+                        estimatedHours: 6,
+                        actualHours: 8,
+                        webStatus: 'Complete',
+                        mobileStatus: 'Not Started',
+                        mobileNextSteps: [
+                          'Implement iOS date picker using UIDatePicker with custom styling',
+                          'Create Android date/time picker with MaterialDatePicker'
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    id: 'MT-003-001-002-ROLES',
+                    title: 'Event Role Assignment System',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 90,
+                    priority: 'High',
+                    team: ['Roles Team', 'Mobile Permissions Team'],
+                    originalFiles: ['client/src/components/EventRoleAssignment.tsx'],
+                    changesFrom: 'Built comprehensive role assignment for DJs, Teachers, Performers, etc.',
+                    currentState: 'Web: Complete role assignment UI. Mobile: Need native role selection.',
+                    estimatedHours: 15,
+                    actualHours: 18,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Create iOS role assignment using UIPickerView and search controllers',
+                      'Build Android role selection with SearchView and custom adapters',
+                      'Add contact integration for user lookup on mobile'
+                    ]
+                  }
+                ]
+              },
+              {
+                id: 'MT-003-002-RSVP',
+                title: 'RSVP Management System',
+                type: 'Project',
+                status: 'Complete',
+                completion: 85,
+                priority: 'High',
+                team: ['RSVP Team', 'Mobile Notifications Team'],
+                originalFiles: ['TT-Backend/controllers/RSVPController.php'],
+                changesFrom: 'Enhanced RSVP system with status tracking, notifications, capacity management.',
+                currentState: 'Web: Complete RSVP with real-time updates. Mobile: Need native implementation.',
+                estimatedHours: 20,
+                actualHours: 24,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Implement iOS RSVP using UserNotifications framework',
+                  'Create Android RSVP with NotificationManager and WorkManager',
+                  'Add calendar integration for event reminders'
+                ]
+              }
+            ]
+          },
+          {
+            id: 'MT-003-DISCOVERY',
+            title: 'Event Discovery & Search',
+            description: 'Location-based event discovery with advanced filtering',
+            type: 'Feature',
+            status: 'Complete',
+            completion: 85,
+            priority: 'High',
+            layer: 'Layer 3: Discovery',
+            webStatus: 'Complete',
+            mobileStatus: 'Not Started',
+            children: [
+              {
+                id: 'MT-003-003-LOCATION',
+                title: 'Location-Based Discovery',
+                type: 'Project',
+                status: 'Complete',
+                completion: 80,
+                priority: 'High',
+                team: ['Location Team', 'Mobile Geo Team'],
+                originalFiles: ['client/src/components/EventMap.tsx'],
+                changesFrom: 'Integrated Google Maps for location-based event discovery.',
+                currentState: 'Web: Google Maps integration complete. Mobile: Need native mapping.',
+                estimatedHours: 18,
+                actualHours: 22,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Implement iOS mapping using MapKit with custom annotations',
+                  'Create Android mapping with Google Maps SDK and custom markers',
+                  'Add GPS-based proximity search for mobile users'
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'community-groups',
+        title: 'Community & Groups Management',
+        description: 'City-based groups, community building, and membership management',
+        type: 'Section',
+        status: 'Complete',
+        completion: 92,
+        priority: 'High',
+        webStatus: 'Complete',
+        mobileStatus: 'Not Started',
+        children: [
+          {
+            id: 'MT-004-GROUPS',
+            title: 'City Group Automation',
+            description: 'Automatic city group creation and user assignment',
+            type: 'Feature',
+            status: 'Complete',
+            completion: 95,
+            priority: 'High',
+            layer: 'Layer 4: Community',
+            webStatus: 'Complete',
+            mobileStatus: 'Not Started',
+            children: [
+              {
+                id: 'MT-004-001-AUTO',
+                title: 'Automated Group Creation',
+                type: 'Project',
+                status: 'Complete',
+                completion: 100,
+                priority: 'High',
+                team: ['Community Team', 'Mobile Groups Team'],
+                originalFiles: ['TT-Backend/models/Group.php'],
+                changesFrom: 'Built intelligent group automation with location parsing, photo fetching, and member assignment.',
+                currentState: 'Complete automation: user registration → city detection → group creation → photo fetching → auto-join.',
+                estimatedHours: 20,
+                actualHours: 25,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Create iOS group discovery using Core Location and MapKit',
+                  'Build Android group features with Location Services and Google Places',
+                  'Implement native group management interfaces',
+                  'Add offline group synchronization for mobile'
+                ],
+                children: [
+                  {
+                    id: 'MT-004-001-001-DETECT',
+                    title: 'Location Detection & Parsing',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 100,
+                    priority: 'High',
+                    team: ['Location Team', 'Mobile Geo Team'],
+                    originalFiles: ['utils/cityGroupAutomation.ts'],
+                    changesFrom: 'Built comprehensive location parsing supporting multiple formats.',
+                    currentState: 'Web: Complete location parsing. Mobile: Need native location services.',
+                    estimatedHours: 8,
+                    actualHours: 10,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Implement iOS location detection using Core Location framework',
+                      'Create Android location parsing with Geocoder and Location Services'
+                    ]
+                  },
+                  {
+                    id: 'MT-004-001-002-PHOTO',
+                    title: 'City Photo Automation',
+                    type: 'Task',
+                    status: 'Complete',
+                    completion: 100,
+                    priority: 'Medium',
+                    team: ['Media Team', 'Mobile Images Team'],
+                    originalFiles: ['services/CityPhotoService.ts'],
+                    changesFrom: 'Integrated Pexels API for authentic city photography.',
+                    currentState: 'Web: Pexels API integration. Mobile: Need offline image management.',
+                    estimatedHours: 6,
+                    actualHours: 8,
+                    webStatus: 'Complete',
+                    mobileStatus: 'Not Started',
+                    mobileNextSteps: [
+                      'Implement iOS image caching using NSURLCache',
+                      'Create Android image management with Glide or Picasso'
+                    ]
+                  }
+                ]
+              },
+              {
+                id: 'MT-004-002-MEMBERSHIP',
+                title: 'Group Membership Management',
+                type: 'Project',
+                status: 'Complete',
+                completion: 90,
+                priority: 'High',
+                team: ['Membership Team', 'Mobile Social Team'],
+                originalFiles: ['client/src/components/GroupDetailPage.tsx'],
+                changesFrom: 'Built comprehensive membership system with join/leave, admin controls.',
+                currentState: 'Web: Complete membership management. Mobile: Need native social features.',
+                estimatedHours: 15,
+                actualHours: 18,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Create iOS group management using UITableView and delegation patterns',
+                  'Build Android membership features with RecyclerView and ViewModels',
+                  'Add push notifications for group activities'
+                ]
+              }
+            ]
+          },
+          {
+            id: 'MT-004-DISCOVERY',
+            title: 'Community Discovery Features',
+            description: 'Find and join relevant tango communities',
+            type: 'Feature',
+            status: 'Complete',
+            completion: 88,
+            priority: 'High',
+            layer: 'Layer 4: Discovery',
+            webStatus: 'Complete',
+            mobileStatus: 'Not Started',
+            children: [
+              {
+                id: 'MT-004-003-SEARCH',
+                title: 'Community Search & Filtering',
+                type: 'Project',
+                status: 'Complete',
+                completion: 85,
+                priority: 'High',
+                team: ['Search Team', 'Mobile Search Team'],
+                originalFiles: ['client/src/components/CommunitySearch.tsx'],
+                changesFrom: 'Built advanced search with location, role, and interest filtering.',
+                currentState: 'Web: Complete search implementation. Mobile: Need native search UI.',
+                estimatedHours: 12,
+                actualHours: 15,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Implement iOS search using UISearchController',
+                  'Create Android search with SearchView and filtering',
+                  'Add voice search capabilities for mobile'
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'analytics-intelligence',
+        title: 'Analytics & Intelligence Platform',
+        description: 'Comprehensive analytics, monitoring, and business intelligence',
+        type: 'Section',
+        status: 'Complete',
+        completion: 85,
+        priority: 'High',
+        webStatus: 'Complete',
+        mobileStatus: 'Not Started',
+        children: [
+          {
+            id: 'MT-005-ANALYTICS',
+            title: 'User Behavior Analytics',
+            description: 'Track user engagement and platform usage patterns',
+            type: 'Feature',
+            status: 'Complete',
+            completion: 90,
+            priority: 'High',
+            layer: 'Layer 5: Analytics',
+            webStatus: 'Complete',
+            mobileStatus: 'Not Started',
+            children: [
+              {
+                id: 'MT-005-001-TRACKING',
+                title: 'Event Tracking System',
+                type: 'Project',
+                status: 'Complete',
+                completion: 95,
+                priority: 'High',
+                team: ['Analytics Team', 'Mobile Analytics Team'],
+                originalFiles: ['services/analytics.ts'],
+                changesFrom: 'Integrated Plausible Analytics with comprehensive event tracking.',
+                currentState: 'Web: Complete Plausible integration. Mobile: Need native analytics SDKs.',
+                estimatedHours: 15,
+                actualHours: 18,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Integrate iOS analytics using Firebase Analytics or custom tracking',
+                  'Implement Android analytics with Google Analytics SDK',
+                  'Add offline analytics queuing for mobile'
+                ]
+              },
+              {
+                id: 'MT-005-002-DASHBOARD',
+                title: 'Admin Analytics Dashboard',
+                type: 'Project',
+                status: 'Complete',
+                completion: 85,
+                priority: 'High',
+                team: ['Dashboard Team', 'Mobile Admin Team'],
+                originalFiles: ['client/src/components/admin/AdminCenter.tsx'],
+                changesFrom: 'Built comprehensive admin dashboard with real-time metrics.',
+                currentState: 'Web: Complete admin dashboard. Mobile: Need mobile admin interface.',
+                estimatedHours: 20,
+                actualHours: 24,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Create iOS admin app using UIKit with chart libraries',
+                  'Build Android admin interface with Material Design and Charts',
+                  'Add mobile-specific admin notifications'
+                ]
+              }
+            ]
+          },
+          {
+            id: 'MT-005-INTELLIGENCE',
+            title: 'Business Intelligence & Reporting',
+            description: 'Advanced reporting and data insights',
+            type: 'Feature',
+            status: 'Complete',
+            completion: 80,
+            priority: 'Medium',
+            layer: 'Layer 5: Intelligence',
+            webStatus: 'Complete',
+            mobileStatus: 'Not Started',
+            children: [
+              {
+                id: 'MT-005-003-REPORTS',
+                title: 'Automated Reporting System',
+                type: 'Project',
+                status: 'Complete',
+                completion: 75,
+                priority: 'Medium',
+                team: ['Reporting Team', 'Mobile Reports Team'],
+                originalFiles: ['services/reportGenerator.ts'],
+                changesFrom: 'Built automated reporting with PDF generation and email delivery.',
+                currentState: 'Web: Complete reporting system. Mobile: Need mobile report viewing.',
+                estimatedHours: 18,
+                actualHours: 22,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Create iOS report viewer using PDFKit and Quick Look',
+                  'Build Android PDF viewing with custom PDF renderer',
+                  'Add mobile report sharing capabilities'
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'infrastructure-devops',
+        title: 'Infrastructure & DevOps',
+        description: 'Database architecture, security systems, and deployment infrastructure',
+        type: 'Section',
+        status: 'Complete',
+        completion: 90,
+        priority: 'High',
+        webStatus: 'Complete',
+        mobileStatus: 'Not Started',
+        children: [
+          {
+            id: 'MT-006-DATABASE',
+            title: 'Database Architecture & Management',
+            description: 'PostgreSQL architecture with Supabase integration',
+            type: 'Feature',
+            status: 'Complete',
+            completion: 95,
+            priority: 'High',
+            layer: 'Layer 6: Database',
+            webStatus: 'Complete',
+            mobileStatus: 'Not Started',
+            children: [
+              {
+                id: 'MT-006-001-SCHEMA',
+                title: 'Database Schema Management',
+                type: 'Project',
+                status: 'Complete',
+                completion: 100,
+                priority: 'High',
+                team: ['Database Team', 'Mobile Data Team'],
+                originalFiles: ['TT-Backend/database/migrations/*'],
+                changesFrom: 'Migrated from MySQL to PostgreSQL with Supabase integration and comprehensive schema.',
+                currentState: 'Complete PostgreSQL schema with 55+ tables, RLS policies, and performance indexes.',
+                estimatedHours: 30,
+                actualHours: 35,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Implement iOS offline data storage using Core Data',
+                  'Create Android local database with Room persistence library',
+                  'Add mobile data synchronization strategies'
+                ]
+              },
+              {
+                id: 'MT-006-002-SECURITY',
+                title: 'Database Security & RLS',
+                type: 'Project',
+                status: 'Complete',
+                completion: 90,
+                priority: 'High',
+                team: ['Security Team', 'Mobile Security Team'],
+                originalFiles: ['database/security/*'],
+                changesFrom: 'Implemented comprehensive Row-Level Security policies for all sensitive tables.',
+                currentState: 'Complete RLS implementation with user context functions and audit logging.',
+                estimatedHours: 20,
+                actualHours: 24,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Implement iOS security with Keychain Services and biometric authentication',
+                  'Create Android security using Android Keystore and BiometricPrompt',
+                  'Add certificate pinning for mobile API security'
+                ]
+              }
+            ]
+          },
+          {
+            id: 'MT-006-PERFORMANCE',
+            title: 'Performance Monitoring & Optimization',
+            description: 'System performance tracking and optimization',
+            type: 'Feature',
+            status: 'Complete',
+            completion: 85,
+            priority: 'High',
+            layer: 'Layer 6: Performance',
+            webStatus: 'Complete',
+            mobileStatus: 'Not Started',
+            children: [
+              {
+                id: 'MT-006-003-MONITORING',
+                title: 'Performance Monitoring System',
+                type: 'Project',
+                status: 'Complete',
+                completion: 80,
+                priority: 'High',
+                team: ['DevOps Team', 'Mobile Performance Team'],
+                originalFiles: ['services/performanceMonitor.ts'],
+                changesFrom: 'Built comprehensive performance monitoring with automated alerting.',
+                currentState: 'Web: Complete monitoring system. Mobile: Need mobile performance tracking.',
+                estimatedHours: 15,
+                actualHours: 18,
+                webStatus: 'Complete',
+                mobileStatus: 'Not Started',
+                mobileNextSteps: [
+                  'Implement iOS performance monitoring using MetricKit',
+                  'Create Android performance tracking with Android Profiler APIs',
+                  'Add mobile crash reporting and analytics'
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'mobile-development',
+        title: 'Mobile Development Pipeline',
+        description: 'Native iOS and Android development with cross-platform integration',
+        type: 'Section',
+        status: 'Planning',
+        completion: 15,
+        priority: 'High',
+        webStatus: 'Complete',
+        mobileStatus: 'Planning',
+        children: [
+          {
+            id: 'MT-007-IOS',
+            title: 'iOS Native Development',
+            description: 'Native iOS app development using Swift and SwiftUI',
+            type: 'Feature',
+            status: 'Planning',
+            completion: 10,
+            priority: 'High',
+            layer: 'Layer 7: iOS Development',
+            webStatus: 'Complete',
+            mobileStatus: 'Planning',
+            children: [
+              {
+                id: 'MT-007-001-FOUNDATION',
+                title: 'iOS App Foundation',
+                type: 'Project',
+                status: 'Planning',
+                completion: 5,
+                priority: 'High',
+                team: ['iOS Team', 'Senior Mobile Architect'],
+                originalFiles: ['N/A - New iOS Development'],
+                changesFrom: 'New native iOS development based on web platform foundation.',
+                currentState: 'Planning: Web APIs ready for mobile consumption. iOS development ready to begin.',
+                estimatedHours: 120,
+                actualHours: 0,
+                webStatus: 'Complete',
+                mobileStatus: 'Planning',
+                mobileNextSteps: [
+                  'Create iOS project structure with SwiftUI and MVVM architecture',
+                  'Implement authentication using web API endpoints',
+                  'Build core navigation and tab structure',
+                  'Integrate native camera and location services'
+                ]
+              }
+            ]
+          },
+          {
+            id: 'MT-007-ANDROID',
+            title: 'Android Native Development',
+            description: 'Native Android app development using Kotlin and Jetpack Compose',
+            type: 'Feature',
+            status: 'Planning',
+            completion: 10,
+            priority: 'High',
+            layer: 'Layer 7: Android Development',
+            webStatus: 'Complete',
+            mobileStatus: 'Planning',
+            children: [
+              {
+                id: 'MT-007-002-FOUNDATION',
+                title: 'Android App Foundation',
+                type: 'Project',
+                status: 'Planning',
+                completion: 5,
+                priority: 'High',
+                team: ['Android Team', 'Senior Mobile Architect'],
+                originalFiles: ['N/A - New Android Development'],
+                changesFrom: 'New native Android development based on web platform foundation.',
+                currentState: 'Planning: Web APIs ready for mobile consumption. Android development ready to begin.',
+                estimatedHours: 120,
+                actualHours: 0,
+                webStatus: 'Complete',
+                mobileStatus: 'Planning',
+                mobileNextSteps: [
+                  'Create Android project with Jetpack Compose and MVVM architecture',
+                  'Implement authentication using web API endpoints',
+                  'Build Material Design navigation and bottom navigation',
+                  'Integrate native camera, location, and notification services'
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ];
+
+const EnhancedHierarchicalTreeView: React.FC = () => {
+  const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
+
+  const getCompletedTasks = (item: ProjectItem): string[] => {
+    switch (item.id) {
+      case 'authentication':
+        return [
+          'Replit OAuth integration fully operational',
+          'JWT token validation system implemented',
+          'Multi-role support with 23 role types deployed',
+          'User registration with onboarding flow complete',
+          'Role-based access control (RBAC) operational',
+          'Session management with persistent authentication',
+          'Password hashing with bcrypt security',
+          'Database schema with users, roles, user_roles tables'
+        ];
+      case 'posts-feed':
+        return [
+          'TrangoTechPostComposer with rich text editing',
+          'Media upload system integrated with Supabase Storage',
+          'Google Maps location integration',
+          'User mention system (@username) operational',
+          'Emoji picker and reactions system',
+          'Tag-based post filtering',
+          'Real-time comment synchronization',
+          'Media library with reuse capabilities'
+        ];
+      case 'events-system':
+        return [
+          'Event creation with comprehensive form',
+          'RSVP system (Going/Interested/Maybe)',
+          'Role assignment system (DJ, Teacher, Performer)',
+          'Participant tracking and statistics',
+          'Event-to-city group automatic assignment',
+          'Google Maps venue selection',
+          'Event dashboard with filtering',
+          'Event participant role invitations'
+        ];
+      case 'city-groups':
+        return [
+          'Automatic city group creation during registration',
+          'Pexels API photo fetching for authentic city imagery',
+          'Intelligent location parsing and group assignment',
+          'User auto-join functionality',
+          'Group navigation and detailed pages',
+          'Membership status tracking',
+          'Administrative controls for group management'
+        ];
+      case 'project-tracker':
+        return [
+          'Hierarchical project structure implemented',
+          '11-Layer framework methodology established',
+          'Basic project metrics and analytics',
+          'EnhancedHierarchicalTreeView component created',
+          'Project data structure with comprehensive metadata'
+        ];
+      default:
+        return [
+          'Core functionality implemented',
+          'Database schema established',
+          'Basic API endpoints operational',
+          'Frontend components created'
+        ];
+    }
+  };
+
+  const getRemainingTasks = (item: ProjectItem): string[] => {
+    switch (item.id) {
+      case 'authentication':
+        return [
+          'Two-factor authentication (2FA) implementation',
+          'Social login integration (Google, Facebook)',
+          'Advanced permission system refinement',
+          'User activity audit logging'
+        ];
+      case 'posts-feed':
+        return [
+          'Advanced content moderation tools',
+          'Post scheduling functionality',
+          'Advanced analytics and insights',
+          'Content export capabilities'
+        ];
+      case 'events-system':
+        return [
+          'Calendar integration (Google Calendar, Outlook)',
+          'Event reminders and notifications',
+          'Ticket management system',
+          'Advanced event analytics'
+        ];
+      case 'city-groups':
+        return [
+          'Advanced group moderation tools',
+          'Group analytics and insights',
+          'Custom group themes and branding',
+          'Group event scheduling integration'
+        ];
+      case 'project-tracker':
+        return [
+          'Jira-style detailed item modal implementation',
+          'Human review and sign-off system',
+          'Automatic task tracking from code changes',
+          'Time tracking and reporting',
+          'Dependency mapping visualization',
+          'Advanced filtering and search',
+          'Export and reporting capabilities'
+        ];
+      default:
+        return [
+          'Advanced features implementation',
+          'Performance optimization',
+          'Testing and validation',
+          'Documentation completion'
+        ];
+    }
+  };
+
+  const getHandoffContext = (item: ProjectItem): string => {
+    switch (item.id) {
+      case 'authentication':
+        return 'Complete authentication system with Replit OAuth, multi-role support, and user management. All database tables and API endpoints are operational. Focus on enhancing security features and advanced permissions.';
+      case 'posts-feed':
+        return 'Advanced post creation system with rich text, media uploads, mentions, and real-time features. ModernPostCreator and TrangoTechPostComposer components are fully functional. Continue with content moderation and advanced analytics.';
+      case 'events-system':
+        return 'Comprehensive event management with RSVP system, role assignments, and automatic city group integration. All core functionality operational. Enhance with calendar integration and notification system.';
+      case 'city-groups':
+        return 'Automated city group system with photo fetching, auto-assignment, and user management. Basic group functionality complete. Focus on advanced moderation and analytics features.';
+      case 'project-tracker':
+        return 'Basic hierarchical project tracker with 11L methodology and EnhancedHierarchicalTreeView component. Core structure established but needs Jira-style detailed views and human review system.';
+      default:
+        return 'Project foundation established with core functionality. Continue with advanced features and optimization.';
+    }
+  };
+
+  const getNextSteps = (item: ProjectItem): string[] => {
+    switch (item.id) {
+      case 'project-tracker':
+        return [
+          'Implement JiraStyleItemDetailModal component with comprehensive project details',
+          'Add human review system with sign-off capabilities for completed tasks',
+          'Create automatic task tracking that monitors code changes and updates project status',
+          'Build dependency mapping to show project relationships and blocking issues',
+          'Add time tracking functionality with estimated vs actual hours comparison',
+          'Implement advanced filtering by team member, priority, status, and date ranges',
+          'Create export functionality for project reports and progress summaries'
+        ];
+      case 'authentication':
+        return [
+          'Implement two-factor authentication using authenticator apps',
+          'Add social login integration with OAuth providers',
+          'Enhance permission system with granular resource-level controls',
+          'Build comprehensive user activity audit logging'
+        ];
+      case 'posts-feed':
+        return [
+          'Implement AI-powered content moderation system',
+          'Add post scheduling for future publication',
+          'Build advanced analytics dashboard for content performance',
+          'Create content export tools for user data portability'
+        ];
+      default:
+        return [
+          'Continue implementation of remaining features',
+          'Add comprehensive testing coverage',
+          'Optimize performance and user experience',
+          'Complete documentation and user guides'
+        ];
+    }
+  };
+
+  const getWebDevFoundationTasks = (item: ProjectItem): string[] => {
+    switch (item.id) {
+      case 'posts-feed':
+        return [
+          'Create responsive React Native post creation interface',
+          'Implement native camera integration (iOS/Android)',
+          'Build cross-platform rich text editor component',
+          'Add offline post drafting capabilities'
+        ];
+      case 'events-system':
+        return [
+          'Design mobile-first event management UI',
+          'Create native calendar integration',
+          'Build location picker with GPS functionality',
+          'Implement push notifications for event updates'
+        ];
+      default:
+        return [
+          'Set up React Native development environment',
+          'Create shared component library',
+          'Implement authentication flow',
+          'Build navigation structure'
+        ];
+    }
+  };
+
+  const getWebDevPrerequisites = (item: ProjectItem): string[] => {
+    switch (item.id) {
+      case 'posts-feed':
+        return [
+          'TrangoTechPostComposer web component completed',
+          'Media upload API endpoints operational',
+          'Authentication system integrated',
+          'Real-time features tested and validated'
+        ];
+      default:
+        return [
+          'Backend API endpoints implemented',
+          'Database schema finalized',
+          'Authentication system operational',
+          'Core web functionality validated'
+        ];
+    }
+  };
+
+  const getKeyFiles = (item: ProjectItem): string[] => {
+    switch (item.id) {
+      case 'project-tracker':
+        return [
+          'client/src/components/admin/EnhancedHierarchicalTreeView.tsx',
+          'client/src/components/admin/Comprehensive11LProjectTracker.tsx',
+          '11L_HIERARCHICAL_BREAKDOWN_ANALYSIS.md',
+          'WEB_TO_MOBILE_READINESS_ANALYSIS_11L.md'
+        ];
+      case 'posts-feed':
+        return [
+          'client/src/components/TrangoTechPostComposer.tsx',
+          'client/src/components/ModernPostCreator.tsx',
+          'server/routes.ts (posts endpoints)',
+          'shared/schema.ts (posts table)'
+        ];
+      default:
+        return [
+          'replit.md',
+          'package.json',
+          'server/routes.ts',
+          'shared/schema.ts'
+        ];
+    }
+  };
+
+  // Component state and handlers
+  const [selectedItem, setSelectedItem] = useState<ProjectItem | null>(null);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
+  const handleItemClick = (item: ProjectItem) => {
+    setSelectedItem(item);
+  };
+
+  const toggleExpanded = (id: string) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedItems(newExpanded);
+  };
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case 'Platform': return <Building2 className="h-4 w-4" />;
+      case 'Section': return <Folder className="h-4 w-4" />;
+      case 'Feature': return <Layers className="h-4 w-4" />;
+      case 'Project': return <GitBranch className="h-4 w-4" />;
+      case 'Task': return <FileText className="h-4 w-4" />;
+      case 'Sub-task': return <CheckSquare className="h-4 w-4" />;
+      default: return <Circle className="h-4 w-4" />;
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'Complete': return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'In Progress': return <Clock className="h-4 w-4 text-blue-600" />;
+      case 'Planning': return <Calendar className="h-4 w-4 text-yellow-600" />;
+      case 'Blocked': return <AlertCircle className="h-4 w-4 text-red-600" />;
+      case 'Not Started': return <Circle className="h-4 w-4 text-gray-400" />;
+      default: return <Circle className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const renderTreeItem = (item: ProjectItem, level: number = 0) => {
+    const isExpanded = expandedItems.has(item.id);
+    const hasChildren = item.children && item.children.length > 0;
+    const indent = level * 24;
+
+    return (
+      <div key={item.id} className="w-full">
+        <div 
+          className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-l-2 border-transparent hover:border-blue-500 transition-all duration-200"
+          style={{ paddingLeft: `${12 + indent}px` }}
+          onClick={() => handleItemClick(item)}
+        >
+          {/* Expand/Collapse Button */}
+          {hasChildren && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleExpanded(item.id);
+              }}
+              className="flex-shrink-0 p-1 hover:bg-gray-200 rounded"
+            >
+              {isExpanded ? 
+                <ChevronDown className="h-4 w-4" /> : 
+                <ChevronRight className="h-4 w-4" />
+              }
+            </button>
+          )}
+
+          {/* Icon */}
+          <div className="flex-shrink-0 text-gray-600">
+            {getIcon(item.type)}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h4 className="font-medium text-gray-900 truncate">{item.title}</h4>
+              <div className="flex items-center gap-1">
+                {getStatusIcon(item.status)}
+                <Badge variant="outline" className="text-xs">{item.type}</Badge>
+              </div>
+            </div>
+            {item.description && (
+              <p className="text-sm text-gray-600 truncate mt-1">{item.description}</p>
+            )}
+          </div>
+
+          {/* Progress */}
+          <div className="flex-shrink-0 flex items-center gap-2">
+            <div className="text-sm font-medium text-blue-600">
+              {item.completion}%
+            </div>
+            <div className="w-16 bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${item.completion}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Children */}
+        {hasChildren && isExpanded && (
+          <div className="ml-0">
+            {item.children!.map(child => renderTreeItem(child, level + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="w-full space-y-2">
+      {projectData.map(item => renderTreeItem(item))}
+      
+      {/* Detailed Card Modal */}
+      {selectedItem && (
+        <DetailedCard 
+          item={selectedItem} 
+          onClose={() => setSelectedItem(null)} 
+        />
+      )}
+    </div>
+  );
+};
+
+export default EnhancedHierarchicalTreeView;

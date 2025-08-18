@@ -1,0 +1,156 @@
+{
+  "name": "Mundo Tango User Onboarding Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "user-signup",
+        "options": {}
+      },
+      "id": "webhook-user-signup",
+      "name": "User Signup Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.role}}",
+              "operation": "equal",
+              "value2": "host"
+            }
+          ]
+        }
+      },
+      "id": "check-user-role",
+      "name": "Check User Role",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Send welcome email to guest users\nconst userData = $input.first().json;\n\nreturn [\n  {\n    json: {\n      to: userData.email,\n      subject: \"Welcome to Mundo Tango!\",\n      html: `\n        <h2>Welcome ${userData.firstName}!</h2>\n        <p>Thank you for joining the Mundo Tango community.</p>\n        <p>Explore tango events in your city and connect with fellow dancers.</p>\n        <a href=\"https://mundotango.life/profile\">Complete your profile</a>\n      `\n    }\n  }\n];"
+      },
+      "id": "guest-welcome-email",
+      "name": "Guest Welcome Email",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Send host onboarding email with special instructions\nconst userData = $input.first().json;\n\nreturn [\n  {\n    json: {\n      to: userData.email,\n      subject: \"Welcome Tango Host - Get Started\",\n      html: `\n        <h2>Welcome Host ${userData.firstName}!</h2>\n        <p>You're now part of our host community.</p>\n        <p>Next steps:</p>\n        <ul>\n          <li>List your property</li>\n          <li>Set your availability</li>\n          <li>Start hosting fellow tango dancers</li>\n        </ul>\n        <a href=\"https://mundotango.life/host-onboarding\">Complete Host Setup</a>\n      `\n    }\n  }\n];"
+      },
+      "id": "host-welcome-email",
+      "name": "Host Welcome Email", 
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "authentication": "none",
+        "url": "={{$json.to}}",
+        "options": {
+          "headers": {
+            "Content-Type": "text/html"
+          }
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={{JSON.stringify($json)}}"
+      },
+      "id": "send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://app:5000/api/webhooks/hubspot-sync",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={{JSON.stringify($node['User Signup Webhook'].json)}}"
+      },
+      "id": "sync-to-hubspot",
+      "name": "Sync to HubSpot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "User Signup Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check User Role",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check User Role": {
+      "main": [
+        [
+          {
+            "node": "Guest Welcome Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Host Welcome Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guest Welcome Email": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Host Welcome Email": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "Sync to HubSpot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-08-06T11:06:00.000Z",
+  "updatedAt": "2025-08-06T11:06:00.000Z",
+  "settings": {},
+  "staticData": null,
+  "tags": ["onboarding", "email", "hubspot"]
+}
