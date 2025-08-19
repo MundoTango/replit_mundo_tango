@@ -1,0 +1,38 @@
+// @ts-nocheck
+/* eslint-disable */
+/**
+ * ESA LIFE CEO 56x21 - Workflow Compatibility Layer
+ * This is actually JavaScript but named .ts for workflow compatibility
+ */
+
+const { spawn } = require('child_process');
+const path = require('path');
+
+console.log('[ESA 56x21] Initializing server...');
+
+// Spawn the real TypeScript server
+const serverProcess = spawn('npx', ['tsx', path.join(__dirname, 'index.real.ts')], {
+  stdio: 'inherit',
+  env: Object.assign({}, process.env, {
+    NODE_ENV: process.env.NODE_ENV || 'development',
+    PORT: 5000,
+    DISABLE_REDIS: 'true'
+  })
+});
+
+serverProcess.on('error', function(error) {
+  console.error('[ESA 56x21] Server failed:', error);
+  process.exit(1);
+});
+
+serverProcess.on('exit', function(code) {
+  process.exit(code || 0);
+});
+
+process.on('SIGTERM', function() {
+  serverProcess.kill('SIGTERM');
+});
+
+process.on('SIGINT', function() {
+  serverProcess.kill('SIGINT');
+});

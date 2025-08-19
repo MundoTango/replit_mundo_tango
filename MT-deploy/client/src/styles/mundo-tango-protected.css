@@ -1,0 +1,79 @@
+/* PROTECTED: Mundo Tango Core Design System v1.0 */
+/* DO NOT MODIFY - Brand Identity Protection */
+/* Last approved: January 15, 2025 */
+/* Change requests: admin@mundotango.life */
+
+/* LOCKED BRAND COLORS - MUNDO TANGO IDENTITY */
+:root {
+  /* Primary Brand Colors - PROTECTED */
+  --tango-red: #8E142E !important;
+  --tango-gold: #D4AF37 !important;
+  --tango-black: #1A1A1A !important;
+  --tango-gray: #F7F7F7 !important;
+  
+  /* Brand Gradients - PROTECTED */
+  --gradient-primary: linear-gradient(135deg, #8E142E 0%, #1A1A1A 100%) !important;
+  --gradient-primary-hover: linear-gradient(135deg, #D4AF37 0%, #8E142E 100%) !important;
+  --gradient-secondary: linear-gradient(135deg, #D4AF37 0%, #8E142E 100%) !important;
+  
+  /* Override any turquoise/ocean colors */
+  --color-turquoise-400: #8E142E !important;
+  --color-turquoise-500: #8E142E !important;
+  --color-turquoise-600: #8E142E !important;
+  --color-blue-500: #0D448A !important;
+  --color-blue-600: #0D448A !important;
+  
+  /* Component Colors - PROTECTED */
+  --primary: #8E142E !important;
+  --primary-foreground: #FFFFFF !important;
+  --secondary: #D4AF37 !important;
+  --accent: #D4AF37 !important;
+  
+  /* Text Colors - PROTECTED */
+  --foreground: #1A1A1A !important;
+  --muted-foreground: #666666 !important;
+}
+
+/* Force brand colors on key elements */
+.btn-primary,
+.bg-gradient-to-r,
+.from-turquoise-500,
+.to-blue-600 {
+  background: var(--gradient-primary) !important;
+}
+
+/* Protect headers and navigation */
+.mt-group-header,
+.sidebar,
+.navbar {
+  background: var(--gradient-primary) !important;
+}
+
+/* Protect links and interactive elements */
+a,
+.text-turquoise-600,
+.text-blue-600 {
+  color: var(--tango-red) !important;
+}
+
+a:hover,
+.hover\:text-turquoise-700:hover {
+  color: var(--tango-gold) !important;
+}
+
+/* Protect buttons */
+button.bg-turquoise-500,
+button.bg-blue-500 {
+  background-color: var(--tango-red) !important;
+}
+
+button.bg-turquoise-500:hover,
+button.bg-blue-500:hover {
+  background-color: var(--tango-gold) !important;
+}
+
+/* THEME PROTECTION NOTICE */
+/* This file protects Mundo Tango's visual identity from unauthorized changes.
+   Any modifications must be approved by the brand team.
+   Original design: Red (#8E142E) and Gold (#D4AF37)
+   NO turquoise or ocean colors allowed. */

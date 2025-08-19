@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Test Without Modules</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <div style="position: fixed; bottom: 0; left: 0; right: 0; background: black; color: lime; padding: 10px; font-family: monospace;">
+        <p>Testing React without ES modules...</p>
+        <p id="status">Loading...</p>
+    </div>
+    
+    <script>
+        const status = document.getElementById('status');
+        
+        try {
+            const e = React.createElement;
+            
+            function TestApp() {
+                const [count, setCount] = React.useState(0);
+                return e('div', {style: {padding: '20px', textAlign: 'center'}}, 
+                    e('h1', null, 'React is working!'),
+                    e('p', null, 'Count: ' + count),
+                    e('button', {onClick: () => setCount(count + 1)}, 'Click me')
+                );
+            }
+            
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(e(TestApp));
+            
+            status.textContent = 'React loaded successfully! If you see a counter above, React is working.';
+        } catch (err) {
+            status.textContent = 'Error: ' + err.message;
+        }
+    </script>
+</body>
+</html>
