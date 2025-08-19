@@ -1,9 +1,10 @@
 
-# keep Docker context tiny
+# ESA LIFE CEO 61x21 - Keep Docker context tiny
 .git
 .gitignore
 **/.git
 node_modules
+**node_modules
 .npm
 .pnpm-store
 .cache
@@ -19,3 +20,30 @@ attached_assets
 *.local
 *.env.local
 *.DS_Store
+.deployment_excluded
+.local
+tmp
+dist
+cypress
+evolution
+data
+frontend
+android
+ios
+life-ceo
+packages
+n8n-workflows
+nginx
+docs
+scripts
+database
+compliance
+auth
+backend
+communities
+integration
+routes
+workflows
+*.tar.gz
+*.zip
+*.rar

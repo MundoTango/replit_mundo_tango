@@ -8,9 +8,10 @@ ENV CI=true NODE_ENV=production
 COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
 RUN npm ci
 
-# copy sources and build
+# copy only essential source files for build
 COPY client ./client
 COPY server ./server
+COPY shared ./shared
 COPY public ./public
 COPY vite.config.ts tsconfig.json ./
 RUN npm run build
