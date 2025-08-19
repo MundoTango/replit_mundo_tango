@@ -1,30 +1,59 @@
 
-# ESA LIFE CEO 61x21 - Keep Docker context tiny
+# ESA LIFE CEO 61x21 - Aggressive Docker context exclusion
+
+# Version control
 .git
 .gitignore
+.gitattributes
 **/.git
+**/.gitignore
+
+# Dependencies (will be installed fresh)
 node_modules
-**node_modules
+**/node_modules
 .npm
 .pnpm-store
+.yarn
 .cache
+**/dist
+**/build
+
+# Testing
 .cypress
 playwright
 test-results
 tests
 coverage
-**/*.mp4
-uploads
-attached_assets
-*.log
-*.local
-*.env.local
-*.DS_Store
-.deployment_excluded
-.local
-tmp
-dist
 cypress
+vitest.config.*
+jest.config.*
+**/*.test.*
+**/*.spec.*
+
+# Media files (huge!)
+**/*.mp4
+**/*.mp3
+**/*.mov
+**/*.avi
+**/*.mkv
+**/*.webm
+**/*.wav
+**/*.flac
+**/*.jpg
+**/*.jpeg
+**/*.png
+**/*.gif
+**/*.svg
+**/*.ico
+uploads
+tmp
+
+# Documentation and non-essential directories
+docs
+*.md
+LICENSE
+README*
+CHANGELOG*
 evolution
 data
 frontend
@@ -34,7 +63,6 @@ life-ceo
 packages
 n8n-workflows
 nginx
-docs
 scripts
 database
 compliance
@@ -44,6 +72,59 @@ communities
 integration
 routes
 workflows
+MT-deploy
+
+# Archives
 *.tar.gz
 *.zip
 *.rar
+*.7z
+*.bz2
+
+# Environment and logs
+*.log
+*.local
+.env*
+!.env.example
+*.DS_Store
+.deployment_excluded
+.local
+
+# IDE
+.vscode
+.idea
+*.sublime*
+*.swp
+*.swo
+
+# Misc heavy files
+*.pdf
+*.docx
+*.xlsx
+*.pptx
+
+# Keep build artifacts out
+dist
+build
+.next
+.nuxt
+.cache
+.parcel-cache
+
+# Development files
+*.map
+*.lock
+!package-lock.json
+
+# Temporary files
+tmp
+temp
+.tmp
+.temp
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# Keep context absolutely minimal
+# Only include: package.json, source code (client/server/shared), configs
