@@ -21,7 +21,7 @@ app.use(express.static(path.join(__dirname, '../dist/public')));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/images', express.static(path.join(__dirname, '../client/public/images')));
 
-// Health check endpoint
+// Health check endpoints
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'healthy',
@@ -29,6 +29,11 @@ app.get('/health', (req, res) => {
     commit: '9cab03b0',
     theme: 'glassmorphic MT Ocean'
   });
+});
+
+// Simple healthz endpoint for deployment health checks
+app.get('/healthz', (_req, res) => {
+  res.status(200).send('ok');
 });
 
 // Catch-all route for SPA
