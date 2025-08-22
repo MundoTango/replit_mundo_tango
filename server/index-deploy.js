@@ -1,50 +1,46 @@
-// ESA LIFE CEO 56x21 - Production Server
-// This file runs in production without vite or tsx dependencies
 
+// ESA LIFE CEO 61x21 - Deployment Hardened Server
 const express = require('express');
 const path = require('path');
-const { createServer } = require('http');
 const compression = require('compression');
-const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Essential middleware
+// Essential middleware only for deployment
 app.use(compression());
-app.use(cors());
-app.use(express.json({ limit: '100mb' }));
-app.use(express.urlencoded({ extended: true, limit: '100mb' }));
+app.use(express.static(path.join(__dirname, '../dist')));
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '../dist/public')));
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-app.use('/images', express.static(path.join(__dirname, '../client/public/images')));
-
-// Health check endpoints
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy',
-    version: 'ESA LIFE CEO 56x21',
-    commit: '9cab03b0',
-    theme: 'glassmorphic MT Ocean'
-  });
-});
-
-// Simple healthz endpoint for deployment health checks
+// Health check endpoint for Autoscale
 app.get('/healthz', (_req, res) => {
   res.status(200).send('ok');
 });
 
-// Catch-all route for SPA
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/public/index.html'));
+// Catch-all handler for SPA
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 // Start server
-const server = createServer(app);
-server.listen(port, '0.0.0.0', () => {
-  console.log(`✅ ESA LIFE CEO 56x21 Server running on port ${port}`);
-  console.log(`🎨 Glassmorphic interface preserved`);
-  console.log(`🔒 Locked to commit 9cab03b0`);
+const server = app.listen(port, '0.0.0.0', () => {
+  console.log(`[ESA 61x21] Server listening on 0.0.0.0:${port}`);
+  console.log(`[ESA 61x21] Health check available at /healthz`);
+  console.log(`[ESA 61x21] Memory limit: ${process.env.NODE_OPTIONS || 'default'}`);
 });
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('[ESA 61x21] SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('[ESA 61x21] Process terminated');
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('[ESA 61x21] SIGINT received, shutting down gracefully');
+  server.close(() => {
+    console.log('[ESA 61x21] Process terminated');
+  });
+});
+
+module.exports = app;
